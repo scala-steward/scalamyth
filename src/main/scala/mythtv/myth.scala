@@ -25,9 +25,9 @@ case class CaptureCard(cardId: Int, props: PropertyMap)
 trait Frontend
 trait Backend
 
-trait Media {
+trait PlayableMedia {
   // TODO what are subclasses?  Program(?), Recording, Video
-  // TODO methods on Media
+  // TODO methods on PlayableMedia
   def playOnFrontend(fe: Frontend): Boolean
 }
 
@@ -44,7 +44,7 @@ trait FreeSpace {
 }
 
 // TODO some of these fields are optional or have default (meaningless values)
-trait Program {  // TODO which fields need to be moved to a subclass ?
+trait Program {
   def title: String
   def subtitle: String
   def description: String
@@ -103,19 +103,6 @@ trait Recording extends Recordable {
   def inetRef: String              // TODO not in program table
 }
 
-// TODO storage group stuff ...
-
-// TODO make a tuple type for (chanid, starttime) to shorten parameter lists?
-
-trait Channel {
-  def chanId: Int
-  def name: String
-  def callsign: String
-  def visible: Boolean
-  def recpriority: Int
-  def lastRecord: LocalDateTime
-}
-
 trait GuideEntry extends Program {
   // Fields not originally written here but in the program table
   def audioprop: Set[Any]      // TODO enum set -- called audioProps in Program
@@ -143,7 +130,20 @@ trait GuideEntry extends Program {
   // TODO : what else?
 }
 
-trait IProgram extends Media {
+// TODO storage group stuff ...
+
+// TODO make a tuple type for (chanid, starttime) to shorten parameter lists?
+
+trait Channel {
+  def chanId: Int
+  def name: String
+  def callsign: String
+  def visible: Boolean
+  def recpriority: Int
+  def lastRecord: LocalDateTime
+}
+
+trait IProgram extends PlayableMedia {
   // TODO
 }
 
@@ -155,7 +155,7 @@ trait IPreviousRecording {
   // TODO
 }
 
-trait IVideo extends Media {
+trait IVideo extends PlayableMedia {
   def id: Int
   def title: String
   def subtitle: String
@@ -239,7 +239,7 @@ trait BackendOperations {
 }
 
 trait FrontendOperations {
-  def play(media: Media): Boolean
+  def play(media: PlayableMedia): Boolean
   def screenshot(format: String, width: Int, height: Int): Array[Byte]
 
   def uptime: Duration

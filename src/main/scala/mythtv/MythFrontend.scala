@@ -16,7 +16,7 @@ class MythFrontend(val host: String) extends Frontend with FrontendOperations {
     conn.disconnect()
   }
 
-  def play(media: Media): Boolean = media.playOnFrontend(this)
+  def play(media: PlayableMedia): Boolean = media.playOnFrontend(this)
 
   def uptime: Duration = {
     val res = conn.sendCommand("query uptime").getOrElse("")
