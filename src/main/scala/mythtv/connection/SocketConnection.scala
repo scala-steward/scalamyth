@@ -5,7 +5,7 @@ import java.net.Socket
 import java.io.{ InputStream, OutputStream }
 
 // TODO is 'host' a hostname or IP address (or either?)
-abstract class SocketConnection(val host: String, val port: Int, val timeout: Int) {
+abstract class SocketConnection(host: String, port: Int, val timeout: Int) extends NetworkConnection(host, port) {
   private[this] var connected: Boolean = false
   private[this] var socket: Socket = connectSocket()
 
