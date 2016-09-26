@@ -1,10 +1,10 @@
 package mythtv
 package connection
 
-import java.net.{ Socket, InetAddress }
 import java.io.{ InputStream, InputStreamReader, OutputStream, OutputStreamWriter }
+import java.net.InetAddress
 import java.nio.ByteBuffer
-import java.nio.charset.{ Charset, StandardCharsets }
+import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
 
 import scala.util.Try
@@ -64,51 +64,19 @@ private class BackendCommandWriter(out: OutputStream) extends BackendCommandStre
   }
 }
 
-// TODO is 'host' a hostname or IP address (or either?)
-class BackendConnection(val host: String, val port: Int, val timeout: Int, val blockShutdown: Boolean)
-    extends MythProtocol {
-  private[this] var connected: Boolean = false
-  private[this] var socket: Socket = connectSocket()  // TODO need to check version & announce...
-
+class BackendConnection(host: String, port: Int, timeout: Int, val blockShutdown: Boolean)
+    extends SocketConnection(host, port, timeout) with MythProtocol {
   // TODO management of reader/writer lifecycle
-
-  finishConnect()
 
   def this(host: String, port: Int, timeout: Int) = this(host, port, timeout, false)
   def this(host: String, port: Int) = this(host, port, 10)
-
-  private def connectSocket(): Socket = {
-    val newSocket = new Socket(host, port)
-    newSocket.setSoTimeout(10 * 1000)
-    connected = true
-    newSocket
-  }
 
   protected def finishConnect(): Unit = {
     checkVersion
     announce()
   }
 
-  protected def connect(): Unit = {
-    if (!connected) {
-      socket = connectSocket()
-      finishConnect()
-    }
-  }
-
-  def disconnect(graceful: Boolean = true): Unit = {
-    if (connected) {
-      if (graceful) postCommand("DONE")  // TODO no response?
-      connected = false
-      socket.shutdownOutput()
-      socket.close()
-    }
-  }
-
-  def reconnect(graceful: Boolean = true): Unit = {
-    disconnect(graceful)
-    connect()
-  }
+  protected def gracefulDisconnect(): Unit = postCommand("DONE")
 
   protected def announce(): Unit = {
     val localname = InetAddress.getLocalHost().getHostName()  // FIXME uses DNS, ugh..
@@ -122,8 +90,8 @@ class BackendConnection(val host: String, val port: Int, val timeout: Int, val b
   // TODO support passing a list which will be joined using backend sep
   ///  NB some commands put a separator between command string and arguments, others use whitespace
   def sendCommand(command: String, timeout: Option[Int] = None): Option[String] = {
-    val writer = new BackendCommandWriter(socket.getOutputStream)
-    val reader = new BackendCommandReader(socket.getInputStream)
+    val writer = new BackendCommandWriter(outputStream)
+    val reader = new BackendCommandReader(inputStream)
 
     // write the message
     writer.sendCommand(command)
@@ -135,8 +103,8 @@ class BackendConnection(val host: String, val port: Int, val timeout: Int, val b
   }
 
   def postCommand(command: String): Unit = {
-    val writer = new BackendCommandWriter(socket.getOutputStream)
-    val reader = new BackendCommandReader(socket.getInputStream)
+    val writer = new BackendCommandWriter(outputStream)
+    val reader = new BackendCommandReader(inputStream)
 
     // write the message
     writer.sendCommand(command)

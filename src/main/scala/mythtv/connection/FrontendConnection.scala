@@ -18,58 +18,33 @@ trait FrontendNetworkControl {
     */
 }
 
-import java.net.Socket
-import java.io.{ InputStream, InputStreamReader, OutputStream, OutputStreamWriter }
-import java.nio.charset.Charset
+import java.io.{ InputStreamReader, OutputStreamWriter }
+import java.nio.charset.StandardCharsets
 
 import scala.util.Try
 
-class FrontendConnection(val host: String, val port: Int, val timeout: Int) {
-  private[this] var connected: Boolean = false
-  private[this] var socket: Socket = connectSocket()
+class FrontendConnection(host: String, port: Int, timeout: Int)
+    extends SocketConnection(host, port, timeout) with FrontendNetworkControl {
 
   // TODO management of reader/writer lifecycle
 
-  finishConnect()
-
   def this(host: String, port: Int) = this(host, port, 10)
-
-  private def connectSocket(): Socket = {
-    val newSocket = new Socket(host, port)
-    newSocket.setSoTimeout(10 * 1000)
-    connected = true
-    newSocket
-  }
 
   protected def finishConnect(): Unit = {
     // TODO swallow up connection start returned data
     println(receive())
   }
 
-  protected def connect(): Unit = {
-    if (!connected) {
-      socket = connectSocket()
-      finishConnect()
-    }
-  }
-
-  def disconnect(graceful: Boolean = true): Unit = {
-    if (connected) {
-      if (graceful) postCommand("exit")
-      connected = false
-      socket.shutdownOutput()
-      socket.close()
-    }
-  }
+  protected def gracefulDisconnect(): Unit = postCommand("exit")
 
   protected def transmit(message: String): Unit = {
-    val writer = new OutputStreamWriter(socket.getOutputStream, Charset.forName("UTF-8"))
+    val writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)
     println("Writing message " + message)
     writer.write(message)
     writer.flush()
   }
 
-  // TODO we should expect "\n# " at the end of all replies (this is the interactive prompt)
+  // we should expect "\n# " at the end of all replies (this is the interactive prompt)
   protected def receive(): String = {
     val sb = new StringBuffer
 
@@ -77,7 +52,7 @@ class FrontendConnection(val host: String, val port: Int, val timeout: Int) {
     var off: Int = 0
     val BUFSZ = 1024
 
-    val reader = new InputStreamReader(socket.getInputStream)
+    val reader = new InputStreamReader(inputStream)
     val buf = new Array[Char](BUFSZ)
 
     println("Starting read...")
