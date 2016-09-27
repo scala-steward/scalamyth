@@ -1,6 +1,6 @@
-import mythtv.model.GuideEntry
+package mythtv
 
-package object mythtv {
+package object model {
   type PropertyMap = Map[String, Any]
   type Guide = Iterable[GuideEntry]
   type BitmaskEnum = Enumeration
