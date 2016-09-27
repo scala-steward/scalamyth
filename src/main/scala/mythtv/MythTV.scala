@@ -1,0 +1,4 @@
+package mythtv
+
+object MythTV {
+}
