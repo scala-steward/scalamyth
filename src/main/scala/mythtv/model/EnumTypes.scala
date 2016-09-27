@@ -1,9 +1,10 @@
-package mythtv.model
+package mythtv
+package model
 
 object EnumTypes {
-  type Markup = mythtv.Markup.Value
-  type RecType = mythtv.RecType.Value
-  type RecSearchType = mythtv.RecSearchType.Value
-  type RecStatus = mythtv.RecStatus.Value
-  type JobStatus = mythtv.JobStatus.Value
+  type Markup = model.Markup.Value
+  type RecType = model.RecType.Value
+  type RecSearchType = model.RecSearchType.Value
+  type RecStatus = model.RecStatus.Value
+  type JobStatus = model.JobStatus.Value
 }

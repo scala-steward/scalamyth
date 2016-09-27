@@ -1,4 +1,5 @@
 package mythtv
+package model
 
 /* TODO: can I create a "LooseEnum" class that will allow creation
     of instances with unknown mapping (and preserve original int value? */
