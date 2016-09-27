@@ -4,7 +4,8 @@ import java.time.LocalDate
 
 import scala.util.Try
 
-import mythtv.util.{ ByteCount, MythDateTime }
+import model._
+import util.{ ByteCount, MythDateTime }
 
 class BackendProgram(data: Seq[String]) extends Program with Recordable with Recording {
   import BackendProgram._

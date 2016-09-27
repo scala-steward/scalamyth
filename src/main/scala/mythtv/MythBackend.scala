@@ -3,6 +3,7 @@ package mythtv
 import java.time.{ Duration, LocalDateTime }
 
 import connection.BackendConnection
+import model._
 import util.{ ByteCount, ExpectedCountIterator, MythDateTime }
 
 class MythBackend(val host: String) extends Backend with BackendOperations {

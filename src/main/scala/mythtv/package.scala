@@ -1,3 +1,4 @@
+import mythtv.model.GuideEntry
 
 package object mythtv {
   type PropertyMap = Map[String, Any]

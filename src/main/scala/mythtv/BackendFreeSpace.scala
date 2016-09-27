@@ -1,5 +1,6 @@
 package mythtv
 
+import model.FreeSpace
 import util.ByteCount
 
 class BackendFreeSpace(data: Seq[String]) extends FreeSpace {
