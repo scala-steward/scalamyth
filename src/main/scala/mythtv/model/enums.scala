@@ -60,6 +60,9 @@ object RecSearchType extends Enumeration {
 
 object RecStatus extends Enumeration {
   type RecStatus = Value
+  val OtherRecording    = Value(-13)
+  val OtherTuning       = Value(-12)
+  val MissedFuture      = Value(-11)
   val Tuning            = Value(-10)
   val Failed            = Value(-9)
   val TunerBusy         = Value(-8)
@@ -86,25 +89,6 @@ object RecStatus extends Enumeration {
   val OtherShowing      = Value(13)
 }
 
-object JobStatus extends Enumeration {
-  type JobStatus = Value
-  val Unknown     = Value(0x0000)
-  val Queued      = Value(0x0001)
-  val Pending     = Value(0x0002)
-  val Starting    = Value(0x0003)
-  val Running     = Value(0x0004)
-  val Stopping    = Value(0x0005)
-  val Paused      = Value(0x0006)
-  val Retry       = Value(0x0007)
-  val Erroring    = Value(0x0008)
-  val Aborting    = Value(0x0009)
-  val Finished    = Value(0x0110)
-  val Aborted     = Value(0x0120)
-  val Errored     = Value(0x0130)
-  val Cancelled   = Value(0x0140)
-
-  def isDone(status: JobStatus): Boolean = (status.id & 0x100) != 0
-}
 
 object AudioProperties extends BitmaskEnum {
   type AudioProperties = Value
@@ -136,18 +120,65 @@ object SubtitleType extends BitmaskEnum {
   val Signed   = Value(0x08)
 }
 
+object DupCheckIn extends BitmaskEnum {
+  type DupCheckIn = Value
+  val DupsInRecorded    = Value(0x01)
+  val DupsInOldRecorded = Value(0x02)
+  val DupsInAll         = Value(0x0f)  // this is a mask/combined value
+  val DupsNewEpisodes   = Value(0x10)  // this should always be combined with DupsInAll ??
+}
+
+object DupCheckMethod extends BitmaskEnum {
+  type DupCheckMethod = Value
+  val DupCheckNone        = Value(0x01)
+  val DupCheckSubtitle    = Value(0x02)
+  val DupCheckDescription = Value(0x04)
+  val DupCheckSubDesc     = Value(0x06) // this is a mask/combined value
+  val DupCheckSubThenDesc = Value(0x08) // subtitle, then description
+}
+
+object JobStatus extends Enumeration {
+  type JobStatus = Value
+  val Unknown     = Value(0x0000)
+  val Queued      = Value(0x0001)
+  val Pending     = Value(0x0002)
+  val Starting    = Value(0x0003)
+  val Running     = Value(0x0004)
+  val Stopping    = Value(0x0005)
+  val Paused      = Value(0x0006)
+  val Retry       = Value(0x0007)
+  val Erroring    = Value(0x0008)
+  val Aborting    = Value(0x0009)
+  val Finished    = Value(0x0110)
+  val Aborted     = Value(0x0120)
+  val Errored     = Value(0x0130)
+  val Cancelled   = Value(0x0140)
+
+  def isDone(status: JobStatus): Boolean = new RichJobStatus(status).isDone
+
+  implicit class RichJobStatus(val status: JobStatus) extends AnyVal {
+    def isDone: Boolean = (status.id & 0x100) != 0
+  }
+}
+
 object JobType extends Enumeration {
   type JobType = Value
   val None      = Value(0x0000)
   val Transcode = Value(0x0001)
   val CommFlag  = Value(0x0002)
+  val Metadata  = Value(0x0004)
   val UserJob1  = Value(0x0100)
   val UserJob2  = Value(0x0200)
   val UserJob3  = Value(0x0400)
   val UserJob4  = Value(0x0800)
 
-  def isSystem(jt: JobType): Boolean = (jt.id & 0x00ff) != 0
-  def isUser(jt: JobType): Boolean   = (jt.id & 0xff00) != 0
+  def isSystem(jt: JobType): Boolean = new RichJobType(jt).isSystem
+  def isUser(jt: JobType): Boolean   = new RichJobType(jt).isUser
+
+  implicit class RichJobType(val jobtype: JobType) extends AnyVal {
+    def isSystem: Boolean = (jobtype.id & 0x00ff) != 0
+    def isUser: Boolean   = (jobtype.id & 0xff00) != 0
+  }
 }
 
 object JobCommand extends Enumeration {

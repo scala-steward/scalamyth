@@ -1,10 +1,11 @@
 package mythtv
 
-import java.time.LocalDate
+import java.time.{ LocalDate, Year }
 
 import scala.util.Try
 
 import model._
+import EnumTypes._
 import util.{ ByteCount, MythDateTime }
 
 class BackendProgram(data: Seq[String]) extends Program with Recordable with Recording {
@@ -45,14 +46,14 @@ class BackendProgram(data: Seq[String]) extends Program with Recordable with Rec
   lazy val findId: Int = fields("findId").toInt
   def hostname: String = fields("hostname")
   lazy val sourceId: Int = fields("sourceId").toInt
-  lazy val cardId: Int = fields("cardId").toInt
+  lazy val cardId: CaptureCardId = CaptureCardId(fields("cardId").toInt)
   lazy val inputId: Int = fields("inputId").toInt
   lazy val recPriority: Int = fields("recPriority").toInt
-  lazy val recStatus: Int = fields("recStatus").toInt   // TODO use enum, but "loose" version
-  lazy val recordId: Int = fields("recordId").toInt
-  lazy val recType: Int = fields("recType").toInt   // TODO python bindings have this as a string?? s/b loose enum
-  lazy val dupIn: Int = fields("dupIn").toInt           // TODO is this an enum?
-  lazy val dupMethod: Int = fields("dupMethod").toInt   // TODO is this an enum?
+  lazy val recStatus: RecStatus = RecStatus(fields("recStatus").toInt)
+  lazy val recordId: RecordRuleId = RecordRuleId(fields("recordId").toInt)
+  lazy val recType: RecType = RecType(fields("recType").toInt)
+  lazy val dupIn: DupCheckIn = DupCheckIn(fields("dupIn").toInt)
+  lazy val dupMethod: DupCheckMethod = DupCheckMethod(fields("dupMethod").toInt)
   lazy val recStartTS: MythDateTime = timestampField("recStartTS")
   lazy val recEndTS: MythDateTime = timestampField("recEndTS")
   lazy val programFlags: Int = fields("programFlags").toInt  // TODO is this an enum? python bindings use string??
@@ -68,10 +69,10 @@ class BackendProgram(data: Seq[String]) extends Program with Recordable with Rec
   lazy val recPriority2: Int = fields("recPriority2").toInt
   lazy val parentId: Int = fields("parentId").toInt   // TODO is this an Int or String?
   def storageGroup: String = fields("storageGroup")
-  lazy val audioProps: Int = fields("audioProps").toInt      // TODO is this an enum?
-  lazy val videoProps: Int = fields("videoProps").toInt      // TODO is this an enum?
-  lazy val subtitleType: Int = fields("subtitleType").toInt  // TODO is this an enum?
-  lazy val year: Option[Int] = optionalNonZeroIntField("year")
+  lazy val audioProps: AudioProperties = AudioProperties(fields("audioProps").toInt)
+  lazy val videoProps: VideoProperties = VideoProperties(fields("videoProps").toInt)
+  lazy val subtitleType: SubtitleType = SubtitleType(fields("subtitleType").toInt)
+  lazy val year: Option[Year] = optionalNonZeroIntField("year") map (Year.of(_))
   lazy val partNumber: Option[Int] = optionalNonZeroIntField("partNumber")
   lazy val partTotal: Option[Int] = optionalNonZeroIntField("partTotal")
 }

@@ -6,21 +6,18 @@ import java.time.{ Duration, Instant, LocalDateTime, LocalDate, Year }
 import EnumTypes._
 import util.{ ByteCount, MythDateTime }
 
-final case class ChanId(n: Int) extends AnyVal
+final case class ChanId(id: Int) extends AnyVal
+final case class CaptureCardId(id: Int) extends AnyVal
+final case class StorageGroupId(id: Int) extends AnyVal
+final case class RecordRuleId(id: Int) extends AnyVal
 
 trait Frontend
 trait Backend
 
-trait Encoder  // TODO how different than a CaptureCard?
+trait Encoder  // TODO how is Encoder different than CaptureCard?
 trait CaptureCard {
-  def cardId: Int
+  def cardId: CaptureCardId
   // TODO more
-}
-
-trait PlayableMedia {
-  // TODO what are subclasses?  Program(?), Recording, Video
-  // TODO methods on PlayableMedia
-  def playOnFrontend(fe: Frontend): Boolean
 }
 
 trait FreeSpace {
@@ -28,7 +25,7 @@ trait FreeSpace {
   def path: String
   def isLocal: Boolean
   def diskNumber: Int
-  def sGroupId: Int
+  def sGroupId: StorageGroupId
   def blockSize: ByteCount
   def totalSpace: ByteCount
   def usedSpace: ByteCount
@@ -49,10 +46,10 @@ trait Program {
   def programId: String
   def stars: Option[Double]
   def originalAirDate: Option[LocalDate]
-  def audioProps: Int              // TODO do we only know this after recording?, in program table
-  def videoProps: Int              // TODO do we only know this after recording?, in program table
-  def subtitleType: Int            // TODO do we only know this after recording?, in program table
-  def year: Option[Int]            // TODO called 'airdate' in program table
+  def audioProps: AudioProperties  // TODO do we only know this after recording?, in program table
+  def videoProps: VideoProperties  // TODO do we only know this after recording?, in program table
+  def subtitleType: SubtitleType   // TODO do we only know this after recording?, in program table
+  def year: Option[Year]           // TODO called 'airdate' in program table
   def partNumber: Option[Int]
   def partTotal: Option[Int]
 }
@@ -60,15 +57,15 @@ trait Program {
 trait Recordable extends Program {
   def findId: Int
   def hostname: String
-  def sourceId: Int
-  def cardId: Int
+  def sourceId: Int           // TODO is this listing source?
+  def cardId: CaptureCardId
   def inputId: Int
   def recPriority: Int
-  def recStatus: Int // TODO RecStatus
-  def recordId: Int
-  def recType: Int // TODO RecType
-  def dupIn: Int
-  def dupMethod: Int
+  def recStatus: RecStatus
+  def recordId: RecordRuleId
+  def recType: RecType
+  def dupIn: DupCheckIn
+  def dupMethod: DupCheckMethod
   def recStartTS: MythDateTime
   def recEndTS: MythDateTime
   def recGroup: String
@@ -106,13 +103,14 @@ trait GuideEntry extends Program {
   def subtitletypes: Set[Any]  // TODO enum set -- called subtitleType in Program
 
   // These fields are not present (at least not directly) in Program object
-  def titlePronounce: String  // TODO what is this?
-  def categoryType: String
-  def previouslyShown: Boolean
-  def stereo: Boolean
+  def stereo: Boolean            // These are bound into Audio/Video properties bitmask in Program?
   def subtitled: Boolean
   def hdtv: Boolean
   def closeCaptioned: Boolean
+
+  def titlePronounce: String  // TODO what is this?
+  def categoryType: String
+  def previouslyShown: Boolean
   def showType: String
   def colorCode: String
   def manualId: Int  // TODO what is this?
@@ -135,9 +133,11 @@ trait Channel {
   def name: String
   def callsign: String
   def visible: Boolean
-  def recPriority: Int
-  def lastRecord: MythDateTime
+  def recPriority: Int           // TODO do we want this here?  Not in serivce object?
+  def lastRecord: MythDateTime   // TODO do we want this here?  Not in service object?
 }
+
+// TODO a trait with the commonalities between Video and Program
 
 trait Video {
   def id: Int
@@ -171,9 +171,9 @@ trait Video {
 }
 
 trait RecordRule {
-  def id: Int
+  def id: RecordRuleId
   def recType: RecType
-  def chanId: Option[Int]
+  def chanId: Option[ChanId]
   def startTime: MythDateTime
   def endTime: MythDateTime
   def title: String
@@ -200,6 +200,12 @@ trait Job {
   def startTime: LocalDateTime
   def insertTime: LocalDateTime
   def schedRunTime: LocalDateTime
+}
+
+trait PlayableMedia {
+  // TODO what are subclasses?  Program(?), Recording, Video, music?
+  // TODO methods on PlayableMedia
+  def playOnFrontend(fe: Frontend): Boolean
 }
 
 trait ProgramLike extends PlayableMedia {

@@ -1,6 +1,6 @@
 package mythtv
 
-import model.FreeSpace
+import model.{ FreeSpace, StorageGroupId }
 import util.ByteCount
 
 class BackendFreeSpace(data: Seq[String]) extends FreeSpace {
@@ -20,7 +20,7 @@ class BackendFreeSpace(data: Seq[String]) extends FreeSpace {
   def path: String = fields("path")
   lazy val isLocal: Boolean = fields("isLocal").toInt != 0
   lazy val diskNumber: Int = fields("diskNumber").toInt
-  lazy val sGroupId: Int = fields("sGroupId").toInt
+  lazy val sGroupId: StorageGroupId = StorageGroupId(fields("sGroupId").toInt)
   lazy val blockSize: ByteCount = ByteCount(fields("blockSize").toLong)
   lazy val totalSpace: ByteCount = ByteCount(fields("totalSpace").toLong * 1024)
   lazy val usedSpace: ByteCount = ByteCount(fields("usedSpace").toLong * 1024)
