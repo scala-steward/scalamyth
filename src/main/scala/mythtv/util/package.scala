@@ -11,11 +11,11 @@ package object util {
 
   // TODO: do we want to use LocalDateTime or Instant as our representation of Myth UTC time?
 
-  implicit class MythDateTime(dt: LocalDateTime) {
-    import MythDateTime._
-    def mythformat: String = dt.format(FORMATTER_MYTH)
-    def toLocalDateTime: LocalDateTime = dt
-    override def toString: String = dt.toString
+  implicit class MythDateTime(val localDateTime: LocalDateTime) extends AnyVal {
+    import MythDateTime.FORMATTER_MYTH
+    def mythformat: String = localDateTime.format(FORMATTER_MYTH)
+    def toLocalDateTime: LocalDateTime = localDateTime
+    override def toString: String = localDateTime.toString
   }
 
   object MythDateTime {
