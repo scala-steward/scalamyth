@@ -251,3 +251,10 @@ trait FrontendOperations {
   def key: PartialFunction[String, Boolean]   // TODO use KeyName type
   def jump: PartialFunction[String, Boolean]  // TODO use JumpPoint type
 }
+
+// TODO: rename to "ServiceOperations"? we can use JSON as interchange format vs XML
+trait BackendXMLOperations {
+  def hosts: List[String]
+  def keys: List[String]
+  def setting(key: String, hostname: Option[String] = None, default: Option[String] = None)
+}
