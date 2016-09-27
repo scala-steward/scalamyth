@@ -10,3 +10,5 @@ lazy val root = (project in file(".")).
   settings(
     name := "mythtv"
   )
+
+libraryDependencies += "io.spray" %%  "spray-json" % "1.3.2"
