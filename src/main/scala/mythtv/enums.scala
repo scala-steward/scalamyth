@@ -102,7 +102,69 @@ object JobStatus extends Enumeration {
   val Errored     = Value(0x0130)
   val Cancelled   = Value(0x0140)
 
-  def isDone(status: Value): Boolean = (status.id & 0x100) != 0
+  def isDone(status: JobStatus): Boolean = (status.id & 0x100) != 0
+}
+
+object AudioProperties extends BitmaskEnum {
+  type AudioProperties = Value
+  val Unknown      = Value(0x00)
+  val Stereo       = Value(0x01)
+  val Mono         = Value(0x02)
+  val Surround     = Value(0x03)
+  val Dolby        = Value(0x04)
+  val HardHear     = Value(0x10)
+  val VisualImpair = Value(0x20)
+}
+
+object VideoProperties extends BitmaskEnum {
+  type VideoProperties = Value
+  val Unknown    = Value(0x00)
+  val Hdtv       = Value(0x01)
+  val Widescreen = Value(0x02)
+  val AVC        = Value(0x04)
+  val Hd720      = Value(0x08)
+  val Hd1080     = Value(0x10)
+}
+
+object SubtitleType extends BitmaskEnum {
+  type SubtitleType = Value
+  val Unknown  = Value(0x00)
+  val HardHear = Value(0x01)
+  val Normal   = Value(0x02)
+  val OnScreen = Value(0x04)
+  val Signed   = Value(0x08)
+}
+
+object JobType extends Enumeration {
+  type JobType = Value
+  val None      = Value(0x0000)
+  val Transcode = Value(0x0001)
+  val CommFlag  = Value(0x0002)
+  val UserJob1  = Value(0x0100)
+  val UserJob2  = Value(0x0200)
+  val UserJob3  = Value(0x0400)
+  val UserJob4  = Value(0x0800)
+
+  def isSystem(jt: JobType): Boolean = (jt.id & 0x00ff) != 0
+  def isUser(jt: JobType): Boolean   = (jt.id & 0xff00) != 0
+}
+
+object JobCommand extends Enumeration {
+  type JobCommand = Value
+  val Run     = Value(0x0000)
+  val Pause   = Value(0x0001)
+  val Resume  = Value(0x0002)
+  val Stop    = Value(0x0004)
+  val Restart = Value(0x0008)
+}
+
+object JobFlags extends BitmaskEnum {
+  type JobFlags = Value
+  val None       = Value(0x0000)
+  val UseCutlist = Value(0x0001)
+  val LiveRec    = Value(0x0002)
+  val External   = Value(0x0004)
+  val Rebuild    = Value(0x0008)
 }
 
 /*
