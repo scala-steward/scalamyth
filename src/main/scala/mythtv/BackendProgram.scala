@@ -33,7 +33,7 @@ class BackendProgram(data: Seq[String]) extends Program with Recordable with Rec
   lazy val episode: Int = fields("episode").toInt
   def syndicatedEpisodeNumber: String = fields("syndicatedEpisodeNumber")
   def category: String = fields("category")
-  lazy val chanId: Int = fields("chanId").toInt
+  lazy val chanId: ChanId = ChanId(fields("chanId").toInt)
   def chanNum: String = fields("chanNum")
   def callsign: String = fields("callsign")
   def chanName: String = fields("chanName")

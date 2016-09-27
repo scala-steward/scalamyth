@@ -5,12 +5,15 @@ import java.time.{ Duration, Instant, LocalDateTime, LocalDate, Year }
 import mythtv.enum.Types._
 import mythtv.util.{ ByteCount, MythDateTime }
 
+final case class ChanId(n: Int) extends AnyVal
+
 /* Database backed, at least in part */
-case class D_Channel(chanId: Int, props: PropertyMap)
-case class D_GuideEntry(chanId: Int, startTime: LocalDateTime, props: PropertyMap)   // DB based, table=program
-case class B_Program(chanId: Int, startTime: LocalDateTime, props: PropertyMap)    // BE based
-case class D_Recording(chanId: Int, startTime: LocalDateTime, props: PropertyMap)    // DB based, table=recorded
-case class PreviousRecording(chanId: Int, startTime: LocalDateTime, props: PropertyMap)
+case class D_Channel(chanId: ChanId, props: PropertyMap)
+case class D_GuideEntry(chanId: ChanId, startTime: LocalDateTime, props: PropertyMap)   // DB based, table=program
+case class B_Program(chanId: ChanId, startTime: LocalDateTime, props: PropertyMap)      // BE based
+case class D_Recording(chanId: ChanId, startTime: LocalDateTime, props: PropertyMap)    // DB based, table=recorded
+
+case class PreviousRecording(chanId: ChanId, startTime: LocalDateTime, props: PropertyMap)
 case class RecordRule(id: Int, props: PropertyMap)
 case class Video(id: Int, props: PropertyMap)
 case class Song(props: PropertyMap)  // TODO what is primary key for MythMusic stuff?
@@ -50,7 +53,7 @@ trait Program {
   def description: String
   def syndicatedEpisodeNumber: String
   def category: String
-  def chanId: Int
+  def chanId: ChanId
   def startTime: MythDateTime
   def endTime: MythDateTime
   def seriesId: String
@@ -135,7 +138,7 @@ trait GuideEntry extends Program {
 // TODO make a tuple type for (chanid, starttime) to shorten parameter lists?
 
 trait Channel {
-  def chanId: Int
+  def chanId: ChanId
   def name: String
   def callsign: String
   def visible: Boolean
