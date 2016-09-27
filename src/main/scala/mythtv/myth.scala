@@ -24,6 +24,7 @@ case class Job(jobId: Int, props: PropertyMap)
 case class Artwork(props: PropertyMap)   // TODO : what is primary key for artwork?
 
 case class CaptureCard(cardId: Int, props: PropertyMap)
+trait Encoder  // TODO how different than a CaptureCard?
 
 trait Frontend
 trait Backend
