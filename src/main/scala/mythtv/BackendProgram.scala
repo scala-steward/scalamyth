@@ -24,7 +24,7 @@ class BackendProgram(data: Seq[String]) extends Program with Recordable with Rec
     { Try(fields(f).toInt) filter (_ != 0) }.toOption
 
   private def timestampField(f: String): MythDateTime =
-    MythDateTime.fromTimestamp(fields("f").toLong)
+    MythDateTime.fromTimestamp(fields(f).toLong)
 
   /* Convenience accessors with proper type */
 
@@ -45,7 +45,7 @@ class BackendProgram(data: Seq[String]) extends Program with Recordable with Rec
   lazy val endTime: MythDateTime = timestampField("endTime")
   lazy val findId: Int = fields("findId").toInt
   def hostname: String = fields("hostname")
-  lazy val sourceId: Int = fields("sourceId").toInt
+  lazy val sourceId: ListingSourceId = ListingSourceId(fields("sourceId").toInt)
   lazy val cardId: CaptureCardId = CaptureCardId(fields("cardId").toInt)
   lazy val inputId: Int = fields("inputId").toInt
   lazy val recPriority: Int = fields("recPriority").toInt

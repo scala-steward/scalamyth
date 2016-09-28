@@ -199,6 +199,14 @@ object JobFlags extends BitmaskEnum {
   val Rebuild    = Value(0x0008)
 }
 
+object ListingSourceType extends Enumeration {
+  type ListingSourceType = Value
+  val EIT             = Value(0x01)
+  val SchedulesDirect = Value(0x02)
+  val XMLTV           = Value(0x04)
+  val DBOX2EPG        = Value(0x08)
+}
+
 /*
 package object enums {
   type Markup = mythtv.Markup.Value

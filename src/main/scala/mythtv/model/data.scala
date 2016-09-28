@@ -10,9 +10,12 @@ final case class ChanId(id: Int) extends AnyVal
 final case class CaptureCardId(id: Int) extends AnyVal
 final case class StorageGroupId(id: Int) extends AnyVal
 final case class RecordRuleId(id: Int) extends AnyVal
+final case class VideoId(id: Int) extends AnyVal
+final case class JobId(id: Int) extends AnyVal
+final case class ListingSourceId(id: Int) extends AnyVal
 
-trait Frontend
-trait Backend
+trait Backend extends BackendOperations
+trait Frontend extends FrontendOperations
 
 trait Encoder  // TODO how is Encoder different than CaptureCard?
 trait CaptureCard {
@@ -32,6 +35,15 @@ trait FreeSpace {
   def freeSpace: ByteCount
 }
 
+trait ProgramAndVideoBase {   /// TODO need a better name for this trait.
+  def title: String
+  def subtitle: String
+  def description: String
+  def year: Option[Year]      // NB not Option in Video
+  // TODO category ?
+  // TODO stars/rating?
+}
+
 // TODO some of these fields are optional or have default (meaningless values)
 trait Program {
   def title: String
@@ -49,7 +61,7 @@ trait Program {
   def audioProps: AudioProperties  // TODO do we only know this after recording?, in program table
   def videoProps: VideoProperties  // TODO do we only know this after recording?, in program table
   def subtitleType: SubtitleType   // TODO do we only know this after recording?, in program table
-  def year: Option[Year]           // TODO called 'airdate' in program table
+  def year: Option[Year]           // NB called 'airdate' in program table
   def partNumber: Option[Int]
   def partTotal: Option[Int]
 }
@@ -57,7 +69,7 @@ trait Program {
 trait Recordable extends Program {
   def findId: Int
   def hostname: String
-  def sourceId: Int           // TODO is this listing source?
+  def sourceId: ListingSourceId
   def cardId: CaptureCardId
   def inputId: Int
   def recPriority: Int
@@ -73,8 +85,8 @@ trait Recordable extends Program {
   def playGroup: String
   def recPriority2: Int
 
-  def parentId: Int                // TOOD what is? move to recordable?
-  def lastModified: MythDateTime   // TOOD what is? move to recordable?
+  def parentId: Int                // TODO what is? move to recordable?
+  def lastModified: MythDateTime   // TODO what is? move to recordable?
   def chanNum: String              // TODO only in backend program
   def callsign: String             // TODO only in backend program
   def chanName: String             // TODO only in backend program
@@ -93,10 +105,10 @@ trait Recording extends Recordable {
 }
 
 trait PreviousRecording {
-  // TODO
+  // TODO  what's available here? a subset of Recording?
 }
 
-trait GuideEntry extends Program {
+trait ProgramGuideEntry extends Program {
   // Fields not originally written here but in the program table
   def audioprop: Set[Any]      // TODO enum set -- called audioProps in Program
   def videoprop: Set[Any]      // TODO enum set -- called videoProps in Program
@@ -115,18 +127,20 @@ trait GuideEntry extends Program {
   def colorCode: String
   def manualId: Int  // TODO what is this?
   def generic: Int   // TODO what is this?
-  def listingSource: Int
+  def listingSource: ListingSourceType
   def first: Int     // TODO what is this?
   def last: Int      // TODO what is this?
 
-// Computed...
+// Computed/queried...
   def recStatus: RecStatus
+
   // TODO : what else?
 }
 
 // TODO storage group stuff ...
 
 // TODO make a tuple type for (chanid, starttime) to shorten parameter lists?
+//        and to ease switchover to 0.28+ recordedId in places?
 
 trait Channel {
   def chanId: ChanId
@@ -137,10 +151,8 @@ trait Channel {
   def lastRecord: MythDateTime   // TODO do we want this here?  Not in service object?
 }
 
-// TODO a trait with the commonalities between Video and Program
-
 trait Video {
-  def id: Int
+  def id: VideoId
   def title: String
   def subtitle: String
   def director: String
@@ -154,7 +166,7 @@ trait Video {
   def studio: Option[String]
   def season: Int
   def episode: Int
-  def length: Int
+  def length: Option[Duration]  // duration of video in minutes (may be zero == unknown)
   def playCount: Int
   def hash: String
   def visible: Boolean
@@ -163,14 +175,14 @@ trait Video {
   def hostName: String
   def addDate: Option[Instant]
   def watched: Boolean
-  def userRating: Double
-  def rating: String
+  def userRating: Double   // TODO rename to stars and converge with Program? Scale is always implied!
+  def rating: String       // This is MPPA or some such rating, correct?  Should this really be a Map? (RatingBody -> Rating)
   def collectionRef: Int
   def releaseDate: LocalDate
-  // TODO various artworks
+  // TODO various artworks   These are common to many elements, no?  What should a "HasArtwork" (or may have artwork, really...) trait be called?
 }
 
-trait RecordRule {
+trait RecordRule {    // TODO seems like this contains most of the elements of ProgramGuideEntry or Recordable or some such...
   def id: RecordRuleId
   def recType: RecType
   def chanId: Option[ChanId]
@@ -189,15 +201,15 @@ trait RecordRule {
 }
 
 trait Job {
-  def id: Int
-  def jobType: Any // TODO need job type enumeration? use integer? what about extensibility?
+  def id: JobId
+  def jobType: JobType
+  def chanId: ChanId
+  def startTime: LocalDateTime
   def comment: String
   def hostname: String
-  def flags: Any   // TODO what type is this?
+  def flags: JobFlags
   def status: JobStatus
   def statusTime: LocalDateTime
-  def chanId: Int
-  def startTime: LocalDateTime
   def insertTime: LocalDateTime
   def schedRunTime: LocalDateTime
 }
@@ -217,6 +229,7 @@ trait RecordingLike extends ProgramLike {
 }
 
 trait VideoLike extends PlayableMedia {
+  // TODO
 }
 
 /**************************************************************************/
@@ -230,10 +243,10 @@ case class D_CaptureCard(cardId: Int, props: PropertyMap)
 case class D_PreviousRecording(chanId: ChanId, startTime: LocalDateTime, props: PropertyMap)
 case class D_RecordRule(id: Int, props: PropertyMap)
 case class D_Video(id: Int, props: PropertyMap)
-case class Song(props: PropertyMap)  // TODO what is primary key for MythMusic stuff?
-case class Album(props: PropertyMap)
-case class Artist(props: PropertyMap)
-case class MusicPlaylist(props: PropertyMap)
+case class D_Song(props: PropertyMap)  // TODO what is primary key for MythMusic stuff?
+case class D_Album(props: PropertyMap)
+case class D_Artist(props: PropertyMap)
+case class D_MusicPlaylist(props: PropertyMap)
 case class D_Job(jobId: Int, props: PropertyMap)
-case class Artwork(props: PropertyMap)   // TODO : what is primary key for artwork?
+case class D_Artwork(props: PropertyMap)   // TODO : what is primary key for artwork?
 /**************************************************************************/

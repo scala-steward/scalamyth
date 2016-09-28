@@ -78,7 +78,7 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
   def scheduledRecordings: List[Recordable] = scheduledRecordingsIterator.toList
 
   def upcomingRecordingsIterator: Iterator[Recordable] = {
-    pendingRecordingsIterator filter (_.recStatus == RecStatus.WillRecord.id)
+    pendingRecordingsIterator filter (_.recStatus == RecStatus.WillRecord)
   }
 
   def upcomingRecordings: List[Recordable] = upcomingRecordingsIterator.toList
