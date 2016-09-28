@@ -11,4 +11,6 @@ lazy val root = (project in file(".")).
     name := "mythtv"
   )
 
+libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.0.6"
+
 libraryDependencies += "io.spray" %%  "spray-json" % "1.3.2"
