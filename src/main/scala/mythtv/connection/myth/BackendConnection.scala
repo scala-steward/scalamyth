@@ -8,6 +8,8 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
 
+// TODO consider using scala.io.Codec rather than Java charset stuff directly?
+
 import scala.util.Try
 
 private trait BackendCommandStream {

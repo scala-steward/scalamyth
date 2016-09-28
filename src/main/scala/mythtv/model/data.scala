@@ -234,6 +234,7 @@ trait VideoLike extends PlayableMedia {
 
 /**************************************************************************/
 /* Database backed, at least in part */
+/*
 case class D_Channel(chanId: ChanId, props: PropertyMap)
 case class D_GuideEntry(chanId: ChanId, startTime: LocalDateTime, props: PropertyMap)   // DB based, table=program
 case class B_Program(chanId: ChanId, startTime: LocalDateTime, props: PropertyMap)      // BE based
@@ -249,4 +250,5 @@ case class D_Artist(props: PropertyMap)
 case class D_MusicPlaylist(props: PropertyMap)
 case class D_Job(jobId: Int, props: PropertyMap)
 case class D_Artwork(props: PropertyMap)   // TODO : what is primary key for artwork?
+ */
 /**************************************************************************/
