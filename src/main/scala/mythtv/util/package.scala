@@ -5,7 +5,6 @@ import java.time.format.DateTimeFormatter
 
 package object util {
 
-  // TODO: do we need to/from timestamp format also?
   // TODO: do we need to/from ISO (w,w/o zone offset, ISO_DATE_TIME, parseBest() ?)
   // TODO: do we need to/from RFC format (RFC_1123_DATE_TIME) ?
 
@@ -14,7 +13,9 @@ package object util {
   implicit class MythDateTime(val localDateTime: LocalDateTime) extends AnyVal {
     import MythDateTime.FORMATTER_MYTH
     def mythformat: String = localDateTime.format(FORMATTER_MYTH)
+    def toMythFormat: String = mythformat
     def toLocalDateTime: LocalDateTime = localDateTime
+    def toTimestamp: Long = localDateTime.toInstant(ZoneOffset.UTC).getEpochSecond
     override def toString: String = localDateTime.toString
   }
 
