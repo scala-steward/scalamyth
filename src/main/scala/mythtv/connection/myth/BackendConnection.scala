@@ -1,5 +1,6 @@
 package mythtv
 package connection
+package myth
 
 import java.io.{ InputStream, InputStreamReader, OutputStream, OutputStreamWriter }
 import java.net.InetAddress

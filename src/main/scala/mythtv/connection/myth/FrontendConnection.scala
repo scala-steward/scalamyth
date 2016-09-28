@@ -1,5 +1,6 @@
 package mythtv
 package connection
+package myth
 
 trait FrontendNetworkControl {
   /**

@@ -2,7 +2,7 @@ package mythtv
 
 import java.time.{ Duration, Instant }
 
-import connection.FrontendConnection
+import connection.myth.FrontendConnection
 import model._
 
 // TODO inherit from FrontendConnection?  would mean those public methods are exposed here...

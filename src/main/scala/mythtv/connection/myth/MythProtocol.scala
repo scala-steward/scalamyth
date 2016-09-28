@@ -1,5 +1,6 @@
 package mythtv
 package connection
+package myth
 
 trait MythProtocol {
   final val PROTO_VERSION = 77        // "75"

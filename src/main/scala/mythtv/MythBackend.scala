@@ -2,7 +2,7 @@ package mythtv
 
 import java.time.{ Duration, LocalDateTime }
 
-import connection.BackendConnection
+import connection.myth.BackendConnection
 import model._
 import util.{ ByteCount, ExpectedCountIterator, MythDateTime }
 
