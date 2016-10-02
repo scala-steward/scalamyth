@@ -30,4 +30,10 @@ package object util {
 
     def now: MythDateTime = new MythDateTime(LocalDateTime.now)
   }
+
+  // Used to indicate serialization format for certain MythProtocol commands
+  implicit class MythDateTimeString(mythDateTime: MythDateTime) {
+    override def toString: String = mythDateTime.mythformat
+    def toMythDateTime: MythDateTime = mythDateTime
+  }
 }
