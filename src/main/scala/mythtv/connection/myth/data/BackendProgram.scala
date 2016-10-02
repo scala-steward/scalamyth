@@ -1,4 +1,7 @@
 package mythtv
+package connection
+package myth
+package data
 
 import java.time.{ LocalDate, Year }
 
@@ -8,7 +11,7 @@ import model._
 import EnumTypes._
 import util.{ ByteCount, MythDateTime }
 
-private class BackendProgram(data: Seq[String]) extends Program with Recordable with Recording {
+private[mythtv] class BackendProgram(data: Seq[String]) extends Program with Recordable with Recording {
   import BackendProgram._
 
   // assumes data.length >= FIELD_ORDER.length, or else some fields will be missing
@@ -77,7 +80,7 @@ private class BackendProgram(data: Seq[String]) extends Program with Recordable 
   lazy val partTotal: Option[Int] = optionalNonZeroIntField("partTotal")
 }
 
-private object BackendProgram {
+private[mythtv] object BackendProgram {
   final val FIELD_ORDER = IndexedSeq(
     // TODO should this be a tuple or array or other such constant?
     //      Looks like a Vector wrapped around an array in bytecode

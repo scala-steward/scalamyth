@@ -1,9 +1,12 @@
 package mythtv
+package connection
+package myth
+package data
 
 import model.{ FreeSpace, StorageGroupId }
 import util.ByteCount
 
-private class BackendFreeSpace(data: Seq[String]) extends FreeSpace {
+private[mythtv] class BackendFreeSpace(data: Seq[String]) extends FreeSpace {
   import BackendFreeSpace._
 
   // assumes data.length >= FIELD_ORDER.length, or else some fields will be missing
@@ -27,7 +30,7 @@ private class BackendFreeSpace(data: Seq[String]) extends FreeSpace {
   lazy val freeSpace: ByteCount = totalSpace - usedSpace
 }
 
-private object BackendFreeSpace {
+private[mythtv] object BackendFreeSpace {
   final val FIELD_ORDER = IndexedSeq(
     "host", "path", "isLocal", "diskNumber", "sGroupId", "blockSize", "totalSpace", "usedSpace"
   )
