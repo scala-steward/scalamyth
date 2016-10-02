@@ -15,28 +15,32 @@ trait MythProtocol {
   final val PROTO_TOKEN = "WindMark"  // "SweetRock"
   final val BACKEND_SEP = "[]:[]"
 
-  type CheckArgsFunc = (Seq[Any]) => Boolean
+  type CheckArgs = (Seq[Any]) => Boolean
+  type Serialize = (String, Seq[Any]) => String
 
-  def commands: Map[String, CheckArgsFunc] = internalMap
+  def commands: Map[String, (CheckArgs, Serialize)] = internalMap
 
-  def verifyArgsNOP(args: Seq[Any]): Boolean = true
+  protected def verifyArgsNOP(args: Seq[Any]): Boolean = true
+  protected def serializeNOP(command: String, args: Seq[Any]) = ""
 
-  def verifyArgsEmpty(args: Seq[Any]): Boolean = args match {
+  protected def verifyArgsEmpty(args: Seq[Any]): Boolean = args match {
     case Seq() => true
     case _ => false
   }
 
-  def verifyArgsProgramInfo(args: Seq[Any]): Boolean = args match {
+  protected def serializeEmpty(command: String, args: Seq[Any]): String = command
+
+  protected def verifyArgsProgramInfo(args: Seq[Any]): Boolean = args match {
     case Seq(x: Recording) => true
     case _ => false
   }
 
-  def verifyArgsChanIdStartTime(args: Seq[Any]): Boolean = args match {
+  protected def verifyArgsChanIdStartTime(args: Seq[Any]): Boolean = args match {
     case Seq(chanId: ChanId, startTime: MythDateTime) => true
     case _ => false
   }
 
-  def verifyArgsPIorChanIdStart(args: Seq[Any]): Boolean = args match {
+  protected def verifyArgsPIorChanIdStart(args: Seq[Any]): Boolean = args match {
     case Seq(x: Recording) => true
     case Seq(chanId: ChanId, startTime: MythDateTime) => true
     case _ => false
@@ -44,12 +48,12 @@ trait MythProtocol {
 
   /***/
 
-  def verifyArgsDeleteFile(args: Seq[Any]): Boolean = args match {
+  protected def verifyArgsDeleteFile(args: Seq[Any]): Boolean = args match {
     case Seq(fileName: String, storageGroup: String) => true
     case _ => false
   }
 
-  def verifyArgsDeleteRecording(args: Seq[Any]): Boolean = args match {
+  protected def verifyArgsDeleteRecording(args: Seq[Any]): Boolean = args match {
     case Seq(x: Recording) => true
     case Seq(chanId: ChanId, startTime: MythDateTime) => true
     case Seq(chanId: ChanId, startTime: MythDateTime, forceOpt: String) => true
@@ -57,61 +61,61 @@ trait MythProtocol {
     case _ => false
   }
 
-  def verifyArgsDownloadFile(args: Seq[Any]): Boolean = args match {
+  protected def verifyArgsDownloadFile(args: Seq[Any]): Boolean = args match {
     case Seq(srcURL: String, storageGroup: String, fileName: String) => true
     case _ => false
   }
 
-  def verifyArgsMythProtoVersion(args: Seq[Any]): Boolean = args match {
+  protected def verifyArgsMythProtoVersion(args: Seq[Any]): Boolean = args match {
     case Seq(version: Int, token: String) => true
     case _ => false
   }
 
-  def verifyArgsQueryCheckFile(args: Seq[Any]): Boolean = args match {
+  protected def verifyArgsQueryCheckFile(args: Seq[Any]): Boolean = args match {
     case Seq(checkSlaves: Boolean, rec: Recording) => true
     case _ => false
   }
 
-  def verifyArgsQueryFileExists(args: Seq[Any]): Boolean = args match {
+  protected def verifyArgsQueryFileExists(args: Seq[Any]): Boolean = args match {
     case Seq(fileName: String, storageGroup: String) => true
     case Seq(fileName: String) => true
     case _ => false
   }
 
-  def verifyArgsQueryFileHash(args: Seq[Any]): Boolean = args match {
+  protected def verifyArgsQueryFileHash(args: Seq[Any]): Boolean = args match {
     case Seq(fileName: String, storageGroup: String, hostName: String) => true
     case Seq(fileName: String, storageGroup: String) => true
     case _ => false
   }
 
-  def verifyArgsQueryIsActiveBackend(args: Seq[Any]): Boolean = args match {
+  protected def verifyArgsQueryIsActiveBackend(args: Seq[Any]): Boolean = args match {
     case Seq(hostName: String) => true
     case _ => false
   }
 
-  def verifyArgsQueryRecording(args: Seq[Any]): Boolean = args match {
+  protected def verifyArgsQueryRecording(args: Seq[Any]): Boolean = args match {
     case Seq(chanId: ChanId, startTime: MythDateTime) => true
     case Seq(basePathName: String) => true
     case _ => false
   }
 
-  def verifyArgsQueryRecordings(args: Seq[Any]): Boolean = args match {
+  protected def verifyArgsQueryRecordings(args: Seq[Any]): Boolean = args match {
     case Seq(sortOrFilter: String) => true
     case Seq() => true
     case _ => false
   }
 
-  def verifyArgsQuerySetting(args: Seq[Any]): Boolean = args match {
+  protected def verifyArgsQuerySetting(args: Seq[Any]): Boolean = args match {
     case Seq(hostName: String, settingName: String) => true
     case _ => false
   }
 
-  def verifyArgsSetSetting(args: Seq[Any]): Boolean = args match {
+  protected def verifyArgsSetSetting(args: Seq[Any]): Boolean = args match {
     case Seq(hostName: String, settingName: String, settingValue: String) => true
     case _ => false
   }
 
-  def verifyArgsShutdownNow(args: Seq[Any]): Boolean = args match {
+  protected def verifyArgsShutdownNow(args: Seq[Any]): Boolean = args match {
     case Seq(haltCommand: String) => true
     case Seq() => true
     case _ => false
@@ -120,13 +124,13 @@ trait MythProtocol {
   /**
     * Myth protocol commands: (from programs/mythbackend/mainserver.cpp)
     */
-  private val internalMap = Map[String, CheckArgsFunc](
+  private val internalMap = Map[String, (CheckArgs, Serialize)](
     /*
      * ALLOW_SHUTDOWN
      *  @responds sometime; only if tokenCount == 1
      *  @returns "OK"
      */
-    "ALLOW_SHUTDOWN" -> verifyArgsEmpty,
+    "ALLOW_SHUTDOWN" -> (verifyArgsEmpty, serializeEmpty),
 
     /*
      * ANN Monitor %s %d                <clientHostName> <eventsMode>
@@ -139,35 +143,35 @@ trait MythProtocol {
      *  @responds
      *  @returns
      */
-    "ANN" -> verifyArgsNOP,
+    "ANN" -> (verifyArgsNOP, serializeNOP),
 
     /*
      * BACKEND_MESSAGE [] [%s {, %s}* ]   [<message> <extra...>]
      *  @responds never
      *  @returns nothing
      */
-    "BACKEND_MESSAGE" -> verifyArgsNOP,
+    "BACKEND_MESSAGE" -> (verifyArgsNOP, serializeNOP),
 
     /*
      * BLOCK_SHUTDOWN
      *  responds sometimes; only if tokenCount == 1
      *  @returns "OK"
      */
-    "BLOCK_SHUTDOWN" -> verifyArgsEmpty,
+    "BLOCK_SHUTDOWN" -> (verifyArgsEmpty, serializeEmpty),
 
     /*
      * CHECK_RECORDING [] [%p]     [<ProgramInfo>]
      *  @responds always
      *  @returns boolean 0/1 as to whether the recording is currently taking place
      */
-    "CHECK_RECORDING" -> verifyArgsProgramInfo,
+    "CHECK_RECORDING" -> (verifyArgsProgramInfo, serializeNOP),
 
     /*
      * DELETE_FILE [] [%s, %s]   [<filename> <storage group name>]
      *  @responds sometime; only if slistCount >= 3
      *  @returns Boolean "0" on error, "1" on succesful file deletion
      */
-    "DELETE_FILE" -> verifyArgsDeleteFile,
+    "DELETE_FILE" -> (verifyArgsDeleteFile, serializeNOP),
 
     /*
      * DELETE_RECORDING %d %mt { FORCE { FORGET }}  <ChanId> <starttime> { can we specify NOFORCE or NOFORGET? }
@@ -180,14 +184,14 @@ trait MythProtocol {
      *    -2 Error deleting file
      *  TODO needs more investigation
      */
-    "DELETE_RECORDING" -> verifyArgsDeleteRecording,
+    "DELETE_RECORDING" -> (verifyArgsDeleteRecording, serializeNOP),
 
     /*
      * DONE
      *  @responds never
      *  @returns nothing, closes the client's socket
      */
-    "DONE" -> verifyArgsEmpty,
+    "DONE" -> (verifyArgsEmpty, serializeEmpty),
 
     /*
      * DOWNLOAD_FILE [] [%s, %s, %s]       [<srcURL> <storageGroup> <fileName>]
@@ -198,7 +202,7 @@ trait MythProtocol {
      *       OK <storagegroup> <filename>      ??
      *       ERROR                             ?? only if synchronous?
      */
-    "DOWNLOAD_FILE" -> verifyArgsDownloadFile,
+    "DOWNLOAD_FILE" -> (verifyArgsDownloadFile, serializeNOP),
 
     /*
      * DOWNLOAD_FILE_NOW [] [%s, %s, %s]   [<srcURL> <storageGroup> <fileName>]
@@ -206,7 +210,7 @@ trait MythProtocol {
      *  @responds sometimes; only if slistCount == 4
      *  @returns see DOWNLOAD_FILE
      */
-    "DOWNLOAD_FILE_NOW" -> verifyArgsDownloadFile,
+    "DOWNLOAD_FILE_NOW" -> (verifyArgsDownloadFile, serializeNOP),
 
     /*
      * FILL_PROGRAM_INFO [] [%s, %p]     [<playback host> <ProgramInfo>]
@@ -214,28 +218,28 @@ trait MythProtocol {
      *  @returns ProgramInfo structure, populated
      *           (if already contained pathname, otherwise unchanged)
      */
-    "FILL_PROGRAM_INFO" -> verifyArgsNOP,
+    "FILL_PROGRAM_INFO" -> (verifyArgsNOP, serializeNOP),
 
     /*
      * FORCE_DELETE_RECORDING [] [%p]   [<ProgramInfo>]
      *  @responds sometimes; only if ChanId in program info
      *  @returns see DELETE_RECORDING
      */
-    "FORCE_DELETE_RECORDING" -> verifyArgsProgramInfo,
+    "FORCE_DELETE_RECORDING" -> (verifyArgsProgramInfo, serializeNOP),
 
     /*
      * FORGET_RECORDING [] [%p]    [<ProgramInfo>]
      *  @responds always
      *  @returns "0"
      */
-    "FORGET_RECORDING" -> verifyArgsProgramInfo,
+    "FORGET_RECORDING" -> (verifyArgsProgramInfo, serializeNOP),
 
     /*
      * FREE_TUNER %d        <cardId>
      *  @responds sometimes; only if tokens == 2
      *  @returns "OK" or "FAILED"
      */
-    "FREE_TUNER" -> verifyArgsNOP,
+    "FREE_TUNER" -> (verifyArgsNOP, serializeNOP),
 
     /*
      * GET_FREE_RECORDER
@@ -243,21 +247,21 @@ trait MythProtocol {
      *  @returns [%d, %s, %d] = <best free encoder id> <host or IP> <port>
      *        or [-1, "nohost", -1] if no suitable encoder found
      */
-    "GET_FREE_RECORDER" -> verifyArgsEmpty,
+    "GET_FREE_RECORDER" -> (verifyArgsEmpty, serializeEmpty),
 
     /*
      * GET_FREE_RECORDER_COUNT
      *  @responds always
      *  @returns Int: number of available encoders
      */
-    "GET_FREE_RECORDER_COUNT" -> verifyArgsEmpty,
+    "GET_FREE_RECORDER_COUNT" -> (verifyArgsEmpty, serializeEmpty),
 
     /*
      * GET_FREE_RECORDER_LIST
      *  @responds always
      *  @returns [%d, {, %d}] = list of available encoder ids, or "0" if none
      */
-    "GET_FREE_RECORDER_LIST" -> verifyArgsEmpty,
+    "GET_FREE_RECORDER_LIST" -> (verifyArgsEmpty, serializeEmpty),
 
     /*
      * GET_NEXT_FREE_RECORDER [] [%d]  [<currentRecorder#>]
@@ -265,7 +269,7 @@ trait MythProtocol {
      *  @returns [%d, %s, %d] = <next free encoder id> <host or IP> <port>
      *        or [-1, "nohost", -1] if no suitable encoder found
      */
-    "GET_NEXT_FREE_RECORDER" -> verifyArgsNOP,
+    "GET_NEXT_FREE_RECORDER" -> (verifyArgsNOP, serializeNOP),
 
     /*
      * GET_RECORDER_FROM_NUM [] [%d]   [<recorder#>]
@@ -273,7 +277,7 @@ trait MythProtocol {
      *  @returns [%s, %d] = <host or IP> <port>
      *        or ["nohost", -1] if no matching recorder found
      */
-    "GET_RECORDER_FROM_NUM" -> verifyArgsNOP,
+    "GET_RECORDER_FROM_NUM" -> (verifyArgsNOP, serializeNOP),
 
     /*
      * GET_RECORDER_NUM [] [%p]        [<ProgramInfo>]
@@ -281,7 +285,7 @@ trait MythProtocol {
      *  @returns [%s, %d] = <host or IP> <port>
      *        or ["nohost", -1] if no matching recorder found
      */
-    "GET_RECORDER_NUM" -> verifyArgsProgramInfo,
+    "GET_RECORDER_NUM" -> (verifyArgsProgramInfo, serializeNOP),
 
     /*
      * GO_TO_SLEEP
@@ -289,7 +293,7 @@ trait MythProtocol {
      *  @returns "OK" or "ERROR: SleepCommand is empty"
      * (only for slaves, but no checking?! Looks @ CoreContext "SleepCommand" setting)
      */
-    "GO_TO_SLEEP" -> verifyArgsEmpty,
+    "GO_TO_SLEEP" -> (verifyArgsEmpty, serializeEmpty),
 
     /*
      * LOCK_TUNER  (implicitly passes -1 as tuner id, what does this accomplish? first available local tuner?)
@@ -299,7 +303,7 @@ trait MythProtocol {
      *       or  [-2, "", "", ""]  if tuner is already locked
      *       or  [-1, "", "", ""]  if no tuner found to lock
      */
-    "LOCK_TUNER" -> verifyArgsNOP,
+    "LOCK_TUNER" -> (verifyArgsNOP, serializeNOP),
 
     /*
      * MESSAGE [] [ %s {, %s }* ]        [<message> <extra...>]
@@ -310,28 +314,28 @@ trait MythProtocol {
      *     SET_VERBOSE:   "OK" or "Failed"
      *     SET_LOG_LEVEL: "OK" or "Failed"
      */
-    "MESSAGE" -> verifyArgsNOP,
+    "MESSAGE" -> (verifyArgsNOP, serializeNOP),
 
     /*
      * MYTH_PROTO_VERSION %s %s    <version> <protocolToken>
      *  @responds sometimes; only if tokenCount >= 2
      *  @returns "REJECT %d" or "ACCEPT %d" where %d is MYTH_PROTO_VERSION
      */
-    "MYTH_PROTO_VERSION" -> verifyArgsMythProtoVersion,
+    "MYTH_PROTO_VERSION" -> (verifyArgsMythProtoVersion, serializeNOP),
 
     /*
      * QUERY_ACTIVE_BACKENDS
      *  @responds always
      *  @returns %d [] [ %s {, %s }* ]  <count> [ hostName, ... ]
      */
-    "QUERY_ACTIVE_BACKENDS" -> verifyArgsEmpty,
+    "QUERY_ACTIVE_BACKENDS" -> (verifyArgsEmpty, serializeEmpty),
 
     /*
      * QUERY_BOOKMARK %d %t   <ChanId> <starttime>
      *  @responds sometimes, only if tokenCount == 3
      *  @returns %ld   <bookmarkPos> (frame number)
      */
-    "QUERY_BOOKMARK" -> verifyArgsChanIdStartTime,
+    "QUERY_BOOKMARK" -> (verifyArgsChanIdStartTime, serializeNOP),
 
     /*
      * QUERY_CHECKFILE [] [%b, %p]     <checkSlaves> <ProgramInfo>
@@ -339,21 +343,21 @@ trait MythProtocol {
      *  @returns %d %s      <exists:0/1?>  <playbackURL>
      *    note playback url will be "" if file does not exist
      */
-    "QUERY_CHECKFILE" -> verifyArgsQueryCheckFile,
+    "QUERY_CHECKFILE" -> (verifyArgsQueryCheckFile, serializeNOP),
 
     /*
      * QUERY_COMMBREAK %d %t           <ChanId> <starttime>
      *  @responds sometimes; only if tokenCount == 3
      *  @returns TODO some sort of IntList?
      */
-    "QUERY_COMMBREAK" -> verifyArgsChanIdStartTime,
+    "QUERY_COMMBREAK" -> (verifyArgsChanIdStartTime, serializeNOP),
 
     /*
      * QUERY_CUTLIST %d %t             <ChanId> <starttime>
      *  @responds sometimes; only if tokenCount == 3
      *  @returns TODO some sort of IntList?
      */
-    "QUERY_CUTLIST" -> verifyArgsChanIdStartTime,
+    "QUERY_CUTLIST" -> (verifyArgsChanIdStartTime, serializeNOP),
 
     /*
      * QUERY_FILE_EXISTS [] [%s {, %s}]   <filename> {<storageGroup>}
@@ -368,7 +372,7 @@ trait MythProtocol {
      *
      * If storage group name is not specified, then "Default" will be used as the default.
      */
-    "QUERY_FILE_EXISTS" -> verifyArgsQueryFileExists,
+    "QUERY_FILE_EXISTS" -> (verifyArgsQueryFileExists, serializeNOP),
 
     /*
      * QUERY_FILE_HASH [] [%s, %s {, %s}]     <filename> <storageGroup> {<hostname>}
@@ -377,7 +381,7 @@ trait MythProtocol {
      *      ""  on error checking for file, invalid input
      *      %s  hash of the file (currently 64-bit, so 16 hex characters)
      */
-    "QUERY_FILE_HASH" -> verifyArgsQueryFileHash,
+    "QUERY_FILE_HASH" -> (verifyArgsQueryFileHash, serializeNOP),
 
     /*
      * QUERY_FILETRANSFER %d [DONE]                 <ftID>
@@ -391,14 +395,14 @@ trait MythProtocol {
      *  @responds TODO
      *  @returns TODO
      */
-    "QUERY_FILETRANSFER" -> verifyArgsNOP,
+    "QUERY_FILETRANSFER" -> (verifyArgsNOP, serializeNOP),
 
     /*
      * QUERY_FREE_SPACE
      *  @responds always
      *  @returns  TODO
      */
-    "QUERY_FREE_SPACE" -> verifyArgsEmpty,
+    "QUERY_FREE_SPACE" -> (verifyArgsEmpty, serializeEmpty),
 
     /*
      * QUERY_FREE_SPACE_LIST
@@ -408,7 +412,7 @@ trait MythProtocol {
      * Like QUERY_FREE_SPACE but returns free space on all hosts, each directory
      * is reported as a URL, and a TotalDiskSpace is appended.
      */
-    "QUERY_FREE_SPACE_LIST" -> verifyArgsEmpty,
+    "QUERY_FREE_SPACE_LIST" -> (verifyArgsEmpty, serializeEmpty),
 
     /*
      * QUERY_FREE_SPACE_SUMMARY
@@ -416,7 +420,7 @@ trait MythProtocol {
      *  @returns [%d, %d]    <total size> <used size>  sizes are in kB (1024-byte blocks)
      *        or [ 0, 0 ]    if there was any sort of error
      */
-    "QUERY_FREE_SPACE_SUMMARY" -> verifyArgsEmpty,
+    "QUERY_FREE_SPACE_SUMMARY" -> (verifyArgsEmpty, serializeEmpty),
 
     /*
      * QUERY_GENPIXMAP2 [] [%s, %p, more?]     TODO %s is a "token", can be the literal "do_not_care"
@@ -428,7 +432,7 @@ trait MythProtocol {
      *       or ["BAD", "NO_PATHNAME"]
      *       or ["ERROR", "FILE_INACCESSIBLE"]
      */
-    "QUERY_GENPIXMAP2" -> verifyArgsNOP,
+    "QUERY_GENPIXMAP2" -> (verifyArgsNOP, serializeNOP),
 
     /*
      * QUERY_GETALLPENDING { %s {, %d}}  { <tmptable> {, <recordid>}}
@@ -437,7 +441,7 @@ trait MythProtocol {
      *        or ["0", "0"] if not availble/error?
      *  TODO what is the purpose of the optional tmptable and recordid parameters?
      */
-    "QUERY_GETALLPENDING" -> verifyArgsNOP,
+    "QUERY_GETALLPENDING" -> (verifyArgsNOP, serializeNOP),
 
     /*
      * QUERY_GETALLSCHEDULED
@@ -445,7 +449,7 @@ trait MythProtocol {
      *  @returns ? [%p {, %p}]  <list of ProgramInfo>  // TODO does this begin with a count?
      *        or "0" if not availble/error?
      */
-    "QUERY_GETALLSCHEDULED" -> verifyArgsEmpty,
+    "QUERY_GETALLSCHEDULED" -> (verifyArgsEmpty, serializeEmpty),
 
     /*
      * QUERY_GETCONFLICTING [] [%p]     [<ProgramInfo>]
@@ -453,7 +457,7 @@ trait MythProtocol {
      *  @returns ? [%p {, %p}]  <list of ProgramInfo>  // TODO does this begin with a count?
      *        or "0" if not availble/error?
      */
-    "QUERY_GETCONFLICTING" -> verifyArgsProgramInfo,
+    "QUERY_GETCONFLICTING" -> (verifyArgsProgramInfo, serializeNOP),
 
     /*
      * QUERY_GETEXPIRING
@@ -461,7 +465,7 @@ trait MythProtocol {
      *  @returns ? [%p {, %p}]  <list of ProgramInfo>  // TODO does this begin with a count?
      *        or "0" if not availble/error?
      */
-    "QUERY_GETEXPIRING" -> verifyArgsEmpty,
+    "QUERY_GETEXPIRING" -> (verifyArgsEmpty, serializeEmpty),
 
     /*
      * QUERY_GUIDEDATATHROUGH
@@ -469,14 +473,14 @@ trait MythProtocol {
      *  @returns: Date/Time as a string in "YYYY-MM-DD hh:mm" format
      *         or "0000-00-00 00:00" in case of error or no data
      */
-    "QUERY_GUIDEDATATHROUGH" -> verifyArgsEmpty,
+    "QUERY_GUIDEDATATHROUGH" -> (verifyArgsEmpty, serializeEmpty),
 
     /*
      * QUERY_HOSTNAME
      *  @responds always
      *  @returns %s  <hostname>
      */
-    "QUERY_HOSTNAME" -> verifyArgsEmpty,
+    "QUERY_HOSTNAME" -> (verifyArgsEmpty, serializeEmpty),
 
     /*
      * QUERY_IS_ACTIVE_BACKEND [] [%s]   [<hostname>]
@@ -485,7 +489,7 @@ trait MythProtocol {
      * TODO may case NPE if hostname is not passed?
      *      what does QtStringList array index out of bounds do?
      */
-    "QUERY_IS_ACTIVE_BACKEND" -> verifyArgsQueryIsActiveBackend,
+    "QUERY_IS_ACTIVE_BACKEND" -> (verifyArgsQueryIsActiveBackend, serializeNOP),
 
     /*
      * QUERY_ISRECORDING
@@ -493,7 +497,7 @@ trait MythProtocol {
      *  @returns [%d, %d]  <numRecordingsInProgress> <numLiveTVinProgress>
      *                           (liveTV is a subset of recordings)
      */
-    "QUERY_ISRECORDING" -> verifyArgsEmpty,
+    "QUERY_ISRECORDING" -> (verifyArgsEmpty, serializeEmpty),
 
     /*
      * QUERY_LOAD
@@ -501,7 +505,7 @@ trait MythProtocol {
      *  @returns [%f, %f, %f]   1-min  5-min  15-min load averages
      *        or ["ERROR", "getloadavg() failed"] in case of error
      */
-    "QUERY_LOAD" -> verifyArgsEmpty,
+    "QUERY_LOAD" -> (verifyArgsEmpty, serializeEmpty),
 
     /*
      * QUERY_MEMSTATS
@@ -509,7 +513,7 @@ trait MythProtocol {
      *  @returns [%d, %d, %d, %d]  <totalMB> <freeMB> <totalVM> <freeVM>
      *        or ["ERROR", "Could not determine memory stats."] on error
      */
-    "QUERY_MEMSTATS" -> verifyArgsEmpty,
+    "QUERY_MEMSTATS" -> (verifyArgsEmpty, serializeEmpty),
 
     /*
      * QUERY_PIXMAP_GET_IF_MODIFIED [] [%d, %d, %p]  [<time:cachemodified> <maxFileSize> <ProgramInfo>]
@@ -522,7 +526,7 @@ trait MythProtocol {
      *        or ["ERROR", "5: Could not locate mythbackend that made this recording"
      *        or ["WARNING", "2: Could not locate requested file"]
      */
-    "QUERY_PIXMAP_GET_IF_MODIFIED" -> verifyArgsNOP,
+    "QUERY_PIXMAP_GET_IF_MODIFIED" -> (verifyArgsNOP, serializeNOP),
 
     /*
      * QUERY_PIXMAP_LASTMODIFIED [] [%p]      [<ProgramInfo>]
@@ -530,7 +534,7 @@ trait MythProtocol {
      *  @returns %ld    <last modified (timestamp?)>
      *        or "BAD"
      */
-    "QUERY_PIXMAP_LASTMODIFIED" -> verifyArgsProgramInfo,
+    "QUERY_PIXMAP_LASTMODIFIED" -> (verifyArgsProgramInfo, serializeNOP),
 
     /*
      * QUERY_RECORDER %d  <recorder#> [    // NB two tokens! recorder# + subcommand list
@@ -574,7 +578,7 @@ trait MythProtocol {
      * ]
      *  TODO what format is starttime in GET_NEXT_PROGRAM_INFO? Gets passed to database as a string, so any valid fmt?
      */
-    "QUERY_RECORDER" -> verifyArgsNOP,
+    "QUERY_RECORDER" -> (verifyArgsNOP, serializeNOP),
 
     /*
      * QUERY_RECORDING BASENAME, %s                  <pathname>
@@ -583,26 +587,26 @@ trait MythProtocol {
      *  @responds sometimes; only if tokenCount >= 3 (or >= 4 if TIMESLOT is specified)
      *  @returns ["OK", <ProgramInfo>] or "ERROR"
      */
-    "QUERY_RECORDING" -> verifyArgsQueryRecording,
+    "QUERY_RECORDING" -> (verifyArgsQueryRecording, serializeNOP),
 
     /*
      * QUERY_RECORDING_DEVICE
      *   not implemented on backend server
      */
-    "QUERY_RECORDING_DEVICE" -> verifyArgsNOP,
+    "QUERY_RECORDING_DEVICE" -> (verifyArgsNOP, serializeNOP),
 
     /*
      * QUERY_RECORDING_DEVICES
      *   not implemented on backend server
      */
-    "QUERY_RECORDING_DEVICES" -> verifyArgsNOP,
+    "QUERY_RECORDING_DEVICES" -> (verifyArgsNOP, serializeNOP),
 
     /*
      * QUERY_RECORDINGS { Ascending | Descending | Unsorted | Recording }
      *  @responds sometimes; only if tokenCount == 2
      *  @returns [ %p {, %p}*]   list of ProgramInfo records
      */
-    "QUERY_RECORDINGS" -> verifyArgsQueryRecordings,
+    "QUERY_RECORDINGS" -> (verifyArgsQueryRecordings, serializeNOP),
 
     /*
      * QUERY_REMOTEENCODER %d [          <encoder#>
@@ -621,20 +625,20 @@ trait MythProtocol {
      *   | GET_FREE_INPUTS [%d {, %d}*]  <excludeCardId...>
      * ]
      */
-    "QUERY_REMOTEENCODER" -> verifyArgsNOP,
+    "QUERY_REMOTEENCODER" -> (verifyArgsNOP, serializeNOP),
 
     /*
      * QUERY_SETTING %s %s      <hostname> <settingName>
      *  @responds sometimes; only if tokenCount == 3
      *  @returns %s or "-1" if not found   <settingValue>
      */
-    "QUERY_SETTING" -> verifyArgsQuerySetting,
+    "QUERY_SETTING" -> (verifyArgsQuerySetting, serializeNOP),
 
     /* QUERY_SG_GETFILELIST [] [%s, %s, %s {, %b}]  <wantHost> <groupname> <path> { fileNamesOnly> } */
-    "QUERY_SG_GETFILELIST" -> verifyArgsNOP,
+    "QUERY_SG_GETFILELIST" -> (verifyArgsNOP, serializeNOP),
 
     /* QUERY_SG_FILEQUERY [] [%s, %s, %s]           <wantHost> <groupName> <filename> */
-    "QUERY_SG_FILEQUERY" -> verifyArgsNOP,
+    "QUERY_SG_FILEQUERY" -> (verifyArgsNOP, serializeNOP),
 
     /*
      * QUERY_TIME_ZONE
@@ -642,7 +646,7 @@ trait MythProtocol {
      *  @returns [%s, %d, %s]  <timezoneName> <offsetSecsFromUtc> <currentTimeUTC>
      *    currentTimeUTC is in the ISO format "YYYY-MM-ddThh:mm:ssZ"
      */
-    "QUERY_TIME_ZONE" -> verifyArgsEmpty,
+    "QUERY_TIME_ZONE" -> (verifyArgsEmpty, serializeEmpty),
 
     /*
      * QUERY_UPTIME
@@ -650,7 +654,7 @@ trait MythProtocol {
      *  @returns %ld  <uptimeSeconds>
      *        or ["ERROR", "Could not determine uptime."] in case of error
      */
-    "QUERY_UPTIME" -> verifyArgsEmpty,
+    "QUERY_UPTIME" -> (verifyArgsEmpty, serializeEmpty),
 
     /*
      * REFRESH_BACKEND
@@ -658,28 +662,28 @@ trait MythProtocol {
      *  @returns "OK"
      *  Seems to be a NOP on the server.
      */
-    "REFRESH_BACKEND" -> verifyArgsEmpty,
+    "REFRESH_BACKEND" -> (verifyArgsEmpty, serializeEmpty),
 
     /*
      * RESCHEDULE_RECORDINGS [] [CHECK %d %d %d {Python}, '', '', '', {**any**}]
      * RESCHEDULE_RECORDINGS [] [MATCH %d %d %d {- Python}]
      *   TODO look @ Scheduler::HandleReschedule in programs/mythbackend/scheduler.cpp
      */
-    "RESCHEDULE_RECORDINGS" -> verifyArgsNOP,
+    "RESCHEDULE_RECORDINGS" -> (verifyArgsNOP, serializeNOP),
 
     /*
      * SCAN_VIDEOS
      *  @responds always
      *  @returns "OK" or "ERROR"
      */
-    "SCAN_VIDEOS" -> verifyArgsEmpty,
+    "SCAN_VIDEOS" -> (verifyArgsEmpty, serializeEmpty),
 
     /*
      * SET_BOOKMARK %d %t %ld          <ChanId> <starttime> <frame#position>
      *  @responds sometimes; only if tokenCount == 4
      *  @returns "OK" or "FAILED"
      */
-    "SET_BOOKMARK" -> verifyArgsNOP,
+    "SET_BOOKMARK" -> (verifyArgsNOP, serializeNOP),
 
     /*
      * SET_CHANNEL_INFO [] [%d, %d, %d, %d, %d, %d, %d]
@@ -687,28 +691,28 @@ trait MythProtocol {
      *  @responds always
      *  @returns "1" for successful otherwise "0"
      */
-    "SET_CHANNEL_INFO" -> verifyArgsNOP,
+    "SET_CHANNEL_INFO" -> (verifyArgsNOP, serializeNOP),
 
     /*
      * SET_NEXT_LIVETV_DIR %d %s  <encoder#> <dir>
      *  @responds sometimes; only if tokenCount == 3
      *  @returns "OK or "bad" if encoder nor found
      */
-    "SET_NEXT_LIVETV_DIR" -> verifyArgsNOP,
+    "SET_NEXT_LIVETV_DIR" -> (verifyArgsNOP, serializeNOP),
 
     /*
      * SET_SETTING %s %s %s       <hostname> <settingname> <value>
      *  @responds sometimes; only if tokenCount == 4
      *  @returns "OK" or "ERROR"
      */
-    "SET_SETTING" -> verifyArgsSetSetting,
+    "SET_SETTING" -> (verifyArgsSetSetting, serializeNOP),
 
     /*
      * SHUTDOWN_NOW { %s }        { <haltCommand> }
      *  @responds never
      *  @returns nothing
      */
-    "SHUTDOWN_NOW" -> verifyArgsShutdownNow,
+    "SHUTDOWN_NOW" -> (verifyArgsShutdownNow, serializeNOP),
 
     /*
      * STOP_RECORDING [] [<ProgramInfo>]
@@ -717,7 +721,7 @@ trait MythProtocol {
      *           "%d" if recording was on a local encoder, <recnum>
      *        or "-1" if not found
      */
-    "STOP_RECORDING" -> verifyArgsProgramInfo,
+    "STOP_RECORDING" -> (verifyArgsProgramInfo, serializeNOP),
 
     /*
      * UNDELETE_RECORDING [] [%d, %mt]       [<ChanId> <starttime>]
@@ -726,7 +730,7 @@ trait MythProtocol {
      *  @responds sometimes; if program info has ChanId
      *  @returns "0" on success and "-1" on error
      */
-    "UNDELETE_RECORDING" -> verifyArgsPIorChanIdStart
+    "UNDELETE_RECORDING" -> (verifyArgsPIorChanIdStart, serializeNOP)
   )
 
 
@@ -760,9 +764,10 @@ trait MythProtocol {
 object MythProtocol extends MythProtocol {
   final val SPLIT_PATTERN: String = Pattern.quote(BACKEND_SEP)
 
+  // TODO this is just for testing
   def verify(command: String, args: Any*): Boolean = {
     if (commands contains command) {
-      val check = commands(command)
+      val (check, serialize) = commands(command)
       check(args)
     } else {
       println(s"invalid command $command")
