@@ -11,16 +11,7 @@ trait Service {
 trait BackendService extends Service
 trait FrontendService extends Service
 
-trait Setting          // TODO move
-trait TimeZoneInfo     // TODO move
-trait StorageGroupDir  // TODO move
-trait LiveStreamInfo   // TODO move
-trait FrontendStatus   // TODO move
-trait FrontendAction   // TODO move
-trait VideoSource      // TODO move
-
 trait DataBytes  // TODO placeholder
-
 
 // TODO use default arguments rather than overloaded methods where applicable
 
