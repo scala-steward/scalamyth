@@ -115,9 +115,8 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
   }
 
   def loadAverages: List[Double] = {
-    val res = conn.sendCommand("QUERY_LOAD").get.response
-    val splitPat = java.util.regex.Pattern.quote(MythProtocol.BACKEND_SEP)
-    (res split splitPat map (_.toDouble)).toList
+    val res = conn.sendCommand("QUERY_LOAD").get.split
+    (res map (_.toDouble)).toList
   }
 
   def isActiveBackend(hostname: String): Boolean = {
