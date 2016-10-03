@@ -6,7 +6,7 @@ import java.time.{ Duration, Instant, LocalDate, ZoneOffset }
 import java.util.regex.Pattern
 
 import model.{ CaptureCardId, ChanId, FreeSpace, Recording, VideoPosition }
-import util.{ ExpectedCountIterator, MythDateTime, MythDateTimeString }
+import util.{ ByteCount, ExpectedCountIterator, MythDateTime, MythDateTimeString }
 
 trait MythProtocol {
   // TODO move constants to a companion object?
@@ -1059,9 +1059,9 @@ trait MythProtocolAPI {
   def queryCutList(chanId: ChanId, startTime: MythDateTime): Long    // TODO List? frame number/position
   def queryFileExists(fileName: String, storageGroup: String): (String, FileStats)
   def queryFileHash(fileName: String, storageGroup: String, hostName: String = ""): String
-  def queryFreeSpace: FreeSpace
-  def queryFreeSpaceList: Any  // ?
-  def queryFreeSpaceSummary: Any // ?
+  def queryFreeSpace: List[FreeSpace]
+  def queryFreeSpaceList: List[FreeSpace]
+  def queryFreeSpaceSummary: (ByteCount, ByteCount)
   def queryGetAllPending: ExpectedCountIterator[Recording]
   def queryGetAllScheduled: ExpectedCountIterator[Recording]
   def queryGetConflicting: Iterable[Recording]  // TODO expected count iterator?
