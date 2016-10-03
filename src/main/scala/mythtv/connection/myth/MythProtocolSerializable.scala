@@ -3,7 +3,7 @@ package connection
 package myth
 
 import data.BackendProgram
-import model.{ ChanId, Recording, VideoPosition }
+import model.{ CaptureCardId, ChanId, Recording, VideoPosition }
 import util.{ MythDateTime, MythDateTimeString }
 
 // Type class for serializable objects in the MythProtocol stream
@@ -36,6 +36,15 @@ object MythProtocolSerializable {
       }
     }
     def serialize(in: Boolean): String = if (in) "1" else "0"
+  }
+
+  // TODO if we end up with a lot of these boilerplate XXXId serializer implicit objects that all
+  // have the same format, can we create a generic template to inherit from?
+
+  implicit object CaptureCardIdSerializer extends MythProtocolSerializable[CaptureCardId] {
+    def deserialize(in: String): CaptureCardId = CaptureCardId(in.toInt)
+    def serialize(in: CaptureCardId): String = in.id.toString
+    override def serialize(in: CaptureCardId, builder: StringBuilder): StringBuilder = { builder.append(in.id); builder }
   }
 
   implicit object ChanIdSerializer extends MythProtocolSerializable[ChanId] {
