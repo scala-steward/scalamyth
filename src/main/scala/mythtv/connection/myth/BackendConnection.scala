@@ -86,23 +86,25 @@ class BackendConnection(host: String, port: Int, timeout: Int, val blockShutdown
     val announceType = if (blockShutdown) "Playback" else "Monitor"
     val response = sendCommand(s"ANN ${announceType} ${localname} 0")
     // TODO get hostname from backend using QUERY_HOSTNAME command
-    response == Some("OK")
+    response.toOption == Some("OK")  // TODO eliminate conversion to Option
   }
 
   // TODO convert below to use Try[] instead of Option[]
   // TODO support passing a list which will be joined using backend sep
   ///  NB some commands put a separator between command string and arguments, others use whitespace
-  def sendCommand(command: String, timeout: Option[Int] = None): Option[String] = {
+  def sendCommand(command: String, timeout: Option[Int] = None): Try[String] = {
     val writer = new BackendCommandWriter(outputStream)
     val reader = new BackendCommandReader(inputStream)
 
-    // write the message
-    writer.sendCommand(command)
+    Try {
+      // write the message
+      writer.sendCommand(command)
 
-    // wait for and retrieve the response
-    val response = reader.readResponse
-    Some(response)
-    // TODO split response based on split pattern?
+      // wait for and retrieve the response
+      val response = reader.readResponse
+      response
+      // TODO split response based on split pattern?
+    }
   }
 
   def postCommand(command: String): Unit = {
@@ -121,8 +123,8 @@ class BackendConnection(host: String, port: Int, timeout: Int, val blockShutdown
       // TODO support an implicit conversion from String to BackendResponse type
       //  which will support parsing out by separator, etc...?
       response <- sendCommand(s"MYTH_PROTO_VERSION ${PROTO_VERSION} ${PROTO_TOKEN}")
-      word <- Some((response split splitPat).head)
+      word <- Try((response split splitPat).head)
     } yield word
-    msg == Some("ACCEPT")
+    msg.toOption == Some("ACCEPT")
   }
 }
