@@ -8,11 +8,22 @@ import java.util.regex.Pattern
 import model.{ CaptureCardId, ChanId, FreeSpace, Recording, VideoPosition }
 import util.{ ByteCount, ExpectedCountIterator, MythDateTime, MythDateTimeString }
 
-trait MythProtocol {
+trait MythProtocol extends MythProtocolLike {
+  def supports(command: String): Boolean = commands contains command
+  def supports(command: String, args: Any*): Boolean = {
+    if (commands contains command) {
+      val (check, _, _) = commands(command)
+      check(args)
+    }
+    else false
+  }
+}
+
+trait MythProtocolLike extends MythProtocolSerializer {
   import MythProtocol._
   // TODO can we structure this so that it's possible to support more than one protocol version?
-  final val PROTO_VERSION = 77        // "75"
-  final val PROTO_TOKEN = "WindMark"  // "SweetRock"
+  final val PROTO_VERSION = 77
+  final val PROTO_TOKEN = "WindMark"
 
   type CheckArgs = (Seq[Any]) => Boolean
   type Serialize = (String, Seq[Any]) => String
@@ -21,10 +32,6 @@ trait MythProtocol {
   // TODO FIXME would be very useful to have access to data from CheckArgs/Serialize during HandleResponse
 
   def commands: Map[String, (CheckArgs, Serialize, HandleResponse)] = internalMap
-
-  // TODO move MythProtocolSerializer out of an object and into a trait so we can inherit and
-  //      have a simple serialize() method without all the qualified calls to MythProtocolSerializer
-  //      NB this all belongs in an implementation (*Like?) trait/class anyway
 
   protected def verifyArgsNOP(args: Seq[Any]): Boolean = true
   protected def serializeNOP(command: String, args: Seq[Any]) = ""
@@ -48,7 +55,7 @@ trait MythProtocol {
     case Seq(rec: Recording) =>
       val bldr = new StringBuilder(command).append(BACKEND_SEP)
       implicit val piser = ProgramInfoSerializerCurrent
-      MythProtocolSerializer.serialize(rec, bldr).toString
+      serialize(rec, bldr).toString
     case _ => throw new IllegalArgumentException
   }
 
@@ -59,11 +66,7 @@ trait MythProtocol {
 
   protected def serializeChanIdStartTime(command: String, args: Seq[Any]): String = args match {
     case Seq(chanId: ChanId, startTime: MythDateTime) =>
-      val elems = List(
-        command,
-        MythProtocolSerializer.serialize(chanId),
-        MythProtocolSerializer.serialize(startTime)
-      )
+      val elems = List(command, serialize(chanId), serialize(startTime))
       elems mkString " "
     case _ => throw new IllegalArgumentException
   }
@@ -75,7 +78,7 @@ trait MythProtocol {
 
   protected def serializeCaptureCard(command: String, args: Seq[Any]): String = args match {
     case Seq(cardId: CaptureCardId) =>
-      val elems = List(command, MythProtocolSerializer.serialize(cardId))
+      val elems = List(command, serialize(cardId))
       elems mkString BACKEND_SEP
     case _ => throw new IllegalArgumentException
   }
@@ -92,10 +95,10 @@ trait MythProtocol {
 
   protected def serializeAnnounce(command: String, args: Seq[Any]): String = args match {
     case Seq(mode @ "Monitor", clientHostName: String, eventsMode: Int) =>
-      val elems = List(command, mode, clientHostName, MythProtocolSerializer.serialize(eventsMode))
+      val elems = List(command, mode, clientHostName, serialize(eventsMode))
       elems mkString " "
     case Seq(mode @ "Playback", clientHostName: String, eventsMode: Int) =>
-      val elems = List(command, mode, clientHostName, MythProtocolSerializer.serialize(eventsMode))
+      val elems = List(command, mode, clientHostName, serialize(eventsMode))
       elems mkString " "
     case Seq(mode @ "MediaServer", clientHostName: String) =>
       val elems = List(command, mode, clientHostName)
@@ -128,8 +131,8 @@ trait MythProtocol {
     def ser(chanId: ChanId, startTime: MythDateTime, forceOpt: Option[String], forgetOpt: Option[String]): String = {
       val builder = new StringBuilder(command)
       val time: MythDateTimeString = startTime
-      MythProtocolSerializer.serialize(chanId, builder.append(' '))
-      MythProtocolSerializer.serialize(time, builder.append(' '))
+      serialize(chanId, builder.append(' '))
+      serialize(time, builder.append(' '))
       if (forceOpt.nonEmpty) builder.append(' ').append(forceOpt.get)
       if (forgetOpt.nonEmpty) builder.append(' ').append(forgetOpt.get)
       builder.toString
@@ -163,7 +166,7 @@ trait MythProtocol {
 
   protected def serializeFreeTuner(command: String, args: Seq[Any]): String = args match {
     case Seq(cardId: CaptureCardId) =>
-      val elems = List(command, MythProtocolSerializer.serialize(cardId))
+      val elems = List(command, serialize(cardId))
       elems mkString " "
     case _ => throw new IllegalArgumentException
   }
@@ -176,7 +179,7 @@ trait MythProtocol {
 
   protected def serializeLockTuner(command: String, args: Seq[Any]): String = args match {
     case Seq(cardId: CaptureCardId) =>
-      val elems = List(command, MythProtocolSerializer.serialize(cardId))
+      val elems = List(command, serialize(cardId))
       elems mkString " "
     case Seq() => command
     case _ => throw new IllegalArgumentException
@@ -189,7 +192,7 @@ trait MythProtocol {
 
   protected def serializeMythProtoVersion(command: String, args: Seq[Any]): String = args match {
     case Seq(version: Int, token: String) =>
-      val elems = List(command, MythProtocolSerializer.serialize(version), token)
+      val elems = List(command, serialize(version), token)
       elems mkString " "
     case _ => throw new IllegalArgumentException
   }
@@ -202,7 +205,7 @@ trait MythProtocol {
   protected def serializeQueryCheckFile(command: String, args: Seq[Any]): String = args match {
     case Seq(checkSlaves: Boolean, rec: Recording) =>
       implicit val piser = ProgramInfoSerializerCurrent  // TODO FIXME shouldn't need to delclare here...
-      val elems = List(command, MythProtocolSerializer.serialize(checkSlaves), MythProtocolSerializer.serialize(rec))
+      val elems = List(command, serialize(checkSlaves), serialize(rec))
       elems mkString BACKEND_SEP
     case _ => throw new IllegalArgumentException
   }
@@ -272,7 +275,7 @@ trait MythProtocol {
   protected def serializeQueryRecording(command: String, args: Seq[Any]): String = args match {
     case Seq(sub @ "TIMESLOT", chanId: ChanId, startTime: MythDateTime) =>
       val time: MythDateTimeString = startTime
-      val elems = List(command, sub, MythProtocolSerializer.serialize(chanId), MythProtocolSerializer.serialize(time))
+      val elems = List(command, sub, serialize(chanId), serialize(time))
       elems mkString " "
     case Seq(sub @ "BASENAME", basePathName: String) =>
       val elems = List(command, sub, basePathName)
@@ -313,12 +316,7 @@ trait MythProtocol {
 
   protected def serializeSetBookmark(command: String, args: Seq[Any]): String = args match {
     case Seq(chanId: ChanId, startTime: MythDateTime, position: VideoPosition) =>
-      val elems = List(
-        command,
-        MythProtocolSerializer.serialize(chanId),
-        MythProtocolSerializer.serialize(startTime),
-        MythProtocolSerializer.serialize(position)
-      )
+      val elems = List(command, serialize(chanId), serialize(startTime), serialize(position))
       elems mkString " "
     case _ => throw new IllegalArgumentException
   }
@@ -359,7 +357,7 @@ trait MythProtocol {
     case Seq(rec: Recording) => serializeProgramInfo(command, args) // TODO this will pattern match again
     case Seq(chanId: ChanId, startTime: MythDateTime) =>
       val start: MythDateTimeString = startTime
-      val elems = List(command, MythProtocolSerializer.serialize(chanId), MythProtocolSerializer.serialize(start))
+      val elems = List(command, serialize(chanId), serialize(start))
       elems mkString BACKEND_SEP
     case _ => throw new IllegalArgumentException
 
@@ -1045,6 +1043,23 @@ object MythProtocol extends MythProtocol {
       None
     }
   }
+  def execute(conn: BackendConnection, command: String, args: Any*): Option[_] = {
+    if (commands contains command) {
+      val (check, serialize, handle) = commands(command)
+      if (check(args)) {
+        val cmdstring = serialize(command, args)
+        val response = conn.sendCommand(cmdstring).get
+        handle(response)
+      }
+      else {
+        println("failed argument type check")
+        None
+      }
+    } else {
+      println(s"invalid command $command")
+      None
+    }
+  }
 }
 
 // TODO these APIs should be converted to return Option[_] or Either[_] or something
@@ -1102,7 +1117,18 @@ trait MythProtocolAPI {
   // TODO more methods
 }
 
-private[myth] trait MythProtocol77 extends MythProtocol {
-//  final val PROTO_VERSION = 77        // "75"
-//  final val PROTO_TOKEN = "WindMark"  // "SweetRock"
+private[myth] trait MythProtocolLike75 extends MythProtocolLike {
+//  final val PROTO_VERSION = 75
+//  final val PROTO_TOKEN = "SweetRock"
+}
+
+private[myth] trait MythProtocol75 extends MythProtocol with MythProtocolLike75 {
+}
+
+private[myth] trait MythProtocolLike77 extends MythProtocolLike {
+//  final val PROTO_VERSION = 77
+//  final val PROTO_TOKEN = "WindMark"
+}
+
+private[myth] trait MythProtocol77 extends MythProtocol with MythProtocolLike77 {
 }
