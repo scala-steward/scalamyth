@@ -10,10 +10,10 @@ import util.{ ExpectedCountIterator, MythDateTime, MythDateTimeString }
 
 trait MythProtocol {
   // TODO move constants to a companion object?
+  import MythProtocol._
   // TODO can we structure this so that it's possible to support more than one protocol version?
   final val PROTO_VERSION = 77        // "75"
   final val PROTO_TOKEN = "WindMark"  // "SweetRock"
-  final val BACKEND_SEP = "[]:[]"
 
   type CheckArgs = (Seq[Any]) => Boolean
   type Serialize = (String, Seq[Any]) => String
@@ -935,6 +935,7 @@ trait MythProtocol {
 }
 
 object MythProtocol extends MythProtocol {
+  final val BACKEND_SEP: String = "[]:[]"
   final val SPLIT_PATTERN: String = Pattern.quote(BACKEND_SEP)
 
   // TODO this is just for testing

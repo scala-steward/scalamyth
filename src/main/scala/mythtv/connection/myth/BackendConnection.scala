@@ -116,7 +116,7 @@ class BackendConnection(host: String, port: Int, timeout: Int, val blockShutdown
   }
 
   def checkVersion: Boolean = {
-    val splitPat = Pattern.quote(BACKEND_SEP)
+    val splitPat = MythProtocol.SPLIT_PATTERN
     val msg = for {
       // TODO support an implicit conversion from String to BackendResponse type
       //  which will support parsing out by separator, etc...?
