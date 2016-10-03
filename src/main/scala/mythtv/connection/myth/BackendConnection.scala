@@ -16,6 +16,19 @@ private trait BackendCommandStream {
   final val SIZE_HEADER_BYTES = 8
 }
 
+sealed trait BackendResponse extends Any {
+  def response: String
+  def split: Seq[String]
+}
+
+object BackendResponse {
+  def apply(r: String): BackendResponse = Response(r)
+}
+
+private final case class Response(val response: String) extends AnyVal with BackendResponse {
+  def split: Seq[String] = response split MythProtocol.SPLIT_PATTERN
+}
+
 private class BackendCommandReader(in: InputStream) extends BackendCommandStream {
   def readString(length: Int): String = {
     // TODO for efficiency re-use an existing buffer?
@@ -38,7 +51,8 @@ private class BackendCommandReader(in: InputStream) extends BackendCommandStream
     val size = readString(SIZE_HEADER_BYTES).trim.toInt
     println("Waiting for response of length " + size)
     val response = readString(size)
-    println("Received response: " + response)
+    //println("Received response: " + response)
+    println("Received response.")
     response
   }
 }
@@ -92,7 +106,7 @@ class BackendConnection(host: String, port: Int, timeout: Int, val blockShutdown
   // TODO convert below to use Try[] instead of Option[]
   // TODO support passing a list which will be joined using backend sep
   ///  NB some commands put a separator between command string and arguments, others use whitespace
-  def sendCommand(command: String, timeout: Option[Int] = None): Try[String] = {
+  def sendCommand(command: String, timeout: Option[Int] = None): Try[BackendResponse] = {
     val writer = new BackendCommandWriter(outputStream)
     val reader = new BackendCommandReader(inputStream)
 
@@ -102,7 +116,7 @@ class BackendConnection(host: String, port: Int, timeout: Int, val blockShutdown
 
       // wait for and retrieve the response
       val response = reader.readResponse
-      response
+      Response(response)
       // TODO split response based on split pattern?
     }
   }
@@ -114,17 +128,15 @@ class BackendConnection(host: String, port: Int, timeout: Int, val blockShutdown
     // write the message
     writer.sendCommand(command)
 
-    // TODO: swallow any response, socket may be closed
+    // TODO: swallow any response, but socket may be closed
   }
 
   def checkVersion: Boolean = {
     val splitPat = MythProtocol.SPLIT_PATTERN
     val msg = for {
-      // TODO support an implicit conversion from String to BackendResponse type
-      //  which will support parsing out by separator, etc...?
       response <- sendCommand(s"MYTH_PROTO_VERSION ${PROTO_VERSION} ${PROTO_TOKEN}")
-      word <- Try((response split splitPat).head)
+      word <- Try(response.split.head)
     } yield word
-    msg.toOption == Some("ACCEPT")
+    msg.get == "ACCEPT"
   }
 }
