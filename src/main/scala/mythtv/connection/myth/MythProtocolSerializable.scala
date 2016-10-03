@@ -3,7 +3,7 @@ package connection
 package myth
 
 import data.BackendProgram
-import model.{ ChanId, Recording }
+import model.{ ChanId, Recording, VideoPosition }
 import util.{ MythDateTime, MythDateTimeString }
 
 // Type class for serializable objects in the MythProtocol stream
@@ -42,6 +42,12 @@ object MythProtocolSerializable {
     def deserialize(in: String): ChanId = ChanId(in.toInt)
     def serialize(in: ChanId): String = in.id.toString
     override def serialize(in: ChanId, builder: StringBuilder): StringBuilder = { builder.append(in.id); builder }
+  }
+
+  implicit object VideoPositionSerializer extends MythProtocolSerializable[VideoPosition] {
+    def deserialize(in: String): VideoPosition = VideoPosition(in.toLong)
+    def serialize(in: VideoPosition): String = in.pos.toString
+    override def serialize(in: VideoPosition, builder: StringBuilder): StringBuilder = { builder.append(in.pos); builder }
   }
 
   implicit object MythDateTimeSerializer extends MythProtocolSerializable[MythDateTime] {

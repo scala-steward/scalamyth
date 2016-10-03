@@ -5,8 +5,8 @@ package myth
 import java.time.{ Duration, Instant, LocalDate, ZoneOffset }
 import java.util.regex.Pattern
 
-import model.{ ChanId, FreeSpace, Recording }
-import util.MythDateTime
+import model.{ ChanId, FreeSpace, Recording, VideoPosition }
+import util.{ ExpectedCountIterator, MythDateTime, MythDateTimeString }
 
 trait MythProtocol {
   // TODO move constants to a companion object?
@@ -35,22 +35,64 @@ trait MythProtocol {
     case _ => false
   }
 
+  protected def serializeProgramInfo(command: String, args: Seq[Any]): String = args match {
+    case Seq(rec: Recording) =>
+      val bldr = new StringBuilder(command).append(BACKEND_SEP)
+      implicit val piser = ProgramInfoSerializerCurrent
+      MythProtocolSerializer.serialize(rec, bldr).toString
+    case _ => throw new IllegalArgumentException
+  }
+
   protected def verifyArgsChanIdStartTime(args: Seq[Any]): Boolean = args match {
     case Seq(chanId: ChanId, startTime: MythDateTime) => true
     case _ => false
   }
 
-  protected def verifyArgsPIorChanIdStart(args: Seq[Any]): Boolean = args match {
-    case Seq(x: Recording) => true
-    case Seq(chanId: ChanId, startTime: MythDateTime) => true
-    case _ => false
+  protected def serializeChanIdStartTime(command: String, args: Seq[Any]): String = args match {
+    case Seq(chanId: ChanId, startTime: MythDateTime) =>
+      val elems = List(
+        command,
+        MythProtocolSerializer.serialize(chanId),
+        MythProtocolSerializer.serialize(startTime)
+      )
+      elems mkString " "
+    case _ => throw new IllegalArgumentException
   }
 
   /***/
 
+  protected def verifyArgsAnnounce(args: Seq[Any]): Boolean = args match {
+    case Seq("Monitor", clientHostName: String, eventsMode: Int) => true
+    case Seq("Playback", clientHostName: String, eventsMode: Int) => true
+    case Seq("MediaServer", clientHostName: String) => true
+      // TODO SlaveBackend and FileTransfer are more complex
+    case _ => false
+  }
+
+  protected def serializeAnnounce(command: String, args: Seq[Any]): String = args match {
+    case Seq(sub @ "Monitor", clientHostName: String, eventsMode: Int) =>
+      val elems = List(command, sub, clientHostName, MythProtocolSerializer.serialize(eventsMode))
+      elems mkString " "
+    case Seq(sub @ "Playback", clientHostName: String, eventsMode: Int) =>
+      val elems = List(command, sub, clientHostName, MythProtocolSerializer.serialize(eventsMode))
+      elems mkString " "
+    case Seq(sub @ "MediaServer", clientHostName: String) =>
+      val elems = List(command, sub, clientHostName)
+      elems mkString " "
+     // TODO SlaveBackend and FileTransfer are more complex
+    case _ => throw new IllegalArgumentException
+  }
+
   protected def verifyArgsDeleteFile(args: Seq[Any]): Boolean = args match {
     case Seq(fileName: String, storageGroup: String) => true
     case _ => false
+  }
+
+  protected def serializeDeleteFile(command: String, args: Seq[Any]): String = args match {
+    case Seq(fileName: String, storageGroup: String) =>
+      val elems = List(command, fileName, storageGroup)
+      elems mkString BACKEND_SEP
+    case _ => throw new IllegalArgumentException
   }
 
   protected def verifyArgsDeleteRecording(args: Seq[Any]): Boolean = args match {
@@ -61,9 +103,36 @@ trait MythProtocol {
     case _ => false
   }
 
+  protected def serializeDeleteRecording(command: String, args: Seq[Any]): String = {
+    def ser(chanId: ChanId, startTime: MythDateTime, forceOpt: Option[String], forgetOpt: Option[String]): String = {
+      val builder = new StringBuilder(command)
+      val time: MythDateTimeString = startTime
+      MythProtocolSerializer.serialize(chanId, builder.append(' '))
+      MythProtocolSerializer.serialize(time, builder.append(' '))
+      if (forceOpt.nonEmpty) builder.append(' ').append(forceOpt.get)
+      if (forgetOpt.nonEmpty) builder.append(' ').append(forgetOpt.get)
+      builder.toString
+    }
+    args match {
+      case Seq(rec: Recording) => serializeProgramInfo(command, args) // TODO this will pattern match again
+      case Seq(chanId: ChanId, startTime: MythDateTime) => ser(chanId, startTime, None, None)
+      case Seq(chanId: ChanId, startTime: MythDateTime, forceOpt: String) => ser(chanId, startTime, Some(forceOpt), None)
+      case Seq(chanId: ChanId, startTime: MythDateTime, forceOpt: String, forgetOpt: String) =>
+        ser(chanId, startTime, Some(forceOpt), Some(forgetOpt))
+      case _ => throw new IllegalArgumentException
+    }
+  }
+
   protected def verifyArgsDownloadFile(args: Seq[Any]): Boolean = args match {
     case Seq(srcURL: String, storageGroup: String, fileName: String) => true
     case _ => false
+  }
+
+  protected def serializeDownloadFile(command: String, args: Seq[Any]): String = args match {
+    case Seq(srcURL: String, storageGroup: String, fileName: String) =>
+      val elems = List(command, srcURL, storageGroup, fileName)
+      elems mkString BACKEND_SEP
+    case _ => throw new IllegalArgumentException
   }
 
   protected def verifyArgsMythProtoVersion(args: Seq[Any]): Boolean = args match {
@@ -71,9 +140,24 @@ trait MythProtocol {
     case _ => false
   }
 
+  protected def serializeMythProtoVersion(command: String, args: Seq[Any]): String = args match {
+    case Seq(version: Int, token: String) =>
+      val elems = List(command, MythProtocolSerializer.serialize(version), token)
+      elems mkString " "
+    case _ => throw new IllegalArgumentException
+  }
+
   protected def verifyArgsQueryCheckFile(args: Seq[Any]): Boolean = args match {
     case Seq(checkSlaves: Boolean, rec: Recording) => true
     case _ => false
+  }
+
+  protected def serializeQueryCheckFile(command: String, args: Seq[Any]): String = args match {
+    case Seq(checkSlaves: Boolean, rec: Recording) =>
+      implicit val piser = ProgramInfoSerializerCurrent  // TODO FIXME shouldn't need to delclare here...
+      val elems = List(command, MythProtocolSerializer.serialize(checkSlaves), MythProtocolSerializer.serialize(rec))
+      elems mkString BACKEND_SEP
+    case _ => throw new IllegalArgumentException
   }
 
   protected def verifyArgsQueryFileExists(args: Seq[Any]): Boolean = args match {
@@ -82,10 +166,30 @@ trait MythProtocol {
     case _ => false
   }
 
+  protected def serializeQueryFileExists(command: String, args: Seq[Any]): String = args match {
+    case Seq(fileName: String, storageGroup: String) =>
+      val elems = List(command, fileName, storageGroup)
+      elems mkString BACKEND_SEP
+    case Seq(fileName: String) =>
+      val elems = List(command, fileName)
+      elems mkString BACKEND_SEP
+    case _ => throw new IllegalArgumentException
+  }
+
   protected def verifyArgsQueryFileHash(args: Seq[Any]): Boolean = args match {
     case Seq(fileName: String, storageGroup: String, hostName: String) => true
     case Seq(fileName: String, storageGroup: String) => true
     case _ => false
+  }
+
+  protected def serializeQueryFileHash(command: String, args: Seq[Any]): String = args match {
+    case Seq(fileName: String, storageGroup: String, hostName: String) =>
+      val elems = List(command, fileName, storageGroup, hostName)
+      elems mkString BACKEND_SEP
+    case Seq(fileName: String, storageGroup: String) =>
+      val elems = List(command, fileName, storageGroup)
+      elems mkString BACKEND_SEP
+    case _ => throw new IllegalArgumentException
   }
 
   protected def verifyArgsQueryIsActiveBackend(args: Seq[Any]): Boolean = args match {
@@ -93,10 +197,28 @@ trait MythProtocol {
     case _ => false
   }
 
+  protected def serializeQueryIsActiveBackend(command: String, args: Seq[Any]): String = args match {
+    case Seq(hostName: String) =>
+      val elems = List(command, hostName)
+      elems mkString BACKEND_SEP
+    case _ => throw new IllegalArgumentException
+  }
+
   protected def verifyArgsQueryRecording(args: Seq[Any]): Boolean = args match {
-    case Seq(chanId: ChanId, startTime: MythDateTime) => true
-    case Seq(basePathName: String) => true
+    case Seq("TIMESLOT", chanId: ChanId, startTime: MythDateTime) => true
+    case Seq("BASENAME", basePathName: String) => true
     case _ => false
+  }
+
+  protected def serializeQueryRecording(command: String, args: Seq[Any]): String = args match {
+    case Seq(sub @ "TIMESLOT", chanId: ChanId, startTime: MythDateTime) =>
+      val time: MythDateTimeString = startTime
+      val elems = List(command, sub, MythProtocolSerializer.serialize(chanId), MythProtocolSerializer.serialize(time))
+      elems mkString " "
+    case Seq(sub @ "BASENAME", basePathName: String) =>
+      val elems = List(command, sub, basePathName)
+      elems mkString " "
+    case _ => throw new IllegalArgumentException
   }
 
   protected def verifyArgsQueryRecordings(args: Seq[Any]): Boolean = args match {
@@ -105,9 +227,24 @@ trait MythProtocol {
     case _ => false
   }
 
+  protected def serializeQueryRecordings(command: String, args: Seq[Any]): String = args match {
+    case Seq(sortOrFilter: String) =>
+      val elems = List(command, sortOrFilter)
+      elems mkString " "
+    case Seq() => command
+    case _ => throw new IllegalArgumentException
+  }
+
   protected def verifyArgsQuerySetting(args: Seq[Any]): Boolean = args match {
     case Seq(hostName: String, settingName: String) => true
     case _ => false
+  }
+
+  protected def serializeQuerySetting(command: String, args: Seq[Any]): String = args match {
+    case Seq(hostName: String, settingName: String) =>
+      val elems = List(command, hostName, settingName)
+      elems mkString " "
+    case _ => throw new IllegalArgumentException
   }
 
   protected def verifyArgsSetSetting(args: Seq[Any]): Boolean = args match {
@@ -115,10 +252,41 @@ trait MythProtocol {
     case _ => false
   }
 
+  protected def serializeSetSetting(command: String, args: Seq[Any]): String = args match {
+    case Seq(hostName: String, settingName: String, settingValue: String) =>
+      val elems = List(command, hostName, settingName, settingValue)
+      elems mkString " "
+    case _ => throw new IllegalArgumentException
+  }
+
   protected def verifyArgsShutdownNow(args: Seq[Any]): Boolean = args match {
     case Seq(haltCommand: String) => true
     case Seq() => true
     case _ => false
+  }
+
+  protected def serializeShutdownNow(command: String, args: Seq[Any]): String = args match {
+    case Seq(haltCommand: String) =>
+      val elems = List(command, haltCommand)
+      elems mkString " "
+    case Seq() => command
+    case _ => throw new IllegalArgumentException
+  }
+
+  protected def verifyArgsUndeleteRecording(args: Seq[Any]): Boolean = args match {
+    case Seq(x: Recording) => true
+    case Seq(chanId: ChanId, startTime: MythDateTime) => true
+    case _ => false
+  }
+
+  protected def serializeUndeleteRecording(command: String, args: Seq[Any]): String = args match {
+    case Seq(rec: Recording) => serializeProgramInfo(command, args) // TODO this will pattern match again
+    case Seq(chanId: ChanId, startTime: MythDateTime) =>
+      val start: MythDateTimeString = startTime
+      val elems = List(command, MythProtocolSerializer.serialize(chanId), MythProtocolSerializer.serialize(start))
+      elems mkString BACKEND_SEP
+    case _ => throw new IllegalArgumentException
+
   }
 
   /**
@@ -143,7 +311,7 @@ trait MythProtocol {
      *  @responds
      *  @returns
      */
-    "ANN" -> (verifyArgsNOP, serializeNOP),
+    "ANN" -> (verifyArgsAnnounce, serializeAnnounce),
 
     /*
      * BACKEND_MESSAGE [] [%s {, %s}* ]   [<message> <extra...>]
@@ -164,14 +332,14 @@ trait MythProtocol {
      *  @responds always
      *  @returns boolean 0/1 as to whether the recording is currently taking place
      */
-    "CHECK_RECORDING" -> (verifyArgsProgramInfo, serializeNOP),
+    "CHECK_RECORDING" -> (verifyArgsProgramInfo, serializeProgramInfo),
 
     /*
      * DELETE_FILE [] [%s, %s]   [<filename> <storage group name>]
      *  @responds sometime; only if slistCount >= 3
      *  @returns Boolean "0" on error, "1" on succesful file deletion
      */
-    "DELETE_FILE" -> (verifyArgsDeleteFile, serializeNOP),
+    "DELETE_FILE" -> (verifyArgsDeleteFile, serializeDeleteFile),
 
     /*
      * DELETE_RECORDING %d %mt { FORCE { FORGET }}  <ChanId> <starttime> { can we specify NOFORCE or NOFORGET? }
@@ -184,7 +352,7 @@ trait MythProtocol {
      *    -2 Error deleting file
      *  TODO needs more investigation
      */
-    "DELETE_RECORDING" -> (verifyArgsDeleteRecording, serializeNOP),
+    "DELETE_RECORDING" -> (verifyArgsDeleteRecording, serializeDeleteRecording),
 
     /*
      * DONE
@@ -202,7 +370,7 @@ trait MythProtocol {
      *       OK <storagegroup> <filename>      ??
      *       ERROR                             ?? only if synchronous?
      */
-    "DOWNLOAD_FILE" -> (verifyArgsDownloadFile, serializeNOP),
+    "DOWNLOAD_FILE" -> (verifyArgsDownloadFile, serializeDownloadFile),
 
     /*
      * DOWNLOAD_FILE_NOW [] [%s, %s, %s]   [<srcURL> <storageGroup> <fileName>]
@@ -210,7 +378,7 @@ trait MythProtocol {
      *  @responds sometimes; only if slistCount == 4
      *  @returns see DOWNLOAD_FILE
      */
-    "DOWNLOAD_FILE_NOW" -> (verifyArgsDownloadFile, serializeNOP),
+    "DOWNLOAD_FILE_NOW" -> (verifyArgsDownloadFile, serializeDownloadFile),
 
     /*
      * FILL_PROGRAM_INFO [] [%s, %p]     [<playback host> <ProgramInfo>]
@@ -225,14 +393,14 @@ trait MythProtocol {
      *  @responds sometimes; only if ChanId in program info
      *  @returns see DELETE_RECORDING
      */
-    "FORCE_DELETE_RECORDING" -> (verifyArgsProgramInfo, serializeNOP),
+    "FORCE_DELETE_RECORDING" -> (verifyArgsProgramInfo, serializeProgramInfo),
 
     /*
      * FORGET_RECORDING [] [%p]    [<ProgramInfo>]
      *  @responds always
      *  @returns "0"
      */
-    "FORGET_RECORDING" -> (verifyArgsProgramInfo, serializeNOP),
+    "FORGET_RECORDING" -> (verifyArgsProgramInfo, serializeProgramInfo),
 
     /*
      * FREE_TUNER %d        <cardId>
@@ -282,10 +450,10 @@ trait MythProtocol {
     /*
      * GET_RECORDER_NUM [] [%p]        [<ProgramInfo>]
      *  @responds always
-     *  @returns [%s, %d] = <host or IP> <port>
-     *        or ["nohost", -1] if no matching recorder found
+     *  @returns [%d, %s, %d] =   <encoder#> <host or IP> <port>
+     *        or [-1, "nohost", -1] if no matching recorder found
      */
-    "GET_RECORDER_NUM" -> (verifyArgsProgramInfo, serializeNOP),
+    "GET_RECORDER_NUM" -> (verifyArgsProgramInfo, serializeProgramInfo),
 
     /*
      * GO_TO_SLEEP
@@ -321,7 +489,7 @@ trait MythProtocol {
      *  @responds sometimes; only if tokenCount >= 2
      *  @returns "REJECT %d" or "ACCEPT %d" where %d is MYTH_PROTO_VERSION
      */
-    "MYTH_PROTO_VERSION" -> (verifyArgsMythProtoVersion, serializeNOP),
+    "MYTH_PROTO_VERSION" -> (verifyArgsMythProtoVersion, serializeMythProtoVersion),
 
     /*
      * QUERY_ACTIVE_BACKENDS
@@ -335,7 +503,7 @@ trait MythProtocol {
      *  @responds sometimes, only if tokenCount == 3
      *  @returns %ld   <bookmarkPos> (frame number)
      */
-    "QUERY_BOOKMARK" -> (verifyArgsChanIdStartTime, serializeNOP),
+    "QUERY_BOOKMARK" -> (verifyArgsChanIdStartTime, serializeChanIdStartTime),
 
     /*
      * QUERY_CHECKFILE [] [%b, %p]     <checkSlaves> <ProgramInfo>
@@ -343,21 +511,26 @@ trait MythProtocol {
      *  @returns %d %s      <exists:0/1?>  <playbackURL>
      *    note playback url will be "" if file does not exist
      */
-    "QUERY_CHECKFILE" -> (verifyArgsQueryCheckFile, serializeNOP),
+    "QUERY_CHECKFILE" -> (verifyArgsQueryCheckFile, serializeQueryCheckFile),
 
     /*
      * QUERY_COMMBREAK %d %t           <ChanId> <starttime>
      *  @responds sometimes; only if tokenCount == 3
-     *  @returns TODO some sort of IntList?
+     *  @returns %d {[ %d %d ]* }
+     *              first integer is count of tuples
+     *              tuples are (mark type, mark pos) from recordedmarkup
+     *          gather result into a tuple of two lists (start/end of a commbreak)
+     *          of course it is possible for one side to be missing? what do we do then?
+     *
      */
-    "QUERY_COMMBREAK" -> (verifyArgsChanIdStartTime, serializeNOP),
+    "QUERY_COMMBREAK" -> (verifyArgsChanIdStartTime, serializeChanIdStartTime),
 
     /*
      * QUERY_CUTLIST %d %t             <ChanId> <starttime>
      *  @responds sometimes; only if tokenCount == 3
      *  @returns TODO some sort of IntList?
      */
-    "QUERY_CUTLIST" -> (verifyArgsChanIdStartTime, serializeNOP),
+    "QUERY_CUTLIST" -> (verifyArgsChanIdStartTime, serializeChanIdStartTime),
 
     /*
      * QUERY_FILE_EXISTS [] [%s {, %s}]   <filename> {<storageGroup>}
@@ -372,7 +545,7 @@ trait MythProtocol {
      *
      * If storage group name is not specified, then "Default" will be used as the default.
      */
-    "QUERY_FILE_EXISTS" -> (verifyArgsQueryFileExists, serializeNOP),
+    "QUERY_FILE_EXISTS" -> (verifyArgsQueryFileExists, serializeQueryFileExists),
 
     /*
      * QUERY_FILE_HASH [] [%s, %s {, %s}]     <filename> <storageGroup> {<hostname>}
@@ -381,7 +554,7 @@ trait MythProtocol {
      *      ""  on error checking for file, invalid input
      *      %s  hash of the file (currently 64-bit, so 16 hex characters)
      */
-    "QUERY_FILE_HASH" -> (verifyArgsQueryFileHash, serializeNOP),
+    "QUERY_FILE_HASH" -> (verifyArgsQueryFileHash, serializeQueryFileHash),
 
     /*
      * QUERY_FILETRANSFER %d [DONE]                 <ftID>
@@ -457,7 +630,7 @@ trait MythProtocol {
      *  @returns ? [%p {, %p}]  <list of ProgramInfo>  // TODO does this begin with a count?
      *        or "0" if not availble/error?
      */
-    "QUERY_GETCONFLICTING" -> (verifyArgsProgramInfo, serializeNOP),
+    "QUERY_GETCONFLICTING" -> (verifyArgsProgramInfo, serializeProgramInfo),
 
     /*
      * QUERY_GETEXPIRING
@@ -489,7 +662,7 @@ trait MythProtocol {
      * TODO may case NPE if hostname is not passed?
      *      what does QtStringList array index out of bounds do?
      */
-    "QUERY_IS_ACTIVE_BACKEND" -> (verifyArgsQueryIsActiveBackend, serializeNOP),
+    "QUERY_IS_ACTIVE_BACKEND" -> (verifyArgsQueryIsActiveBackend, serializeQueryIsActiveBackend),
 
     /*
      * QUERY_ISRECORDING
@@ -534,7 +707,7 @@ trait MythProtocol {
      *  @returns %ld    <last modified (timestamp?)>
      *        or "BAD"
      */
-    "QUERY_PIXMAP_LASTMODIFIED" -> (verifyArgsProgramInfo, serializeNOP),
+    "QUERY_PIXMAP_LASTMODIFIED" -> (verifyArgsProgramInfo, serializeProgramInfo),
 
     /*
      * QUERY_RECORDER %d  <recorder#> [    // NB two tokens! recorder# + subcommand list
@@ -581,13 +754,13 @@ trait MythProtocol {
     "QUERY_RECORDER" -> (verifyArgsNOP, serializeNOP),
 
     /*
-     * QUERY_RECORDING BASENAME, %s                  <pathname>
-     * QUERY_RECORDING TIMESLOT, %d, %mt             <ChanId> <starttime>
+     * QUERY_RECORDING BASENAME %s                  <pathname>
+     * QUERY_RECORDING TIMESLOT %d %mt             <ChanId> <starttime>
      *  NB starttime is in myth/ISO string format rather than in timestamp
      *  @responds sometimes; only if tokenCount >= 3 (or >= 4 if TIMESLOT is specified)
      *  @returns ["OK", <ProgramInfo>] or "ERROR"
      */
-    "QUERY_RECORDING" -> (verifyArgsQueryRecording, serializeNOP),
+    "QUERY_RECORDING" -> (verifyArgsQueryRecording, serializeQueryRecording),
 
     /*
      * QUERY_RECORDING_DEVICE
@@ -606,7 +779,7 @@ trait MythProtocol {
      *  @responds sometimes; only if tokenCount == 2
      *  @returns [ %p {, %p}*]   list of ProgramInfo records
      */
-    "QUERY_RECORDINGS" -> (verifyArgsQueryRecordings, serializeNOP),
+    "QUERY_RECORDINGS" -> (verifyArgsQueryRecordings, serializeQueryRecordings),
 
     /*
      * QUERY_REMOTEENCODER %d [          <encoder#>
@@ -632,7 +805,7 @@ trait MythProtocol {
      *  @responds sometimes; only if tokenCount == 3
      *  @returns %s or "-1" if not found   <settingValue>
      */
-    "QUERY_SETTING" -> (verifyArgsQuerySetting, serializeNOP),
+    "QUERY_SETTING" -> (verifyArgsQuerySetting, serializeQuerySetting),
 
     /* QUERY_SG_GETFILELIST [] [%s, %s, %s {, %b}]  <wantHost> <groupname> <path> { fileNamesOnly> } */
     "QUERY_SG_GETFILELIST" -> (verifyArgsNOP, serializeNOP),
@@ -705,14 +878,14 @@ trait MythProtocol {
      *  @responds sometimes; only if tokenCount == 4
      *  @returns "OK" or "ERROR"
      */
-    "SET_SETTING" -> (verifyArgsSetSetting, serializeNOP),
+    "SET_SETTING" -> (verifyArgsSetSetting, serializeSetSetting),
 
     /*
      * SHUTDOWN_NOW { %s }        { <haltCommand> }
      *  @responds never
      *  @returns nothing
      */
-    "SHUTDOWN_NOW" -> (verifyArgsShutdownNow, serializeNOP),
+    "SHUTDOWN_NOW" -> (verifyArgsShutdownNow, serializeShutdownNow),
 
     /*
      * STOP_RECORDING [] [<ProgramInfo>]
@@ -721,7 +894,7 @@ trait MythProtocol {
      *           "%d" if recording was on a local encoder, <recnum>
      *        or "-1" if not found
      */
-    "STOP_RECORDING" -> (verifyArgsProgramInfo, serializeNOP),
+    "STOP_RECORDING" -> (verifyArgsProgramInfo, serializeProgramInfo),
 
     /*
      * UNDELETE_RECORDING [] [%d, %mt]       [<ChanId> <starttime>]
@@ -730,7 +903,7 @@ trait MythProtocol {
      *  @responds sometimes; if program info has ChanId
      *  @returns "0" on success and "-1" on error
      */
-    "UNDELETE_RECORDING" -> (verifyArgsPIorChanIdStart, serializeNOP)
+    "UNDELETE_RECORDING" -> (verifyArgsUndeleteRecording, serializeUndeleteRecording)
   )
 
 
@@ -765,21 +938,23 @@ object MythProtocol extends MythProtocol {
   final val SPLIT_PATTERN: String = Pattern.quote(BACKEND_SEP)
 
   // TODO this is just for testing
-  def verify(command: String, args: Any*): Boolean = {
+  def verify(command: String, args: Any*): Option[String] = {
     if (commands contains command) {
       val (check, serialize) = commands(command)
-      check(args)
+      if (check(args))
+        Some(serialize(command, args))
+      else {
+        println("failed argument type check")
+        None
+      }
     } else {
       println(s"invalid command $command")
-      false
+      None
     }
   }
 }
 
-private[myth] trait MythProtocol77 extends MythProtocol {
-//  final val PROTO_VERSION = 77        // "75"
-//  final val PROTO_TOKEN = "WindMark"  // "SweetRock"
-
+trait MythProtocolAPI {
   def allowShutdown(): Boolean
   def blockShutdown(): Boolean
   def checkRecording(rec: Recording): Any
@@ -798,19 +973,19 @@ private[myth] trait MythProtocol77 extends MythProtocol {
   def lockTuner(cardId: Int): Any // see above for return type
   def protocolVersion(ver: Int, token: String): (Boolean, Int)
   def queryActiveBackends: List[String]
-  def queryBookmark(chanId: ChanId, startTime: MythDateTime): Long   // frame number/position
-  def queryCommBreak(chanId: ChanId, startTime: MythDateTime): Long  // frame number/position
-  def queryCutList(chanId: ChanId, startTime: MythDateTime): Long    // frame number/position
+  def queryBookmark(chanId: ChanId, startTime: MythDateTime): VideoPosition
+  def queryCommBreak(chanId: ChanId, startTime: MythDateTime): Long  // TODO List? frame number/position
+  def queryCutList(chanId: ChanId, startTime: MythDateTime): Long    // TODO List? frame number/position
   def queryFileExists(fileName: String, storageGroup: String): (String, FileStats)
   def queryFileHash(fileName: String, storageGroup: String, hostName: String = ""): String
   def queryFreeSpace: FreeSpace
   def queryFreeSpaceList: Any  // ?
   def queryFreeSpaceSummary: Any // ?
-  def queryGetAllPending: Iterable[Recording]  // TODO expected count iterator?
-  def queryGetAllScheduled: Iterable[Recording]
-  def queryGetConflicting: Iterable[Recording]
-  def queryGetExpiring: Iterable[Recording]
-  def queryGuideDataThrough: LocalDate  // or Instant?
+  def queryGetAllPending: ExpectedCountIterator[Recording]
+  def queryGetAllScheduled: ExpectedCountIterator[Recording]
+  def queryGetConflicting: Iterable[Recording]  // TODO expected count iterator?
+  def queryGetExpiring: ExpectedCountIterator[Recording]
+  def queryGuideDataThrough: MythDateTime
   def queryHostname: String
   def queryIsActiveBackend: Boolean
   def queryIsRecording: (Int, Int)
@@ -824,11 +999,16 @@ private[myth] trait MythProtocol77 extends MythProtocol {
   def queryUptime: Duration
   def refreshBackend: Boolean
   def scanVideos: Boolean
-  def setBookmark(chanId: ChanId, startTime: MythDateTime, pos: Long): Boolean
+  def setBookmark(chanId: ChanId, startTime: MythDateTime, pos: VideoPosition): Boolean
   def setSetting(hostName: String, settingName: String, value: String): Boolean
   def shutdownNow(haltCommand: String = ""): Unit
   def stopRecording(rec: Recording): Int  // TODO better encapsulate return codes
   def undeleteRecording(rec: Recording): Boolean
   def undeleteRecording(chanId: ChanId, startTime: MythDateTime): Boolean
   // TODO more methods
+}
+
+private[myth] trait MythProtocol77 extends MythProtocol {
+//  final val PROTO_VERSION = 77        // "75"
+//  final val PROTO_TOKEN = "WindMark"  // "SweetRock"
 }
