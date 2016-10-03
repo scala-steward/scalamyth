@@ -26,9 +26,10 @@ package object util {
       new MythDateTime(LocalDateTime.parse(mdt, FORMATTER_MYTH))
 
     def fromTimestamp(ts: Long, tz: ZoneId = ZoneOffset.UTC): MythDateTime =
+      // TODO should I directly call LocalDateTime.ofEpochSecond? has slight diff signature (nanos)
       new MythDateTime(LocalDateTime.ofInstant(Instant.ofEpochSecond(ts), tz))
 
-    def now: MythDateTime = new MythDateTime(LocalDateTime.now)
+    def now: MythDateTime = new MythDateTime(LocalDateTime.now(ZoneOffset.UTC))
   }
 
   // Used to indicate serialization format for certain MythProtocol commands
