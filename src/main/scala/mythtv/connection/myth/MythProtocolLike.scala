@@ -360,7 +360,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @responds sometime; only if tokenCount == 1
      *  @returns "OK"
      */
-    "ALLOW_SHUTDOWN" -> (verifyArgsEmpty, serializeEmpty, handleNOP),
+    "ALLOW_SHUTDOWN" -> (verifyArgsEmpty, serializeEmpty, handleAllowShutdown),
 
     /*
      * ANN Monitor %s %d                <clientHostName> <eventsMode>
@@ -399,7 +399,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @responds always
      *  @returns boolean 0/1 as to whether the recording is currently taking place
      */
-    "CHECK_RECORDING" -> (verifyArgsProgramInfo, serializeProgramInfo, handleNOP),
+    "CHECK_RECORDING" -> (verifyArgsProgramInfo, serializeProgramInfo, handleCheckRecording),
 
     /*
      * DELETE_FILE [] [%s, %s]   [<filename> <storage group name>]
@@ -419,7 +419,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *    -2 Error deleting file
      *  TODO needs more investigation
      */
-    "DELETE_RECORDING" -> (verifyArgsDeleteRecording, serializeDeleteRecording, handleNOP),
+    "DELETE_RECORDING" -> (verifyArgsDeleteRecording, serializeDeleteRecording, handleDeleteRecording),
 
     /*
      * DONE
@@ -460,14 +460,14 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @responds sometimes; only if ChanId in program info
      *  @returns see DELETE_RECORDING
      */
-    "FORCE_DELETE_RECORDING" -> (verifyArgsProgramInfo, serializeProgramInfo, handleNOP),
+    "FORCE_DELETE_RECORDING" -> (verifyArgsProgramInfo, serializeProgramInfo, handleForceDeleteRecording),
 
     /*
      * FORGET_RECORDING [] [%p]    [<ProgramInfo>]
      *  @responds always
      *  @returns "0"
      */
-    "FORGET_RECORDING" -> (verifyArgsProgramInfo, serializeProgramInfo, handleNOP),
+    "FORGET_RECORDING" -> (verifyArgsProgramInfo, serializeProgramInfo, handleForgetRecording),
 
     /*
      * FREE_TUNER %d        <cardId>
@@ -528,7 +528,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @returns "OK" or "ERROR: SleepCommand is empty"
      * (only for slaves, but no checking?! Looks @ CoreContext "SleepCommand" setting)
      */
-    "GO_TO_SLEEP" -> (verifyArgsEmpty, serializeEmpty, handleNOP),
+    "GO_TO_SLEEP" -> (verifyArgsEmpty, serializeEmpty, handleGoToSleep),
 
     /*
      * LOCK_TUNER  (implicitly passes -1 as tuner id, what does this accomplish? first available local tuner?)
@@ -771,10 +771,10 @@ trait MythProtocolLike extends MythProtocolSerializer {
     /*
      * QUERY_PIXMAP_LASTMODIFIED [] [%p]      [<ProgramInfo>]
      *  @responds
-     *  @returns %ld    <last modified (timestamp?)>
+     *  @returns %ld    <last modified (timestamp)>
      *        or "BAD"
      */
-    "QUERY_PIXMAP_LASTMODIFIED" -> (verifyArgsProgramInfo, serializeProgramInfo, handleNOP),
+    "QUERY_PIXMAP_LASTMODIFIED" -> (verifyArgsProgramInfo, serializeProgramInfo, handleQueryPixmapLastModified),
 
     /*
      * QUERY_RECORDER %d  <recorder#> [    // NB two tokens! recorder# + subcommand list
@@ -1004,8 +1004,32 @@ trait MythProtocolLike extends MythProtocolSerializer {
 
   protected def handleNOP(response: BackendResponse): Option[Nothing] = None
 
+  protected def handleAllowShutdown(response: BackendResponse): Option[Boolean] = {
+    Some(response.raw == "OK")
+  }
+
+  protected def handleCheckRecording(response: BackendResponse): Option[Boolean] = {
+    Some(deserialize[Boolean](response.raw))
+  }
+
+  protected def handleDeleteRecording(response: BackendResponse): Option[Int] = {
+    Some(deserialize[Int](response.raw))
+  }
+
+  protected def handleForceDeleteRecording(response: BackendResponse): Option[Int] = {
+    Some(deserialize[Int](response.raw))
+  }
+
+  protected def handleForgetRecording(response: BackendResponse): Option[Int] = {
+    Some(deserialize[Int](response.raw))
+  }
+
   protected def handleGetFreeRecorderCount(response: BackendResponse): Option[Int] = {
     Some(deserialize[Int](response.raw))
+  }
+
+  protected def handleGoToSleep(response: BackendResponse): Option[Boolean] = {
+    Some(response.raw == "OK")
   }
 
   protected def handleMythProtoVersion(response: BackendResponse): Option[(Boolean, Int)] = {
@@ -1116,6 +1140,11 @@ trait MythProtocolLike extends MythProtocolSerializer {
     val stats = response.split map (n => ByteCount(deserialize[Long](n) * 1024 * 1024))
     assert(stats.length > 3)
     Some(stats(0), stats(1), stats(2), stats(3))
+  }
+
+  protected def handleQueryPixmapLastModified(response: BackendResponse): Option[MythDateTime] = {
+    val modified = deserialize[MythDateTime](response.raw)
+    Some(modified)
   }
 
   // TODO FIXME we lose the type of the option going through the message dispatch map

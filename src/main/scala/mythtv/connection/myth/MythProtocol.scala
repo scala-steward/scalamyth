@@ -20,8 +20,5 @@ object MythProtocol extends MythProtocol {
   final val SPLIT_PATTERN: String = Pattern.quote(BACKEND_SEP)
 }
 
-private[myth] trait MythProtocol75 extends MythProtocol with MythProtocolLike75 {
-}
-
-private[myth] trait MythProtocol77 extends MythProtocol with MythProtocolLike77 {
-}
+private[myth] trait MythProtocol75 extends MythProtocol with MythProtocolLike75
+private[myth] trait MythProtocol77 extends MythProtocol with MythProtocolLike77

@@ -34,13 +34,38 @@ class BackendAPIConnection(host: String, port: Int, timeout: Int, blockShutdown:
     }
   }
 
-  def allowShutdown(): Boolean = ???
+  def allowShutdown(): Boolean = {
+    val result = execute("ALLOW_SHUTDOWN")
+    (result map { case r: Boolean => r }).get
+  }
+
 //  def blockShutdown(): Boolean = ??? // TODO name clash with var in BackendConnection (and constructor param here)
-  def checkRecording(rec: Recording): Any = ???
+
+  def checkRecording(rec: Recording): Boolean = {
+    val result = execute("CHECK_RECORDING", rec)
+    (result map { case r: Boolean => r }).get
+  }
+
+  def deleteRecording(rec: Recording): Int = {
+    val result = execute("DELETE_RECORDING", rec)
+    (result map { case r: Int => r }).get
+  }
+
   def done(): Unit = ???
+
   def fillProgramInfo(playbackHost: String, p: Recording): Recording = ???
-  def forceDeleteRecording(rec: Recording) = ???
-  def forgetRecording(rec: Recording): Int = ???  // TODO something better to indicate success/failure; Either?
+
+  // TODO is the result here really Int or Boolean
+  def forceDeleteRecording(rec: Recording): Int = {
+    val result = execute("FORCE_DELETE_RECORDING", rec)
+    (result map { case r: Int => r }).get
+  }
+
+  // TODO is the result here really Int or Boolean
+  def forgetRecording(rec: Recording): Int = {
+    val result = execute("FORGET_RECORDING", rec)
+    (result map { case r: Int => r }).get
+  }
 
   def getFreeRecorder: Any = ??? // need encoding of "Encoder" -> ID, host/IP, port
 
@@ -53,7 +78,12 @@ class BackendAPIConnection(host: String, port: Int, timeout: Int, blockShutdown:
   def getNextFreeRecorder(encoderId: Int): Any = ??? // see above for return type
   def getRecorderFromNum(encoderId: Int): Any = ??? // see above for return type
   def getRecorderNum(rec: Recording): Any = ???      // see above for return type
-  def goToSleep(): Boolean = ??? // TODO a way to return error message if any
+
+  // TODO a way to return error message if any
+  def goToSleep(): Boolean = {
+    val result = execute("GO_TO_SLEEP")
+    (result map { case r: Boolean => r }).get
+  }
 
   def lockTuner(): Any = ??? // TODO capture the appropriate return type
   def lockTuner(cardId: Int): Any = ???// see above for return type
@@ -150,7 +180,10 @@ class BackendAPIConnection(host: String, port: Int, timeout: Int, blockShutdown:
     }).get
   }
 
-  def queryPixmapLastModified(rec: Recording): MythDateTime = ???
+  def queryPixmapLastModified(rec: Recording): MythDateTime = {
+    val result = execute("QUERY_PIXMAP_LASTMODIFIED", rec)
+    (result map { case d: MythDateTime => d }).get
+  }
 
   def queryRecording(pathName: String): Recording = {
     val result = execute("QUERY_RECORDING", "BASENAME", pathName)
@@ -183,7 +216,8 @@ class BackendAPIConnection(host: String, port: Int, timeout: Int, blockShutdown:
   }
 
   def scanVideos: Boolean = {
-    val result = execute("SCAN_VIDEOS")   // TODO this may need a longer timeout, may take some time? Is this true?
+    // TODO this may need a longer timeout, may take some time? Is this true?
+    val result = execute("SCAN_VIDEOS")
     (result map { case r: Boolean => r }).get
   }
 
@@ -197,7 +231,11 @@ class BackendAPIConnection(host: String, port: Int, timeout: Int, blockShutdown:
     (result map { case r: Boolean => r }).get
   }
 
-  def shutdownNow(haltCommand: String = ""): Unit = ???
+  // TODO do we need to post this message rather than send it?
+  def shutdownNow(haltCommand: String = ""): Unit = {
+    if (haltCommand == "") execute("SHUTDOWN_NOW")
+    else execute("SHUTDOWN_NOW", haltCommand)
+  }
 
   // TODO better encapsulate return codes
   def stopRecording(rec: Recording): Int = {

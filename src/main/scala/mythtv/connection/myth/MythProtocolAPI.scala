@@ -12,10 +12,11 @@ import util.{ ByteCount, ExpectedCountIterator, MythDateTime }
 trait MythProtocolAPI {
   def allowShutdown(): Boolean
   def blockShutdown(): Boolean
-  def checkRecording(rec: Recording): Any
+  def checkRecording(rec: Recording): Boolean
+  def deleteRecording(rec: Recording): Int
   def done(): Unit
   def fillProgramInfo(playbackHost: String, p: Recording): Recording
-  def forceDeleteRecording(rec: Recording)
+  def forceDeleteRecording(rec: Recording): Int
   def forgetRecording(rec: Recording): Int   // TODO something better to indicate success/failure; Either?
   def getFreeRecorder: Any // need encoding of "Encoder" -> ID, host/IP, port
   def getFreeRecorderCount: Int
