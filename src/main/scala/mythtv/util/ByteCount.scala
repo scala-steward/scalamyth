@@ -7,6 +7,9 @@ package util
 //     "true" is a sort of unsatisfactory discrimiator for behavior
 //   use implicit conversions between classes
 
+// TODO split into Trait, then new classes BinaryByteCount, DecimalByteCount, with some
+//      implicit or other conversion methods
+
 case class ByteCount(bytes: Long) extends AnyVal {
   def b: Long = bytes
   def kb: Long = kilobytes(false)
