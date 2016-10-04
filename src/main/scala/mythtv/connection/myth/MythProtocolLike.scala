@@ -1002,13 +1002,13 @@ trait MythProtocolLike extends MythProtocolSerializer {
     *  v) process the result according to rules for the given command signature
     */
 
-  def handleNOP(response: BackendResponse): Option[Nothing] = None
+  protected def handleNOP(response: BackendResponse): Option[Nothing] = None
 
-  def handleGetFreeRecorderCount(response: BackendResponse): Option[Int] = {
+  protected def handleGetFreeRecorderCount(response: BackendResponse): Option[Int] = {
     Some(deserialize[Int](response.raw))
   }
 
-  def handleMythProtoVersion(response: BackendResponse): Option[(Boolean, Int)] = {
+  protected def handleMythProtoVersion(response: BackendResponse): Option[(Boolean, Int)] = {
     val parts = response.split
     assert(parts.length > 1)
     val accepted = parts(0) == "ACCEPT"
@@ -1016,13 +1016,13 @@ trait MythProtocolLike extends MythProtocolSerializer {
     Some(accepted, acceptedVersion)
   }
 
-  def handleQueryActiveBackends(response: BackendResponse): Option[List[String]] = {
+  protected def handleQueryActiveBackends(response: BackendResponse): Option[List[String]] = {
     val recs = response.split
     val expectedCount = deserialize[Int](recs(0))  // TODO check non-zero
     Some((recs.iterator drop 1).toList)
   }
 
-  def handleQueryGetAllPending(response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
+  protected def handleQueryGetAllPending(response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
     import data.BackendProgram  // TODO eliminate import here
     val recs = response.split
     val hasConflicts = deserialize[Boolean](recs(0))  // TODO return this also?
@@ -1032,7 +1032,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
     Some(new ExpectedCountIterator(expectedCount, it map (BackendProgram(_))))
   }
 
-  def handleQueryGetAllScheduled(response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
+  protected def handleQueryGetAllScheduled(response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
     import data.BackendProgram  // TODO eliminate import here
     val recs = response.split
     val expectedCount = deserialize[Int](recs(0))  // TODO check non-zero!
@@ -1041,12 +1041,12 @@ trait MythProtocolLike extends MythProtocolSerializer {
     Some(new ExpectedCountIterator(expectedCount, it map (BackendProgram(_))))
   }
 
-  def handleQueryBookmark(response: BackendResponse): Option[VideoPosition] = {
+  protected def handleQueryBookmark(response: BackendResponse): Option[VideoPosition] = {
     val pos = deserialize[Long](response.raw)
     Some(VideoPosition(pos))
   }
 
-  def handleQueryGetExpiring(response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
+  protected def handleQueryGetExpiring(response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
     import data.BackendProgram  // TODO eliminate import here
     val recs = response.split
     val expectedCount = deserialize[Int](recs(0))  // TODO check non-zero!
@@ -1055,7 +1055,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
     Some(new ExpectedCountIterator(expectedCount, it map (BackendProgram(_))))
   }
 
-  def handleQueryFileExists(response: BackendResponse): Option[(String, FileStats)] = {
+  protected def handleQueryFileExists(response: BackendResponse): Option[(String, FileStats)] = {
     val items = response.split
     val statusCode = deserialize[Int](items(0))
     assert(statusCode > 0)
@@ -1064,7 +1064,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
     Some((fullName, stats))
   }
 
-  def handleQueryFreeSpace(response: BackendResponse): Option[List[FreeSpace]] = {
+  protected def handleQueryFreeSpace(response: BackendResponse): Option[List[FreeSpace]] = {
     import data.BackendFreeSpace  // TODO eliminate import here
     val items = response.split
     val fieldCount = BackendFreeSpace.FIELD_ORDER.length
@@ -1072,7 +1072,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
     Some(it.toList)
   }
 
-  def handleQueryFreeSpaceList(response: BackendResponse): Option[List[FreeSpace]] = {
+  protected def handleQueryFreeSpaceList(response: BackendResponse): Option[List[FreeSpace]] = {
     import data.BackendFreeSpace  // TODO eliminate import here
     val items = response.split
     val fieldCount = BackendFreeSpace.FIELD_ORDER.length
@@ -1080,39 +1080,39 @@ trait MythProtocolLike extends MythProtocolSerializer {
     Some(it.toList)
   }
 
-  def handleQueryFreeSpaceSummary(response: BackendResponse): Option[(ByteCount, ByteCount)] = {
+  protected def handleQueryFreeSpaceSummary(response: BackendResponse): Option[(ByteCount, ByteCount)] = {
     val data = response.split map deserialize[Long]
     assert(data.length > 1)
     Some((ByteCount(data(0) * 1024), ByteCount(data(1) * 1024)))
   }
 
-  def handleQueryGuideDataThrough(response: BackendResponse): Option[MythDateTime] = {
+  protected def handleQueryGuideDataThrough(response: BackendResponse): Option[MythDateTime] = {
     val result = deserialize[MythDateTime](response.raw)
     Some(result)
   }
 
-  def handleQueryHostname(response: BackendResponse): Option[String] = {
+  protected def handleQueryHostname(response: BackendResponse): Option[String] = {
     Some(response.raw)
   }
 
-  def handleQueryIsActiveBackend(response: BackendResponse): Option[Boolean] = {
+  protected def handleQueryIsActiveBackend(response: BackendResponse): Option[Boolean] = {
     val result = deserialize[Boolean](response.raw)
     Some(result)
   }
 
-  def handleIsRecording(response: BackendResponse): Option[(Int, Int)] = {
+  protected def handleIsRecording(response: BackendResponse): Option[(Int, Int)] = {
     val results = response.split map deserialize[Int]
     assert(results.length > 1)
     Some(results(0), results(1))
   }
 
-  def handleQueryLoad(response: BackendResponse): Option[(Double, Double, Double)] = {
+  protected def handleQueryLoad(response: BackendResponse): Option[(Double, Double, Double)] = {
     val loads = response.split map deserialize[Double]
     assert(loads.length > 2)
     Some((loads(0), loads(1), loads(2)))
   }
 
-  def handleQueryMemStats(response: BackendResponse): Option[(ByteCount, ByteCount, ByteCount, ByteCount)] = {
+  protected def handleQueryMemStats(response: BackendResponse): Option[(ByteCount, ByteCount, ByteCount, ByteCount)] = {
     val stats = response.split map (n => ByteCount(deserialize[Long](n) * 1024 * 1024))
     assert(stats.length > 3)
     Some(stats(0), stats(1), stats(2), stats(3))
@@ -1120,18 +1120,18 @@ trait MythProtocolLike extends MythProtocolSerializer {
 
   // TODO FIXME we lose the type of the option going through the message dispatch map
   //            is there a way around this?
-  def handleQueryRecording(response: BackendResponse): Option[Recording] = {
+  protected def handleQueryRecording(response: BackendResponse): Option[Recording] = {
     val data = response.split
     // TODO check for error....
     import mythtv.connection.myth.data.BackendProgram  // TODO eliminate import here
     Some(new BackendProgram(data drop 1))
   }
 
-  def handleQuerySetting(response: BackendResponse): Option[String] = {
+  protected def handleQuerySetting(response: BackendResponse): Option[String] = {
     Some(response.raw)
   }
 
-  def handleQueryTimeZone(response: BackendResponse): Option[(String, ZoneOffset, Instant)] = {
+  protected def handleQueryTimeZone(response: BackendResponse): Option[(String, ZoneOffset, Instant)] = {
     val data = response.split
     assert(data.length > 2)
     val tzName = data(0)
@@ -1140,37 +1140,37 @@ trait MythProtocolLike extends MythProtocolSerializer {
     Some((tzName, offset, time))
   }
 
-  def handleQueryUptime(response: BackendResponse): Option[Duration] = {
+  protected def handleQueryUptime(response: BackendResponse): Option[Duration] = {
     val seconds = deserialize[Long](response.raw)
     Some(Duration.ofSeconds(seconds))
   }
 
-  def handleRefreshBackend(response: BackendResponse): Option[Boolean] = {
+  protected def handleRefreshBackend(response: BackendResponse): Option[Boolean] = {
     val success = response.raw == "OK"
     Some(success)
   }
 
-  def handleScanVideos(response: BackendResponse): Option[Boolean] = {
+  protected def handleScanVideos(response: BackendResponse): Option[Boolean] = {
     val success = response.raw == "OK"
     Some(success)
   }
 
-  def handleSetBookmark(response: BackendResponse): Option[Boolean] = {
+  protected def handleSetBookmark(response: BackendResponse): Option[Boolean] = {
     val success = response.raw == "OK"
     Some(success)
   }
 
-  def handleSetSetting(response: BackendResponse): Option[Boolean] = {
+  protected def handleSetSetting(response: BackendResponse): Option[Boolean] = {
     val success = response.raw == "OK"
     Some(success)
   }
 
-  def handleStopRecording(response: BackendResponse): Option[Int] = {
+  protected def handleStopRecording(response: BackendResponse): Option[Int] = {
     val result = deserialize[Int](response.raw)
     Some(result)
   }
 
-  def handleUndeleteRecording(response: BackendResponse): Option[Boolean] = {
+  protected def handleUndeleteRecording(response: BackendResponse): Option[Boolean] = {
     val success = deserialize[Boolean](response.raw)
     Some(success)
   }
