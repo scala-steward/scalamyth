@@ -6,7 +6,7 @@ import java.time.{ Duration, Instant, ZoneOffset }
 
 //import FileStats  // TODO API exposed data types should be in model, not buried here
 import model.{ ChanId, FreeSpace, Recording, VideoPosition }
-import util.{ ByteCount, ExpectedCountIterator, MythDateTime }
+import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
 
 // TODO these APIs should be converted to return Option[_] or Either[_] or something
 trait MythProtocolAPI {

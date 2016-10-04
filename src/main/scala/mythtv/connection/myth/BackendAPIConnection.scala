@@ -5,7 +5,7 @@ package myth
 import java.time.{ Duration, Instant, ZoneOffset }
 
 import model.{ ChanId, FreeSpace, Recording, VideoPosition }
-import util.{ ByteCount, ExpectedCountIterator, MythDateTime }
+import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
 
 class BackendAPIConnection(host: String, port: Int, timeout: Int, blockShutdown: Boolean)
     extends BackendConnection(host, port, timeout, blockShutdown)

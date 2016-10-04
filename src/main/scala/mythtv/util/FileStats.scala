@@ -1,10 +1,7 @@
 package mythtv
-package connection
-package myth
+package util
 
 import java.time.Instant
-
-import util.ByteCount
 
 case class FileStats(
   deviceId: Long,
@@ -21,6 +18,7 @@ case class FileStats(
   modifyTime: Instant,
   changeTime: Instant)
 
+/* TODO: move this to deserializer */
 object FileStats {
   def apply(data: IndexedSeq[String]): FileStats =
     FileStats(

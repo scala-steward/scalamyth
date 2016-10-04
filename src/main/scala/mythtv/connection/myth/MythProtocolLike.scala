@@ -5,7 +5,7 @@ package myth
 import java.time.{ Duration, Instant, LocalDate, ZoneOffset }
 
 import model.{ CaptureCardId, ChanId, FreeSpace, Recording, VideoPosition }
-import util.{ ByteCount, ExpectedCountIterator, MythDateTime, MythDateTimeString }
+import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythDateTimeString }
 
 trait MythProtocolLike extends MythProtocolSerializer {
   import MythProtocol._
