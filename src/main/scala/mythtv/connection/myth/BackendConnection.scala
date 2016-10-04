@@ -84,6 +84,7 @@ private class BackendCommandWriter(out: OutputStream) extends BackendCommandStre
 class BackendConnection(host: String, port: Int, timeout: Int, val blockShutdown: Boolean)
     extends SocketConnection(host, port, timeout) with MythProtocol {
   // TODO management of reader/writer lifecycle
+  // TODO move timeout into a DynamicVariable and use withTimeout() rather than constructor parameter
 
   def this(host: String, port: Int, timeout: Int) = this(host, port, timeout, false)
   def this(host: String, port: Int) = this(host, port, 10)
