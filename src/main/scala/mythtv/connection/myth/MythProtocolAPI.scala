@@ -42,10 +42,10 @@ trait MythProtocolAPI {
   def queryGetExpiring: ExpectedCountIterator[Recording]
   def queryGuideDataThrough: MythDateTime
   def queryHostname: String
-  def queryIsActiveBackend: Boolean
+  def queryIsActiveBackend(hostName: String): Boolean
   def queryIsRecording: (Int, Int)
   def queryLoad: (Double, Double, Double)
-  def queryMemStats: (Int, Int, Int, Int)
+  def queryMemStats: (ByteCount, ByteCount, ByteCount, ByteCount)
   def queryPixmapLastModified(rec: Recording): MythDateTime
   def queryRecording(pathName: String): Recording
   def queryRecording(chanId: ChanId, startTime: MythDateTime): Recording

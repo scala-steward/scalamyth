@@ -2,6 +2,8 @@ package mythtv
 package connection
 package myth
 
+import java.time.Instant
+
 import data.BackendProgram
 import model.{ CaptureCardId, ChanId, Recording, VideoPosition }
 import util.{ MythDateTime, MythDateTimeString }
@@ -24,6 +26,11 @@ object MythProtocolSerializable {
     def deserialize(in: String): Long = in.toLong
     def serialize(in: Long): String = in.toString
     override def serialize(in: Long, builder: StringBuilder): StringBuilder = { builder.append(in); builder }
+  }
+
+  implicit object DoubleSerializer extends MythProtocolSerializable[Double] {
+    def deserialize(in: String): Double = in.toDouble
+    def serialize(in: Double): String = in.toString
   }
 
   implicit object BooleanSerializer extends MythProtocolSerializable[Boolean] {
@@ -59,8 +66,26 @@ object MythProtocolSerializable {
     override def serialize(in: VideoPosition, builder: StringBuilder): StringBuilder = { builder.append(in.pos); builder }
   }
 
+  implicit object InstantSerializer extends MythProtocolSerializable[Instant] {
+    def deserialize(in: String): Instant = Instant.parse(in)
+    def serialize(in: Instant): String = in.toString
+  }
+
   implicit object MythDateTimeSerializer extends MythProtocolSerializable[MythDateTime] {
-    def deserialize(in: String): MythDateTime = MythDateTime.fromTimestamp(in.toLong)
+    // TODO FIXME eliminate this pyramid of doom. Also what exception to keep if they all fail?
+    def deserialize(in: String): MythDateTime = {
+      try {
+        MythDateTime.fromTimestamp(in.toLong)
+      } catch {
+        case _ : NumberFormatException =>
+          try {
+            MythDateTime.fromIso(in)
+          } catch {
+            case _ : java.time.format.DateTimeParseException =>
+              MythDateTime.fromIsoLoose(in)
+          }
+      }
+    }
     def serialize(in: MythDateTime): String = in.toTimestamp.toString
     override def serialize(in: MythDateTime, builder: StringBuilder): StringBuilder =
       { builder.append(in.toTimestamp); builder }

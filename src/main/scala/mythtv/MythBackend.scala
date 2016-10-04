@@ -91,7 +91,7 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
 
   def freeSpaceSummary: (ByteCount, ByteCount) = {
     val res = conn.sendCommand("QUERY_FREE_SPACE_SUMMARY").get.split
-    val Seq(total, used) = res map (_.toLong)
+    val Array(total, used) = res map (_.toLong)
     (ByteCount(total * 1024), ByteCount(used * 1024))
   }
 
@@ -110,7 +110,7 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
   }
 
   def uptime: Duration = {
-    val res = conn.sendCommand("QUERY_UPTIME").get.response
+    val res = conn.sendCommand("QUERY_UPTIME").get.raw
     Duration.ofSeconds(res.toLong)
   }
 
@@ -121,7 +121,7 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
 
   def isActiveBackend(hostname: String): Boolean = {
     val cmd = List("QUERY_IS_ACTIVE_BACKEND", hostname) mkString MythProtocol.BACKEND_SEP
-    conn.sendCommand(cmd).getOrElse(BackendResponse("FALSE")).response.toBoolean
+    conn.sendCommand(cmd).getOrElse(BackendResponse("FALSE")).raw.toBoolean
   }
 
   def isActive: Boolean = isActiveBackend(host)   // TODO does this only work in master backends?

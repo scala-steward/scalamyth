@@ -501,7 +501,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @responds always
      *  @returns Int: number of available encoders
      */
-    "GET_FREE_RECORDER_COUNT" -> (verifyArgsEmpty, serializeEmpty, handleNOP),
+    "GET_FREE_RECORDER_COUNT" -> (verifyArgsEmpty, serializeEmpty, handleGetFreeRecorderCount),
 
     /*
      * GET_FREE_RECORDER_LIST
@@ -566,23 +566,23 @@ trait MythProtocolLike extends MythProtocolSerializer {
     /*
      * MYTH_PROTO_VERSION %s %s    <version> <protocolToken>
      *  @responds sometimes; only if tokenCount >= 2
-     *  @returns "REJECT %d" or "ACCEPT %d" where %d is MYTH_PROTO_VERSION
+     *  @returns ["REJECT, %d"] or ["ACCEPT, %d"] where %d is MYTH_PROTO_VERSION
      */
-    "MYTH_PROTO_VERSION" -> (verifyArgsMythProtoVersion, serializeMythProtoVersion, handleNOP),
+    "MYTH_PROTO_VERSION" -> (verifyArgsMythProtoVersion, serializeMythProtoVersion, handleMythProtoVersion),
 
     /*
      * QUERY_ACTIVE_BACKENDS
      *  @responds always
      *  @returns %d [] [ %s {, %s }* ]  <count> [ hostName, ... ]
      */
-    "QUERY_ACTIVE_BACKENDS" -> (verifyArgsEmpty, serializeEmpty, handleNOP),
+    "QUERY_ACTIVE_BACKENDS" -> (verifyArgsEmpty, serializeEmpty, handleQueryActiveBackends),
 
     /*
      * QUERY_BOOKMARK %d %t   <ChanId> <starttime>
      *  @responds sometimes, only if tokenCount == 3
      *  @returns %ld   <bookmarkPos> (frame number)
      */
-    "QUERY_BOOKMARK" -> (verifyArgsChanIdStartTime, serializeChanIdStartTime, handleNOP),
+    "QUERY_BOOKMARK" -> (verifyArgsChanIdStartTime, serializeChanIdStartTime, handleQueryBookmark),
 
     /*
      * QUERY_CHECKFILE [] [%b, %p]     <checkSlaves> <ProgramInfo>
@@ -624,7 +624,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *
      * If storage group name is not specified, then "Default" will be used as the default.
      */
-    "QUERY_FILE_EXISTS" -> (verifyArgsQueryFileExists, serializeQueryFileExists, handleNOP),
+    "QUERY_FILE_EXISTS" -> (verifyArgsQueryFileExists, serializeQueryFileExists, handleQueryFileExists),
 
     /*
      * QUERY_FILE_HASH [] [%s, %s {, %s}]     <filename> <storageGroup> {<hostname>}
@@ -654,7 +654,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @responds always
      *  @returns  TODO
      */
-    "QUERY_FREE_SPACE" -> (verifyArgsEmpty, serializeEmpty, handleNOP),
+    "QUERY_FREE_SPACE" -> (verifyArgsEmpty, serializeEmpty, handleQueryFreeSpace),
 
     /*
      * QUERY_FREE_SPACE_LIST
@@ -664,7 +664,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      * Like QUERY_FREE_SPACE but returns free space on all hosts, each directory
      * is reported as a URL, and a TotalDiskSpace is appended.
      */
-    "QUERY_FREE_SPACE_LIST" -> (verifyArgsEmpty, serializeEmpty, handleNOP),
+    "QUERY_FREE_SPACE_LIST" -> (verifyArgsEmpty, serializeEmpty, handleQueryFreeSpaceList),
 
     /*
      * QUERY_FREE_SPACE_SUMMARY
@@ -672,7 +672,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @returns [%d, %d]    <total size> <used size>  sizes are in kB (1024-byte blocks)
      *        or [ 0, 0 ]    if there was any sort of error
      */
-    "QUERY_FREE_SPACE_SUMMARY" -> (verifyArgsEmpty, serializeEmpty, handleNOP),
+    "QUERY_FREE_SPACE_SUMMARY" -> (verifyArgsEmpty, serializeEmpty, handleQueryFreeSpaceSummary),
 
     /*
      * QUERY_GENPIXMAP2 [] [%s, %p, more?]     TODO %s is a "token", can be the literal "do_not_care"
@@ -689,19 +689,19 @@ trait MythProtocolLike extends MythProtocolSerializer {
     /*
      * QUERY_GETALLPENDING { %s {, %d}}  { <tmptable> {, <recordid>}}
      *  @responds always
-     *  @returns ? [%p {, %p}]  <list of ProgramInfo>  // TODO does this begin with a count?
+     *  @returns %d %b [%p {, %p}]  <expectedCount> <hasConflicts> <list of ProgramInfo>
      *        or ["0", "0"] if not availble/error?
      *  TODO what is the purpose of the optional tmptable and recordid parameters?
      */
-    "QUERY_GETALLPENDING" -> (verifyArgsQueryGetAllPending, serializeQueryGetAllPending, handleNOP),
+    "QUERY_GETALLPENDING" -> (verifyArgsQueryGetAllPending, serializeQueryGetAllPending, handleQueryGetAllPending),
 
     /*
      * QUERY_GETALLSCHEDULED
      *  @responds always
-     *  @returns ? [%p {, %p}]  <list of ProgramInfo>  // TODO does this begin with a count?
+     *  @returns %d [%p {, %p}] <expectedCount> <list of ProgramInfo>
      *        or "0" if not availble/error?
      */
-    "QUERY_GETALLSCHEDULED" -> (verifyArgsEmpty, serializeEmpty, handleNOP),
+    "QUERY_GETALLSCHEDULED" -> (verifyArgsEmpty, serializeEmpty, handleQueryGetAllScheduled),
 
     /*
      * QUERY_GETCONFLICTING [] [%p]     [<ProgramInfo>]
@@ -717,7 +717,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @returns ? [%p {, %p}]  <list of ProgramInfo>  // TODO does this begin with a count?
      *        or "0" if not availble/error?
      */
-    "QUERY_GETEXPIRING" -> (verifyArgsEmpty, serializeEmpty, handleNOP),
+    "QUERY_GETEXPIRING" -> (verifyArgsEmpty, serializeEmpty, handleQueryGetExpiring),
 
     /*
      * QUERY_GUIDEDATATHROUGH
@@ -725,14 +725,14 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @returns: Date/Time as a string in "YYYY-MM-DD hh:mm" format
      *         or "0000-00-00 00:00" in case of error or no data
      */
-    "QUERY_GUIDEDATATHROUGH" -> (verifyArgsEmpty, serializeEmpty, handleNOP),
+    "QUERY_GUIDEDATATHROUGH" -> (verifyArgsEmpty, serializeEmpty, handleQueryGuideDataThrough),
 
     /*
      * QUERY_HOSTNAME
      *  @responds always
      *  @returns %s  <hostname>
      */
-    "QUERY_HOSTNAME" -> (verifyArgsEmpty, serializeEmpty, handleNOP),
+    "QUERY_HOSTNAME" -> (verifyArgsEmpty, serializeEmpty, handleQueryHostname),
 
     /*
      * QUERY_IS_ACTIVE_BACKEND [] [%s]   [<hostname>]
@@ -741,7 +741,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      * TODO may case NPE if hostname is not passed?
      *      what does QtStringList array index out of bounds do?
      */
-    "QUERY_IS_ACTIVE_BACKEND" -> (verifyArgsQueryIsActiveBackend, serializeQueryIsActiveBackend, handleNOP),
+    "QUERY_IS_ACTIVE_BACKEND" -> (verifyArgsQueryIsActiveBackend, serializeQueryIsActiveBackend, handleQueryIsActiveBackend),
 
     /*
      * QUERY_ISRECORDING
@@ -749,7 +749,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @returns [%d, %d]  <numRecordingsInProgress> <numLiveTVinProgress>
      *                           (liveTV is a subset of recordings)
      */
-    "QUERY_ISRECORDING" -> (verifyArgsEmpty, serializeEmpty, handleNOP),
+    "QUERY_ISRECORDING" -> (verifyArgsEmpty, serializeEmpty, handleIsRecording),
 
     /*
      * QUERY_LOAD
@@ -757,7 +757,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @returns [%f, %f, %f]   1-min  5-min  15-min load averages
      *        or ["ERROR", "getloadavg() failed"] in case of error
      */
-    "QUERY_LOAD" -> (verifyArgsEmpty, serializeEmpty, handleNOP),
+    "QUERY_LOAD" -> (verifyArgsEmpty, serializeEmpty, handleQueryLoad),
 
     /*
      * QUERY_MEMSTATS
@@ -765,7 +765,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @returns [%d, %d, %d, %d]  <totalMB> <freeMB> <totalVM> <freeVM>
      *        or ["ERROR", "Could not determine memory stats."] on error
      */
-    "QUERY_MEMSTATS" -> (verifyArgsEmpty, serializeEmpty, handleNOP),
+    "QUERY_MEMSTATS" -> (verifyArgsEmpty, serializeEmpty, handleQueryMemStats),
 
     /*
      * QUERY_PIXMAP_GET_IF_MODIFIED [] [%d, %d, %p]  [<time:cachemodified> <maxFileSize> <ProgramInfo>]
@@ -883,8 +883,9 @@ trait MythProtocolLike extends MythProtocolSerializer {
      * QUERY_SETTING %s %s      <hostname> <settingName>
      *  @responds sometimes; only if tokenCount == 3
      *  @returns %s or "-1" if not found   <settingValue>
+     * NB doesn't seem possible to retrieve settings with "global" scope, i.e. hostname IS NULL
      */
-    "QUERY_SETTING" -> (verifyArgsQuerySetting, serializeQuerySetting, handleNOP),
+    "QUERY_SETTING" -> (verifyArgsQuerySetting, serializeQuerySetting, handleQuerySetting),
 
     /* QUERY_SG_GETFILELIST [] [%s, %s, %s {, %b}]  <wantHost> <groupname> <path> { fileNamesOnly> } */
     "QUERY_SG_GETFILELIST" -> (verifyArgsNOP, serializeNOP, handleNOP),
@@ -898,7 +899,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @returns [%s, %d, %s]  <timezoneName> <offsetSecsFromUtc> <currentTimeUTC>
      *    currentTimeUTC is in the ISO format "YYYY-MM-ddThh:mm:ssZ"
      */
-    "QUERY_TIME_ZONE" -> (verifyArgsEmpty, serializeEmpty, handleNOP),
+    "QUERY_TIME_ZONE" -> (verifyArgsEmpty, serializeEmpty, handleQueryTimeZone),
 
     /*
      * QUERY_UPTIME
@@ -906,7 +907,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @returns %ld  <uptimeSeconds>
      *        or ["ERROR", "Could not determine uptime."] in case of error
      */
-    "QUERY_UPTIME" -> (verifyArgsEmpty, serializeEmpty, handleNOP),
+    "QUERY_UPTIME" -> (verifyArgsEmpty, serializeEmpty, handleQueryUptime),
 
     /*
      * REFRESH_BACKEND
@@ -914,7 +915,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @returns "OK"
      *  Seems to be a NOP on the server.
      */
-    "REFRESH_BACKEND" -> (verifyArgsEmpty, serializeEmpty, handleNOP),
+    "REFRESH_BACKEND" -> (verifyArgsEmpty, serializeEmpty, handleRefreshBackend),
 
     /*
      * RESCHEDULE_RECORDINGS [] [CHECK %d %d %d {Python}, '', '', '', {**any**}]
@@ -928,14 +929,15 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @responds always
      *  @returns "OK" or "ERROR"
      */
-    "SCAN_VIDEOS" -> (verifyArgsEmpty, serializeEmpty, handleNOP),
+    "SCAN_VIDEOS" -> (verifyArgsEmpty, serializeEmpty, handleScanVideos),
 
     /*
      * SET_BOOKMARK %d %t %ld          <ChanId> <starttime> <frame#position>
      *  @responds sometimes; only if tokenCount == 4
      *  @returns "OK" or "FAILED"
+     * NB If the given position is '0' then any existing bookmark will be deleted.
      */
-    "SET_BOOKMARK" -> (verifyArgsSetBookmark, serializeSetBookmark, handleNOP),
+    "SET_BOOKMARK" -> (verifyArgsSetBookmark, serializeSetBookmark, handleSetBookmark),
 
     /*
      * SET_CHANNEL_INFO [] [%d, %d, %d, %d, %d, %d, %d]
@@ -957,7 +959,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @responds sometimes; only if tokenCount == 4
      *  @returns "OK" or "ERROR"
      */
-    "SET_SETTING" -> (verifyArgsSetSetting, serializeSetSetting, handleNOP),
+    "SET_SETTING" -> (verifyArgsSetSetting, serializeSetSetting, handleSetSetting),
 
     /*
      * SHUTDOWN_NOW { %s }        { <haltCommand> }
@@ -973,7 +975,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *           "%d" if recording was on a local encoder, <recnum>
      *        or "-1" if not found
      */
-    "STOP_RECORDING" -> (verifyArgsProgramInfo, serializeProgramInfo, handleNOP),
+    "STOP_RECORDING" -> (verifyArgsProgramInfo, serializeProgramInfo, handleStopRecording),
 
     /*
      * UNDELETE_RECORDING [] [%d, %mt]       [<ChanId> <starttime>]
@@ -982,7 +984,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @responds sometimes; if program info has ChanId
      *  @returns "0" on success and "-1" on error
      */
-    "UNDELETE_RECORDING" -> (verifyArgsUndeleteRecording, serializeUndeleteRecording, handleNOP)
+    "UNDELETE_RECORDING" -> (verifyArgsUndeleteRecording, serializeUndeleteRecording, handleUndeleteRecording)
   )
 
 
@@ -1014,6 +1016,120 @@ trait MythProtocolLike extends MythProtocolSerializer {
 
   def handleNOP(response: BackendResponse): Option[Nothing] = None
 
+  def handleGetFreeRecorderCount(response: BackendResponse): Option[Int] = {
+    Some(deserialize[Int](response.raw))
+  }
+
+  def handleMythProtoVersion(response: BackendResponse): Option[(Boolean, Int)] = {
+    val parts = response.split
+    assert(parts.length > 1)
+    val accepted = parts(0) == "ACCEPT"
+    val acceptedVersion = deserialize[Int](parts(1))
+    Some(accepted, acceptedVersion)
+  }
+
+  def handleQueryActiveBackends(response: BackendResponse): Option[List[String]] = {
+    val recs = response.split
+    val expectedCount = deserialize[Int](recs(0))  // TODO check non-zero
+    Some((recs.iterator drop 1).toList)
+  }
+
+  def handleQueryGetAllPending(response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
+    import data.BackendProgram  // TODO eliminate import here
+    val recs = response.split
+    val hasConflicts = deserialize[Boolean](recs(0))  // TODO return this also?
+    val expectedCount = deserialize[Int](recs(1))  // TODO check non-zero!
+    val fieldCount = BackendProgram.FIELD_ORDER.length
+    val it = recs.iterator drop 2 grouped fieldCount withPartial false
+    Some(new ExpectedCountIterator(expectedCount, it map (BackendProgram(_))))
+  }
+
+  def handleQueryGetAllScheduled(response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
+    import data.BackendProgram  // TODO eliminate import here
+    val recs = response.split
+    val expectedCount = deserialize[Int](recs(0))  // TODO check non-zero!
+    val fieldCount = BackendProgram.FIELD_ORDER.length
+    val it = recs.iterator drop 1 grouped fieldCount withPartial false
+    Some(new ExpectedCountIterator(expectedCount, it map (BackendProgram(_))))
+  }
+
+  def handleQueryBookmark(response: BackendResponse): Option[VideoPosition] = {
+    val pos = deserialize[Long](response.raw)
+    Some(VideoPosition(pos))
+  }
+
+  def handleQueryGetExpiring(response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
+    import data.BackendProgram  // TODO eliminate import here
+    val recs = response.split
+    val expectedCount = deserialize[Int](recs(0))  // TODO check non-zero!
+    val fieldCount = BackendProgram.FIELD_ORDER.length
+    val it = recs.iterator drop 1 grouped fieldCount withPartial false
+    Some(new ExpectedCountIterator(expectedCount, it map (BackendProgram(_))))
+  }
+
+  def handleQueryFileExists(response: BackendResponse): Option[(String, FileStats)] = {
+    val items = response.split
+    val statusCode = deserialize[Int](items(0))
+    assert(statusCode > 0)
+    val fullName = items(1)
+    val stats = FileStats(items.view(2, 2 + 13))  // TODO hardcoded size of # file stats fields
+    Some((fullName, stats))
+  }
+
+  def handleQueryFreeSpace(response: BackendResponse): Option[List[FreeSpace]] = {
+    import data.BackendFreeSpace  // TODO eliminate import here
+    val items = response.split
+    val fieldCount = BackendFreeSpace.FIELD_ORDER.length
+    val it = items.iterator grouped fieldCount withPartial false map (BackendFreeSpace(_))
+    Some(it.toList)
+  }
+
+  def handleQueryFreeSpaceList(response: BackendResponse): Option[List[FreeSpace]] = {
+    import data.BackendFreeSpace  // TODO eliminate import here
+    val items = response.split
+    val fieldCount = BackendFreeSpace.FIELD_ORDER.length
+    val it = items.iterator grouped fieldCount withPartial false map (BackendFreeSpace(_))
+    Some(it.toList)
+  }
+
+  def handleQueryFreeSpaceSummary(response: BackendResponse): Option[(ByteCount, ByteCount)] = {
+    val data = response.split map deserialize[Long]
+    assert(data.length > 1)
+    Some((ByteCount(data(0) * 1024), ByteCount(data(1) * 1024)))
+  }
+
+  def handleQueryGuideDataThrough(response: BackendResponse): Option[MythDateTime] = {
+    val result = deserialize[MythDateTime](response.raw)
+    Some(result)
+  }
+
+  def handleQueryHostname(response: BackendResponse): Option[String] = {
+    Some(response.raw)
+  }
+
+  def handleQueryIsActiveBackend(response: BackendResponse): Option[Boolean] = {
+    val result = deserialize[Boolean](response.raw)
+    Some(result)
+  }
+
+  def handleIsRecording(response: BackendResponse): Option[(Int, Int)] = {
+    val results = response.split map deserialize[Int]
+    assert(results.length > 1)
+    Some(results(0), results(1))
+  }
+
+  def handleQueryLoad(response: BackendResponse): Option[(Double, Double, Double)] = {
+    val loads = response.split map deserialize[Double]
+    assert(loads.length > 2)
+    Some((loads(0), loads(1), loads(2)))
+  }
+
+  def handleQueryMemStats(response: BackendResponse): Option[(ByteCount, ByteCount, ByteCount, ByteCount)] = {
+    val stats = response.split map (n => ByteCount(deserialize[Long](n) * 1024 * 1024))
+    assert(stats.length > 3)
+    Some(stats(0), stats(1), stats(2), stats(3))
+  }
+
   // TODO FIXME we lose the type of the option going through the message dispatch map
   //            is there a way around this?
   def handleQueryRecording(response: BackendResponse): Option[Recording] = {
@@ -1022,44 +1138,59 @@ trait MythProtocolLike extends MythProtocolSerializer {
     import mythtv.connection.myth.data.BackendProgram  // TODO eliminate import here
     Some(new BackendProgram(data drop 1))
   }
+
+  def handleQuerySetting(response: BackendResponse): Option[String] = {
+    Some(response.raw)
+  }
+
+  def handleQueryTimeZone(response: BackendResponse): Option[(String, ZoneOffset, Instant)] = {
+    val data = response.split
+    assert(data.length > 2)
+    val tzName = data(0)
+    val offset = ZoneOffset.ofTotalSeconds(deserialize[Int](data(1)))
+    val time = deserialize[Instant](data(2))
+    Some((tzName, offset, time))
+  }
+
+  def handleQueryUptime(response: BackendResponse): Option[Duration] = {
+    val seconds = deserialize[Long](response.raw)
+    Some(Duration.ofSeconds(seconds))
+  }
+
+  def handleRefreshBackend(response: BackendResponse): Option[Boolean] = {
+    val success = response.raw == "OK"
+    Some(success)
+  }
+
+  def handleScanVideos(response: BackendResponse): Option[Boolean] = {
+    val success = response.raw == "OK"
+    Some(success)
+  }
+
+  def handleSetBookmark(response: BackendResponse): Option[Boolean] = {
+    val success = response.raw == "OK"
+    Some(success)
+  }
+
+  def handleSetSetting(response: BackendResponse): Option[Boolean] = {
+    val success = response.raw == "OK"
+    Some(success)
+  }
+
+  def handleStopRecording(response: BackendResponse): Option[Int] = {
+    val result = deserialize[Int](response.raw)
+    Some(result)
+  }
+
+  def handleUndeleteRecording(response: BackendResponse): Option[Boolean] = {
+    val success = deserialize[Boolean](response.raw)
+    Some(success)
+  }
 }
 
 object MythProtocol extends MythProtocol {
   final val BACKEND_SEP: String = "[]:[]"
   final val SPLIT_PATTERN: String = Pattern.quote(BACKEND_SEP)
-
-  // TODO this is just for testing
-  def verify(command: String, args: Any*): Option[String] = {
-    if (commands contains command) {
-      val (check, serialize, handle) = commands(command)
-      if (check(args))
-        Some(serialize(command, args))
-      else {
-        println("failed argument type check")
-        None
-      }
-    } else {
-      println(s"invalid command $command")
-      None
-    }
-  }
-  def execute(conn: BackendConnection, command: String, args: Any*): Option[_] = {
-    if (commands contains command) {
-      val (check, serialize, handle) = commands(command)
-      if (check(args)) {
-        val cmdstring = serialize(command, args)
-        val response = conn.sendCommand(cmdstring).get
-        handle(response)
-      }
-      else {
-        println("failed argument type check")
-        None
-      }
-    } else {
-      println(s"invalid command $command")
-      None
-    }
-  }
 }
 
 private[myth] trait MythProtocolLike75 extends MythProtocolLike {

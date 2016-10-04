@@ -17,16 +17,16 @@ private trait BackendCommandStream {
 }
 
 sealed trait BackendResponse extends Any {
-  def response: String
-  def split: Seq[String]
+  def raw: String
+  def split: Array[String]
 }
 
 object BackendResponse {
   def apply(r: String): BackendResponse = Response(r)
 }
 
-private final case class Response(val response: String) extends AnyVal with BackendResponse {
-  def split: Seq[String] = response split MythProtocol.SPLIT_PATTERN
+private final case class Response(raw: String) extends AnyVal with BackendResponse {
+  def split: Array[String] = raw split MythProtocol.SPLIT_PATTERN
 }
 
 private class BackendCommandReader(in: InputStream) extends BackendCommandStream {
