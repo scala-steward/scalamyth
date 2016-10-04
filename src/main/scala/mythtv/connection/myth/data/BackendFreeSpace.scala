@@ -34,4 +34,6 @@ private[mythtv] object BackendFreeSpace {
   final val FIELD_ORDER = IndexedSeq(
     "host", "path", "isLocal", "diskNumber", "sGroupId", "blockSize", "totalSpace", "usedSpace"
   )
+
+  def apply(data: Seq[String]): BackendFreeSpace = new BackendFreeSpace(data)
 }
