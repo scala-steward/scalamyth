@@ -5,7 +5,7 @@ package myth
 import java.time.{ Duration, Instant, ZoneOffset }
 
 //import FileStats  // TODO API exposed data types should be in model, not buried here
-import model.{ ChanId, FreeSpace, Recording, VideoPosition }
+import model.{ ChanId, FreeSpace, Recording, RemoteEncoder, VideoPosition }
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
 
 // TODO these APIs should be converted to return Option[_] or Either[_] or something
@@ -18,7 +18,7 @@ trait MythProtocolAPI {
   def fillProgramInfo(playbackHost: String, p: Recording): Recording
   def forceDeleteRecording(rec: Recording): Int
   def forgetRecording(rec: Recording): Int   // TODO something better to indicate success/failure; Either?
-  def getFreeRecorder: Any // need encoding of "Encoder" -> ID, host/IP, port
+  def getFreeRecorder: RemoteEncoder
   def getFreeRecorderCount: Int
   def getFreeRecorderList: List[Any]  // TODO see getFreeRecorder for return type
   def getNextFreeRecorder(encoderId: Int): Any // see above for return type

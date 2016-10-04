@@ -4,7 +4,7 @@ package myth
 
 import java.time.{ Duration, Instant, ZoneOffset }
 
-import model.{ ChanId, FreeSpace, Recording, VideoPosition }
+import model.{ ChanId, FreeSpace, Recording, RemoteEncoder, VideoPosition }
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
 
 class BackendAPIConnection(host: String, port: Int, timeout: Int, blockShutdown: Boolean)
@@ -67,7 +67,7 @@ class BackendAPIConnection(host: String, port: Int, timeout: Int, blockShutdown:
     (result map { case r: Int => r }).get
   }
 
-  def getFreeRecorder: Any = ??? // need encoding of "Encoder" -> ID, host/IP, port
+  def getFreeRecorder: RemoteEncoder = ???
 
   def getFreeRecorderCount: Int = {
     val result = execute("GET_FREE_RECORDER_COUNT")

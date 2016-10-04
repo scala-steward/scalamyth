@@ -24,6 +24,12 @@ trait CaptureCard {
   // TODO more
 }
 
+trait RemoteEncoder {
+  def cardId: CaptureCardId  // is this correct
+  def host: String
+  def port: Int
+}
+
 trait FreeSpace {
   def host: String
   def path: String
