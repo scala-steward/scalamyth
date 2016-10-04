@@ -93,4 +93,6 @@ private[mythtv] object BackendProgram {
     "stars",      "originalAirDate", "playGroup",    "recPriority2", "parentId",   "storageGroup",
     "audioProps", "videoProps",      "subtitleType", "year",         "partNumber", "partTotal"
   )
+
+  def apply(data: Seq[String]): BackendProgram = new BackendProgram(data)
 }
