@@ -18,6 +18,8 @@ trait MythProtocolLike extends MythProtocolSerializer {
   type HandleResponse = (BackendResponse) => Option[_]  // TODO what is result type?, maybe Either[_]
 
   // TODO FIXME would be very useful to have access to data from CheckArgs/Serialize during HandleResponse
+  // TODO FIXME we lose the type of the option going through the message dispatch map
+  //            is there a way around this?
 
   def commands: Map[String, (CheckArgs, Serialize, HandleResponse)] = internalMap
 
@@ -737,7 +739,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @returns [%d, %d]  <numRecordingsInProgress> <numLiveTVinProgress>
      *                           (liveTV is a subset of recordings)
      */
-    "QUERY_ISRECORDING" -> (verifyArgsEmpty, serializeEmpty, handleIsRecording),
+    "QUERY_ISRECORDING" -> (verifyArgsEmpty, serializeEmpty, handleQueryIsRecording),
 
     /*
      * QUERY_LOAD
@@ -1046,37 +1048,9 @@ trait MythProtocolLike extends MythProtocolSerializer {
     Some((recs.iterator drop 1).toList)
   }
 
-  protected def handleQueryGetAllPending(response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
-    import data.BackendProgram  // TODO eliminate import here
-    val recs = response.split
-    val hasConflicts = deserialize[Boolean](recs(0))  // TODO return this also?
-    val expectedCount = deserialize[Int](recs(1))  // TODO check non-zero!
-    val fieldCount = BackendProgram.FIELD_ORDER.length
-    val it = recs.iterator drop 2 grouped fieldCount withPartial false
-    Some(new ExpectedCountIterator(expectedCount, it map (BackendProgram(_))))
-  }
-
-  protected def handleQueryGetAllScheduled(response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
-    import data.BackendProgram  // TODO eliminate import here
-    val recs = response.split
-    val expectedCount = deserialize[Int](recs(0))  // TODO check non-zero!
-    val fieldCount = BackendProgram.FIELD_ORDER.length
-    val it = recs.iterator drop 1 grouped fieldCount withPartial false
-    Some(new ExpectedCountIterator(expectedCount, it map (BackendProgram(_))))
-  }
-
   protected def handleQueryBookmark(response: BackendResponse): Option[VideoPosition] = {
     val pos = deserialize[Long](response.raw)
     Some(VideoPosition(pos))
-  }
-
-  protected def handleQueryGetExpiring(response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
-    import data.BackendProgram  // TODO eliminate import here
-    val recs = response.split
-    val expectedCount = deserialize[Int](recs(0))  // TODO check non-zero!
-    val fieldCount = BackendProgram.FIELD_ORDER.length
-    val it = recs.iterator drop 1 grouped fieldCount withPartial false
-    Some(new ExpectedCountIterator(expectedCount, it map (BackendProgram(_))))
   }
 
   protected def handleQueryFileExists(response: BackendResponse): Option[(String, FileStats)] = {
@@ -1110,6 +1084,34 @@ trait MythProtocolLike extends MythProtocolSerializer {
     Some((ByteCount(data(0) * 1024), ByteCount(data(1) * 1024)))
   }
 
+  protected def handleQueryGetAllPending(response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
+    import data.BackendProgram  // TODO eliminate import here
+    val recs = response.split
+    val hasConflicts = deserialize[Boolean](recs(0))  // TODO return this also?
+    val expectedCount = deserialize[Int](recs(1))  // TODO check non-zero!
+    val fieldCount = BackendProgram.FIELD_ORDER.length
+    val it = recs.iterator drop 2 grouped fieldCount withPartial false
+    Some(new ExpectedCountIterator(expectedCount, it map (BackendProgram(_))))
+  }
+
+  protected def handleQueryGetAllScheduled(response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
+    import data.BackendProgram  // TODO eliminate import here
+    val recs = response.split
+    val expectedCount = deserialize[Int](recs(0))  // TODO check non-zero!
+    val fieldCount = BackendProgram.FIELD_ORDER.length
+    val it = recs.iterator drop 1 grouped fieldCount withPartial false
+    Some(new ExpectedCountIterator(expectedCount, it map (BackendProgram(_))))
+  }
+
+  protected def handleQueryGetExpiring(response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
+    import data.BackendProgram  // TODO eliminate import here
+    val recs = response.split
+    val expectedCount = deserialize[Int](recs(0))  // TODO check non-zero!
+    val fieldCount = BackendProgram.FIELD_ORDER.length
+    val it = recs.iterator drop 1 grouped fieldCount withPartial false
+    Some(new ExpectedCountIterator(expectedCount, it map (BackendProgram(_))))
+  }
+
   protected def handleQueryGuideDataThrough(response: BackendResponse): Option[MythDateTime] = {
     val result = deserialize[MythDateTime](response.raw)
     Some(result)
@@ -1124,7 +1126,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
     Some(result)
   }
 
-  protected def handleIsRecording(response: BackendResponse): Option[(Int, Int)] = {
+  protected def handleQueryIsRecording(response: BackendResponse): Option[(Int, Int)] = {
     val results = response.split map deserialize[Int]
     assert(results.length > 1)
     Some(results(0), results(1))
@@ -1147,8 +1149,6 @@ trait MythProtocolLike extends MythProtocolSerializer {
     Some(modified)
   }
 
-  // TODO FIXME we lose the type of the option going through the message dispatch map
-  //            is there a way around this?
   protected def handleQueryRecording(response: BackendResponse): Option[Recording] = {
     val data = response.split
     // TODO check for error....
