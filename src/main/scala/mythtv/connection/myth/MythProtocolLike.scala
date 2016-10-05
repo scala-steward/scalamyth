@@ -1127,7 +1127,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
     val statusCode = deserialize[Int](items(0))
     assert(statusCode > 0)
     val fullName = items(1)
-    val stats = FileStats(items.view(2, 2 + 13))  // TODO hardcoded size of # file stats fields
+    val stats = deserialize[FileStats](items.view(2, 2 + 13))  // TODO hardcoded size of # file stats fields
     Some((fullName, stats))
   }
 

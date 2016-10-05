@@ -6,7 +6,7 @@ import java.time.Instant
 
 import data.{ BackendProgram, BackendRecordedMarkup }
 import model.{ CaptureCardId, ChanId, Markup, RecordedMarkup, Recording, VideoPosition }
-import util.{ MythDateTime, MythDateTimeString }
+import util.{ BinaryByteCount, DecimalByteCount, FileStats, MythDateTime, MythDateTimeString }
 
 // Type class for serializable objects in the MythProtocol stream
 trait MythProtocolSerializable[T] {
@@ -97,6 +97,28 @@ object MythProtocolSerializable {
     def serialize(in: MythDateTimeString): String = in.toString
   }
 
+  /**** UTILITY OBJECTS (not MythTV specific) ******/
+
+  implicit object FileStatsSerializer extends MythProtocolSerializable[FileStats] {
+    def deserialize(in: String): FileStats = deserialize(in split MythProtocol.SPLIT_PATTERN)
+    override def deserialize(in: Seq[String]): FileStats = FileStats(
+      MythProtocolSerializer.deserialize[Long](in(0)),    // st_dev
+      MythProtocolSerializer.deserialize[Long](in(1)),    // st_ino
+      MythProtocolSerializer.deserialize[Int](in(2)),     // st_mode
+      MythProtocolSerializer.deserialize[Long](in(3)),    // st_nlink
+      MythProtocolSerializer.deserialize[Int](in(4)),     // st_uid
+      MythProtocolSerializer.deserialize[Int](in(5)),     // st_gid
+      MythProtocolSerializer.deserialize[Long](in(6)),    // st_rdev
+      DecimalByteCount(MythProtocolSerializer.deserialize[Long](in(7))),       // st_size
+      BinaryByteCount(MythProtocolSerializer.deserialize[Long](in(8))),        // st_blksize
+      MythProtocolSerializer.deserialize[Long](in(9)),    // st_blocks
+      Instant.ofEpochSecond(MythProtocolSerializer.deserialize[Long](in(10))), // st_atim
+      Instant.ofEpochSecond(MythProtocolSerializer.deserialize[Long](in(11))), // st_mtim
+      Instant.ofEpochSecond(MythProtocolSerializer.deserialize[Long](in(12)))  // st_ctim
+    )
+    def serialize(in: FileStats): String = throw new UnsupportedOperationException
+  }
+
   /**** BACKEND OBJECTS (protocol version neutral)  ***/
 
   implicit object RecordedMarkupSerializer extends MythProtocolSerializable[RecordedMarkup] {
@@ -108,7 +130,7 @@ object MythProtocolSerializable {
         MythProtocolSerializer.deserialize[VideoPosition](in(1))
       )
     }
-    def serialize(in: RecordedMarkup) = throw new UnsupportedOperationException
+    def serialize(in: RecordedMarkup): String = throw new UnsupportedOperationException
   }
 }
 
