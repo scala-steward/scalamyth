@@ -578,7 +578,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @returns %d %s      <exists:0/1?>  <playbackURL>
      *    note playback url will be "" if file does not exist
      */
-    "QUERY_CHECKFILE" -> (verifyArgsQueryCheckFile, serializeQueryCheckFile, handleNOP),
+    "QUERY_CHECKFILE" -> (verifyArgsQueryCheckFile, serializeQueryCheckFile, handleQueryCheckFile),
 
     /*
      * QUERY_COMMBREAK %d %t           <ChanId> <starttime>
@@ -1088,6 +1088,13 @@ trait MythProtocolLike extends MythProtocolSerializer {
   protected def handleQueryBookmark(response: BackendResponse): Option[VideoPosition] = {
     val pos = deserialize[Long](response.raw)
     Some(VideoPosition(pos))
+  }
+
+  protected def handleQueryCheckFile(response: BackendResponse): Option[String] = {
+    val items = response.split
+    val exists = deserialize[Boolean](items(0))
+    if (exists) Some(items(1))
+    else None
   }
 
   protected def handleQueryCommBreak(response: BackendResponse): Option[List[VideoSegment]] = {

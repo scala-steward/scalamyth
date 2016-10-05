@@ -124,6 +124,11 @@ class BackendAPIConnection(host: String, port: Int, timeout: Int, blockShutdown:
     (result map { case p: VideoPosition => p }).get
   }
 
+  def queryCheckFile(rec: Recording, checkSlaves: Boolean): String = {
+    val result = execute("QUERY_CHECKFILE", checkSlaves, rec)
+    (result map { case s: String => s }).get
+  }
+
   def queryCommBreak(chanId: ChanId, startTime: MythDateTime): List[VideoSegment] = {
     val result = execute("QUERY_COMMBREAK", chanId, startTime)
     (result map { case xs: List[_] => xs.asInstanceOf[List[VideoSegment]] }).get

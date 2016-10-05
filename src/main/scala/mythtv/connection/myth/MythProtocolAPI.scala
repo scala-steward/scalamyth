@@ -30,6 +30,7 @@ trait MythProtocolAPI {
   def protocolVersion(ver: Int, token: String): (Boolean, Int)
   def queryActiveBackends: List[String]
   def queryBookmark(chanId: ChanId, startTime: MythDateTime): VideoPosition
+  def queryCheckFile(rec: Recording, checkSlaves: Boolean = true): String
   def queryCommBreak(chanId: ChanId, startTime: MythDateTime): List[VideoSegment]
   def queryCutList(chanId: ChanId, startTime: MythDateTime): List[VideoSegment]
   def queryFileExists(fileName: String, storageGroup: String): (String, FileStats)
