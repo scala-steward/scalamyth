@@ -1106,7 +1106,20 @@ trait MythProtocolLike extends MythProtocolSerializer {
   }
 
   protected def handleQueryCutList(response: BackendResponse): Option[List[VideoSegment]] = {
-    ???
+    import data.BackendVideoSegment  // TODO eliminate import here
+    val items = response.split
+    val count = deserialize[Int](items(0))
+    assert(count % 2 == 0)  // TODO FIXME not guaranteed to be true!?
+
+    // we also assume that the number of start/end marks are balanced and in sorted order
+    val marks = items.iterator drop 1 grouped 2 withPartial false map deserialize[RecordedMarkup]
+    val segments = marks grouped 2 map {
+      case Seq(start: RecordedMarkup, end: RecordedMarkup) =>
+        assert(start.tag == Markup.MARK_CUT_START)
+        assert(end.tag == Markup.MARK_CUT_END)
+        BackendVideoSegment(start.position, end.position)
+    }
+    Some(segments.toList)
   }
 
   protected def handleQueryFileExists(response: BackendResponse): Option[(String, FileStats)] = {

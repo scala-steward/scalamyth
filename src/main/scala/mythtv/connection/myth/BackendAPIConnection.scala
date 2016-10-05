@@ -124,7 +124,10 @@ class BackendAPIConnection(host: String, port: Int, timeout: Int, blockShutdown:
     (result map { case xs: List[_] => xs.asInstanceOf[List[VideoSegment]] }).get
   }
 
-  def queryCutList(chanId: ChanId, startTime: MythDateTime): List[VideoSegment] = ???
+  def queryCutList(chanId: ChanId, startTime: MythDateTime): List[VideoSegment] = {
+    val result = execute("QUERY_CUTLIST", chanId, startTime)
+    (result map { case xs: List[_] => xs.asInstanceOf[List[VideoSegment]] }).get
+  }
 
   // TODO storageGroup is optional parameter ....
   def queryFileExists(fileName: String, storageGroup: String): (String, FileStats) = {
