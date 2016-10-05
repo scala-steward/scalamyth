@@ -4,13 +4,14 @@ package myth
 
 import java.time.Instant
 
-import data.BackendProgram
-import model.{ CaptureCardId, ChanId, Recording, VideoPosition }
+import data.{ BackendProgram, BackendRecordedMarkup }
+import model.{ CaptureCardId, ChanId, Markup, RecordedMarkup, Recording, VideoPosition }
 import util.{ MythDateTime, MythDateTimeString }
 
 // Type class for serializable objects in the MythProtocol stream
 trait MythProtocolSerializable[T] {
   def deserialize(in: String): T
+  def deserialize(in: Seq[String]): T = throw new UnsupportedOperationException
   def serialize(in: T): String
   def serialize(in: T, builder: StringBuilder): StringBuilder = { builder.append(serialize(in)); builder }
 }
@@ -94,6 +95,20 @@ object MythProtocolSerializable {
   implicit object MythDateTimeStringSerializer extends MythProtocolSerializable[MythDateTimeString] {
     def deserialize(in: String): MythDateTimeString = MythDateTime.fromMythFormat(in)
     def serialize(in: MythDateTimeString): String = in.toString
+  }
+
+  /**** BACKEND OBJECTS (protocol version neutral)  ***/
+
+  implicit object RecordedMarkupSerializer extends MythProtocolSerializable[RecordedMarkup] {
+    def deserialize(in: String): RecordedMarkup = deserialize(in split MythProtocol.SPLIT_PATTERN)
+    override def deserialize(in: Seq[String]): RecordedMarkup = {
+      assert(in.lengthCompare(1) > 0)
+      BackendRecordedMarkup(
+        Markup(MythProtocolSerializer.deserialize[Int](in(0))),
+        MythProtocolSerializer.deserialize[VideoPosition](in(1))
+      )
+    }
+    def serialize(in: RecordedMarkup) = throw new UnsupportedOperationException
   }
 }
 

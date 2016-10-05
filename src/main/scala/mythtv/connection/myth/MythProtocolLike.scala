@@ -4,7 +4,7 @@ package myth
 
 import java.time.{ Duration, Instant, LocalDate, ZoneOffset }
 
-import model.{ CaptureCardId, ChanId, FreeSpace, Recording, VideoPosition }
+import model.{ CaptureCardId, ChanId, FreeSpace, Markup, RecordedMarkup, Recording, RemoteEncoder, VideoPosition, VideoSegment }
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythDateTimeString }
 
 trait MythProtocolLike extends MythProtocolSerializer {
@@ -484,7 +484,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @returns [%d, %s, %d] = <best free encoder id> <host or IP> <port>
      *        or [-1, "nohost", -1] if no suitable encoder found
      */
-    "GET_FREE_RECORDER" -> (verifyArgsEmpty, serializeEmpty, handleNOP),
+    "GET_FREE_RECORDER" -> (verifyArgsEmpty, serializeEmpty, handleGetFreeRecorder),
 
     /*
      * GET_FREE_RECORDER_COUNT
@@ -498,7 +498,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @responds always
      *  @returns [%d, {, %d}] = list of available encoder ids, or "0" if none
      */
-    "GET_FREE_RECORDER_LIST" -> (verifyArgsEmpty, serializeEmpty, handleNOP),
+    "GET_FREE_RECORDER_LIST" -> (verifyArgsEmpty, serializeEmpty, handleGetFreeRecorderList),
 
     /*
      * GET_NEXT_FREE_RECORDER [] [%d]  [<currentRecorder#>]
@@ -506,7 +506,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @returns [%d, %s, %d] = <next free encoder id> <host or IP> <port>
      *        or [-1, "nohost", -1] if no suitable encoder found
      */
-    "GET_NEXT_FREE_RECORDER" -> (verifyArgsCaptureCard, serializeCaptureCard, handleNOP),
+    "GET_NEXT_FREE_RECORDER" -> (verifyArgsCaptureCard, serializeCaptureCard, handleGetNextFreeRecorder),
 
     /*
      * GET_RECORDER_FROM_NUM [] [%d]   [<recorder#>]
@@ -522,7 +522,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @returns [%d, %s, %d] =   <encoder#> <host or IP> <port>
      *        or [-1, "nohost", -1] if no matching recorder found
      */
-    "GET_RECORDER_NUM" -> (verifyArgsProgramInfo, serializeProgramInfo, handleNOP),
+    "GET_RECORDER_NUM" -> (verifyArgsProgramInfo, serializeProgramInfo, handleGetRecorderNum),
 
     /*
      * GO_TO_SLEEP
@@ -590,16 +590,16 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *              tuples are (mark type, mark pos) from recordedmarkup
      *          gather result into a tuple of two lists (start/end of a commbreak)
      *          of course it is possible for one side to be missing? what do we do then?
-     *
+     * Are the returned positions guaranteed to be in sorted order?
      */
-    "QUERY_COMMBREAK" -> (verifyArgsChanIdStartTime, serializeChanIdStartTime, handleNOP),
+    "QUERY_COMMBREAK" -> (verifyArgsChanIdStartTime, serializeChanIdStartTime, handleQueryCommBreak),
 
     /*
      * QUERY_CUTLIST %d %t             <ChanId> <starttime>
      *  @responds sometimes; only if tokenCount == 3
-     *  @returns TODO some sort of IntList? see QUERY_COMMBREAK for thoughts
+     *  @returns see QUERY_COMMBREAK
      */
-    "QUERY_CUTLIST" -> (verifyArgsChanIdStartTime, serializeChanIdStartTime, handleNOP),
+    "QUERY_CUTLIST" -> (verifyArgsChanIdStartTime, serializeChanIdStartTime, handleQueryCutList),
 
     /*
      * QUERY_FILE_EXISTS [] [%s {, %s}]   <filename> {<storageGroup>}
@@ -620,10 +620,13 @@ trait MythProtocolLike extends MythProtocolSerializer {
      * QUERY_FILE_HASH [] [%s, %s {, %s}]     <filename> <storageGroup> {<hostname>}
      *  @responds sometimes; only if slistCount >= 3
      *  @returns
-     *      ""  on error checking for file, invalid input
+     *      ""  on error checking for file, invalid input  ----> TODO cannot reproduce this
      *      %s  hash of the file (currently 64-bit, so 16 hex characters)
+     *     "NULL" if file was zero-length or did not exist (any other conditions? TODO)
+     * NB storageGroup parameter seems to be a hint at most, specifying a non-existing or
+     *    incorrect storageGroup does not prevent the proper hash being returned
      */
-    "QUERY_FILE_HASH" -> (verifyArgsQueryFileHash, serializeQueryFileHash, handleNOP),
+    "QUERY_FILE_HASH" -> (verifyArgsQueryFileHash, serializeQueryFileHash, handleQueryFileHash),
 
     /*
      * QUERY_FILETRANSFER %d [DONE]                 <ftID>
@@ -1026,8 +1029,40 @@ trait MythProtocolLike extends MythProtocolSerializer {
     Some(deserialize[Int](response.raw))
   }
 
+  protected def handleGetFreeRecorder(response: BackendResponse): Option[RemoteEncoder] = {
+    import data.BackendRemoteEncoder  // TODO eliminate import here
+    val items = response.split
+    val cardId = deserialize[CaptureCardId](items(0))
+    val host = items(1)
+    val port = deserialize[Int](items(2))
+    Some(BackendRemoteEncoder(cardId, host, port))
+  }
+
   protected def handleGetFreeRecorderCount(response: BackendResponse): Option[Int] = {
     Some(deserialize[Int](response.raw))
+  }
+
+  protected def handleGetFreeRecorderList(response: BackendResponse): Option[List[CaptureCardId]] = {
+    val cards = response.split map deserialize[CaptureCardId]
+    Some(cards.toList)
+  }
+
+  protected def handleGetNextFreeRecorder(response: BackendResponse): Option[RemoteEncoder] = {
+    import data.BackendRemoteEncoder  // TODO eliminate import here
+    val items = response.split
+    val cardId = deserialize[CaptureCardId](items(0))
+    val host = items(1)
+    val port = deserialize[Int](items(2))
+    Some(BackendRemoteEncoder(cardId, host, port))
+  }
+
+  protected def handleGetRecorderNum(response: BackendResponse): Option[RemoteEncoder] = {
+    import data.BackendRemoteEncoder  // TODO eliminate import here
+    val items = response.split
+    val cardId = deserialize[CaptureCardId](items(0))
+    val host = items(1)
+    val port = deserialize[Int](items(2))
+    Some(BackendRemoteEncoder(cardId, host, port))
   }
 
   protected def handleGoToSleep(response: BackendResponse): Option[Boolean] = {
@@ -1053,6 +1088,27 @@ trait MythProtocolLike extends MythProtocolSerializer {
     Some(VideoPosition(pos))
   }
 
+  protected def handleQueryCommBreak(response: BackendResponse): Option[List[VideoSegment]] = {
+    import data.BackendVideoSegment  // TODO eliminate import here
+    val items = response.split
+    val count = deserialize[Int](items(0))
+    assert(count % 2 == 0)  // TODO FIXME not guaranteed to be true!?
+
+    // we also assume that the number of start/end marks are balanced and in sorted order
+    val marks = items.iterator drop 1 grouped 2 withPartial false map deserialize[RecordedMarkup]
+    val segments = marks grouped 2 map {
+      case Seq(start: RecordedMarkup, end: RecordedMarkup) =>
+        assert(start.tag == Markup.MARK_COMM_START)
+        assert(end.tag == Markup.MARK_COMM_END)
+        BackendVideoSegment(start.position, end.position)
+    }
+    Some(segments.toList)
+  }
+
+  protected def handleQueryCutList(response: BackendResponse): Option[List[VideoSegment]] = {
+    ???
+  }
+
   protected def handleQueryFileExists(response: BackendResponse): Option[(String, FileStats)] = {
     val items = response.split
     val statusCode = deserialize[Int](items(0))
@@ -1060,6 +1116,11 @@ trait MythProtocolLike extends MythProtocolSerializer {
     val fullName = items(1)
     val stats = FileStats(items.view(2, 2 + 13))  // TODO hardcoded size of # file stats fields
     Some((fullName, stats))
+  }
+
+  // TODO more specific return type to contain hash value
+  protected def handleQueryFileHash(response: BackendResponse): Option[String] = {
+    Some(response.raw)
   }
 
   protected def handleQueryFreeSpace(response: BackendResponse): Option[List[FreeSpace]] = {

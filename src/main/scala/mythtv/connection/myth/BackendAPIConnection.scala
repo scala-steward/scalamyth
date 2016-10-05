@@ -4,7 +4,7 @@ package myth
 
 import java.time.{ Duration, Instant, ZoneOffset }
 
-import model.{ ChanId, FreeSpace, Recording, RemoteEncoder, VideoPosition }
+import model.{ CaptureCardId, ChanId, FreeSpace, Recording, RemoteEncoder, VideoPosition, VideoSegment }
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
 
 class BackendAPIConnection(host: String, port: Int, timeout: Int, blockShutdown: Boolean)
@@ -67,17 +67,32 @@ class BackendAPIConnection(host: String, port: Int, timeout: Int, blockShutdown:
     (result map { case r: Int => r }).get
   }
 
-  def getFreeRecorder: RemoteEncoder = ???
+  def getFreeRecorder: RemoteEncoder = {
+    val result = execute("GET_FREE_RECORDER")
+    (result map { case e: RemoteEncoder => e }).get
+  }
 
   def getFreeRecorderCount: Int = {
     val result = execute("GET_FREE_RECORDER_COUNT")
     (result map { case n: Int => n }).get
   }
 
-  def getFreeRecorderList: List[Any] = ??? // TODO see getFreeRecorder for return type
-  def getNextFreeRecorder(encoderId: Int): Any = ??? // see above for return type
+  def getFreeRecorderList: List[CaptureCardId] = {
+    val result = execute("GET_FREE_RECORDER_LIST")
+    (result map { case xs: List[_] => xs.asInstanceOf[List[CaptureCardId]] }).get
+  }
+
+  def getNextFreeRecorder(cardId: CaptureCardId): RemoteEncoder = {
+    val result = execute("GET_NEXT_FREE_RECORDER", cardId)
+    (result map { case e: RemoteEncoder => e }).get
+  }
+
   def getRecorderFromNum(encoderId: Int): Any = ??? // see above for return type
-  def getRecorderNum(rec: Recording): Any = ???      // see above for return type
+
+  def getRecorderNum(rec: Recording): RemoteEncoder = {
+    val result = execute("GET_RECORDER_NUM", rec)
+    (result map { case e: RemoteEncoder => e }).get
+  }
 
   // TODO a way to return error message if any
   def goToSleep(): Boolean = {
@@ -104,8 +119,12 @@ class BackendAPIConnection(host: String, port: Int, timeout: Int, blockShutdown:
     (result map { case p: VideoPosition => p }).get
   }
 
-  def queryCommBreak(chanId: ChanId, startTime: MythDateTime): Long = ??? // TODO List frame number/position
-  def queryCutList(chanId: ChanId, startTime: MythDateTime): Long = ???   // TODO List frame number/position
+  def queryCommBreak(chanId: ChanId, startTime: MythDateTime): List[VideoSegment] = {
+    val result = execute("QUERY_COMMBREAK", chanId, startTime)
+    (result map { case xs: List[_] => xs.asInstanceOf[List[VideoSegment]] }).get
+  }
+
+  def queryCutList(chanId: ChanId, startTime: MythDateTime): List[VideoSegment] = ???
 
   // TODO storageGroup is optional parameter ....
   def queryFileExists(fileName: String, storageGroup: String): (String, FileStats) = {
@@ -113,7 +132,12 @@ class BackendAPIConnection(host: String, port: Int, timeout: Int, blockShutdown:
     (result map { case (fullName: String, stats: FileStats) => (fullName, stats) }).get
   }
 
-  def queryFileHash(fileName: String, storageGroup: String, hostName: String = ""): String = ???
+  def queryFileHash(fileName: String, storageGroup: String, hostName: String = ""): String = {
+    val result =
+      if (hostName == "") execute("QUERY_FILE_HASH", fileName, storageGroup)
+      else execute("QUERY_FILE_HASH", fileName, storageGroup, hostName)
+    (result map { case h: String => h }).get
+  }
 
   def queryFreeSpace: List[FreeSpace] = {
     val result = execute("QUERY_FREE_SPACE")

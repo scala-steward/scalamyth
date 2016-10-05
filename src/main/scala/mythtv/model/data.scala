@@ -15,6 +15,17 @@ final case class JobId(id: Int) extends AnyVal
 final case class ListingSourceId(id: Int) extends AnyVal
 final case class VideoPosition(pos: Long) extends AnyVal
 
+trait VideoSegment {
+  def start: VideoPosition
+  def end: VideoPosition
+  override def toString: String = start.pos + ":" + end.pos
+}
+
+trait RecordedMarkup {
+  def tag: Markup
+  def position: VideoPosition
+}
+
 trait Backend extends BackendOperations
 trait Frontend extends FrontendOperations
 
@@ -25,7 +36,7 @@ trait CaptureCard {
 }
 
 trait RemoteEncoder {
-  def cardId: CaptureCardId  // is this correct
+  def cardId: CaptureCardId  // is this correct type?
   def host: String
   def port: Int
 }

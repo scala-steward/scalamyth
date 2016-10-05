@@ -4,8 +4,7 @@ package myth
 
 import java.time.{ Duration, Instant, ZoneOffset }
 
-//import FileStats  // TODO API exposed data types should be in model, not buried here
-import model.{ ChanId, FreeSpace, Recording, RemoteEncoder, VideoPosition }
+import model.{ CaptureCardId, ChanId, FreeSpace, Recording, RemoteEncoder, VideoPosition, VideoSegment }
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
 
 // TODO these APIs should be converted to return Option[_] or Either[_] or something
@@ -20,18 +19,18 @@ trait MythProtocolAPI {
   def forgetRecording(rec: Recording): Int   // TODO something better to indicate success/failure; Either?
   def getFreeRecorder: RemoteEncoder
   def getFreeRecorderCount: Int
-  def getFreeRecorderList: List[Any]  // TODO see getFreeRecorder for return type
-  def getNextFreeRecorder(encoderId: Int): Any // see above for return type
+  def getFreeRecorderList: List[CaptureCardId]
+  def getNextFreeRecorder(cardId: CaptureCardId): RemoteEncoder
   def getRecorderFromNum(encoderId: Int): Any  // see above for return type
-  def getRecorderNum(rec: Recording): Any      // see above for return type
+  def getRecorderNum(rec: Recording): RemoteEncoder
   def goToSleep(): Boolean  // TODO a way to return error message if any
   def lockTuner(): Any // TODO capture the appropriate return type
   def lockTuner(cardId: Int): Any // see above for return type
   def protocolVersion(ver: Int, token: String): (Boolean, Int)
   def queryActiveBackends: List[String]
   def queryBookmark(chanId: ChanId, startTime: MythDateTime): VideoPosition
-  def queryCommBreak(chanId: ChanId, startTime: MythDateTime): Long  // TODO List frame number/position
-  def queryCutList(chanId: ChanId, startTime: MythDateTime): Long    // TODO List frame number/position
+  def queryCommBreak(chanId: ChanId, startTime: MythDateTime): List[VideoSegment]
+  def queryCutList(chanId: ChanId, startTime: MythDateTime): List[VideoSegment]
   def queryFileExists(fileName: String, storageGroup: String): (String, FileStats)
   def queryFileHash(fileName: String, storageGroup: String, hostName: String = ""): String
   def queryFreeSpace: List[FreeSpace]

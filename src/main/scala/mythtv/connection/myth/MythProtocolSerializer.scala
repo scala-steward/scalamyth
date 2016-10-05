@@ -5,6 +5,8 @@ package myth
 trait MythProtocolSerializer {
   def deserialize[T: MythProtocolSerializable](arg: String): T =
     implicitly[MythProtocolSerializable[T]].deserialize(arg)
+  def deserialize[T: MythProtocolSerializable](arg: Seq[String]): T =
+    implicitly[MythProtocolSerializable[T]].deserialize(arg)
   def serialize[T: MythProtocolSerializable](arg: T): String =
     implicitly[MythProtocolSerializable[T]].serialize(arg)
   def serialize[T: MythProtocolSerializable](arg: T, builder: StringBuilder): StringBuilder =
