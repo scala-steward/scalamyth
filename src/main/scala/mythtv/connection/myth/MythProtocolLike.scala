@@ -297,6 +297,22 @@ trait MythProtocolLike extends MythProtocolSerializer {
     case _ => throw new IllegalArgumentException
   }
 
+  protected def verifyArgsQuerySGGetFileList(args: Seq[Any]): Boolean = args match {
+    case Seq(hostName: String, storageGroup: String, path: String) => true
+    case Seq(hostName: String, storageGroup: String, path: String, fileNamesOnly: Boolean) => true
+    case _ => false
+  }
+
+  protected def serializeQuerySGGetFileList(command: String, args: Seq[Any]): String = args match {
+    case Seq(hostName: String, storageGroup: String, path: String) =>
+      val elems = List(command, hostName, storageGroup, path)
+      elems mkString BACKEND_SEP
+    case Seq(hostName: String, storageGroup: String, path: String, fileNamesOnly: Boolean) =>
+      val elems = List(command, hostName, storageGroup, path, serialize(fileNamesOnly))
+      elems mkString BACKEND_SEP
+    case _ => throw new IllegalArgumentException
+ }
+
   protected def verifyArgsQuerySetting(args: Seq[Any]): Boolean = args match {
     case Seq(hostName: String, settingName: String) => true
     case _ => false
@@ -890,8 +906,18 @@ trait MythProtocolLike extends MythProtocolSerializer {
      */
     "QUERY_SETTING" -> (verifyArgsQuerySetting, serializeQuerySetting, handleQuerySetting),
 
-    /* QUERY_SG_GETFILELIST [] [%s, %s, %s {, %b}]  <wantHost> <groupname> <path> { fileNamesOnly> } */
-    "QUERY_SG_GETFILELIST" -> (verifyArgsNOP, serializeNOP, handleNOP),
+    /*
+     * QUERY_SG_GETFILELIST [] [%s, %s, %s {, %b}]  <hostName> <storageGroup> <path> { fileNamesOnly> }
+     *  @responds always
+     *  @returns  list of filenames or list of storage group URLS (?)
+     *        or ["EMPTY LIST"]               if wrong number of parameters given or no results
+     *        or ["SLAVE UNREACHABLE: ", %s]  if slave specified and unreachable
+     * NB: if a non-existent storage group name is specified, it will be replaced with "Default" by
+     *     the server and the corresponding results returned
+     *  TODO parse formats... they may have file:: or sgdir:: or sgdir:: or such prefixed, or nothing...
+     *  TODO are path and fileNamesOnly sort of mutually exclusive?
+     */
+    "QUERY_SG_GETFILELIST" -> (verifyArgsQuerySGGetFileList, serializeQuerySGGetFileList, handleQuerySGGetFileList),
 
     /*
      * QUERY_SG_FILEQUERY [] [%s, %s, %s]     <hostName> <storageGroup> <fileName>
@@ -1273,6 +1299,10 @@ trait MythProtocolLike extends MythProtocolSerializer {
     val timestamp = deserialize[MythDateTime](items(1))
     val fileSize = deserialize[Long](items(2))
     Some((fullPath, timestamp, DecimalByteCount(fileSize)))
+  }
+
+  protected def handleQuerySGGetFileList(response: BackendResponse): Option[List[String]] = {
+    Some(response.split.toList)
   }
 
   protected def handleQuerySetting(response: BackendResponse): Option[String] = {
