@@ -53,6 +53,7 @@ trait MythProtocolAPI {
   def queryRecording(chanId: ChanId, startTime: MythDateTime): Recording
   def queryRecordings(specifier: String = "Unsorted"): ExpectedCountIterator[Recording]
   def querySetting(hostName: String, settingName: String): Option[String]
+  def querySGFileQuery(hostName: String, storageGroup: String, fileName: String): (String, MythDateTime, ByteCount)
   def queryTimeZone: (String, ZoneOffset, Instant)
   def queryUptime: Duration
   def refreshBackend: Boolean

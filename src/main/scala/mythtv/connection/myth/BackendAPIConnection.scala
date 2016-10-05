@@ -268,6 +268,11 @@ class BackendAPIConnection(host: String, port: Int, timeout: Int, blockShutdown:
     (result map { case r: Boolean => r }).get
   }
 
+  def querySGFileQuery(hostName: String, storageGroup: String, fileName: String): (String, MythDateTime, ByteCount) = {
+    val result = execute("QUERY_SG_FILEQUERY", hostName, storageGroup, fileName)
+    (result map { case (fullPath: String, fileTime: MythDateTime, fileSize: ByteCount) => (fullPath, fileTime, fileSize) }).get
+  }
+
   def setSetting(hostName: String, settingName: String, value: String): Boolean = {
     val result = execute("SET_SETTING", hostName, settingName, value)
     (result map { case r: Boolean => r }).get

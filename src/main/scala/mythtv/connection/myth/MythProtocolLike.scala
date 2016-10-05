@@ -285,6 +285,18 @@ trait MythProtocolLike extends MythProtocolSerializer {
     case _ => throw new IllegalArgumentException
   }
 
+  protected def verifyArgsQuerySGFileQuery(args: Seq[Any]): Boolean = args match {
+    case Seq(hostName: String, storageGroup: String, fileName: String) => true
+    case _ => false
+  }
+
+  protected def serializeQuerySGFileQuery(command: String, args: Seq[Any]): String = args match {
+    case Seq(hostName: String, storageGroup: String, fileName: String) =>
+      val elems = List(command, hostName, storageGroup, fileName)
+      elems mkString BACKEND_SEP
+    case _ => throw new IllegalArgumentException
+  }
+
   protected def verifyArgsQuerySetting(args: Seq[Any]): Boolean = args match {
     case Seq(hostName: String, settingName: String) => true
     case _ => false
@@ -881,8 +893,14 @@ trait MythProtocolLike extends MythProtocolSerializer {
     /* QUERY_SG_GETFILELIST [] [%s, %s, %s {, %b}]  <wantHost> <groupname> <path> { fileNamesOnly> } */
     "QUERY_SG_GETFILELIST" -> (verifyArgsNOP, serializeNOP, handleNOP),
 
-    /* QUERY_SG_FILEQUERY [] [%s, %s, %s]           <wantHost> <groupName> <filename> */
-    "QUERY_SG_FILEQUERY" -> (verifyArgsNOP, serializeNOP, handleNOP),
+    /*
+     * QUERY_SG_FILEQUERY [] [%s, %s, %s]     <hostName> <storageGroup> <fileName>
+     *  @responds always
+     *  @returns [%s %t %ld]                  <fullFilePath> <fileTimestamp> <fileSize>
+     *        or ["EMPTY LIST"]               if wrong number of parameters given or no file found
+     *        or ["SLAVE UNREACHABLE: ", %s]  if slave specified and unreachable
+     */
+    "QUERY_SG_FILEQUERY" -> (verifyArgsQuerySGFileQuery, serializeQuerySGFileQuery, handleQuerySGFileQuery),
 
     /*
      * QUERY_TIME_ZONE
@@ -1247,6 +1265,14 @@ trait MythProtocolLike extends MythProtocolSerializer {
     val fieldCount = BackendProgram.FIELD_ORDER.length
     val it = recs.iterator drop 1 grouped fieldCount withPartial false
     Some(new ExpectedCountIterator(expectedCount, it map (BackendProgram(_))))
+  }
+
+  protected def handleQuerySGFileQuery(response: BackendResponse): Option[(String, MythDateTime, ByteCount)] = {
+    val items = response.split
+    val fullPath = items(0)
+    val timestamp = deserialize[MythDateTime](items(1))
+    val fileSize = deserialize[Long](items(2))
+    Some((fullPath, timestamp, DecimalByteCount(fileSize)))
   }
 
   protected def handleQuerySetting(response: BackendResponse): Option[String] = {
