@@ -6,7 +6,7 @@ package data
 import model.{ FreeSpace, StorageGroupId }
 import util.ByteCount
 
-private[mythtv] class BackendFreeSpace(data: Seq[String]) extends FreeSpace {
+private[myth] class BackendFreeSpace(data: Seq[String]) extends FreeSpace {
   import BackendFreeSpace._
 
   // assumes data.length >= FIELD_ORDER.length, or else some fields will be missing

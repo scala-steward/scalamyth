@@ -24,7 +24,7 @@ trait BackendOperations {
   def freeSpaceSummary: (ByteCount, ByteCount)
 
   def uptime: Duration
-  def loadAverages: List[Double]
+  def loadAverages: (Double, Double, Double)
 
   def isActiveBackend(hostname: String): Boolean
 

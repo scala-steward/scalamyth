@@ -5,7 +5,7 @@ import scala.collection.AbstractIterator
 
 // TODO potentitally add a 'remainingCount' state, which would also be included in toString()
 // TODO override hasDefiniteSize ? how about length ?
-class ExpectedCountIterator[A](val expectedCount: Int, underlying: Iterator[A])
+class ExpectedCountIterator[+A](val expectedCount: Int, underlying: Iterator[A])
     extends AbstractIterator[A] {
   override def hasNext: Boolean = underlying.hasNext
   override def next(): A = underlying.next()

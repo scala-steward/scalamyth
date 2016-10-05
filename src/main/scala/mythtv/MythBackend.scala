@@ -3,24 +3,21 @@ package mythtv
 import java.time.{ Duration, LocalDateTime }
 
 import model._
-import connection.myth.{ BackendConnection, MythProtocol, BackendResponse }
-import connection.myth.data._
+import connection.myth.BackendAPIConnection
+import connection.myth.data.BackendProgram  // TODO eliminate importing from connection.myth.data...
 import util.{ ByteCount, ExpectedCountIterator, MythDateTime }
 
 class MythBackend(val host: String) extends Backend with BackendOperations {
   import MythBackend._
 
-  private[this] val conn = new BackendConnection(host, DEFAULT_PORT)
+  private[this] val conn = new BackendAPIConnection(host, DEFAULT_PORT)
 
   def close() = {
     conn.disconnect()
   }
 
-  def recording(chanId: Int, startTime: MythDateTime): Recording = {
-    val cmd = s"QUERY_RECORDING TIMESLOT $chanId ${startTime.mythformat}"
-    val res = conn.sendCommand(cmd).get.split
-    new BackendProgram(res drop 1)  // first item is flag of some sort?
-    // TODO returns "ERROR" if there was a problem...
+  def recording(chanId: ChanId, startTime: MythDateTime): Recording = {
+    conn.queryRecording(chanId, startTime)
   }
 
   def recordingsIterator: ExpectedCountIterator[Recording] = {
@@ -34,96 +31,39 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
 
   def recordings: List[Recording] = recordingsIterator.toList
 
-  def expiringRecordingsIterator: ExpectedCountIterator[Recording] = {
-    val recs = conn.sendCommand("QUERY_GETEXPIRING").get.split
-    val fieldCount = BackendProgram.FIELD_ORDER.length
-
-    val expectedCount = recs(0).toInt
-    val it = recs.iterator drop 1 grouped fieldCount withPartial false
-    new ExpectedCountIterator(expectedCount, it map (new BackendProgram(_)))
-  }
-
+  def expiringRecordingsIterator: ExpectedCountIterator[Recording] = conn.queryGetExpiring
   def expiringRecordings: List[Recording] = expiringRecordingsIterator.toList
 
-  def pendingRecordingsIterator: ExpectedCountIterator[Recordable] = {
-    val pending = conn.sendCommand("QUERY_GETALLPENDING").get.split
-    val fieldCount = BackendProgram.FIELD_ORDER.length
-
-    // first two items are header items (? and expected item count)
-    val expectedCount = pending(1).toInt
-    val it = pending.iterator drop 2 grouped fieldCount withPartial false
-    new ExpectedCountIterator(expectedCount, it map (new BackendProgram(_)))
-  }
-
+  def pendingRecordingsIterator: ExpectedCountIterator[Recordable] = conn.queryGetAllPending
   def pendingRecordings: List[Recordable] = pendingRecordingsIterator.toList
 
-  def scheduledRecordingsIterator: ExpectedCountIterator[Recordable] = {
-    val sched = conn.sendCommand("QUERY_GETALLSCHEDULED").get.split
-    val fieldCount = BackendProgram.FIELD_ORDER.length
-
-    val expectedCount = sched(0).toInt
-    val it = sched.iterator drop 1 grouped fieldCount withPartial false
-    new ExpectedCountIterator(expectedCount, it map (new BackendProgram(_)))
-  }
-
+  def scheduledRecordingsIterator: ExpectedCountIterator[Recordable] = conn.queryGetAllScheduled
   def scheduledRecordings: List[Recordable] = scheduledRecordingsIterator.toList
 
   def upcomingRecordingsIterator: Iterator[Recordable] = {
     pendingRecordingsIterator filter (_.recStatus == RecStatus.WillRecord)
   }
-
   def upcomingRecordings: List[Recordable] = upcomingRecordingsIterator.toList
 
   def conflictingRecordingsIterator: Iterator[Recordable] = {
     pendingRecordingsIterator filter (_.recStatus == RecStatus.Conflict)
   }
-
   def conflictingRecordings: List[Recordable] = conflictingRecordingsIterator.toList
 
   // capture cards
 
-  def availableRecorders: List[Int] = {
-    val rec = conn.sendCommand("GET_FREE_RECORDER_LIST").get.split
-    (rec map (_.toInt)).toList
-  }
+  def availableRecorders: List[CaptureCardId] = conn.getFreeRecorderList
 
   //////
 
-  def freeSpaceSummary: (ByteCount, ByteCount) = {
-    val res = conn.sendCommand("QUERY_FREE_SPACE_SUMMARY").get.split
-    val Array(total, used) = res map (_.toLong)
-    (ByteCount(total * 1024), ByteCount(used * 1024))
-  }
+  def freeSpaceSummary: (ByteCount, ByteCount) = conn.queryFreeSpaceSummary
+  def freeSpace: List[FreeSpace] = conn.queryFreeSpace
+  def freeSpaceCombined: List[FreeSpace] = conn.queryFreeSpaceList
 
-  def freeSpace: List[FreeSpace] = {
-    val fs = conn.sendCommand("QUERY_FREE_SPACE").get.split
-    val fieldCount = BackendFreeSpace.FIELD_ORDER.length
-    val it = fs.iterator grouped fieldCount withPartial false map (new BackendFreeSpace(_))
-    it.toList
-  }
+  def uptime: Duration = conn.queryUptime
+  def loadAverages: (Double, Double, Double) = conn.queryLoad
 
-  def freeSpaceCombined: List[FreeSpace] = {
-    val fs = conn.sendCommand("QUERY_FREE_SPACE_LIST").get.split
-    val fieldCount = BackendFreeSpace.FIELD_ORDER.length
-    val it = fs.iterator grouped fieldCount withPartial false map (new BackendFreeSpace(_))
-    it.toList
-  }
-
-  def uptime: Duration = {
-    val res = conn.sendCommand("QUERY_UPTIME").get.raw
-    Duration.ofSeconds(res.toLong)
-  }
-
-  def loadAverages: List[Double] = {
-    val res = conn.sendCommand("QUERY_LOAD").get.split
-    (res map (_.toDouble)).toList
-  }
-
-  def isActiveBackend(hostname: String): Boolean = {
-    val cmd = List("QUERY_IS_ACTIVE_BACKEND", hostname) mkString MythProtocol.BACKEND_SEP
-    conn.sendCommand(cmd).getOrElse(BackendResponse("FALSE")).raw.toBoolean
-  }
-
+  def isActiveBackend(hostname: String): Boolean = conn.queryIsActiveBackend(hostname)
   def isActive: Boolean = isActiveBackend(host)   // TODO does this only work in master backends?
 }
 
