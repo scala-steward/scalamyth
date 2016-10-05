@@ -8,7 +8,10 @@ package model
 
 object Markup extends Enumeration {
   type Markup = Value
+  val MARK_ALL           = Value(-100)
   val MARK_UNSET         = Value(-10)
+  val MARK_TMP_CUT_END   = Value(-5)
+  val MARK_TMP_CUT_START = Value(-4)
   val MARK_UPDATED_CUT   = Value(-3)
   val MARK_PLACEHOLDER   = Value(-2)
   val MARK_CUT_END       = Value(0)
@@ -26,10 +29,12 @@ object Markup extends Enumeration {
   val MARK_ASPECT_16_9   = Value(12)
   val MARK_ASPECT_2_21_1 = Value(13)
   val MARK_ASPECT_CUSTOM = Value(14)
-  val MARK_VIDEO_WIDTH   = Value(15)
+  val MARK_VIDEO_WIDTHold= Value(15)
+  val MARK_VIDEO_WIDTH   = Value(30)
   val MARK_VIDEO_HEIGHT  = Value(31)
   val MARK_VIDEO_RATE    = Value(32)
   val MARK_DURATION_MS   = Value(33)
+  val MARK_TOTAL_FRAMES  = Value(34)
 }
 
 object RecType extends Enumeration {
