@@ -275,7 +275,6 @@ trait MythProtocolLike extends MythProtocolSerializer {
 
   protected def verifyArgsQueryRecordings(args: Seq[Any]): Boolean = args match {
     case Seq(sortOrFilter: String) => true
-    case Seq() => true
     case _ => false
   }
 
@@ -283,7 +282,6 @@ trait MythProtocolLike extends MythProtocolSerializer {
     case Seq(sortOrFilter: String) =>
       val elems = List(command, sortOrFilter)
       elems mkString " "
-    case Seq() => command
     case _ => throw new IllegalArgumentException
   }
 
@@ -408,7 +406,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @responds sometime; only if slistCount >= 3
      *  @returns Boolean "0" on error, "1" on succesful file deletion
      */
-    "DELETE_FILE" -> (verifyArgsDeleteFile, serializeDeleteFile, handleNOP),
+    "DELETE_FILE" -> (verifyArgsDeleteFile, serializeDeleteFile, handleDeleteFile),
 
     /*
      * DELETE_RECORDING %d %mt { FORCE { FORGET }}  <ChanId> <starttime> { can we specify NOFORCE or NOFORGET? }
@@ -849,9 +847,9 @@ trait MythProtocolLike extends MythProtocolSerializer {
     /*
      * QUERY_RECORDINGS { Ascending | Descending | Unsorted | Recording }
      *  @responds sometimes; only if tokenCount == 2
-     *  @returns [ %p {, %p}*]   list of ProgramInfo records
+     *  @returns [ %d, %p {, %p}*]   <expectedCount> list of ProgramInfo records
      */
-    "QUERY_RECORDINGS" -> (verifyArgsQueryRecordings, serializeQueryRecordings, handleNOP),
+    "QUERY_RECORDINGS" -> (verifyArgsQueryRecordings, serializeQueryRecordings, handleQueryRecordings),
 
     /*
      * QUERY_REMOTEENCODER %d [          <encoder#>
@@ -1014,6 +1012,10 @@ trait MythProtocolLike extends MythProtocolSerializer {
   }
 
   protected def handleCheckRecording(response: BackendResponse): Option[Boolean] = {
+    Some(deserialize[Boolean](response.raw))
+  }
+
+  protected def handleDeleteFile(response: BackendResponse): Option[Boolean] = {
     Some(deserialize[Boolean](response.raw))
   }
 
@@ -1229,6 +1231,15 @@ trait MythProtocolLike extends MythProtocolSerializer {
     // TODO check items(0) for error
     implicit val piser = ProgramInfoSerializerCurrent  // TODO FIXME shouldn't need to delclare here...
     Some(deserialize[Recording](items drop 1))
+  }
+
+  protected def handleQueryRecordings(response: BackendResponse): Option[Iterator[Recording]] = {
+    import data.BackendProgram  // TODO eliminate import here
+    val recs = response.split
+    val expectedCount = deserialize[Int](recs(0))  // TODO check non-zero!
+    val fieldCount = BackendProgram.FIELD_ORDER.length
+    val it = recs.iterator drop 1 grouped fieldCount withPartial false
+    Some(new ExpectedCountIterator(expectedCount, it map (BackendProgram(_))))
   }
 
   protected def handleQuerySetting(response: BackendResponse): Option[String] = {

@@ -46,6 +46,11 @@ class BackendAPIConnection(host: String, port: Int, timeout: Int, blockShutdown:
     (result map { case r: Boolean => r }).get
   }
 
+  def deleteFile(fileName: String, storageGroup: String): Boolean = {
+    val result = execute("DELETE_FILE", fileName, storageGroup)
+    (result map { case r: Boolean => r }).get
+  }
+
   def deleteRecording(rec: Recording): Int = {
     val result = execute("DELETE_RECORDING", rec)
     (result map { case r: Int => r }).get
@@ -135,7 +140,7 @@ class BackendAPIConnection(host: String, port: Int, timeout: Int, blockShutdown:
     (result map { case (fullName: String, stats: FileStats) => (fullName, stats) }).get
   }
 
-  def queryFileHash(fileName: String, storageGroup: String, hostName: String = ""): String = {
+  def queryFileHash(fileName: String, storageGroup: String, hostName: String): String = {
     val result =
       if (hostName == "") execute("QUERY_FILE_HASH", fileName, storageGroup)
       else execute("QUERY_FILE_HASH", fileName, storageGroup, hostName)
@@ -222,6 +227,11 @@ class BackendAPIConnection(host: String, port: Int, timeout: Int, blockShutdown:
     (result map { case r: Recording => r }).get
   }
 
+  def queryRecordings(specifier: String): ExpectedCountIterator[Recording] = {
+    val result = execute("QUERY_RECORDINGS", specifier)
+    (result map { case it: ExpectedCountIterator[_] => it.asInstanceOf[ExpectedCountIterator[Recording]] }).get
+  }
+
   def querySetting(hostName: String, settingName: String): Option[String] = {
     val result = execute("QUERY_SETTING", hostName, settingName)
     result map { case s: String => s }
@@ -259,7 +269,7 @@ class BackendAPIConnection(host: String, port: Int, timeout: Int, blockShutdown:
   }
 
   // TODO do we need to post this message rather than send it?
-  def shutdownNow(haltCommand: String = ""): Unit = {
+  def shutdownNow(haltCommand: String): Unit = {
     if (haltCommand == "") execute("SHUTDOWN_NOW")
     else execute("SHUTDOWN_NOW", haltCommand)
   }

@@ -12,6 +12,7 @@ trait MythProtocolAPI {
   def allowShutdown(): Boolean
   def blockShutdown(): Boolean
   def checkRecording(rec: Recording): Boolean
+  def deleteFile(fileName: String, storageGroup: String): Boolean
   def deleteRecording(rec: Recording): Int
   def done(): Unit
   def fillProgramInfo(playbackHost: String, p: Recording): Recording
@@ -49,6 +50,7 @@ trait MythProtocolAPI {
   def queryPixmapLastModified(rec: Recording): MythDateTime
   def queryRecording(pathName: String): Recording
   def queryRecording(chanId: ChanId, startTime: MythDateTime): Recording
+  def queryRecordings(specifier: String = "Unsorted"): ExpectedCountIterator[Recording]
   def querySetting(hostName: String, settingName: String): Option[String]
   def queryTimeZone: (String, ZoneOffset, Instant)
   def queryUptime: Duration

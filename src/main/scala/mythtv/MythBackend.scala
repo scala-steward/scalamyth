@@ -1,10 +1,9 @@
 package mythtv
 
-import java.time.{ Duration, LocalDateTime }
+import java.time.Duration
 
 import model._
 import connection.myth.BackendAPIConnection
-import connection.myth.data.BackendProgram  // TODO eliminate importing from connection.myth.data...
 import util.{ ByteCount, ExpectedCountIterator, MythDateTime }
 
 class MythBackend(val host: String) extends Backend with BackendOperations {
@@ -20,15 +19,7 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
     conn.queryRecording(chanId, startTime)
   }
 
-  def recordingsIterator: ExpectedCountIterator[Recording] = {
-    val recs = conn.sendCommand("QUERY_RECORDINGS Ascending").get.split
-    val fieldCount = BackendProgram.FIELD_ORDER.length
-
-    val expectedCount = recs(0).toInt
-    val it = recs.iterator drop 1 grouped fieldCount withPartial false
-    new ExpectedCountIterator(expectedCount, it map (new BackendProgram(_)))
-  }
-
+  def recordingsIterator: ExpectedCountIterator[Recording] = conn.queryRecordings("Ascending")
   def recordings: List[Recording] = recordingsIterator.toList
 
   def expiringRecordingsIterator: ExpectedCountIterator[Recording] = conn.queryGetExpiring
