@@ -1140,9 +1140,9 @@ trait MythProtocolLike extends MythProtocolSerializer {
   }
 
   protected def handleQueryFreeSpaceSummary(response: BackendResponse): Option[(ByteCount, ByteCount)] = {
-    val data = response.split map deserialize[Long]
+    val data = response.split map (n => deserialize[Long](n) * 1024)
     assert(data.length > 1)
-    Some((ByteCount(data(0) * 1024), ByteCount(data(1) * 1024)))
+    Some((ByteCount(data(0)), ByteCount(data(1))))
   }
 
   protected def handleQueryGetAllPending(response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
@@ -1152,7 +1152,8 @@ trait MythProtocolLike extends MythProtocolSerializer {
     val expectedCount = deserialize[Int](recs(1))  // TODO check non-zero!
     val fieldCount = BackendProgram.FIELD_ORDER.length
     val it = recs.iterator drop 2 grouped fieldCount withPartial false
-    Some(new ExpectedCountIterator(expectedCount, it map (BackendProgram(_))))
+    implicit val piser = ProgramInfoSerializerCurrent    // TODO shouldn't have to explicit declare this here...
+    Some(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
   }
 
   protected def handleQueryGetAllScheduled(response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
@@ -1211,10 +1212,10 @@ trait MythProtocolLike extends MythProtocolSerializer {
   }
 
   protected def handleQueryRecording(response: BackendResponse): Option[Recording] = {
-    val data = response.split
-    // TODO check for error....
-    import mythtv.connection.myth.data.BackendProgram  // TODO eliminate import here
-    Some(new BackendProgram(data drop 1))
+    val items = response.split
+    // TODO check items(0) for error
+    implicit val piser = ProgramInfoSerializerCurrent  // TODO FIXME shouldn't need to delclare here...
+    Some(deserialize[Recording](items drop 1))
   }
 
   protected def handleQuerySetting(response: BackendResponse): Option[String] = {
@@ -1222,11 +1223,11 @@ trait MythProtocolLike extends MythProtocolSerializer {
   }
 
   protected def handleQueryTimeZone(response: BackendResponse): Option[(String, ZoneOffset, Instant)] = {
-    val data = response.split
-    assert(data.length > 2)
-    val tzName = data(0)
-    val offset = ZoneOffset.ofTotalSeconds(deserialize[Int](data(1)))
-    val time = deserialize[Instant](data(2))
+    val items = response.split
+    assert(items.length > 2)
+    val tzName = items(0)
+    val offset = ZoneOffset.ofTotalSeconds(deserialize[Int](items(1)))
+    val time = deserialize[Instant](items(2))
     Some((tzName, offset, time))
   }
 

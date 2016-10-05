@@ -130,7 +130,8 @@ object ProgramInfoSerializerCurrent extends MythProtocolSerializable[Recording] 
   //       ... is this advisable? we should probably only ever pass back records we got from the backend
   //def serialize(in: Recording): String = ???
 
-  def deserialize(in: String): Recording = new BackendProgram(in split MythProtocol.SPLIT_PATTERN)
+  def deserialize(in: String): Recording = BackendProgram(in split MythProtocol.SPLIT_PATTERN)
+  override def deserialize(in: Seq[String]): BackendProgram = BackendProgram(in)
 
   def serialize(in: Recording): String = in match {
     // This works because BackendProgram keeps a copy of the original string data around in the fields map
