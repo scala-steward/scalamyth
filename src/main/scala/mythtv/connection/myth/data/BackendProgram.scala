@@ -9,7 +9,7 @@ import scala.util.Try
 
 import model._
 import EnumTypes._
-import util.{ ByteCount, MythDateTime }
+import util.{ ByteCount, DecimalByteCount, MythDateTime }
 
 private[mythtv] class BackendProgram(data: Seq[String]) extends Program with Recordable with Recording {
   import BackendProgram._
@@ -43,7 +43,7 @@ private[mythtv] class BackendProgram(data: Seq[String]) extends Program with Rec
   def callsign: String = fields("callsign")
   def chanName: String = fields("chanName")
   def filename: String = fields("filename")
-  lazy val filesize: ByteCount = ByteCount(fields("filesize").toLong)
+  lazy val filesize: ByteCount = DecimalByteCount(fields("filesize").toLong)
   lazy val startTime: MythDateTime = timestampField("startTime")
   lazy val endTime: MythDateTime = timestampField("endTime")
   lazy val findId: Int = fields("findId").toInt

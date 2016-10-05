@@ -1,53 +1,28 @@
 package mythtv
 package util
 
-// TODO can't extend value classes, to provide defaults for units,
-//       with e.g. StorageByteCount vs MemoryByteCount. Other options?
-//       (or better, BinaryByteCount vs DecimalByteCount, w/above as aliases ?)
-//     "true" is a sort of unsatisfactory discrimiator for behavior
-//   use implicit conversions between classes
+trait ByteCount extends Any {
+  def bytes: Long
+  def kilobytes: Long
+  def megabytes: Long
+  def gigabytes: Long
+  def terabytes: Long
 
-// TODO split into Trait, then new classes BinaryByteCount, DecimalByteCount, with some
-//      implicit or other conversion methods
-
-case class ByteCount(bytes: Long) extends AnyVal {
   def b: Long = bytes
-  def kb: Long = kilobytes(false)
-  def mb: Long = megabytes(false)
-  def gb: Long = gigabytes(false)
-  def tb: Long = terabytes(false)
+  def kb: Long = kilobytes
+  def mb: Long = megabytes
+  def gb: Long = gigabytes
+  def tb: Long = terabytes
 
-  def kb(si: Boolean): Long = kilobytes(si)
-  def mb(si: Boolean): Long = megabytes(si)
-  def gb(si: Boolean): Long = gigabytes(si)
-  def tb(si: Boolean): Long = terabytes(si)
+  def + (that: ByteCount): ByteCount
+  def - (that: ByteCount): ByteCount
+  def * (that: ByteCount): ByteCount
+  def / (that: ByteCount): ByteCount
 
-  def kilobytes: Long = kilobytes(false)
-  def megabytes: Long = megabytes(false)
-  def gigabytes: Long = gigabytes(false)
-  def terabytes: Long = terabytes(false)
+  def toBinaryByteCount: BinaryByteCount
+  def toDecimalByteCount: DecimalByteCount
 
-  def kilobytes(si: Boolean): Long = if (si) bytes / 1000 else bytes >> 10
-  def megabytes(si: Boolean): Long = if (si) bytes / (1000 * 1000) else bytes >> 20
-  def gigabytes(si: Boolean): Long = if (si) bytes / (1000 * 1000 * 1000) else bytes >> 30
-  def terabytes(si: Boolean): Long = if (si) bytes / (1000 * 1000 * 1000 * 1000) else bytes >> 40
-
-  def + (that: ByteCount): ByteCount = ByteCount(bytes + that.bytes)
-  def - (that: ByteCount): ByteCount = ByteCount(bytes - that.bytes)
-  def * (that: ByteCount): ByteCount = ByteCount(bytes * that.bytes)
-  def / (that: ByteCount): ByteCount = ByteCount(bytes / that.bytes)
-
-  // TODO maybe move to a formatter class to allow for static fields?
-  def toString(si: Boolean): String = {
-    val binUnits = Array("B", "KiB", "MiB", "GiB", "TiB")
-    val decUnits = Array("B", "kB", "MB", "GB", "TB")
-
-    val binThresholds = Array(0, 1024, 1048576, 1073741824, 1099511627776L)
-    val decThresholds = Array(0, 1000, 1000000, 1000000000, 1000000000000L)
-
-    val units = if (si) decUnits else binUnits
-    val thresholds = if (si) decThresholds else binThresholds
-
+  protected def toString(units: Array[String], thresholds: Array[Long]): String = {
     val pairs = (units zip thresholds).reverse
     val chosen = pairs find { case (u, t) => t <= bytes }
     val r = chosen map {
@@ -56,6 +31,52 @@ case class ByteCount(bytes: Long) extends AnyVal {
     }
     r getOrElse bytes.toString
   }
+}
 
-  override def toString(): String = toString(false)
+object ByteCount {
+  import scala.language.implicitConversions
+  implicit def bc2binbc(v: ByteCount): BinaryByteCount = BinaryByteCount(v.bytes)
+  implicit def bc2decbc(v: ByteCount): DecimalByteCount = DecimalByteCount(v.bytes)
+}
+
+case class BinaryByteCount(bytes: Long) extends AnyVal with ByteCount {
+  def kilobytes: Long = bytes >> 10
+  def megabytes: Long = bytes >> 20
+  def gigabytes: Long = bytes >> 30
+  def terabytes: Long = bytes >> 40
+
+  def + (that: ByteCount): BinaryByteCount = BinaryByteCount(bytes + that.bytes)
+  def - (that: ByteCount): BinaryByteCount = BinaryByteCount(bytes - that.bytes)
+  def * (that: ByteCount): BinaryByteCount = BinaryByteCount(bytes * that.bytes)
+  def / (that: ByteCount): BinaryByteCount = BinaryByteCount(bytes / that.bytes)
+
+  def toBinaryByteCount = this
+  def toDecimalByteCount = DecimalByteCount(bytes)
+
+  override def toString: String = {
+    val units = Array("B", "KiB", "MiB", "GiB", "TiB")
+    val thresholds = Array(0, 1024, 1048576, 1073741824, 1099511627776L)
+    super.toString(units, thresholds)
+  }
+}
+
+case class DecimalByteCount(bytes: Long) extends AnyVal with ByteCount {
+  def kilobytes: Long = bytes / (1000L)
+  def megabytes: Long = bytes / (1000L * 1000)
+  def gigabytes: Long = bytes / (1000L * 1000 * 1000)
+  def terabytes: Long = bytes / (1000L * 1000 * 1000 * 1000)
+
+  def + (that: ByteCount): DecimalByteCount = DecimalByteCount(bytes + that.bytes)
+  def - (that: ByteCount): DecimalByteCount = DecimalByteCount(bytes - that.bytes)
+  def * (that: ByteCount): DecimalByteCount = DecimalByteCount(bytes * that.bytes)
+  def / (that: ByteCount): DecimalByteCount = DecimalByteCount(bytes / that.bytes)
+
+  def toBinaryByteCount = BinaryByteCount(bytes)
+  def toDecimalByteCount = this
+
+  override def toString: String = {
+    val units = Array("B", "kB", "MB", "GB", "TB")
+    val thresholds = Array(0, 1000, 1000000, 1000000000, 1000000000000L)
+    super.toString(units, thresholds)
+  }
 }

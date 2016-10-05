@@ -4,7 +4,7 @@ package myth
 package data
 
 import model.{ FreeSpace, StorageGroupId }
-import util.ByteCount
+import util.{ ByteCount, DecimalByteCount }
 
 private[myth] class BackendFreeSpace(data: Seq[String]) extends FreeSpace {
   import BackendFreeSpace._
@@ -24,9 +24,9 @@ private[myth] class BackendFreeSpace(data: Seq[String]) extends FreeSpace {
   lazy val isLocal: Boolean = fields("isLocal").toInt != 0
   lazy val diskNumber: Int = fields("diskNumber").toInt
   lazy val sGroupId: StorageGroupId = StorageGroupId(fields("sGroupId").toInt)
-  lazy val blockSize: ByteCount = ByteCount(fields("blockSize").toLong)
-  lazy val totalSpace: ByteCount = ByteCount(fields("totalSpace").toLong * 1024)
-  lazy val usedSpace: ByteCount = ByteCount(fields("usedSpace").toLong * 1024)
+  lazy val blockSize: ByteCount = DecimalByteCount(fields("blockSize").toLong)
+  lazy val totalSpace: ByteCount = DecimalByteCount(fields("totalSpace").toLong * 1024)
+  lazy val usedSpace: ByteCount = DecimalByteCount(fields("usedSpace").toLong * 1024)
   lazy val freeSpace: ByteCount = totalSpace - usedSpace
 }
 

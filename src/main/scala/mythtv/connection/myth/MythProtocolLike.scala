@@ -5,7 +5,7 @@ package myth
 import java.time.{ Duration, Instant, LocalDate, ZoneOffset }
 
 import model.{ CaptureCardId, ChanId, FreeSpace, Markup, RecordedMarkup, Recording, RemoteEncoder, VideoPosition, VideoSegment }
-import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythDateTimeString }
+import util.{ ByteCount, BinaryByteCount, DecimalByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythDateTimeString }
 
 trait MythProtocolLike extends MythProtocolSerializer {
   import MythProtocol._
@@ -1155,7 +1155,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
   protected def handleQueryFreeSpaceSummary(response: BackendResponse): Option[(ByteCount, ByteCount)] = {
     val data = response.split map (n => deserialize[Long](n) * 1024)
     assert(data.length > 1)
-    Some((ByteCount(data(0)), ByteCount(data(1))))
+    Some((DecimalByteCount(data(0)), DecimalByteCount(data(1))))
   }
 
   protected def handleQueryGetAllPending(response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
@@ -1214,7 +1214,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
   }
 
   protected def handleQueryMemStats(response: BackendResponse): Option[(ByteCount, ByteCount, ByteCount, ByteCount)] = {
-    val stats = response.split map (n => ByteCount(deserialize[Long](n) * 1024 * 1024))
+    val stats = response.split map (n => BinaryByteCount(deserialize[Long](n) * 1024 * 1024))
     assert(stats.length > 3)
     Some(stats(0), stats(1), stats(2), stats(3))
   }
