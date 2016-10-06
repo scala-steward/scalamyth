@@ -24,16 +24,10 @@ trait MythProtocolLike extends MythProtocolSerializer {
   def commands: Map[String, (CheckArgs, Serialize, HandleResponse)] = internalMap
 
   protected def verifyArgsNOP(args: Seq[Any]): Boolean = true
-  protected def serializeNOP(command: String, args: Seq[Any]) = ""
 
   protected def verifyArgsEmpty(args: Seq[Any]): Boolean = args match {
     case Seq() => true
     case _ => false
-  }
-
-  protected def serializeEmpty(command: String, args: Seq[Any]): String = args match {
-    case Seq() => command
-    case _ => throw new IllegalArgumentException
   }
 
   protected def verifyArgsProgramInfo(args: Seq[Any]): Boolean = args match {
@@ -41,24 +35,9 @@ trait MythProtocolLike extends MythProtocolSerializer {
     case _ => false
   }
 
-  protected def serializeProgramInfo(command: String, args: Seq[Any]): String = args match {
-    case Seq(rec: Recording) =>
-      val bldr = new StringBuilder(command).append(BACKEND_SEP)
-      implicit val piser = ProgramInfoSerializerCurrent
-      serialize(rec, bldr).toString
-    case _ => throw new IllegalArgumentException
-  }
-
   protected def verifyArgsChanIdStartTime(args: Seq[Any]): Boolean = args match {
     case Seq(chanId: ChanId, startTime: MythDateTime) => true
     case _ => false
-  }
-
-  protected def serializeChanIdStartTime(command: String, args: Seq[Any]): String = args match {
-    case Seq(chanId: ChanId, startTime: MythDateTime) =>
-      val elems = List(command, serialize(chanId), serialize(startTime))
-      elems mkString " "
-    case _ => throw new IllegalArgumentException
   }
 
   protected def verifyArgsCaptureCard(args: Seq[Any]): Boolean = args match {
@@ -66,14 +45,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
     case _ => false
   }
 
-  protected def serializeCaptureCard(command: String, args: Seq[Any]): String = args match {
-    case Seq(cardId: CaptureCardId) =>
-      val elems = List(command, serialize(cardId))
-      elems mkString BACKEND_SEP
-    case _ => throw new IllegalArgumentException
-  }
-
-  /***/
+  /*---*/
 
   protected def verifyArgsAnnounce(args: Seq[Any]): Boolean = args match {
     case Seq("Monitor", clientHostName: String, eventsMode: Int) => true
@@ -83,30 +55,9 @@ trait MythProtocolLike extends MythProtocolSerializer {
     case _ => false
   }
 
-  protected def serializeAnnounce(command: String, args: Seq[Any]): String = args match {
-    case Seq(mode @ "Monitor", clientHostName: String, eventsMode: Int) =>
-      val elems = List(command, mode, clientHostName, serialize(eventsMode))
-      elems mkString " "
-    case Seq(mode @ "Playback", clientHostName: String, eventsMode: Int) =>
-      val elems = List(command, mode, clientHostName, serialize(eventsMode))
-      elems mkString " "
-    case Seq(mode @ "MediaServer", clientHostName: String) =>
-      val elems = List(command, mode, clientHostName)
-      elems mkString " "
-     // TODO SlaveBackend and FileTransfer are more complex
-    case _ => throw new IllegalArgumentException
-  }
-
   protected def verifyArgsDeleteFile(args: Seq[Any]): Boolean = args match {
     case Seq(fileName: String, storageGroup: String) => true
     case _ => false
-  }
-
-  protected def serializeDeleteFile(command: String, args: Seq[Any]): String = args match {
-    case Seq(fileName: String, storageGroup: String) =>
-      val elems = List(command, fileName, storageGroup)
-      elems mkString BACKEND_SEP
-    case _ => throw new IllegalArgumentException
   }
 
   protected def verifyArgsDeleteRecording(args: Seq[Any]): Boolean = args match {
@@ -117,48 +68,14 @@ trait MythProtocolLike extends MythProtocolSerializer {
     case _ => false
   }
 
-  protected def serializeDeleteRecording(command: String, args: Seq[Any]): String = {
-    def ser(chanId: ChanId, startTime: MythDateTime, forceOpt: Option[String], forgetOpt: Option[String]): String = {
-      val builder = new StringBuilder(command)
-      val time: MythDateTimeString = startTime
-      serialize(chanId, builder.append(' '))
-      serialize(time, builder.append(' '))
-      if (forceOpt.nonEmpty) builder.append(' ').append(forceOpt.get)
-      if (forgetOpt.nonEmpty) builder.append(' ').append(forgetOpt.get)
-      builder.toString
-    }
-    args match {
-      case Seq(rec: Recording) => serializeProgramInfo(command, args) // TODO this will pattern match again
-      case Seq(chanId: ChanId, startTime: MythDateTime) => ser(chanId, startTime, None, None)
-      case Seq(chanId: ChanId, startTime: MythDateTime, forceOpt: String) => ser(chanId, startTime, Some(forceOpt), None)
-      case Seq(chanId: ChanId, startTime: MythDateTime, forceOpt: String, forgetOpt: String) =>
-        ser(chanId, startTime, Some(forceOpt), Some(forgetOpt))
-      case _ => throw new IllegalArgumentException
-    }
-  }
-
   protected def verifyArgsDownloadFile(args: Seq[Any]): Boolean = args match {
     case Seq(srcURL: String, storageGroup: String, fileName: String) => true
     case _ => false
   }
 
-  protected def serializeDownloadFile(command: String, args: Seq[Any]): String = args match {
-    case Seq(srcURL: String, storageGroup: String, fileName: String) =>
-      val elems = List(command, srcURL, storageGroup, fileName)
-      elems mkString BACKEND_SEP
-    case _ => throw new IllegalArgumentException
-  }
-
   protected def verifyArgsFreeTuner(args: Seq[Any]): Boolean = args match {
     case Seq(id: CaptureCardId) => true
     case _ => false
-  }
-
-  protected def serializeFreeTuner(command: String, args: Seq[Any]): String = args match {
-    case Seq(cardId: CaptureCardId) =>
-      val elems = List(command, serialize(cardId))
-      elems mkString " "
-    case _ => throw new IllegalArgumentException
   }
 
   protected def verifyArgsLockTuner(args: Seq[Any]): Boolean = args match {
@@ -167,37 +84,14 @@ trait MythProtocolLike extends MythProtocolSerializer {
     case _ => false
   }
 
-  protected def serializeLockTuner(command: String, args: Seq[Any]): String = args match {
-    case Seq(cardId: CaptureCardId) =>
-      val elems = List(command, serialize(cardId))
-      elems mkString " "
-    case Seq() => command
-    case _ => throw new IllegalArgumentException
-  }
-
   protected def verifyArgsMythProtoVersion(args: Seq[Any]): Boolean = args match {
     case Seq(version: Int, token: String) => true
     case _ => false
   }
 
-  protected def serializeMythProtoVersion(command: String, args: Seq[Any]): String = args match {
-    case Seq(version: Int, token: String) =>
-      val elems = List(command, serialize(version), token)
-      elems mkString " "
-    case _ => throw new IllegalArgumentException
-  }
-
   protected def verifyArgsQueryCheckFile(args: Seq[Any]): Boolean = args match {
     case Seq(checkSlaves: Boolean, rec: Recording) => true
     case _ => false
-  }
-
-  protected def serializeQueryCheckFile(command: String, args: Seq[Any]): String = args match {
-    case Seq(checkSlaves: Boolean, rec: Recording) =>
-      implicit val piser = ProgramInfoSerializerCurrent  // TODO FIXME shouldn't need to delclare here...
-      val elems = List(command, serialize(checkSlaves), serialize(rec))
-      elems mkString BACKEND_SEP
-    case _ => throw new IllegalArgumentException
   }
 
   protected def verifyArgsQueryFileExists(args: Seq[Any]): Boolean = args match {
@@ -206,30 +100,10 @@ trait MythProtocolLike extends MythProtocolSerializer {
     case _ => false
   }
 
-  protected def serializeQueryFileExists(command: String, args: Seq[Any]): String = args match {
-    case Seq(fileName: String, storageGroup: String) =>
-      val elems = List(command, fileName, storageGroup)
-      elems mkString BACKEND_SEP
-    case Seq(fileName: String) =>
-      val elems = List(command, fileName)
-      elems mkString BACKEND_SEP
-    case _ => throw new IllegalArgumentException
-  }
-
   protected def verifyArgsQueryFileHash(args: Seq[Any]): Boolean = args match {
     case Seq(fileName: String, storageGroup: String, hostName: String) => true
     case Seq(fileName: String, storageGroup: String) => true
     case _ => false
-  }
-
-  protected def serializeQueryFileHash(command: String, args: Seq[Any]): String = args match {
-    case Seq(fileName: String, storageGroup: String, hostName: String) =>
-      val elems = List(command, fileName, storageGroup, hostName)
-      elems mkString BACKEND_SEP
-    case Seq(fileName: String, storageGroup: String) =>
-      val elems = List(command, fileName, storageGroup)
-      elems mkString BACKEND_SEP
-    case _ => throw new IllegalArgumentException
   }
 
   protected def verifyArgsQueryGetAllPending(args: Seq[Any]): Boolean = args match {
@@ -238,22 +112,9 @@ trait MythProtocolLike extends MythProtocolSerializer {
     case _ => false
   }
 
-  protected def serializeQueryGetAllPending(command: String, args: Seq[Any]): String = args match {
-    case Seq() => command
-    // TODO: case with optional arguments; rarely used?
-    case _ => throw new IllegalArgumentException
-  }
-
   protected def verifyArgsQueryIsActiveBackend(args: Seq[Any]): Boolean = args match {
     case Seq(hostName: String) => true
     case _ => false
-  }
-
-  protected def serializeQueryIsActiveBackend(command: String, args: Seq[Any]): String = args match {
-    case Seq(hostName: String) =>
-      val elems = List(command, hostName)
-      elems mkString BACKEND_SEP
-    case _ => throw new IllegalArgumentException
   }
 
   protected def verifyArgsQueryPixmapGetIfModified(args: Seq[Any]): Boolean = args match {
@@ -262,34 +123,10 @@ trait MythProtocolLike extends MythProtocolSerializer {
     case _ => false
   }
 
-  protected def serializeQueryPixmapGetIfModified(command: String, args: Seq[Any]): String = args match {
-    // TODO use StringBuilder for efficiency?
-    case Seq(modifiedSince: MythDateTime, maxFileSize: Long, rec: Recording) =>
-      implicit val piser = ProgramInfoSerializerCurrent
-      val elems = List(command, serialize(modifiedSince), serialize(maxFileSize), serialize(rec))
-      elems mkString BACKEND_SEP
-    case Seq(maxFileSize: Long, rec: Recording) =>
-      implicit val piser = ProgramInfoSerializerCurrent
-      val elems = List(command, "-1", serialize(maxFileSize), serialize(rec))
-      elems mkString BACKEND_SEP
-    case _ => throw new IllegalArgumentException
-  }
-
   protected def verifyArgsQueryRecording(args: Seq[Any]): Boolean = args match {
     case Seq("TIMESLOT", chanId: ChanId, startTime: MythDateTime) => true
     case Seq("BASENAME", basePathName: String) => true
     case _ => false
-  }
-
-  protected def serializeQueryRecording(command: String, args: Seq[Any]): String = args match {
-    case Seq(sub @ "TIMESLOT", chanId: ChanId, startTime: MythDateTime) =>
-      val time: MythDateTimeString = startTime
-      val elems = List(command, sub, serialize(chanId), serialize(time))
-      elems mkString " "
-    case Seq(sub @ "BASENAME", basePathName: String) =>
-      val elems = List(command, sub, basePathName)
-      elems mkString " "
-    case _ => throw new IllegalArgumentException
   }
 
   protected def verifyArgsQueryRecordings(args: Seq[Any]): Boolean = args match {
@@ -297,23 +134,9 @@ trait MythProtocolLike extends MythProtocolSerializer {
     case _ => false
   }
 
-  protected def serializeQueryRecordings(command: String, args: Seq[Any]): String = args match {
-    case Seq(sortOrFilter: String) =>
-      val elems = List(command, sortOrFilter)
-      elems mkString " "
-    case _ => throw new IllegalArgumentException
-  }
-
   protected def verifyArgsQuerySGFileQuery(args: Seq[Any]): Boolean = args match {
     case Seq(hostName: String, storageGroup: String, fileName: String) => true
     case _ => false
-  }
-
-  protected def serializeQuerySGFileQuery(command: String, args: Seq[Any]): String = args match {
-    case Seq(hostName: String, storageGroup: String, fileName: String) =>
-      val elems = List(command, hostName, storageGroup, fileName)
-      elems mkString BACKEND_SEP
-    case _ => throw new IllegalArgumentException
   }
 
   protected def verifyArgsQuerySGGetFileList(args: Seq[Any]): Boolean = args match {
@@ -322,26 +145,9 @@ trait MythProtocolLike extends MythProtocolSerializer {
     case _ => false
   }
 
-  protected def serializeQuerySGGetFileList(command: String, args: Seq[Any]): String = args match {
-    case Seq(hostName: String, storageGroup: String, path: String) =>
-      val elems = List(command, hostName, storageGroup, path)
-      elems mkString BACKEND_SEP
-    case Seq(hostName: String, storageGroup: String, path: String, fileNamesOnly: Boolean) =>
-      val elems = List(command, hostName, storageGroup, path, serialize(fileNamesOnly))
-      elems mkString BACKEND_SEP
-    case _ => throw new IllegalArgumentException
- }
-
   protected def verifyArgsQuerySetting(args: Seq[Any]): Boolean = args match {
     case Seq(hostName: String, settingName: String) => true
     case _ => false
-  }
-
-  protected def serializeQuerySetting(command: String, args: Seq[Any]): String = args match {
-    case Seq(hostName: String, settingName: String) =>
-      val elems = List(command, hostName, settingName)
-      elems mkString " "
-    case _ => throw new IllegalArgumentException
   }
 
   protected def verifyArgsSetBookmark(args: Seq[Any]): Boolean = args match {
@@ -349,23 +155,9 @@ trait MythProtocolLike extends MythProtocolSerializer {
     case _ => false
   }
 
-  protected def serializeSetBookmark(command: String, args: Seq[Any]): String = args match {
-    case Seq(chanId: ChanId, startTime: MythDateTime, position: VideoPosition) =>
-      val elems = List(command, serialize(chanId), serialize(startTime), serialize(position))
-      elems mkString " "
-    case _ => throw new IllegalArgumentException
-  }
-
   protected def verifyArgsSetSetting(args: Seq[Any]): Boolean = args match {
     case Seq(hostName: String, settingName: String, settingValue: String) => true
     case _ => false
-  }
-
-  protected def serializeSetSetting(command: String, args: Seq[Any]): String = args match {
-    case Seq(hostName: String, settingName: String, settingValue: String) =>
-      val elems = List(command, hostName, settingName, settingValue)
-      elems mkString " "
-    case _ => throw new IllegalArgumentException
   }
 
   protected def verifyArgsShutdownNow(args: Seq[Any]): Boolean = args match {
@@ -374,28 +166,10 @@ trait MythProtocolLike extends MythProtocolSerializer {
     case _ => false
   }
 
-  protected def serializeShutdownNow(command: String, args: Seq[Any]): String = args match {
-    case Seq(haltCommand: String) =>
-      val elems = List(command, haltCommand)
-      elems mkString " "
-    case Seq() => command
-    case _ => throw new IllegalArgumentException
-  }
-
   protected def verifyArgsUndeleteRecording(args: Seq[Any]): Boolean = args match {
     case Seq(x: Recording) => true
     case Seq(chanId: ChanId, startTime: MythDateTime) => true
     case _ => false
-  }
-
-  protected def serializeUndeleteRecording(command: String, args: Seq[Any]): String = args match {
-    case Seq(rec: Recording) => serializeProgramInfo(command, args) // TODO this will pattern match again
-    case Seq(chanId: ChanId, startTime: MythDateTime) =>
-      val start: MythDateTimeString = startTime
-      val elems = List(command, serialize(chanId), serialize(start))
-      elems mkString BACKEND_SEP
-    case _ => throw new IllegalArgumentException
-
   }
 
   /**
@@ -1047,6 +821,16 @@ trait MythProtocolLike extends MythProtocolSerializer {
 
 
   /**
+    * Outline for sending protocol commands:
+    *
+    *  i) lookup command name in table to verify it is a valid and supported command
+    *  ii) parse any arguments and attempt to match against valid signatures for the command
+    *  iii) serialize the argument and the command in the proper format, should result in a string
+    *  iv) send the serialized command over the wire
+    *  v) process the result according to rules for the given command signature
+    */
+
+  /**
    * Data types that need serialization to send over the wire:
     *  Program      --> <ProgramInfo>
     *  MythDateTime --> epoch timestamp (or mythformat string?)
@@ -1062,15 +846,241 @@ trait MythProtocolLike extends MythProtocolSerializer {
     *  FileHash -> String
     */
 
-  /**
-    * Outline for sending protocol commands:
-    *
-    *  i) lookup command name in table to verify it is a valid and supported command
-    *  ii) parse any arguments and attempt to match against valid signatures for the command
-    *  iii) serialize the argument and the command in the proper format, should result in a string
-    *  iv) send the serialized command over the wire
-    *  v) process the result according to rules for the given command signature
-    */
+  /*
+   * Request serialization
+   */
+
+  protected def serializeNOP(command: String, args: Seq[Any]) = ""
+
+  protected def serializeEmpty(command: String, args: Seq[Any]): String = args match {
+    case Seq() => command
+    case _ => throw new IllegalArgumentException
+  }
+
+  protected def serializeProgramInfo(command: String, args: Seq[Any]): String = args match {
+    case Seq(rec: Recording) =>
+      val bldr = new StringBuilder(command).append(BACKEND_SEP)
+      implicit val piser = ProgramInfoSerializerCurrent
+      serialize(rec, bldr).toString
+    case _ => throw new IllegalArgumentException
+  }
+
+  protected def serializeChanIdStartTime(command: String, args: Seq[Any]): String = args match {
+    case Seq(chanId: ChanId, startTime: MythDateTime) =>
+      val elems = List(command, serialize(chanId), serialize(startTime))
+      elems mkString " "
+    case _ => throw new IllegalArgumentException
+  }
+
+  protected def serializeCaptureCard(command: String, args: Seq[Any]): String = args match {
+    case Seq(cardId: CaptureCardId) =>
+      val elems = List(command, serialize(cardId))
+      elems mkString BACKEND_SEP
+    case _ => throw new IllegalArgumentException
+  }
+
+  /* --- */
+
+  protected def serializeAnnounce(command: String, args: Seq[Any]): String = args match {
+    case Seq(mode @ "Monitor", clientHostName: String, eventsMode: Int) =>
+      val elems = List(command, mode, clientHostName, serialize(eventsMode))
+      elems mkString " "
+    case Seq(mode @ "Playback", clientHostName: String, eventsMode: Int) =>
+      val elems = List(command, mode, clientHostName, serialize(eventsMode))
+      elems mkString " "
+    case Seq(mode @ "MediaServer", clientHostName: String) =>
+      val elems = List(command, mode, clientHostName)
+      elems mkString " "
+     // TODO SlaveBackend and FileTransfer are more complex
+    case _ => throw new IllegalArgumentException
+  }
+
+  protected def serializeDeleteFile(command: String, args: Seq[Any]): String = args match {
+    case Seq(fileName: String, storageGroup: String) =>
+      val elems = List(command, fileName, storageGroup)
+      elems mkString BACKEND_SEP
+    case _ => throw new IllegalArgumentException
+  }
+
+  protected def serializeDeleteRecording(command: String, args: Seq[Any]): String = {
+    def ser(chanId: ChanId, startTime: MythDateTime, forceOpt: Option[String], forgetOpt: Option[String]): String = {
+      val builder = new StringBuilder(command)
+      val time: MythDateTimeString = startTime
+      serialize(chanId, builder.append(' '))
+      serialize(time, builder.append(' '))
+      if (forceOpt.nonEmpty) builder.append(' ').append(forceOpt.get)
+      if (forgetOpt.nonEmpty) builder.append(' ').append(forgetOpt.get)
+      builder.toString
+    }
+    args match {
+      case Seq(rec: Recording) => serializeProgramInfo(command, args) // TODO this will pattern match again
+      case Seq(chanId: ChanId, startTime: MythDateTime) => ser(chanId, startTime, None, None)
+      case Seq(chanId: ChanId, startTime: MythDateTime, forceOpt: String) => ser(chanId, startTime, Some(forceOpt), None)
+      case Seq(chanId: ChanId, startTime: MythDateTime, forceOpt: String, forgetOpt: String) =>
+        ser(chanId, startTime, Some(forceOpt), Some(forgetOpt))
+      case _ => throw new IllegalArgumentException
+    }
+  }
+
+  protected def serializeDownloadFile(command: String, args: Seq[Any]): String = args match {
+    case Seq(srcURL: String, storageGroup: String, fileName: String) =>
+      val elems = List(command, srcURL, storageGroup, fileName)
+      elems mkString BACKEND_SEP
+    case _ => throw new IllegalArgumentException
+  }
+
+  protected def serializeFreeTuner(command: String, args: Seq[Any]): String = args match {
+    case Seq(cardId: CaptureCardId) =>
+      val elems = List(command, serialize(cardId))
+      elems mkString " "
+    case _ => throw new IllegalArgumentException
+  }
+
+  protected def serializeLockTuner(command: String, args: Seq[Any]): String = args match {
+    case Seq(cardId: CaptureCardId) =>
+      val elems = List(command, serialize(cardId))
+      elems mkString " "
+    case Seq() => command
+    case _ => throw new IllegalArgumentException
+  }
+
+  protected def serializeMythProtoVersion(command: String, args: Seq[Any]): String = args match {
+    case Seq(version: Int, token: String) =>
+      val elems = List(command, serialize(version), token)
+      elems mkString " "
+    case _ => throw new IllegalArgumentException
+  }
+
+  protected def serializeQueryCheckFile(command: String, args: Seq[Any]): String = args match {
+    case Seq(checkSlaves: Boolean, rec: Recording) =>
+      implicit val piser = ProgramInfoSerializerCurrent  // TODO FIXME shouldn't need to delclare here...
+      val elems = List(command, serialize(checkSlaves), serialize(rec))
+      elems mkString BACKEND_SEP
+    case _ => throw new IllegalArgumentException
+  }
+
+  protected def serializeQueryFileExists(command: String, args: Seq[Any]): String = args match {
+    case Seq(fileName: String, storageGroup: String) =>
+      val elems = List(command, fileName, storageGroup)
+      elems mkString BACKEND_SEP
+    case Seq(fileName: String) =>
+      val elems = List(command, fileName)
+      elems mkString BACKEND_SEP
+    case _ => throw new IllegalArgumentException
+  }
+
+  protected def serializeQueryFileHash(command: String, args: Seq[Any]): String = args match {
+    case Seq(fileName: String, storageGroup: String, hostName: String) =>
+      val elems = List(command, fileName, storageGroup, hostName)
+      elems mkString BACKEND_SEP
+    case Seq(fileName: String, storageGroup: String) =>
+      val elems = List(command, fileName, storageGroup)
+      elems mkString BACKEND_SEP
+    case _ => throw new IllegalArgumentException
+  }
+
+  protected def serializeQueryGetAllPending(command: String, args: Seq[Any]): String = args match {
+    case Seq() => command
+    // TODO: case with optional arguments; rarely used?
+    case _ => throw new IllegalArgumentException
+  }
+
+  protected def serializeQueryIsActiveBackend(command: String, args: Seq[Any]): String = args match {
+    case Seq(hostName: String) =>
+      val elems = List(command, hostName)
+      elems mkString BACKEND_SEP
+    case _ => throw new IllegalArgumentException
+  }
+
+  protected def serializeQueryPixmapGetIfModified(command: String, args: Seq[Any]): String = args match {
+    // TODO use StringBuilder for efficiency?
+    case Seq(modifiedSince: MythDateTime, maxFileSize: Long, rec: Recording) =>
+      implicit val piser = ProgramInfoSerializerCurrent
+      val elems = List(command, serialize(modifiedSince), serialize(maxFileSize), serialize(rec))
+      elems mkString BACKEND_SEP
+    case Seq(maxFileSize: Long, rec: Recording) =>
+      implicit val piser = ProgramInfoSerializerCurrent
+      val elems = List(command, "-1", serialize(maxFileSize), serialize(rec))
+      elems mkString BACKEND_SEP
+    case _ => throw new IllegalArgumentException
+  }
+
+  protected def serializeQueryRecording(command: String, args: Seq[Any]): String = args match {
+    case Seq(sub @ "TIMESLOT", chanId: ChanId, startTime: MythDateTime) =>
+      val time: MythDateTimeString = startTime
+      val elems = List(command, sub, serialize(chanId), serialize(time))
+      elems mkString " "
+    case Seq(sub @ "BASENAME", basePathName: String) =>
+      val elems = List(command, sub, basePathName)
+      elems mkString " "
+    case _ => throw new IllegalArgumentException
+  }
+
+  protected def serializeQueryRecordings(command: String, args: Seq[Any]): String = args match {
+    case Seq(sortOrFilter: String) =>
+      val elems = List(command, sortOrFilter)
+      elems mkString " "
+    case _ => throw new IllegalArgumentException
+  }
+
+  protected def serializeQuerySGFileQuery(command: String, args: Seq[Any]): String = args match {
+    case Seq(hostName: String, storageGroup: String, fileName: String) =>
+      val elems = List(command, hostName, storageGroup, fileName)
+      elems mkString BACKEND_SEP
+    case _ => throw new IllegalArgumentException
+  }
+
+  protected def serializeQuerySGGetFileList(command: String, args: Seq[Any]): String = args match {
+    case Seq(hostName: String, storageGroup: String, path: String) =>
+      val elems = List(command, hostName, storageGroup, path)
+      elems mkString BACKEND_SEP
+    case Seq(hostName: String, storageGroup: String, path: String, fileNamesOnly: Boolean) =>
+      val elems = List(command, hostName, storageGroup, path, serialize(fileNamesOnly))
+      elems mkString BACKEND_SEP
+    case _ => throw new IllegalArgumentException
+ }
+
+  protected def serializeQuerySetting(command: String, args: Seq[Any]): String = args match {
+    case Seq(hostName: String, settingName: String) =>
+      val elems = List(command, hostName, settingName)
+      elems mkString " "
+    case _ => throw new IllegalArgumentException
+  }
+
+  protected def serializeSetBookmark(command: String, args: Seq[Any]): String = args match {
+    case Seq(chanId: ChanId, startTime: MythDateTime, position: VideoPosition) =>
+      val elems = List(command, serialize(chanId), serialize(startTime), serialize(position))
+      elems mkString " "
+    case _ => throw new IllegalArgumentException
+  }
+
+  protected def serializeSetSetting(command: String, args: Seq[Any]): String = args match {
+    case Seq(hostName: String, settingName: String, settingValue: String) =>
+      val elems = List(command, hostName, settingName, settingValue)
+      elems mkString " "
+    case _ => throw new IllegalArgumentException
+  }
+
+  protected def serializeShutdownNow(command: String, args: Seq[Any]): String = args match {
+    case Seq(haltCommand: String) =>
+      val elems = List(command, haltCommand)
+      elems mkString " "
+    case Seq() => command
+    case _ => throw new IllegalArgumentException
+  }
+
+  protected def serializeUndeleteRecording(command: String, args: Seq[Any]): String = args match {
+    case Seq(rec: Recording) => serializeProgramInfo(command, args) // TODO this will pattern match again
+    case Seq(chanId: ChanId, startTime: MythDateTime) =>
+      val start: MythDateTimeString = startTime
+      val elems = List(command, serialize(chanId), serialize(start))
+      elems mkString BACKEND_SEP
+    case _ => throw new IllegalArgumentException
+  }
+
+  /*
+   * Response handling
+   */
 
   protected def handleNOP(response: BackendResponse): Option[Nothing] = None
 
