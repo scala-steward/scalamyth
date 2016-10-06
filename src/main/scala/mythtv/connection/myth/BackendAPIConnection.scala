@@ -7,12 +7,11 @@ import java.time.{ Duration, Instant, ZoneOffset }
 import model.{ CaptureCardId, ChanId, FreeSpace, Recording, RemoteEncoder, VideoPosition, VideoSegment }
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
 
-class BackendAPIConnection(host: String, port: Int, timeout: Int, blockShutdown: Boolean)
-    extends BackendConnection(host, port, timeout, blockShutdown)
+class BackendAPIConnection(host: String, port: Int, timeout: Int)
+    extends BackendConnection(host, port, timeout)
     with MythProtocol
     with MythProtocolAPI {
 
-  def this(host: String, port: Int, timeout: Int) = this(host, port, timeout, false)
   def this(host: String, port: Int) = this(host, port, 10)
 
   /*private*/ def execute(command: String, args: Any*): Option[_] = {
@@ -39,7 +38,10 @@ class BackendAPIConnection(host: String, port: Int, timeout: Int, blockShutdown:
     (result map { case r: Boolean => r }).get
   }
 
-//  def blockShutdown(): Boolean = ??? // TODO name clash with var in BackendConnection (and constructor param here)
+  def blockShutdown(): Boolean = {
+    val result = execute("BLOCK_SHUTDOWN")
+    (result map { case r: Boolean => r }).get
+  }
 
   def checkRecording(rec: Recording): Boolean = {
     val result = execute("CHECK_RECORDING", rec)

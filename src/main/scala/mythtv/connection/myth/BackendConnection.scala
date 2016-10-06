@@ -81,12 +81,11 @@ private class BackendCommandWriter(out: OutputStream) extends BackendCommandStre
   }
 }
 
-class BackendConnection(host: String, port: Int, timeout: Int, val blockShutdown: Boolean)
+class BackendConnection(host: String, port: Int, timeout: Int)
     extends SocketConnection(host, port, timeout) with MythProtocol {
   // TODO management of reader/writer lifecycle
   // TODO move timeout into a DynamicVariable and use withTimeout() rather than constructor parameter
 
-  def this(host: String, port: Int, timeout: Int) = this(host, port, timeout, false)
   def this(host: String, port: Int) = this(host, port, 10)
 
   protected def finishConnect(): Unit = {
@@ -98,7 +97,7 @@ class BackendConnection(host: String, port: Int, timeout: Int, val blockShutdown
 
   protected def announce(): Unit = {
     val localname = InetAddress.getLocalHost().getHostName()  // FIXME uses DNS, ugh..
-    val announceType = if (blockShutdown) "Playback" else "Monitor"
+    val announceType = "Monitor" /*if (blockShutdown) "Playback" else "Monitor"*/
     val response = sendCommand(s"ANN ${announceType} ${localname} 0")
     // TODO get hostname from backend using QUERY_HOSTNAME command
     response.toOption == Some("OK")  // TODO eliminate conversion to Option

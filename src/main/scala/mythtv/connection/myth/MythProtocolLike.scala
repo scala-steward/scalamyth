@@ -440,7 +440,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  responds sometimes; only if tokenCount == 1
      *  @returns "OK"
      */
-    "BLOCK_SHUTDOWN" -> (verifyArgsEmpty, serializeEmpty, handleNOP),
+    "BLOCK_SHUTDOWN" -> (verifyArgsEmpty, serializeEmpty, handleBlockShutdown),
 
     /*
      * CHECK_RECORDING [] [%p]     [<ProgramInfo>]
@@ -1074,6 +1074,10 @@ trait MythProtocolLike extends MythProtocolSerializer {
   protected def handleNOP(response: BackendResponse): Option[Nothing] = None
 
   protected def handleAllowShutdown(response: BackendResponse): Option[Boolean] = {
+    Some(response.raw == "OK")
+  }
+
+  protected def handleBlockShutdown(response: BackendResponse): Option[Boolean] = {
     Some(response.raw == "OK")
   }
 
