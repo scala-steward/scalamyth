@@ -18,6 +18,7 @@ trait MythProtocolAPI {
   def fillProgramInfo(playbackHost: String, p: Recording): Recording
   def forceDeleteRecording(rec: Recording): Int
   def forgetRecording(rec: Recording): Int   // TODO something better to indicate success/failure; Either?
+  def freeTuner(cardId: CaptureCardId): Boolean
   def getFreeRecorder: RemoteEncoder
   def getFreeRecorderCount: Int
   def getFreeRecorderList: List[CaptureCardId]

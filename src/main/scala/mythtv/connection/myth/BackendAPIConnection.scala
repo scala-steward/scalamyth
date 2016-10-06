@@ -74,6 +74,11 @@ class BackendAPIConnection(host: String, port: Int, timeout: Int)
     (result map { case r: Int => r }).get
   }
 
+  def freeTuner(cardId: CaptureCardId): Boolean = {
+    val result = execute("FREE_TUNER", cardId)
+    (result map { case r: Boolean => r }).get
+  }
+
   def getFreeRecorder: RemoteEncoder = {
     val result = execute("GET_FREE_RECORDER")
     (result map { case e: RemoteEncoder => e }).get

@@ -296,7 +296,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *  @responds sometimes; only if tokens == 2
      *  @returns "OK" or "FAILED"
      */
-    "FREE_TUNER" -> (verifyArgsFreeTuner, serializeFreeTuner, handleNOP),
+    "FREE_TUNER" -> (verifyArgsFreeTuner, serializeFreeTuner, handleFreeTuner),
 
     /*
      * GET_FREE_RECORDER
@@ -1110,6 +1110,10 @@ trait MythProtocolLike extends MythProtocolSerializer {
 
   protected def handleForgetRecording(response: BackendResponse): Option[Int] = {
     Some(deserialize[Int](response.raw))
+  }
+
+  protected def handleFreeTuner(response: BackendResponse): Option[Boolean] = {
+    Some(response.raw == "OK")
   }
 
   protected def handleGetFreeRecorder(response: BackendResponse): Option[RemoteEncoder] = {
