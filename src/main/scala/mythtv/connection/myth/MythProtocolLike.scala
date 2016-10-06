@@ -256,6 +256,25 @@ trait MythProtocolLike extends MythProtocolSerializer {
     case _ => throw new IllegalArgumentException
   }
 
+  protected def verifyArgsQueryPixmapGetIfModified(args: Seq[Any]): Boolean = args match {
+    case Seq(modifiedSince: MythDateTime, maxFileSize: Long, rec: Recording) => true
+    case Seq(maxFileSize: Long, rec: Recording) => true
+    case _ => false
+  }
+
+  protected def serializeQueryPixmapGetIfModified(command: String, args: Seq[Any]): String = args match {
+    // TODO use StringBuilder for efficiency?
+    case Seq(modifiedSince: MythDateTime, maxFileSize: Long, rec: Recording) =>
+      implicit val piser = ProgramInfoSerializerCurrent
+      val elems = List(command, serialize(modifiedSince), serialize(maxFileSize), serialize(rec))
+      elems mkString BACKEND_SEP
+    case Seq(maxFileSize: Long, rec: Recording) =>
+      implicit val piser = ProgramInfoSerializerCurrent
+      val elems = List(command, "-1", serialize(maxFileSize), serialize(rec))
+      elems mkString BACKEND_SEP
+    case _ => throw new IllegalArgumentException
+  }
+
   protected def verifyArgsQueryRecording(args: Seq[Any]): Boolean = args match {
     case Seq("TIMESLOT", chanId: ChanId, startTime: MythDateTime) => true
     case Seq("BASENAME", basePathName: String) => true
@@ -787,9 +806,11 @@ trait MythProtocolLike extends MythProtocolSerializer {
     "QUERY_MEMSTATS" -> (verifyArgsEmpty, serializeEmpty, handleQueryMemStats),
 
     /*
-     * QUERY_PIXMAP_GET_IF_MODIFIED [] [%d, %d, %p]  [<time:cachemodified> <maxFileSize> <ProgramInfo>]
+     * QUERY_PIXMAP_GET_IF_MODIFIED [] [%t, %d, %p]  [<modifiedSince> <maxFileSize> <ProgramInfo>]
+     *    <cachemodified> can be -1 to ignore, otherwise it is a timestamp
      *  @responds always?
-     *  @returns TODO figure out what get returned when it succeeds!
+     *  @returns [ %t, %ld, %d, %PIX ]  <lastModifiedTime> <imageFileSize> <crc16checksum> <Base64 encoded image file data>
+     *  NB Is lastModifiedTime really the image file or maybe the recording file, or ???
      *        or ["ERROR", "1: Parameter list too short"]
      *        or ["ERROR", "2: Invalid ProgramInfo"]
      *        or ["ERROR", "3: Failed to read preview file..."]
@@ -797,7 +818,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *        or ["ERROR", "5: Could not locate mythbackend that made this recording"
      *        or ["WARNING", "2: Could not locate requested file"]
      */
-    "QUERY_PIXMAP_GET_IF_MODIFIED" -> (verifyArgsNOP, serializeNOP, handleNOP),
+    "QUERY_PIXMAP_GET_IF_MODIFIED" -> (verifyArgsQueryPixmapGetIfModified, serializeQueryPixmapGetIfModified, handleQueryPixmapGetIfModified),
 
     /*
      * QUERY_PIXMAP_LASTMODIFIED [] [%p]      [<ProgramInfo>]
@@ -1270,6 +1291,20 @@ trait MythProtocolLike extends MythProtocolSerializer {
     val stats = response.split map (n => BinaryByteCount(deserialize[Long](n) * 1024 * 1024))
     assert(stats.length > 3)
     Some(stats(0), stats(1), stats(2), stats(3))
+  }
+
+  protected def handleQueryPixmapGetIfModified(response: BackendResponse): Option[(MythDateTime, Option[(ByteCount, Int, String)])] = {
+    val items = response.split
+    val lastModified = deserialize[MythDateTime](items(0))
+    // TODO check items(0) for error
+
+    if (items.length == 1) Some(lastModified, None)
+    else {
+      val fileSize = deserialize[Long](items(1))
+      val crc16 = deserialize[Int](items(2))
+      val base64data = items(3)
+      Some((lastModified, Some((DecimalByteCount(fileSize), crc16, base64data))))
+    }
   }
 
   protected def handleQueryPixmapLastModified(response: BackendResponse): Option[MythDateTime] = {

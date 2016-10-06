@@ -48,6 +48,8 @@ trait MythProtocolAPI {
   def queryIsRecording: (Int, Int)
   def queryLoad: (Double, Double, Double)
   def queryMemStats: (ByteCount, ByteCount, ByteCount, ByteCount)
+  def queryPixmapGetIfModified(maxFileSize: Long, rec: Recording): (MythDateTime, Option[(ByteCount, Int, String)])
+  def queryPixmapGetIfModified(modifiedSince: MythDateTime, maxFileSize: Long, rec: Recording): (MythDateTime, Option[(ByteCount, Int, String)])
   def queryPixmapLastModified(rec: Recording): MythDateTime
   def queryRecording(pathName: String): Recording
   def queryRecording(chanId: ChanId, startTime: MythDateTime): Recording
