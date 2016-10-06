@@ -1293,7 +1293,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
     Some(stats(0), stats(1), stats(2), stats(3))
   }
 
-  protected def handleQueryPixmapGetIfModified(response: BackendResponse): Option[(MythDateTime, Option[(ByteCount, Int, String)])] = {
+  protected def handleQueryPixmapGetIfModified(response: BackendResponse): Option[(MythDateTime, Option[PixmapInfo])] = {
     val items = response.split
     val lastModified = deserialize[MythDateTime](items(0))
     // TODO check items(0) for error
@@ -1303,7 +1303,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
       val fileSize = deserialize[Long](items(1))
       val crc16 = deserialize[Int](items(2))
       val base64data = items(3)
-      Some((lastModified, Some((DecimalByteCount(fileSize), crc16, base64data))))
+      Some((lastModified, Some(PixmapInfo(DecimalByteCount(fileSize), crc16, base64data))))
     }
   }
 

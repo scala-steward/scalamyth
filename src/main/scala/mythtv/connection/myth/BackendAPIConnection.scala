@@ -217,25 +217,19 @@ class BackendAPIConnection(host: String, port: Int, timeout: Int, blockShutdown:
     }).get
   }
 
-  def queryPixmapGetIfModified(maxFileSize: Long, rec: Recording): (MythDateTime, Option[(ByteCount, Int, String)]) = {
+  def queryPixmapGetIfModified(maxFileSize: Long, rec: Recording): (MythDateTime, Option[PixmapInfo]) = {
     val result = execute("QUERY_PIXMAP_GET_IF_MODIFIED", maxFileSize, rec)
     (result map {
-      case (lastModified: MythDateTime, pixmapInfo: Option[_]) => (lastModified,
-        pixmapInfo map {
-          case (fileSize: ByteCount, crc16: Int, imageFileData: String) =>
-            (fileSize, crc16, imageFileData)
-        })
+      case (lastModified: MythDateTime, pixmapInfo: Option[_]) =>
+        (lastModified, pixmapInfo map { case (p: PixmapInfo) => p })
     }).get
   }
 
-  def queryPixmapGetIfModified(modifiedSince: MythDateTime, maxFileSize: Long, rec: Recording): (MythDateTime, Option[(ByteCount, Int, String)]) = {
+  def queryPixmapGetIfModified(modifiedSince: MythDateTime, maxFileSize: Long, rec: Recording): (MythDateTime, Option[PixmapInfo]) = {
     val result = execute("QUERY_PIXMAP_GET_IF_MODIFIED", modifiedSince, maxFileSize, rec)
     (result map {
-      case (lastModified: MythDateTime, pixmapInfo: Option[_]) => (lastModified,
-        pixmapInfo map {
-          case (fileSize: ByteCount, crc16: Int, imageFileData: String) =>
-            (fileSize, crc16, imageFileData)
-        })
+      case (lastModified: MythDateTime, pixmapInfo: Option[_]) =>
+        (lastModified, pixmapInfo map { case (p: PixmapInfo) => p })
     }).get
   }
 
