@@ -722,6 +722,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
      *       or ["ERROR", "TOKEN_ABSENT"]
      *       or ["BAD", "NO_PATHNAME"]
      *       or ["ERROR", "FILE_INACCESSIBLE"]
+     * Does this follow up later with a message when the pixmap generation is complete?
      */
     "QUERY_GENPIXMAP2" -> (verifyArgsNOP, serializeNOP, handleNOP),
 
@@ -886,13 +887,13 @@ trait MythProtocolLike extends MythProtocolSerializer {
      * QUERY_RECORDING_DEVICE
      *   not implemented on backend server
      */
-    "QUERY_RECORDING_DEVICE" -> (verifyArgsNOP, serializeNOP, handleNOP),
+//    "QUERY_RECORDING_DEVICE" -> (verifyArgsNOP, serializeNOP, handleNOP),
 
     /*
      * QUERY_RECORDING_DEVICES
      *   not implemented on backend server
      */
-    "QUERY_RECORDING_DEVICES" -> (verifyArgsNOP, serializeNOP, handleNOP),
+//    "QUERY_RECORDING_DEVICES" -> (verifyArgsNOP, serializeNOP, handleNOP),
 
     /*
      * QUERY_RECORDINGS { Ascending | Descending | Unsorted | Recording }
