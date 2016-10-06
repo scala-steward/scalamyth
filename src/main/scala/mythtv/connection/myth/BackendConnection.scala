@@ -70,6 +70,9 @@ private class BackendCommandWriter(out: OutputStream) extends BackendCommandStre
   }
 }
 
+final case class WrongMythProtocolException(requiredVersion: Int)
+    extends RuntimeException("wrong Myth protocol version; need version " + requiredVersion)
+
 trait BackendConnection extends SocketConnection with MythProtocol {
   // TODO send and post command really belong in MythProtocol w/instead of execute()...
   def sendCommand(command: String, timeout: Option[Int] = None): Try[BackendResponse]
@@ -81,7 +84,7 @@ abstract class AbstractBackendConnection(host: String, port: Int, timeout: Int)
   // TODO management of reader/writer lifecycle
 
   protected def finishConnect(): Unit = {
-    checkVersion
+    checkVersion()
     announce()
   }
 
@@ -133,39 +136,73 @@ abstract class AbstractBackendConnection(host: String, port: Int, timeout: Int)
         handle(response)
       }
       else {
-        println("failed argument type check")
+        println("failed argument type check")  // TODO real error handling
         None
       }
     } else {
-      println(s"invalid command $command")
+      println(s"invalid command $command")     // TODO real error handling
       None
     }
   }
 
-  def checkVersion: Boolean = checkVersion(PROTO_VERSION, PROTO_TOKEN)
+  def checkVersion(): Boolean = checkVersion(PROTO_VERSION, PROTO_TOKEN)
 
   def checkVersion(version: Int, token: String): Boolean = {
     val msg = for {
       response <- sendCommand(s"MYTH_PROTO_VERSION $version $token")
-      word <- Try(response.split.head)
-    } yield word
-    msg.get == "ACCEPT"
+      split <- Try(response.split)
+    } yield (split(0), split(1))
+
+    val (status, requiredVersion) = msg.get
+    if (status == "ACCEPT") true
+    else {
+      disconnect(false)
+      throw new WrongMythProtocolException(requiredVersion.toInt)
+    }
   }
+}
+
+private sealed trait BackendConnectionFactory {
+  def apply(host: String, port: Int, timeout: Int): BackendConnection
 }
 
 object BackendConnection {
   final val DEFAULT_PORT = 6543
   final val DEFAULT_TIMEOUT = 10
 
-  // TODO negotiate protocol version
+  private val supportedVersions = Map[Int, BackendConnectionFactory](
+    75 -> BackendConnection75,
+    77 -> BackendConnection77
+  )
 
-  def apply(host: String, port: Int = DEFAULT_PORT, timeout: Int = DEFAULT_TIMEOUT): BackendConnection =
-    new BackendConnection77(host, port, timeout)
+  private val DEFAULT_VERSION = 75
+
+  def apply(host: String, port: Int = DEFAULT_PORT, timeout: Int = DEFAULT_TIMEOUT): BackendConnection = {
+    try {
+      val factory = supportedVersions(DEFAULT_VERSION)
+      factory(host, port, timeout)
+    } catch {
+      case ex @ WrongMythProtocolException(requiredVersion) =>
+        if (supportedVersions contains requiredVersion) {
+          val factory = supportedVersions(requiredVersion)
+          factory(host, port, timeout)
+        }
+        else throw ex
+    }
+  }
 }
 
 
-/*private*/ class BackendConnection75(host: String, port: Int, timeout: Int)
+private class BackendConnection75(host: String, port: Int, timeout: Int)
     extends AbstractBackendConnection(host, port, timeout) with MythProtocol75
 
-/*private*/ class BackendConnection77(host: String, port: Int, timeout: Int)
+private object BackendConnection75 extends BackendConnectionFactory {
+  def apply(host: String, port: Int, timeout: Int) = new BackendConnection75(host, port, timeout)
+}
+
+private class BackendConnection77(host: String, port: Int, timeout: Int)
     extends AbstractBackendConnection(host, port, timeout) with MythProtocol77
+
+private object BackendConnection77 extends BackendConnectionFactory {
+  def apply(host: String, port: Int, timeout: Int) = new BackendConnection77(host, port, timeout)
+}

@@ -19,7 +19,7 @@ object BackendAPIConnection {
     new BackendAPIConnection77(host, port, timeout)
 }
 
-class BackendAPIConnection77(host: String, port: Int, timeout: Int)
+private class BackendAPIConnection77(host: String, port: Int, timeout: Int)
     extends BackendConnection77(host, port, timeout)
     with BackendAPIConnection {
 
