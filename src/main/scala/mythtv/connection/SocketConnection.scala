@@ -4,19 +4,23 @@ package connection
 import java.net.Socket
 import java.io.{ InputStream, OutputStream }
 
+trait SocketConnection extends NetworkConnection {
+  def isConnected: Boolean
+  def disconnect(graceful: Boolean = true): Unit
+  def reconnect(graceful: Boolean = true): Unit
+}
+
 // TODO is 'host' a hostname or IP address (or either?)
-abstract class SocketConnection(host: String, port: Int, val timeout: Int) extends NetworkConnection(host, port) {
+abstract class AbstractSocketConnection(val host: String, val port: Int, val timeout: Int)
+    extends SocketConnection {
   private[this] var connected: Boolean = false
   private[this] var socket: Socket = connectSocket()
 
   // TODO management of reader/writer lifecycle
-  // TODO move default timeout to static final var
 
   finishConnect()
 
-  def this(host: String, port: Int) = this(host, port, 10)
-
-  def isConnected = connected
+  def isConnected: Boolean = connected
 
   private def connectSocket(): Socket = {
     val newSocket = new Socket(host, port)
@@ -34,7 +38,7 @@ abstract class SocketConnection(host: String, port: Int, val timeout: Int) exten
     }
   }
 
-  def disconnect(graceful: Boolean = true): Unit = {
+  def disconnect(graceful: Boolean): Unit = {
     if (connected) {
       if (graceful) gracefulDisconnect()
       connected = false
@@ -45,7 +49,7 @@ abstract class SocketConnection(host: String, port: Int, val timeout: Int) exten
 
   protected def gracefulDisconnect(): Unit
 
-  def reconnect(graceful: Boolean = true): Unit = {
+  def reconnect(graceful: Boolean): Unit = {
     disconnect(graceful)
     connect()
   }

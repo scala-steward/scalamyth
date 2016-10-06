@@ -25,7 +25,7 @@ import java.nio.charset.StandardCharsets
 import scala.util.Try
 
 class FrontendConnection(host: String, port: Int, timeout: Int)
-    extends SocketConnection(host, port, timeout) with FrontendNetworkControl {
+    extends AbstractSocketConnection(host, port, timeout) with FrontendNetworkControl {
 
   // TODO management of reader/writer lifecycle
 

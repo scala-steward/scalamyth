@@ -9,7 +9,7 @@ import util.{ ByteCount, ExpectedCountIterator, MythDateTime }
 class MythBackend(val host: String) extends Backend with BackendOperations {
   import MythBackend._
 
-  private[this] val conn = new BackendAPIConnection(host, DEFAULT_PORT)
+  private[this] val conn = BackendAPIConnection(host)
 
   def close() = {
     conn.disconnect()

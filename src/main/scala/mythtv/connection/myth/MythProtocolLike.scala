@@ -8,11 +8,6 @@ import model.{ CaptureCardId, ChanId, FreeSpace, Markup, RecordedMarkup, Recordi
 import util.{ ByteCount, BinaryByteCount, DecimalByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythDateTimeString }
 
 trait MythProtocolLike extends MythProtocolSerializer {
-  import MythProtocol._
-  // TODO can we structure this so that it's possible to support more than one protocol version?
-  final val PROTO_VERSION = 77
-  final val PROTO_TOKEN = "WindMark"
-
   type CheckArgs = (Seq[Any]) => Boolean
   type Serialize = (String, Seq[Any]) => String
   type HandleResponse = (BackendResponse) => Option[_]  // TODO what is result type?, maybe Either[_]
@@ -21,7 +16,26 @@ trait MythProtocolLike extends MythProtocolSerializer {
   // TODO FIXME we lose the type of the option going through the message dispatch map
   //            is there a way around this?
 
-  def commands: Map[String, (CheckArgs, Serialize, HandleResponse)] = internalMap
+  def commands: Map[String, (CheckArgs, Serialize, HandleResponse)] = Map.empty
+
+  def execute(command: String, args: Any*): Option[_]
+
+  def supports(command: String): Boolean = commands contains command
+
+  def supports(command: String, args: Any*): Boolean = {
+    if (commands contains command) {
+      val (check, _, _) = commands(command)
+      check(args)
+    }
+    else false
+  }
+
+}
+
+/*protected*/ trait MythProtocolLikeRef extends MythProtocolLike {
+  import MythProtocol._
+
+  override def commands = commandMap
 
   protected def verifyArgsNOP(args: Seq[Any]): Boolean = true
 
@@ -175,7 +189,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
   /**
     * Myth protocol commands: (from programs/mythbackend/mainserver.cpp)
     */
-  private val internalMap = Map[String, (CheckArgs, Serialize, HandleResponse)](
+  private val commandMap = Map[String, (CheckArgs, Serialize, HandleResponse)](
     /*
      * ALLOW_SHUTDOWN
      *  @responds sometime; only if tokenCount == 1
@@ -1409,12 +1423,5 @@ trait MythProtocolLike extends MythProtocolSerializer {
   }
 }
 
-private[myth] trait MythProtocolLike75 extends MythProtocolLike {
-//  final val PROTO_VERSION = 75
-//  final val PROTO_TOKEN = "SweetRock"
-}
-
-private[myth] trait MythProtocolLike77 extends MythProtocolLike {
-//  final val PROTO_VERSION = 77
-//  final val PROTO_TOKEN = "WindMark"
-}
+private[myth] trait MythProtocolLike75 extends MythProtocolLikeRef
+private[myth] trait MythProtocolLike77 extends MythProtocolLike75

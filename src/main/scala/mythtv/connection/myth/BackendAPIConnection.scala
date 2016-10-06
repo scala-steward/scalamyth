@@ -7,31 +7,21 @@ import java.time.{ Duration, Instant, ZoneOffset }
 import model.{ CaptureCardId, ChanId, FreeSpace, Recording, RemoteEncoder, VideoPosition, VideoSegment }
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
 
-class BackendAPIConnection(host: String, port: Int, timeout: Int)
-    extends BackendConnection(host, port, timeout)
-    with MythProtocol
-    with MythProtocolAPI {
+trait BackendAPIConnection extends BackendConnection with MythProtocolAPI
 
-  def this(host: String, port: Int) = this(host, port, 10)
+object BackendAPIConnection {
+  // TODO negotiate protocol version
+  def apply(
+    host: String,
+    port: Int = BackendConnection.DEFAULT_PORT,
+    timeout: Int = BackendConnection.DEFAULT_TIMEOUT
+  ): BackendAPIConnection =
+    new BackendAPIConnection77(host, port, timeout)
+}
 
-  /*private*/ def execute(command: String, args: Any*): Option[_] = {
-    if (!isConnected) throw new IllegalStateException
-    if (commands contains command) {
-      val (check, serialize, handle) = commands(command)
-      if (check(args)) {
-        val cmdstring = serialize(command, args)
-        val response = sendCommand(cmdstring).get
-        handle(response)
-      }
-      else {
-        println("failed argument type check")
-        None
-      }
-    } else {
-      println(s"invalid command $command")
-      None
-    }
-  }
+class BackendAPIConnection77(host: String, port: Int, timeout: Int)
+    extends BackendConnection77(host, port, timeout)
+    with BackendAPIConnection {
 
   def allowShutdown(): Boolean = {
     val result = execute("ALLOW_SHUTDOWN")

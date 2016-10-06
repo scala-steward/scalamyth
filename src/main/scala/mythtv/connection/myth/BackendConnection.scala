@@ -16,19 +16,6 @@ private trait BackendCommandStream {
   final val SIZE_HEADER_BYTES = 8
 }
 
-sealed trait BackendResponse extends Any {
-  def raw: String
-  def split: Array[String]
-}
-
-object BackendResponse {
-  def apply(r: String): BackendResponse = Response(r)
-}
-
-private final case class Response(raw: String) extends AnyVal with BackendResponse {
-  def split: Array[String] = raw split MythProtocol.SPLIT_PATTERN
-}
-
 private class BackendCommandReader(in: InputStream) extends BackendCommandStream {
   def readString(length: Int): String = {
     // TODO for efficiency re-use an existing buffer?
@@ -41,6 +28,8 @@ private class BackendCommandReader(in: InputStream) extends BackendCommandStream
       //println("Read " + n + " bytes")
       off += n
     } while (n > 0)
+
+    if (n < 0) throw new RuntimeException("connection has been closed")
 
     assert(off == length)
     new String(buf, StandardCharsets.UTF_8)  // TODO need to replace call if we switch to a shared buffer
@@ -81,12 +70,15 @@ private class BackendCommandWriter(out: OutputStream) extends BackendCommandStre
   }
 }
 
-class BackendConnection(host: String, port: Int, timeout: Int)
-    extends SocketConnection(host, port, timeout) with MythProtocol {
-  // TODO management of reader/writer lifecycle
-  // TODO move timeout into a DynamicVariable and use withTimeout() rather than constructor parameter
+trait BackendConnection extends SocketConnection with MythProtocol {
+  // TODO send and post command really belong in MythProtocol w/instead of execute()...
+  def sendCommand(command: String, timeout: Option[Int] = None): Try[BackendResponse]
+  def postCommand(command: String): Unit
+}
 
-  def this(host: String, port: Int) = this(host, port, 10)
+abstract class AbstractBackendConnection(host: String, port: Int, timeout: Int)
+    extends AbstractSocketConnection(host, port, timeout) with BackendConnection {
+  // TODO management of reader/writer lifecycle
 
   protected def finishConnect(): Unit = {
     checkVersion
@@ -103,9 +95,9 @@ class BackendConnection(host: String, port: Int, timeout: Int)
     response.toOption == Some("OK")  // TODO eliminate conversion to Option
   }
 
-  // TODO convert below to use Try[] instead of Option[]
   // TODO support passing a list which will be joined using backend sep
   ///  NB some commands put a separator between command string and arguments, others use whitespace
+  // TODO move timeout into a DynamicVariable and use withTimeout() rather than method parameter
   def sendCommand(command: String, timeout: Option[Int] = None): Try[BackendResponse] = {
     val writer = new BackendCommandWriter(outputStream)
     val reader = new BackendCommandReader(inputStream)
@@ -131,12 +123,49 @@ class BackendConnection(host: String, port: Int, timeout: Int)
     // TODO: swallow any response, but socket may be closed
   }
 
-  def checkVersion: Boolean = {
-    val splitPat = MythProtocol.SPLIT_PATTERN
+  def execute(command: String, args: Any*): Option[_] = {
+    if (!isConnected) throw new IllegalStateException
+    if (commands contains command) {
+      val (check, serialize, handle) = commands(command)
+      if (check(args)) {
+        val cmdstring = serialize(command, args)
+        val response = sendCommand(cmdstring).get
+        handle(response)
+      }
+      else {
+        println("failed argument type check")
+        None
+      }
+    } else {
+      println(s"invalid command $command")
+      None
+    }
+  }
+
+  def checkVersion: Boolean = checkVersion(PROTO_VERSION, PROTO_TOKEN)
+
+  def checkVersion(version: Int, token: String): Boolean = {
     val msg = for {
-      response <- sendCommand(s"MYTH_PROTO_VERSION ${PROTO_VERSION} ${PROTO_TOKEN}")
+      response <- sendCommand(s"MYTH_PROTO_VERSION $version $token")
       word <- Try(response.split.head)
     } yield word
     msg.get == "ACCEPT"
   }
 }
+
+object BackendConnection {
+  final val DEFAULT_PORT = 6543
+  final val DEFAULT_TIMEOUT = 10
+
+  // TODO negotiate protocol version
+
+  def apply(host: String, port: Int = DEFAULT_PORT, timeout: Int = DEFAULT_TIMEOUT): BackendConnection =
+    new BackendConnection77(host, port, timeout)
+}
+
+
+/*private*/ class BackendConnection75(host: String, port: Int, timeout: Int)
+    extends AbstractBackendConnection(host, port, timeout) with MythProtocol75
+
+/*private*/ class BackendConnection77(host: String, port: Int, timeout: Int)
+    extends AbstractBackendConnection(host, port, timeout) with MythProtocol77

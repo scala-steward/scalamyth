@@ -14,8 +14,8 @@ case class StreamHttpResponse(statusCode: Int, headers: HttpHeaders, stream: Inp
 
 // TODO need somewhere to clean up our resource(s): connection, stream?
 
-abstract class AbstractHttpConnection(val protocol: String, host: String, port: Int)
-    extends NetworkConnection(host, port) {
+abstract class AbstractHttpConnection(val protocol: String, val host: String, val port: Int)
+    extends NetworkConnection {
 
   def setupConnection(conn: HttpURLConnection): Unit
 

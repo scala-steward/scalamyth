@@ -1,4 +1,7 @@
 package mythtv
 package connection
 
-abstract class NetworkConnection(val host: String, val port: Int)
+trait NetworkConnection {
+  def host: String
+  def port: Int
+}

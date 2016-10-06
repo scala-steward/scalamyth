@@ -102,19 +102,19 @@ object MythProtocolSerializable {
   implicit object FileStatsSerializer extends MythProtocolSerializable[FileStats] {
     def deserialize(in: String): FileStats = deserialize(in split MythProtocol.SPLIT_PATTERN)
     override def deserialize(in: Seq[String]): FileStats = FileStats(
-      MythProtocolSerializer.deserialize[Long](in(0)),    // st_dev
-      MythProtocolSerializer.deserialize[Long](in(1)),    // st_ino
-      MythProtocolSerializer.deserialize[Int](in(2)),     // st_mode
-      MythProtocolSerializer.deserialize[Long](in(3)),    // st_nlink
-      MythProtocolSerializer.deserialize[Int](in(4)),     // st_uid
-      MythProtocolSerializer.deserialize[Int](in(5)),     // st_gid
-      MythProtocolSerializer.deserialize[Long](in(6)),    // st_rdev
-      DecimalByteCount(MythProtocolSerializer.deserialize[Long](in(7))),       // st_size
-      BinaryByteCount(MythProtocolSerializer.deserialize[Long](in(8))),        // st_blksize
-      MythProtocolSerializer.deserialize[Long](in(9)),    // st_blocks
-      Instant.ofEpochSecond(MythProtocolSerializer.deserialize[Long](in(10))), // st_atim
-      Instant.ofEpochSecond(MythProtocolSerializer.deserialize[Long](in(11))), // st_mtim
-      Instant.ofEpochSecond(MythProtocolSerializer.deserialize[Long](in(12)))  // st_ctim
+      MythProtocol.deserialize[Long](in(0)),    // st_dev
+      MythProtocol.deserialize[Long](in(1)),    // st_ino
+      MythProtocol.deserialize[Int](in(2)),     // st_mode
+      MythProtocol.deserialize[Long](in(3)),    // st_nlink
+      MythProtocol.deserialize[Int](in(4)),     // st_uid
+      MythProtocol.deserialize[Int](in(5)),     // st_gid
+      MythProtocol.deserialize[Long](in(6)),    // st_rdev
+      DecimalByteCount(MythProtocol.deserialize[Long](in(7))),       // st_size
+      BinaryByteCount(MythProtocol.deserialize[Long](in(8))),        // st_blksize
+      MythProtocol.deserialize[Long](in(9)),    // st_blocks
+      Instant.ofEpochSecond(MythProtocol.deserialize[Long](in(10))), // st_atim
+      Instant.ofEpochSecond(MythProtocol.deserialize[Long](in(11))), // st_mtim
+      Instant.ofEpochSecond(MythProtocol.deserialize[Long](in(12)))  // st_ctim
     )
     def serialize(in: FileStats): String = throw new UnsupportedOperationException
   }
@@ -126,8 +126,8 @@ object MythProtocolSerializable {
     override def deserialize(in: Seq[String]): RecordedMarkup = {
       assert(in.lengthCompare(1) > 0)
       BackendRecordedMarkup(
-        Markup(MythProtocolSerializer.deserialize[Int](in(0))),
-        MythProtocolSerializer.deserialize[VideoPosition](in(1))
+        Markup(MythProtocol.deserialize[Int](in(0))),
+        MythProtocol.deserialize[VideoPosition](in(1))
       )
     }
     def serialize(in: RecordedMarkup): String = throw new UnsupportedOperationException
