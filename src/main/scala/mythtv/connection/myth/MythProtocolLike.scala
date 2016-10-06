@@ -412,18 +412,19 @@ trait MythProtocolLike extends MythProtocolSerializer {
     /*
      * ANN Monitor %s %d                <clientHostName> <eventsMode>
      * ANN Playback %s %d               <clientHostName> <eventsMode>
-     * ANN MediaServer %s               <clientHostName>
-     * ANN SlaveBackend %s %s { %p }*   <slaveHostName> <slaveIPAddr?> [<ProgramInfo>]*
+     * ANN MediaServer %s               <IPAddress>
+     * ANN SlaveBackend %s %s { %p }*   <IPAddress> <slaveIPAddr?> [<ProgramInfo>]*
      * ANN FileTransfer %s { %d { %d { %d }}} [%s %s {, %s}*]
      *                    <clientHostName> { writeMode {, useReadAhead {, timeoutMS }}}
      *                    [ url, wantgroup, checkfile {, ...} ]
      *  @responds
      *  @returns
-     *      Monitor:
-     *      Playback:
-     *      MediaServer:
-     *      SlaveBackend:
-     *      FileTransfer:
+     *      Monitor:       "OK"
+     *      Playback:      "OK"
+     *      MediaServer:   "OK"
+     *      SlaveBackend:  "OK"
+     *      FileTransfer: ["OK", %d, %ld]        <ftID>, <fileSize>
+     *    or ["ERROR", ... ] on error conditions
      */
     "ANN" -> (verifyArgsAnnounce, serializeAnnounce, handleNOP),
 
