@@ -4,15 +4,20 @@ package connection
 import java.net.Socket
 import java.io.{ InputStream, OutputStream }
 
+import scala.util.DynamicVariable
+
 trait SocketConnection extends NetworkConnection {
   def isConnected: Boolean
   def disconnect(graceful: Boolean = true): Unit
   def reconnect(graceful: Boolean = true): Unit
+  def timeout: Int
+  def withTimeout[T](timeOut: Int)(thunk: => T): T
 }
 
 // TODO is 'host' a hostname or IP address (or either?)
-abstract class AbstractSocketConnection(val host: String, val port: Int, val timeout: Int)
+abstract class AbstractSocketConnection(val host: String, val port: Int, timeoutSecs: Int)
     extends SocketConnection {
+  private[this] var timeoutVar = new DynamicVariable[Int](timeoutSecs)
   private[this] var connected: Boolean = false
   private[this] var socket: Socket = connectSocket()
 
@@ -24,7 +29,7 @@ abstract class AbstractSocketConnection(val host: String, val port: Int, val tim
 
   private def connectSocket(): Socket = {
     val newSocket = new Socket(host, port)
-    newSocket.setSoTimeout(10 * 1000)
+    setSocketTimeout(newSocket, timeout)
     connected = true
     newSocket
   }
@@ -53,6 +58,20 @@ abstract class AbstractSocketConnection(val host: String, val port: Int, val tim
     disconnect(graceful)
     connect()
   }
+
+  def timeout: Int = timeoutVar.value
+
+  def withTimeout[T](timeOut: Int)(thunk: => T): T = {
+    val result = timeoutVar.withValue(timeOut) {
+      setSocketTimeout(socket, timeout)
+      thunk
+    }
+    setSocketTimeout(socket, timeout)
+    result
+  }
+
+  private def setSocketTimeout(sock: Socket, secs: Int): Unit =
+    sock.setSoTimeout(secs * 1000)
 
   protected def inputStream: InputStream = socket.getInputStream
   protected def outputStream: OutputStream = socket.getOutputStream

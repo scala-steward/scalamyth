@@ -79,7 +79,7 @@ final case class UnsupportedMythProtocolException(requiredVersion: Int)
 
 trait BackendConnection extends SocketConnection with MythProtocol {
   // TODO send and post command really belong in MythProtocol w/instead of execute()...
-  def sendCommand(command: String, timeout: Option[Int] = None): Try[BackendResponse]
+  def sendCommand(command: String): Try[BackendResponse]
   def postCommand(command: String): Unit
 }
 
@@ -104,8 +104,7 @@ abstract class AbstractBackendConnection(host: String, port: Int, timeout: Int)
 
   // TODO support passing a list which will be joined using backend sep
   ///  NB some commands put a separator between command string and arguments, others use whitespace
-  // TODO move timeout into a DynamicVariable and use withTimeout() rather than method parameter
-  def sendCommand(command: String, timeout: Option[Int] = None): Try[BackendResponse] = {
+  def sendCommand(command: String): Try[BackendResponse] = {
     val writer = new BackendCommandWriter(outputStream)
     val reader = new BackendCommandReader(inputStream)
 
