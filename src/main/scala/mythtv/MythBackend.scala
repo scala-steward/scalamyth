@@ -7,8 +7,6 @@ import connection.myth.BackendAPIConnection
 import util.{ ByteCount, ExpectedCountIterator, MythDateTime }
 
 class MythBackend(val host: String) extends Backend with BackendOperations {
-  import MythBackend._
-
   private[this] val conn = BackendAPIConnection(host)
 
   def close() = {
@@ -56,8 +54,4 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
 
   def isActiveBackend(hostname: String): Boolean = conn.queryIsActiveBackend(hostname)
   def isActive: Boolean = isActiveBackend(host)   // TODO does this only work in master backends?
-}
-
-object MythBackend {
-  final val DEFAULT_PORT: Int = 6543
 }

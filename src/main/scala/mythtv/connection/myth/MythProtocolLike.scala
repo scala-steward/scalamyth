@@ -7,7 +7,7 @@ import java.time.{ Duration, Instant, LocalDate, ZoneOffset }
 import model.{ CaptureCardId, ChanId, FreeSpace, Markup, RecordedMarkup, Recording, RemoteEncoder, VideoPosition, VideoSegment }
 import util.{ ByteCount, BinaryByteCount, DecimalByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythDateTimeString }
 
-trait MythProtocolLike extends MythProtocolSerializer {
+private[myth] trait MythProtocolLike extends MythProtocolSerializer {
   type CheckArgs = (Seq[Any]) => Boolean
   type Serialize = (String, Seq[Any]) => String
   type HandleResponse = (BackendResponse) => Option[_]  // TODO what is result type?, maybe Either[_]
@@ -29,10 +29,9 @@ trait MythProtocolLike extends MythProtocolSerializer {
     }
     else false
   }
-
 }
 
-protected trait MythProtocolLikeRef extends MythProtocolLike {
+private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   import MythProtocol._
 
   override def commands = commandMap

@@ -7,7 +7,7 @@ import java.time.{ Duration, Instant, ZoneOffset }
 import model.{ CaptureCardId, ChanId, FreeSpace, Recording, RemoteEncoder, VideoPosition, VideoSegment }
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
 
-trait BackendAPILike {
+private[myth] trait BackendAPILike {
   self: MythProtocolLike =>
 
   def allowShutdown(): Boolean = {
@@ -90,7 +90,7 @@ trait BackendAPILike {
   }
 
   def lockTuner(): Any = ??? // TODO capture the appropriate return type
-  def lockTuner(cardId: Int): Any = ???// see above for return type
+  def lockTuner(cardId: CaptureCardId): Any = ???// see above for return type
 
   def protocolVersion(version: Int, token: String): (Boolean, Int) = {
     // NOTE that I believe an incorrect protocol version results in socket being closed
