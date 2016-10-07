@@ -32,7 +32,7 @@ trait MythProtocolLike extends MythProtocolSerializer {
 
 }
 
-/*protected*/ trait MythProtocolLikeRef extends MythProtocolLike {
+protected trait MythProtocolLikeRef extends MythProtocolLike {
   import MythProtocol._
 
   override def commands = commandMap
