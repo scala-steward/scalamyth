@@ -25,7 +25,7 @@ object BackendAPIConnection {
           val factory = supportedVersions(requiredVersion)
           factory(host, port, timeout)
         }
-        else throw ex
+        else throw new UnsupportedMythProtocolException(ex)
     }
   }
 }

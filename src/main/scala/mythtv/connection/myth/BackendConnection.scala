@@ -6,7 +6,6 @@ import java.io.{ InputStream, InputStreamReader, OutputStream, OutputStreamWrite
 import java.net.InetAddress
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import java.util.regex.Pattern
 
 // TODO consider using scala.io.Codec rather than Java charset stuff directly?
 
@@ -72,6 +71,11 @@ private class BackendCommandWriter(out: OutputStream) extends BackendCommandStre
 
 final case class WrongMythProtocolException(requiredVersion: Int)
     extends RuntimeException("wrong Myth protocol version; need version " + requiredVersion)
+
+final case class UnsupportedMythProtocolException(requiredVersion: Int)
+    extends RuntimeException(s"unsupported Myth protocol version $requiredVersion requested") {
+  def this(ex: WrongMythProtocolException) = this(ex.requiredVersion)
+}
 
 trait BackendConnection extends SocketConnection with MythProtocol {
   // TODO send and post command really belong in MythProtocol w/instead of execute()...
@@ -187,7 +191,7 @@ object BackendConnection {
           val factory = supportedVersions(requiredVersion)
           factory(host, port, timeout)
         }
-        else throw ex
+        else throw new UnsupportedMythProtocolException(ex)
     }
   }
 }
