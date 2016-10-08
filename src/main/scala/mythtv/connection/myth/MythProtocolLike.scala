@@ -18,7 +18,7 @@ private[myth] trait MythProtocolLike extends MythProtocolSerializer {
 
   def commands: Map[String, (CheckArgs, Serialize, HandleResponse)] = Map.empty
 
-  def execute(command: String, args: Any*): Option[_]
+  def sendCommand(command: String, args: Any*): Option[_]
 
   def supports(command: String): Boolean = commands contains command
 

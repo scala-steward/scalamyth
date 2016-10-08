@@ -77,11 +77,11 @@ final case class UnsupportedMythProtocolException(requiredVersion: Int)
   def this(ex: WrongMythProtocolException) = this(ex.requiredVersion)
 }
 
-trait BackendConnection extends SocketConnection with MythProtocol {
-  // TODO send and post command really belong in MythProtocol w/instead of execute()...
-  def sendCommand(command: String): Try[BackendResponse]
-  def postCommand(command: String): Unit
-}
+final case class UnsupportedBackendCommandException(command: String, protocolVersion: Int)
+    extends UnsupportedOperationException(
+  s"unsupported backend command $command in protocol version $protocolVersion")
+
+trait BackendConnection extends SocketConnection with MythProtocol
 
 abstract class AbstractBackendConnection(host: String, port: Int, timeout: Int)
     extends AbstractSocketConnection(host, port, timeout) with BackendConnection {
@@ -92,67 +92,57 @@ abstract class AbstractBackendConnection(host: String, port: Int, timeout: Int)
     announce()
   }
 
-  protected def gracefulDisconnect(): Unit = postCommand("DONE")
+  protected def gracefulDisconnect(): Unit = postCommandRaw("DONE")
 
   protected def announce(): Unit = {
     val localname = InetAddress.getLocalHost().getHostName()  // FIXME uses DNS, ugh..
     val announceType = "Monitor" /*if (blockShutdown) "Playback" else "Monitor"*/
-    val response = sendCommand(s"ANN ${announceType} ${localname} 0")
+    val response = sendCommandRaw(s"ANN ${announceType} ${localname} 0")
     // TODO get hostname from backend using QUERY_HOSTNAME command
     response.toOption == Some("OK")  // TODO eliminate conversion to Option
   }
 
-  // TODO support passing a list which will be joined using backend sep
-  ///  NB some commands put a separator between command string and arguments, others use whitespace
-  def sendCommand(command: String): Try[BackendResponse] = {
+  protected def sendCommandRaw(command: String): Try[BackendResponse] = {
     val writer = new BackendCommandWriter(outputStream)
     val reader = new BackendCommandReader(inputStream)
 
     Try {
-      // write the message
       writer.sendCommand(command)
-
-      // wait for and retrieve the response
-      val response = reader.readResponse
-      Response(response)
-      // TODO split response based on split pattern?
+      Response(reader.readResponse)
     }
   }
 
-  def postCommand(command: String): Unit = {
+  protected def postCommandRaw(command: String): Unit = {
     val writer = new BackendCommandWriter(outputStream)
     val reader = new BackendCommandReader(inputStream)
 
     // write the message
     writer.sendCommand(command)
-
-    // TODO: swallow any response, but socket may be closed
+    // TODO: swallow any response (asynchronously?!?), but socket may be closed
   }
 
-  def execute(command: String, args: Any*): Option[_] = {
+  def sendCommand(command: String, args: Any*): Option[_] = {
     if (!isConnected) throw new IllegalStateException
     if (commands contains command) {
       val (check, serialize, handle) = commands(command)
       if (check(args)) {
         val cmdstring = serialize(command, args)
-        val response = sendCommand(cmdstring).get
+        val response = sendCommandRaw(cmdstring).get
         handle(response)
       }
       else {
         println("failed argument type check")  // TODO real error handling
         None
       }
-    } else {
-      println(s"invalid command $command")     // TODO real error handling
-      None
     }
+    else throw new UnsupportedBackendCommandException(command, PROTO_VERSION)
   }
 
   def checkVersion(): Boolean = checkVersion(PROTO_VERSION, PROTO_TOKEN)
 
   def checkVersion(version: Int, token: String): Boolean = {
     val msg = for {
-      response <- sendCommand(s"MYTH_PROTO_VERSION $version $token")
+      response <- sendCommandRaw(s"MYTH_PROTO_VERSION $version $token")
       split <- Try(response.split)
     } yield (split(0), split(1))
 
@@ -178,7 +168,7 @@ object BackendConnection {
     77 -> BackendConnection77
   )
 
-  private[myth] val DEFAULT_VERSION = 75
+  private[myth] val DEFAULT_VERSION = 75  // TODO just for now for testing
 
   def apply(host: String, port: Int = DEFAULT_PORT, timeout: Int = DEFAULT_TIMEOUT): BackendConnection = {
     try {
