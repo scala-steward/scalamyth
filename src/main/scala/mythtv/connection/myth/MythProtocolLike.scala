@@ -1424,3 +1424,4 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
 private[myth] trait MythProtocolLike75 extends MythProtocolLikeRef
 private[myth] trait MythProtocolLike77 extends MythProtocolLike75
+private[myth] trait MythProtocolLike88 extends MythProtocolLike77

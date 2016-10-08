@@ -27,4 +27,7 @@ private[myth] trait MythProtocol77 extends MythProtocol with MythProtocolLike77 
   final val PROTO_TOKEN = "WindMark"
 }
 
-//                                                          protocol version 88   // myth 0.28.x
+private[myth] trait MythProtocol88 extends MythProtocol with MythProtocolLike88 { // myth 0.28.x
+  final val PROTO_VERSION = 88
+  final val PROTO_TOKEN = "XmasGift"
+}
