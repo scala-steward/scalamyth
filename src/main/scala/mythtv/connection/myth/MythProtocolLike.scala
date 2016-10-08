@@ -4,6 +4,7 @@ package myth
 
 import java.time.{ Duration, Instant, LocalDate, ZoneOffset }
 
+import data.{ BackendFreeSpace, BackendProgram, BackendRemoteEncoder, BackendVideoSegment }
 import model.{ CaptureCardId, ChanId, FreeSpace, Markup, RecordedMarkup, Recording, RemoteEncoder, VideoPosition, VideoSegment }
 import util.{ ByteCount, BinaryByteCount, DecimalByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythDateTimeString }
 
@@ -32,7 +33,7 @@ private[myth] trait MythProtocolLike extends MythProtocolSerializer {
 }
 
 private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
-  import MythProtocol._
+  import MythProtocol.BACKEND_SEP
 
   override def commands = commandMap
 
@@ -541,7 +542,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     /*
      * QUERY_GETEXPIRING
      *  @responds always
-     *  @returns ? [%p {, %p}]  <list of ProgramInfo>  // TODO does this begin with a count?
+     *  @returns %d [%p {, %p}]  <list of ProgramInfo>
      *        or "0" if not availble/error?
      */
     "QUERY_GETEXPIRING" -> (verifyArgsEmpty, serializeEmpty, handleQueryGetExpiring),
@@ -966,7 +967,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def serializeQueryCheckFile(command: String, args: Seq[Any]): String = args match {
     case Seq(checkSlaves: Boolean, rec: Recording) =>
-      implicit val piser = ProgramInfoSerializerCurrent  // TODO FIXME shouldn't need to delclare here...
+      implicit val piser = ProgramInfoSerializerCurrent  // TODO FIXME shouldn't need to declare here...
       val elems = List(command, serialize(checkSlaves), serialize(rec))
       elems mkString BACKEND_SEP
     case _ => throw new IllegalArgumentException
@@ -1130,7 +1131,6 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleGetFreeRecorder(response: BackendResponse): Option[RemoteEncoder] = {
-    import data.BackendRemoteEncoder  // TODO eliminate import here
     val items = response.split
     val cardId = deserialize[CaptureCardId](items(0))
     val host = items(1)
@@ -1148,7 +1148,6 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleGetNextFreeRecorder(response: BackendResponse): Option[RemoteEncoder] = {
-    import data.BackendRemoteEncoder  // TODO eliminate import here
     val items = response.split
     val cardId = deserialize[CaptureCardId](items(0))
     val host = items(1)
@@ -1157,7 +1156,6 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleGetRecorderNum(response: BackendResponse): Option[RemoteEncoder] = {
-    import data.BackendRemoteEncoder  // TODO eliminate import here
     val items = response.split
     val cardId = deserialize[CaptureCardId](items(0))
     val host = items(1)
@@ -1196,7 +1194,6 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleQueryCommBreak(response: BackendResponse): Option[List[VideoSegment]] = {
-    import data.BackendVideoSegment  // TODO eliminate import here
     val items = response.split
     val count = deserialize[Int](items(0))
     assert(count % 2 == 0)  // TODO FIXME not guaranteed to be true!?
@@ -1213,7 +1210,6 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleQueryCutList(response: BackendResponse): Option[List[VideoSegment]] = {
-    import data.BackendVideoSegment  // TODO eliminate import here
     val items = response.split
     val count = deserialize[Int](items(0))
     assert(count % 2 == 0)  // TODO FIXME not guaranteed to be true!?
@@ -1244,7 +1240,6 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleQueryFreeSpace(response: BackendResponse): Option[List[FreeSpace]] = {
-    import data.BackendFreeSpace  // TODO eliminate import here
     val items = response.split
     val fieldCount = BackendFreeSpace.FIELD_ORDER.length
     val it = items.iterator grouped fieldCount withPartial false map (BackendFreeSpace(_))
@@ -1252,7 +1247,6 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleQueryFreeSpaceList(response: BackendResponse): Option[List[FreeSpace]] = {
-    import data.BackendFreeSpace  // TODO eliminate import here
     val items = response.split
     val fieldCount = BackendFreeSpace.FIELD_ORDER.length
     val it = items.iterator grouped fieldCount withPartial false map (BackendFreeSpace(_))
@@ -1266,7 +1260,6 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleQueryGetAllPending(response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
-    import data.BackendProgram  // TODO eliminate import here
     val recs = response.split
     val hasConflicts = deserialize[Boolean](recs(0))  // TODO return this also?
     val expectedCount = deserialize[Int](recs(1))  // TODO check non-zero!
@@ -1277,21 +1270,21 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleQueryGetAllScheduled(response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
-    import data.BackendProgram  // TODO eliminate import here
     val recs = response.split
     val expectedCount = deserialize[Int](recs(0))  // TODO check non-zero!
     val fieldCount = BackendProgram.FIELD_ORDER.length
     val it = recs.iterator drop 1 grouped fieldCount withPartial false
-    Some(new ExpectedCountIterator(expectedCount, it map (BackendProgram(_))))
+    implicit val piser = ProgramInfoSerializerCurrent    // TODO shouldn't have to explicit declare this here...
+    Some(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
   }
 
   protected def handleQueryGetExpiring(response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
-    import data.BackendProgram  // TODO eliminate import here
     val recs = response.split
     val expectedCount = deserialize[Int](recs(0))  // TODO check non-zero!
     val fieldCount = BackendProgram.FIELD_ORDER.length
     val it = recs.iterator drop 1 grouped fieldCount withPartial false
-    Some(new ExpectedCountIterator(expectedCount, it map (BackendProgram(_))))
+    implicit val piser = ProgramInfoSerializerCurrent    // TODO shouldn't have to explicit declare this here...
+    Some(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
   }
 
   protected def handleQueryGuideDataThrough(response: BackendResponse): Option[MythDateTime] = {
@@ -1353,12 +1346,12 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleQueryRecordings(response: BackendResponse): Option[Iterator[Recording]] = {
-    import data.BackendProgram  // TODO eliminate import here
     val recs = response.split
     val expectedCount = deserialize[Int](recs(0))  // TODO check non-zero!
     val fieldCount = BackendProgram.FIELD_ORDER.length
     val it = recs.iterator drop 1 grouped fieldCount withPartial false
-    Some(new ExpectedCountIterator(expectedCount, it map (BackendProgram(_))))
+    implicit val piser = ProgramInfoSerializerCurrent    // TODO shouldn't have to explicit declare this here...
+    Some(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
   }
 
   protected def handleQuerySGFileQuery(response: BackendResponse): Option[(String, MythDateTime, ByteCount)] = {
