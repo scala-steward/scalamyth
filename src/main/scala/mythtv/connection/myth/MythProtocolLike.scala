@@ -37,6 +37,9 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   override def commands = commandMap
 
+  // override as necessary in versioned traits to get proper serialization
+  protected implicit val programInfoSerializer = ProgramInfoSerializerCurrent
+
   protected def verifyArgsNOP(args: Seq[Any]): Boolean = true
 
   protected def verifyArgsEmpty(args: Seq[Any]): Boolean = args match {
@@ -874,7 +877,6 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   protected def serializeProgramInfo(command: String, args: Seq[Any]): String = args match {
     case Seq(rec: Recording) =>
       val bldr = new StringBuilder(command).append(BACKEND_SEP)
-      implicit val piser = ProgramInfoSerializerCurrent
       serialize(rec, bldr).toString
     case _ => throw new IllegalArgumentException
   }
@@ -967,7 +969,6 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def serializeQueryCheckFile(command: String, args: Seq[Any]): String = args match {
     case Seq(checkSlaves: Boolean, rec: Recording) =>
-      implicit val piser = ProgramInfoSerializerCurrent  // TODO FIXME shouldn't need to declare here...
       val elems = List(command, serialize(checkSlaves), serialize(rec))
       elems mkString BACKEND_SEP
     case _ => throw new IllegalArgumentException
@@ -1009,11 +1010,9 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   protected def serializeQueryPixmapGetIfModified(command: String, args: Seq[Any]): String = args match {
     // TODO use StringBuilder for efficiency?
     case Seq(modifiedSince: MythDateTime, maxFileSize: Long, rec: Recording) =>
-      implicit val piser = ProgramInfoSerializerCurrent
       val elems = List(command, serialize(modifiedSince), serialize(maxFileSize), serialize(rec))
       elems mkString BACKEND_SEP
     case Seq(maxFileSize: Long, rec: Recording) =>
-      implicit val piser = ProgramInfoSerializerCurrent
       val elems = List(command, "-1", serialize(maxFileSize), serialize(rec))
       elems mkString BACKEND_SEP
     case _ => throw new IllegalArgumentException
@@ -1265,7 +1264,6 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     val expectedCount = deserialize[Int](recs(1))  // TODO check non-zero!
     val fieldCount = BackendProgram.FIELD_ORDER.length
     val it = recs.iterator drop 2 grouped fieldCount withPartial false
-    implicit val piser = ProgramInfoSerializerCurrent    // TODO shouldn't have to explicit declare this here...
     Some(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
   }
 
@@ -1274,7 +1272,6 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     val expectedCount = deserialize[Int](recs(0))  // TODO check non-zero!
     val fieldCount = BackendProgram.FIELD_ORDER.length
     val it = recs.iterator drop 1 grouped fieldCount withPartial false
-    implicit val piser = ProgramInfoSerializerCurrent    // TODO shouldn't have to explicit declare this here...
     Some(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
   }
 
@@ -1283,7 +1280,6 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     val expectedCount = deserialize[Int](recs(0))  // TODO check non-zero!
     val fieldCount = BackendProgram.FIELD_ORDER.length
     val it = recs.iterator drop 1 grouped fieldCount withPartial false
-    implicit val piser = ProgramInfoSerializerCurrent    // TODO shouldn't have to explicit declare this here...
     Some(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
   }
 
@@ -1341,7 +1337,6 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   protected def handleQueryRecording(response: BackendResponse): Option[Recording] = {
     val items = response.split
     // TODO check items(0) for error
-    implicit val piser = ProgramInfoSerializerCurrent  // TODO FIXME shouldn't need to delclare here...
     Some(deserialize[Recording](items drop 1))
   }
 
@@ -1350,7 +1345,6 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     val expectedCount = deserialize[Int](recs(0))  // TODO check non-zero!
     val fieldCount = BackendProgram.FIELD_ORDER.length
     val it = recs.iterator drop 1 grouped fieldCount withPartial false
-    implicit val piser = ProgramInfoSerializerCurrent    // TODO shouldn't have to explicit declare this here...
     Some(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
   }
 
