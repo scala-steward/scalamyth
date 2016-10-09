@@ -26,8 +26,13 @@ private[myth] trait MythProtocolLike extends MythProtocolSerializer {
 
   def supports(command: String, args: Any*): Boolean = {
     if (commands contains command) {
-      val (check, _, _) = commands(command)
-      check(args)
+      val (_, serialize, _) = commands(command)
+      try {
+        val _ = serialize(command, args)
+        true
+      } catch {
+        case ex: BackendCommandArgumentException => false
+      }
     }
     else false
   }
