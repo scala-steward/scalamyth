@@ -11,14 +11,14 @@ import EnumTypes.MythProtocolEventMode
 
 private[myth] trait MythProtocolLike extends MythProtocolSerializer {
   type CheckArgs = (Seq[Any]) => Boolean
-  type Serialize = (String, Seq[Any]) => String
+  type SerializeRequest = (String, Seq[Any]) => String
   type HandleResponse = (BackendResponse) => Option[_]  // TODO what is result type?, maybe Either[_]
 
   // TODO FIXME would be very useful to have access to data from CheckArgs/Serialize during HandleResponse
   // TODO FIXME we lose the type of the option going through the message dispatch map
   //            is there a way around this?
 
-  def commands: Map[String, (CheckArgs, Serialize, HandleResponse)] = Map.empty
+  def commands: Map[String, (CheckArgs, SerializeRequest, HandleResponse)] = Map.empty
 
   def sendCommand(command: String, args: Any*): Option[_]
 
@@ -206,7 +206,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   /**
     * Myth protocol commands: (from programs/mythbackend/mainserver.cpp)
     */
-  private val commandMap = Map[String, (CheckArgs, Serialize, HandleResponse)](
+  private val commandMap = Map[String, (CheckArgs, SerializeRequest, HandleResponse)](
     /*
      * ALLOW_SHUTDOWN
      *  @responds sometime; only if tokenCount == 1
@@ -219,7 +219,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      * ANN Playback %s %d               <clientHostName> <eventsMode>
      * ANN MediaServer %s               <hostName>
      * ANN SlaveBackend %s %s { %p }*   <slaveHostName> <slaveIPAddr?> [<ProgramInfo>]*
-     * ANN FileTransfer %s { %d { %d { %d }}} [%s %s {, %s}*]
+     * ANN FileTransfer %s { %b { %b { %d }}} [%s %s %s {, %s}*]
      *                    <clientHostName> { writeMode {, useReadAhead {, timeoutMS }}}
      *                    [ url, wantgroup, checkfile {, ...} ]
      *  @responds
@@ -925,7 +925,26 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     case Seq(mode @ "MediaServer", clientHostName: String) =>
       val elems = List(command, mode, clientHostName)
       elems mkString " "
-     // TODO SlaveBackend and FileTransfer are more complex
+    case Seq(mode @ "FileTransfer", clientHostName: String, fileName: String, storageGroup: String) =>
+      val base = List(command, mode, clientHostName)
+      val elems = List(base mkString " ", fileName, storageGroup)
+      elems mkString BACKEND_SEP
+    case Seq(mode @ "FileTransfer", clientHostName: String, writeMode: Boolean, fileName: String, storageGroup: String) =>
+      val base = List(command, mode, clientHostName, serialize(writeMode))
+      val elems = List(base mkString " ", fileName, storageGroup)
+      elems mkString BACKEND_SEP
+    case Seq(mode @ "FileTransfer", clientHostName: String, writeMode: Boolean, useReadAhead: Boolean,
+      fileName: String, storageGroup: String) =>
+      val base = List(command, mode, clientHostName, serialize(writeMode), serialize(useReadAhead))
+      val elems = List(base mkString " ", fileName, storageGroup)
+      elems mkString BACKEND_SEP
+    case Seq(mode @ "FileTransfer", clientHostName: String, writeMode: Boolean, useReadAhead: Boolean, timeout: Duration,
+      fileName: String, storageGroup: String) =>
+      val base = List(command, mode, clientHostName, serialize(writeMode), serialize(useReadAhead), serialize(timeout.toMillis))
+      val elems = List(base mkString " ", fileName, storageGroup)
+      elems mkString BACKEND_SEP
+    // TODO support checkFiles varargs on FileTransfer mode
+    // TODO SlaveBackend is complex
     case _ => throw new BackendCommandArgumentException
   }
 
@@ -1119,6 +1138,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     Some(response.raw == "OK")
   }
 
+  // TODO this needs to return a (ftID, fileSize) for FileTransfer announces
   protected def handleAnnounce(response: BackendResponse): Option[Boolean] = {
     Some(response.raw == "OK")
   }

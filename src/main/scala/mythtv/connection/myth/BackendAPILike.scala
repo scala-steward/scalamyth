@@ -25,6 +25,15 @@ private[myth] trait BackendAPILike {
     (result map { case r: Boolean => r }).get
   }
 
+  def announceFileTransfer(hostName: String, fileName: String, storageGroup: String,
+    writeMode: Boolean = false,
+    useReadAhead: Boolean = true,
+    timeout: Duration = Duration.ofSeconds(2)
+  ): (Int, ByteCount) = {
+    val result = sendCommand("ANN", "FileTransfer", hostName, writeMode, useReadAhead, timeout, fileName, storageGroup)
+    (result map { case (ftId: Int, fileSize: ByteCount) => (ftId, fileSize) }).get
+  }
+
   def blockShutdown(): Boolean = {
     val result = sendCommand("BLOCK_SHUTDOWN")
     (result map { case r: Boolean => r }).get
