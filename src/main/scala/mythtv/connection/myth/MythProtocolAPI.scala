@@ -28,7 +28,7 @@ trait MythProtocolAPI {
   def getFreeRecorderCount: Int
   def getFreeRecorderList: List[CaptureCardId]
   def getNextFreeRecorder(cardId: CaptureCardId): RemoteEncoder
-  def getRecorderFromNum(encoderId: Int): Any  // see above for return type
+  def getRecorderFromNum(cardId: CaptureCardId): RemoteEncoder
   def getRecorderNum(rec: Recording): RemoteEncoder
   def goToSleep(): Boolean  // TODO a way to return error message if any
   def lockTuner(): Any // TODO capture the appropriate return type

@@ -95,7 +95,10 @@ private[myth] trait BackendAPILike {
     (result map { case e: RemoteEncoder => e }).get
   }
 
-  def getRecorderFromNum(encoderId: Int): Any = ??? // see above for return type
+  def getRecorderFromNum(cardId: CaptureCardId): RemoteEncoder = {
+    val result = sendCommand("GET_RECORDER_FROM_NUM", cardId)
+    (result map { case e: RemoteEncoder => e }).get
+  }
 
   def getRecorderNum(rec: Recording): RemoteEncoder = {
     val result = sendCommand("GET_RECORDER_NUM", rec)

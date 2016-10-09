@@ -369,7 +369,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @returns [%s, %d] = <host or IP> <port>
      *        or ["nohost", -1] if no matching recorder found
      */
-    "GET_RECORDER_FROM_NUM" -> (verifyArgsCaptureCard, serializeCaptureCard, handleNOP),
+    "GET_RECORDER_FROM_NUM" -> (verifyArgsCaptureCard, serializeCaptureCard, handleGetRecorderFromNum),
 
     /*
      * GET_RECORDER_NUM [] [%p]        [<ProgramInfo>]
@@ -1205,6 +1205,17 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       val cardId = deserialize[CaptureCardId](items(0))
       val host = items(1)
       val port = deserialize[Int](items(2))
+      Some(BackendRemoteEncoder(cardId, host, port))
+    }
+  }
+
+  protected def handleGetRecorderFromNum(request: BackendRequest, response: BackendResponse): Option[RemoteEncoder] = {
+    val items = response.split
+    if (items(1) == "-1") None
+    else {
+      val host = items(0)
+      val port = deserialize[Int](items(1))
+      val cardId = request.args match { case Seq(cardId: CaptureCardId) => cardId }
       Some(BackendRemoteEncoder(cardId, host, port))
     }
   }
