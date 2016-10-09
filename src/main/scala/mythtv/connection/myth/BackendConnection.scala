@@ -117,6 +117,7 @@ abstract class AbstractBackendConnection(host: String, port: Int, timeout: Int)
     if (commands contains command) {
       val (_, serialize, handle) = commands(command)
       val cmdstring = serialize(command, args)
+      val request = BackendRequest(command, args, cmdstring)
       val response = sendCommandRaw(cmdstring).get
       handle(response)
     }
