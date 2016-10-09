@@ -2,16 +2,26 @@ package mythtv
 package connection
 package myth
 
+import java.net.InetAddress
 import java.time.{ Duration, Instant, ZoneOffset }
 
 import model.{ CaptureCardId, ChanId, FreeSpace, Recording, RemoteEncoder, VideoPosition, VideoSegment }
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
+import EnumTypes.MythProtocolEventMode
 
 private[myth] trait BackendAPILike {
   self: MythProtocolLike =>
 
   def allowShutdown(): Boolean = {
     val result = sendCommand("ALLOW_SHUTDOWN")
+    (result map { case r: Boolean => r }).get
+  }
+
+  def announce(mode: String, hostName: String, eventMode: MythProtocolEventMode): Boolean = {
+    val localHost =
+      if (hostName != "") hostName
+      else InetAddress.getLocalHost().getHostName()
+    val result = sendCommand("ANN", mode, localHost, eventMode)
     (result map { case r: Boolean => r }).get
   }
 

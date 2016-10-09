@@ -6,10 +6,13 @@ import java.time.{ Duration, Instant, ZoneOffset }
 
 import model.{ CaptureCardId, ChanId, FreeSpace, Recording, RemoteEncoder, VideoPosition, VideoSegment }
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
+import EnumTypes.MythProtocolEventMode
 
 // TODO these APIs should be converted to return Option[_] or Either[_] or something
 trait MythProtocolAPI {
   def allowShutdown(): Boolean
+  def announce(mode: String, hostName: String = "", eventMode: MythProtocolEventMode = MythProtocolEventMode.None): Boolean
+  // TODO SlaveBackend and FileTransfer announces (more complex)
   def blockShutdown(): Boolean
   def checkRecording(rec: Recording): Boolean
   def deleteFile(fileName: String, storageGroup: String): Boolean

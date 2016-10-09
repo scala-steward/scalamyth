@@ -89,18 +89,9 @@ abstract class AbstractBackendConnection(host: String, port: Int, timeout: Int)
 
   protected def finishConnect(): Unit = {
     checkVersion()
-    announce()
   }
 
   protected def gracefulDisconnect(): Unit = postCommandRaw("DONE")
-
-  protected def announce(): Unit = {
-    val localname = InetAddress.getLocalHost().getHostName()  // FIXME uses DNS, ugh..
-    val announceType = "Monitor" /*if (blockShutdown) "Playback" else "Monitor"*/
-    val response = sendCommandRaw(s"ANN ${announceType} ${localname} 0")
-    // TODO get hostname from backend using QUERY_HOSTNAME command
-    response.toOption == Some("OK")  // TODO eliminate conversion to Option
-  }
 
   protected def sendCommandRaw(command: String): Try[BackendResponse] = {
     val writer = new BackendCommandWriter(outputStream)
@@ -122,18 +113,12 @@ abstract class AbstractBackendConnection(host: String, port: Int, timeout: Int)
   }
 
   def sendCommand(command: String, args: Any*): Option[_] = {
-    if (!isConnected) throw new IllegalStateException
+    if (!isConnected) throw new IllegalStateException  // TODO attempt reconnection?
     if (commands contains command) {
-      val (check, serialize, handle) = commands(command)
-      if (check(args)) {
-        val cmdstring = serialize(command, args)
-        val response = sendCommandRaw(cmdstring).get
-        handle(response)
-      }
-      else {
-        println("failed argument type check")  // TODO real error handling
-        None
-      }
+      val (_, serialize, handle) = commands(command)
+      val cmdstring = serialize(command, args)
+      val response = sendCommandRaw(cmdstring).get
+      handle(response)
     }
     else throw new UnsupportedBackendCommandException(command, PROTO_VERSION)
   }

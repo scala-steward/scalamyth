@@ -7,6 +7,7 @@ import java.time.{ Duration, Instant, LocalDate, ZoneOffset }
 import data.{ BackendFreeSpace, BackendProgram, BackendRemoteEncoder, BackendVideoSegment }
 import model.{ CaptureCardId, ChanId, FreeSpace, Markup, RecordedMarkup, Recording, RemoteEncoder, VideoPosition, VideoSegment }
 import util.{ ByteCount, BinaryByteCount, DecimalByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythDateTimeString }
+import EnumTypes.MythProtocolEventMode
 
 private[myth] trait MythProtocolLike extends MythProtocolSerializer {
   type CheckArgs = (Seq[Any]) => Boolean
@@ -30,6 +31,19 @@ private[myth] trait MythProtocolLike extends MythProtocolSerializer {
     }
     else false
   }
+}
+
+final case class BackendCommandArgumentException(message: String)
+    extends IllegalArgumentException(message) {
+  def this() = this("illegal argument list for myth protocol backend command")
+}
+
+object MythProtocolEventMode extends Enumeration {
+  type MythProtocolEventMode = Value
+  val None       = Value(0)
+  val Normal     = Value(1)
+  val NonSystem  = Value(2)
+  val SystemOnly = Value(3)
 }
 
 private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
@@ -65,8 +79,8 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   /*---*/
 
   protected def verifyArgsAnnounce(args: Seq[Any]): Boolean = args match {
-    case Seq("Monitor", clientHostName: String, eventsMode: Int) => true
-    case Seq("Playback", clientHostName: String, eventsMode: Int) => true
+    case Seq("Monitor", clientHostName: String, eventsMode: MythProtocolEventMode) => true
+    case Seq("Playback", clientHostName: String, eventsMode: MythProtocolEventMode) => true
     case Seq("MediaServer", clientHostName: String) => true
       // TODO SlaveBackend and FileTransfer are more complex
     case _ => false
@@ -203,8 +217,8 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     /*
      * ANN Monitor %s %d                <clientHostName> <eventsMode>
      * ANN Playback %s %d               <clientHostName> <eventsMode>
-     * ANN MediaServer %s               <IPAddress>
-     * ANN SlaveBackend %s %s { %p }*   <IPAddress> <slaveIPAddr?> [<ProgramInfo>]*
+     * ANN MediaServer %s               <hostName>
+     * ANN SlaveBackend %s %s { %p }*   <slaveHostName> <slaveIPAddr?> [<ProgramInfo>]*
      * ANN FileTransfer %s { %d { %d { %d }}} [%s %s {, %s}*]
      *                    <clientHostName> { writeMode {, useReadAhead {, timeoutMS }}}
      *                    [ url, wantgroup, checkfile {, ...} ]
@@ -217,7 +231,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *      FileTransfer: ["OK", %d, %ld]        <ftID>, <fileSize>
      *    or ["ERROR", ... ] on error conditions
      */
-    "ANN" -> (verifyArgsAnnounce, serializeAnnounce, handleNOP),
+    "ANN" -> (verifyArgsAnnounce, serializeAnnounce, handleAnnounce),
 
     /*
      * BACKEND_MESSAGE [] [%s {, %s}* ]   [<message> <extra...>]
@@ -505,7 +519,11 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     "QUERY_FREE_SPACE_SUMMARY" -> (verifyArgsEmpty, serializeEmpty, handleQueryFreeSpaceSummary),
 
     /*
-     * QUERY_GENPIXMAP2 [] [%s, %p, more?]     TODO %s is a "token", can be the literal "do_not_care"
+     * QUERY_GENPIXMAP2 []
+     *     [%s, %p]                       <token> <ProgramInfo>
+     *     [%s, %p, %s, %ld, %s, %d, %d]  <token> <ProgramInfo> <timeFmt:sORf> <time> <outputFile> <width> <height>
+     *   TODO first arg %s is a "token", can be the literal "do_not_care"
+     *   outputFile may be "<EMPTY>"
      *  @responds always?
      *  @returns ["OK", %s]    <filename>
      *       or ?? TODO follow up on successful return indication/other errors from slave pixmap generation
@@ -871,51 +889,51 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def serializeEmpty(command: String, args: Seq[Any]): String = args match {
     case Seq() => command
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
   }
 
   protected def serializeProgramInfo(command: String, args: Seq[Any]): String = args match {
     case Seq(rec: Recording) =>
       val bldr = new StringBuilder(command).append(BACKEND_SEP)
       serialize(rec, bldr).toString
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
   }
 
   protected def serializeChanIdStartTime(command: String, args: Seq[Any]): String = args match {
     case Seq(chanId: ChanId, startTime: MythDateTime) =>
       val elems = List(command, serialize(chanId), serialize(startTime))
       elems mkString " "
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
   }
 
   protected def serializeCaptureCard(command: String, args: Seq[Any]): String = args match {
     case Seq(cardId: CaptureCardId) =>
       val elems = List(command, serialize(cardId))
       elems mkString BACKEND_SEP
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
   }
 
   /* --- */
 
   protected def serializeAnnounce(command: String, args: Seq[Any]): String = args match {
-    case Seq(mode @ "Monitor", clientHostName: String, eventsMode: Int) =>
-      val elems = List(command, mode, clientHostName, serialize(eventsMode))
+    case Seq(mode @ "Monitor", clientHostName: String, eventsMode: MythProtocolEventMode) =>
+      val elems = List(command, mode, clientHostName, serialize(eventsMode.id))
       elems mkString " "
-    case Seq(mode @ "Playback", clientHostName: String, eventsMode: Int) =>
-      val elems = List(command, mode, clientHostName, serialize(eventsMode))
+    case Seq(mode @ "Playback", clientHostName: String, eventsMode: MythProtocolEventMode) =>
+      val elems = List(command, mode, clientHostName, serialize(eventsMode.id))
       elems mkString " "
     case Seq(mode @ "MediaServer", clientHostName: String) =>
       val elems = List(command, mode, clientHostName)
       elems mkString " "
      // TODO SlaveBackend and FileTransfer are more complex
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
   }
 
   protected def serializeDeleteFile(command: String, args: Seq[Any]): String = args match {
     case Seq(fileName: String, storageGroup: String) =>
       val elems = List(command, fileName, storageGroup)
       elems mkString BACKEND_SEP
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
   }
 
   protected def serializeDeleteRecording(command: String, args: Seq[Any]): String = {
@@ -934,7 +952,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       case Seq(chanId: ChanId, startTime: MythDateTime, forceOpt: String) => ser(chanId, startTime, Some(forceOpt), None)
       case Seq(chanId: ChanId, startTime: MythDateTime, forceOpt: String, forgetOpt: String) =>
         ser(chanId, startTime, Some(forceOpt), Some(forgetOpt))
-      case _ => throw new IllegalArgumentException
+      case _ => throw new BackendCommandArgumentException
     }
   }
 
@@ -942,14 +960,14 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     case Seq(srcURL: String, storageGroup: String, fileName: String) =>
       val elems = List(command, srcURL, storageGroup, fileName)
       elems mkString BACKEND_SEP
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
   }
 
   protected def serializeFreeTuner(command: String, args: Seq[Any]): String = args match {
     case Seq(cardId: CaptureCardId) =>
       val elems = List(command, serialize(cardId))
       elems mkString " "
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
   }
 
   protected def serializeLockTuner(command: String, args: Seq[Any]): String = args match {
@@ -957,21 +975,21 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       val elems = List(command, serialize(cardId))
       elems mkString " "
     case Seq() => command
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
   }
 
   protected def serializeMythProtoVersion(command: String, args: Seq[Any]): String = args match {
     case Seq(version: Int, token: String) =>
       val elems = List(command, serialize(version), token)
       elems mkString " "
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
   }
 
   protected def serializeQueryCheckFile(command: String, args: Seq[Any]): String = args match {
     case Seq(checkSlaves: Boolean, rec: Recording) =>
       val elems = List(command, serialize(checkSlaves), serialize(rec))
       elems mkString BACKEND_SEP
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
   }
 
   protected def serializeQueryFileExists(command: String, args: Seq[Any]): String = args match {
@@ -981,7 +999,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     case Seq(fileName: String) =>
       val elems = List(command, fileName)
       elems mkString BACKEND_SEP
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
   }
 
   protected def serializeQueryFileHash(command: String, args: Seq[Any]): String = args match {
@@ -991,20 +1009,20 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     case Seq(fileName: String, storageGroup: String) =>
       val elems = List(command, fileName, storageGroup)
       elems mkString BACKEND_SEP
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
   }
 
   protected def serializeQueryGetAllPending(command: String, args: Seq[Any]): String = args match {
     case Seq() => command
     // TODO: case with optional arguments; rarely used?
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
   }
 
   protected def serializeQueryIsActiveBackend(command: String, args: Seq[Any]): String = args match {
     case Seq(hostName: String) =>
       val elems = List(command, hostName)
       elems mkString BACKEND_SEP
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
   }
 
   protected def serializeQueryPixmapGetIfModified(command: String, args: Seq[Any]): String = args match {
@@ -1015,7 +1033,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     case Seq(maxFileSize: Long, rec: Recording) =>
       val elems = List(command, "-1", serialize(maxFileSize), serialize(rec))
       elems mkString BACKEND_SEP
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
   }
 
   protected def serializeQueryRecording(command: String, args: Seq[Any]): String = args match {
@@ -1026,21 +1044,21 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     case Seq(sub @ "BASENAME", basePathName: String) =>
       val elems = List(command, sub, basePathName)
       elems mkString " "
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
   }
 
   protected def serializeQueryRecordings(command: String, args: Seq[Any]): String = args match {
     case Seq(sortOrFilter: String) =>
       val elems = List(command, sortOrFilter)
       elems mkString " "
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
   }
 
   protected def serializeQuerySGFileQuery(command: String, args: Seq[Any]): String = args match {
     case Seq(hostName: String, storageGroup: String, fileName: String) =>
       val elems = List(command, hostName, storageGroup, fileName)
       elems mkString BACKEND_SEP
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
   }
 
   protected def serializeQuerySGGetFileList(command: String, args: Seq[Any]): String = args match {
@@ -1050,28 +1068,28 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     case Seq(hostName: String, storageGroup: String, path: String, fileNamesOnly: Boolean) =>
       val elems = List(command, hostName, storageGroup, path, serialize(fileNamesOnly))
       elems mkString BACKEND_SEP
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
  }
 
   protected def serializeQuerySetting(command: String, args: Seq[Any]): String = args match {
     case Seq(hostName: String, settingName: String) =>
       val elems = List(command, hostName, settingName)
       elems mkString " "
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
   }
 
   protected def serializeSetBookmark(command: String, args: Seq[Any]): String = args match {
     case Seq(chanId: ChanId, startTime: MythDateTime, position: VideoPosition) =>
       val elems = List(command, serialize(chanId), serialize(startTime), serialize(position))
       elems mkString " "
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
   }
 
   protected def serializeSetSetting(command: String, args: Seq[Any]): String = args match {
     case Seq(hostName: String, settingName: String, settingValue: String) =>
       val elems = List(command, hostName, settingName, settingValue)
       elems mkString " "
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
   }
 
   protected def serializeShutdownNow(command: String, args: Seq[Any]): String = args match {
@@ -1079,7 +1097,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       val elems = List(command, haltCommand)
       elems mkString " "
     case Seq() => command
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
   }
 
   protected def serializeUndeleteRecording(command: String, args: Seq[Any]): String = args match {
@@ -1088,7 +1106,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       val start: MythDateTimeString = startTime
       val elems = List(command, serialize(chanId), serialize(start))
       elems mkString BACKEND_SEP
-    case _ => throw new IllegalArgumentException
+    case _ => throw new BackendCommandArgumentException
   }
 
   /*
@@ -1098,6 +1116,10 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   protected def handleNOP(response: BackendResponse): Option[Nothing] = None
 
   protected def handleAllowShutdown(response: BackendResponse): Option[Boolean] = {
+    Some(response.raw == "OK")
+  }
+
+  protected def handleAnnounce(response: BackendResponse): Option[Boolean] = {
     Some(response.raw == "OK")
   }
 
@@ -1131,10 +1153,13 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def handleGetFreeRecorder(response: BackendResponse): Option[RemoteEncoder] = {
     val items = response.split
-    val cardId = deserialize[CaptureCardId](items(0))
-    val host = items(1)
-    val port = deserialize[Int](items(2))
-    Some(BackendRemoteEncoder(cardId, host, port))
+    if (items(0) == "-1") None
+    else {
+      val cardId = deserialize[CaptureCardId](items(0))
+      val host = items(1)
+      val port = deserialize[Int](items(2))
+      Some(BackendRemoteEncoder(cardId, host, port))
+    }
   }
 
   protected def handleGetFreeRecorderCount(response: BackendResponse): Option[Int] = {
@@ -1142,24 +1167,33 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleGetFreeRecorderList(response: BackendResponse): Option[List[CaptureCardId]] = {
-    val cards = response.split map deserialize[CaptureCardId]
-    Some(cards.toList)
+    if (response.raw == "0") None
+    else {
+      val cards = response.split map deserialize[CaptureCardId]
+      Some(cards.toList)
+    }
   }
 
   protected def handleGetNextFreeRecorder(response: BackendResponse): Option[RemoteEncoder] = {
     val items = response.split
-    val cardId = deserialize[CaptureCardId](items(0))
-    val host = items(1)
-    val port = deserialize[Int](items(2))
-    Some(BackendRemoteEncoder(cardId, host, port))
+    if (items(0) == "-1") None
+    else {
+      val cardId = deserialize[CaptureCardId](items(0))
+      val host = items(1)
+      val port = deserialize[Int](items(2))
+      Some(BackendRemoteEncoder(cardId, host, port))
+    }
   }
 
   protected def handleGetRecorderNum(response: BackendResponse): Option[RemoteEncoder] = {
     val items = response.split
-    val cardId = deserialize[CaptureCardId](items(0))
-    val host = items(1)
-    val port = deserialize[Int](items(2))
-    Some(BackendRemoteEncoder(cardId, host, port))
+    if (items(0) == "-1") None
+    else {
+      val cardId = deserialize[CaptureCardId](items(0))
+      val host = items(1)
+      val port = deserialize[Int](items(2))
+      Some(BackendRemoteEncoder(cardId, host, port))
+    }
   }
 
   protected def handleGoToSleep(response: BackendResponse): Option[Boolean] = {
@@ -1176,8 +1210,9 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def handleQueryActiveBackends(response: BackendResponse): Option[List[String]] = {
     val recs = response.split
-    val expectedCount = deserialize[Int](recs(0))  // TODO check non-zero
-    Some((recs.iterator drop 1).toList)
+    val expectedCount = deserialize[Int](recs(0))
+    if (expectedCount == 0) Some(Nil)
+    else Some((recs.iterator drop 1).toList)
   }
 
   protected def handleQueryBookmark(response: BackendResponse): Option[VideoPosition] = {
@@ -1227,15 +1262,18 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   protected def handleQueryFileExists(response: BackendResponse): Option[(String, FileStats)] = {
     val items = response.split
     val statusCode = deserialize[Int](items(0))
-    assert(statusCode > 0)
-    val fullName = items(1)
-    val stats = deserialize[FileStats](items.view(2, 2 + 13))  // TODO hardcoded size of # file stats fields
-    Some((fullName, stats))
+    if (statusCode > 0) {
+      val fullName = items(1)
+      val stats = deserialize[FileStats](items.view(2, 2 + 13))  // TODO hardcoded size of # file stats fields
+      Some((fullName, stats))
+    }
+    else None
   }
 
   // TODO more specific return type to contain hash value
   protected def handleQueryFileHash(response: BackendResponse): Option[String] = {
-    Some(response.raw)
+    if (response.raw == "NULL") None
+    else Some(response.raw)
   }
 
   protected def handleQueryFreeSpace(response: BackendResponse): Option[List[FreeSpace]] = {
@@ -1253,34 +1291,47 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleQueryFreeSpaceSummary(response: BackendResponse): Option[(ByteCount, ByteCount)] = {
-    val data = response.split map (n => deserialize[Long](n) * 1024)
-    assert(data.length > 1)
-    Some((DecimalByteCount(data(0)), DecimalByteCount(data(1))))
+    val items = response.split
+    assert(items.length > 1)
+    if (items(0) == "0" && items(1) == "0") None
+    else {
+      val data = items map (n => deserialize[Long](n) * 1024)
+      Some((DecimalByteCount(data(0)), DecimalByteCount(data(1))))
+    }
   }
 
   protected def handleQueryGetAllPending(response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
     val recs = response.split
     val hasConflicts = deserialize[Boolean](recs(0))  // TODO return this also?
-    val expectedCount = deserialize[Int](recs(1))  // TODO check non-zero!
-    val fieldCount = BackendProgram.FIELD_ORDER.length
-    val it = recs.iterator drop 2 grouped fieldCount withPartial false
-    Some(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
+    val expectedCount = deserialize[Int](recs(1))
+    if (expectedCount == 0) None
+    else {
+      val fieldCount = BackendProgram.FIELD_ORDER.length
+      val it = recs.iterator drop 2 grouped fieldCount withPartial false
+      Some(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
+    }
   }
 
   protected def handleQueryGetAllScheduled(response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
     val recs = response.split
-    val expectedCount = deserialize[Int](recs(0))  // TODO check non-zero!
-    val fieldCount = BackendProgram.FIELD_ORDER.length
-    val it = recs.iterator drop 1 grouped fieldCount withPartial false
-    Some(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
+    val expectedCount = deserialize[Int](recs(0))
+    if (expectedCount == 0) None
+    else {
+      val fieldCount = BackendProgram.FIELD_ORDER.length
+      val it = recs.iterator drop 1 grouped fieldCount withPartial false
+      Some(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
+    }
   }
 
   protected def handleQueryGetExpiring(response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
     val recs = response.split
-    val expectedCount = deserialize[Int](recs(0))  // TODO check non-zero!
-    val fieldCount = BackendProgram.FIELD_ORDER.length
-    val it = recs.iterator drop 1 grouped fieldCount withPartial false
-    Some(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
+    val expectedCount = deserialize[Int](recs(0))
+    if (expectedCount == 0) None
+    else {
+      val fieldCount = BackendProgram.FIELD_ORDER.length
+      val it = recs.iterator drop 1 grouped fieldCount withPartial false
+      Some(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
+    }
   }
 
   protected def handleQueryGuideDataThrough(response: BackendResponse): Option[MythDateTime] = {
@@ -1304,52 +1355,68 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleQueryLoad(response: BackendResponse): Option[(Double, Double, Double)] = {
-    val loads = response.split map deserialize[Double]
-    assert(loads.length > 2)
-    Some((loads(0), loads(1), loads(2)))
+    val items = response.split
+    if (items(0) == "ERROR") None
+    else {
+      val loads = items map deserialize[Double]
+      assert(loads.length > 2)
+      Some((loads(0), loads(1), loads(2)))
+    }
   }
 
   protected def handleQueryMemStats(response: BackendResponse): Option[(ByteCount, ByteCount, ByteCount, ByteCount)] = {
-    val stats = response.split map (n => BinaryByteCount(deserialize[Long](n) * 1024 * 1024))
-    assert(stats.length > 3)
-    Some(stats(0), stats(1), stats(2), stats(3))
+    val items = response.split
+    if (items(0) == "ERROR") None
+    else {
+      val stats = items map (n => BinaryByteCount(deserialize[Long](n) * 1024 * 1024))
+      assert(stats.length > 3)
+      Some((stats(0), stats(1), stats(2), stats(3)))
+    }
   }
 
   protected def handleQueryPixmapGetIfModified(response: BackendResponse): Option[(MythDateTime, Option[PixmapInfo])] = {
     val items = response.split
-    val lastModified = deserialize[MythDateTime](items(0))
-    // TODO check items(0) for error
-
-    if (items.length == 1) Some(lastModified, None)
+    if (items(0) == "ERROR" || items(0) == "WARNING") None
     else {
-      val fileSize = deserialize[Long](items(1))
-      val crc16 = deserialize[Int](items(2))
-      val base64data = items(3)
-      Some((lastModified, Some(PixmapInfo(DecimalByteCount(fileSize), crc16, base64data))))
+      val lastModified = deserialize[MythDateTime](items(0))
+      if (items.length == 1) Some(lastModified, None)
+      else {
+        val fileSize = deserialize[Long](items(1))
+        val crc16 = deserialize[Int](items(2))
+        val base64data = items(3)
+        Some((lastModified, Some(PixmapInfo(DecimalByteCount(fileSize), crc16, base64data))))
+      }
     }
   }
 
   protected def handleQueryPixmapLastModified(response: BackendResponse): Option[MythDateTime] = {
-    val modified = deserialize[MythDateTime](response.raw)
-    Some(modified)
+    if (response.raw == "BAD") None
+    else {
+      val modified = deserialize[MythDateTime](response.raw)
+      Some(modified)
+    }
   }
 
   protected def handleQueryRecording(response: BackendResponse): Option[Recording] = {
     val items = response.split
-    // TODO check items(0) for error
-    Some(deserialize[Recording](items drop 1))
+    if (items(0) == "OK") Some(deserialize[Recording](items drop 1))
+    else None
   }
 
   protected def handleQueryRecordings(response: BackendResponse): Option[Iterator[Recording]] = {
     val recs = response.split
-    val expectedCount = deserialize[Int](recs(0))  // TODO check non-zero!
-    val fieldCount = BackendProgram.FIELD_ORDER.length
-    val it = recs.iterator drop 1 grouped fieldCount withPartial false
-    Some(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
+    val expectedCount = deserialize[Int](recs(0))
+    if (expectedCount == 0) None
+    else {
+      val fieldCount = BackendProgram.FIELD_ORDER.length
+      val it = recs.iterator drop 1 grouped fieldCount withPartial false
+      Some(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
+    }
   }
 
   protected def handleQuerySGFileQuery(response: BackendResponse): Option[(String, MythDateTime, ByteCount)] = {
     val items = response.split
+    // TODO check for error conditions
     val fullPath = items(0)
     val timestamp = deserialize[MythDateTime](items(1))
     val fileSize = deserialize[Long](items(2))
@@ -1357,6 +1424,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleQuerySGGetFileList(response: BackendResponse): Option[List[String]] = {
+    // TODO check for error conditions
     Some(response.split.toList)
   }
 
@@ -1374,8 +1442,12 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleQueryUptime(response: BackendResponse): Option[Duration] = {
-    val seconds = deserialize[Long](response.raw)
-    Some(Duration.ofSeconds(seconds))
+    val items = response.split
+    if (items(0) == "ERROR") None
+    else {
+      val seconds = deserialize[Long](items(0))
+      Some(Duration.ofSeconds(seconds))
+    }
   }
 
   protected def handleRefreshBackend(response: BackendResponse): Option[Boolean] = {
@@ -1404,8 +1476,8 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleUndeleteRecording(response: BackendResponse): Option[Boolean] = {
-    val success = deserialize[Boolean](response.raw)
-    Some(success)
+    val status = deserialize[Int](response.raw)
+    Some(status == 0)
   }
 }
 
