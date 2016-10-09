@@ -119,7 +119,7 @@ abstract class AbstractBackendConnection(host: String, port: Int, timeout: Int)
       val cmdstring = serialize(command, args)
       val request = BackendRequest(command, args, cmdstring)
       val response = sendCommandRaw(cmdstring).get
-      handle(response)
+      handle(request, response)
     }
     else throw new UnsupportedBackendCommandException(command, PROTO_VERSION)
   }
