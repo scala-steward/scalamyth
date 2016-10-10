@@ -1143,8 +1143,18 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   // TODO this needs to return a (ftID, fileSize) for FileTransfer announces
-  protected def handleAnnounce(request: BackendRequest, response: BackendResponse): Option[Boolean] = {
-    Some(response.raw == "OK")
+  protected def handleAnnounce(request: BackendRequest, response: BackendResponse): Option[Either[Boolean, (Int, ByteCount)]] = {
+    val mode = request.args match { case Seq(mode: String, _*) => mode }
+    if (mode == "FileTransfer") {
+      val items = response.split
+      if (items(0) != "OK") None
+      else {
+        val ftId = deserialize[Int](items(1))
+        val fileSize = DecimalByteCount(deserialize[Long](items(2)))
+        Some(Right((ftId, fileSize)))
+      }
+    }
+    else Some(Left(response.raw == "OK"))
   }
 
   protected def handleBlockShutdown(request: BackendRequest, response: BackendResponse): Option[Boolean] = {

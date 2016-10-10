@@ -22,7 +22,11 @@ private[myth] trait BackendAPILike {
       if (hostName != "") hostName
       else InetAddress.getLocalHost().getHostName()
     val result = sendCommand("ANN", mode, localHost, eventMode)
-    (result map { case r: Boolean => r }).get
+    // result is an Option[ Either[Boolean, (Int, ByteCount)] ]
+    (result map {
+      case either: Either[_, _] =>
+        (either.left map { case r: Boolean => r }).left.get   // U-g-l-y!
+    }).get
   }
 
   def announceFileTransfer(hostName: String, fileName: String, storageGroup: String,
@@ -31,7 +35,11 @@ private[myth] trait BackendAPILike {
     timeout: Duration = Duration.ofSeconds(2)
   ): (Int, ByteCount) = {
     val result = sendCommand("ANN", "FileTransfer", hostName, writeMode, useReadAhead, timeout, fileName, storageGroup)
-    (result map { case (ftId: Int, fileSize: ByteCount) => (ftId, fileSize) }).get
+    // result is an Option[ Either[Boolean, (Int, ByteCount)] ]
+    (result map {
+      case either: Either[_, _] =>
+        (either.right map { case (ftId: Int, fileSize: ByteCount) => (ftId, fileSize) }).right.get
+    }).get
   }
 
   def blockShutdown(): Boolean = {
