@@ -16,14 +16,15 @@ private trait BackendCommandStream {
 }
 
 private class BackendCommandReader(in: InputStream) extends SocketReader[String](in) with BackendCommandStream {
+  private[this] var buffer = new Array[Byte](1024)
+
   private def readStringWithLength(length: Int): String = {
-    // TODO for efficiency re-use an existing buffer?
-    val buf = new Array[Byte](length)
+    if (length > buffer.length) buffer = new Array[Byte](length)
     var off: Int = 0
     var n: Int = 0
 
     do {
-      n = in.read(buf, off, length - off)
+      n = in.read(buffer, off, length - off)
       //println("Read " + n + " bytes")
       off += n
     } while (n > 0)
@@ -31,11 +32,11 @@ private class BackendCommandReader(in: InputStream) extends SocketReader[String]
     if (n < 0) throw new RuntimeException("connection has been closed")
 
     assert(off == length)
-    new String(buf, StandardCharsets.UTF_8)  // TODO need to replace call if we switch to a shared buffer
+    new String(buffer, 0, length, StandardCharsets.UTF_8)
   }
 
   def read(): String = {
-    println("Waiting for size header")
+    //println("Waiting for size header")
     val size = readStringWithLength(SIZE_HEADER_BYTES).trim.toInt
     println("Waiting for response of length " + size)
     val response = readStringWithLength(size)
