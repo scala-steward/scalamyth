@@ -41,6 +41,8 @@ abstract class AbstractSocketConnection[A](val host: String, val port: Int, time
   protected def connect(): Unit = {
     if (!connected) {
       socket = connectSocket()
+      socketReader = openReader(inputStream)
+      socketWriter = openWriter(outputStream)
       finishConnect()
     }
   }
