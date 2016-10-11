@@ -2,7 +2,7 @@ package mythtv
 package connection
 package myth
 
-import java.io.{ InputStream, InputStreamReader, OutputStream, OutputStreamWriter }
+import java.io.{ BufferedOutputStream, InputStream, InputStreamReader, OutputStream, OutputStreamWriter }
 import java.net.InetAddress
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
@@ -94,7 +94,7 @@ abstract class AbstractBackendConnection(host: String, port: Int, timeout: Int)
   protected def gracefulDisconnect(): Unit = postCommandRaw("DONE")
 
   protected def sendCommandRaw(command: String): Try[BackendResponse] = {
-    val writer = new BackendCommandWriter(outputStream)
+    val writer = new BackendCommandWriter(new BufferedOutputStream(outputStream))
     val reader = new BackendCommandReader(inputStream)
 
     Try {
@@ -104,7 +104,7 @@ abstract class AbstractBackendConnection(host: String, port: Int, timeout: Int)
   }
 
   protected def postCommandRaw(command: String): Unit = {
-    val writer = new BackendCommandWriter(outputStream)
+    val writer = new BackendCommandWriter(new BufferedOutputStream(outputStream))
     val reader = new BackendCommandReader(inputStream)
 
     // write the message
