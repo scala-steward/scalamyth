@@ -115,7 +115,7 @@ abstract class AbstractBackendConnection(host: String, port: Int, timeout: Int)
   def sendCommand(command: String, args: Any*): Option[_] = {
     if (!isConnected) throw new IllegalStateException  // TODO attempt reconnection?
     if (commands contains command) {
-      val (_, serialize, handle) = commands(command)
+      val (serialize, handle) = commands(command)
       val cmdstring = serialize(command, args)
       val request = BackendRequest(command, args, cmdstring)
       val response = sendCommandRaw(cmdstring).get
