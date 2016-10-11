@@ -2,7 +2,7 @@ package mythtv
 package connection
 package myth
 
-sealed trait BackendResponse extends Any {
+trait BackendResponse extends Any {
   def raw: String
   def split: Array[String]
 }
