@@ -9,7 +9,7 @@ import model.{ CaptureCardId, ChanId, FreeSpace, Recording, RemoteEncoder, Video
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
 import EnumTypes.MythProtocolEventMode
 
-private[myth] trait BackendAPILike {
+private trait BackendAPILike {
   self: MythProtocolLike =>
 
   def allowShutdown(): Boolean = {

@@ -17,7 +17,7 @@ trait SocketConnection extends NetworkConnection {
 // TODO is 'host' a hostname or IP address (or either?)
 abstract class AbstractSocketConnection[A](val host: String, val port: Int, timeoutSecs: Int)
     extends SocketConnection {
-  private[this] var timeoutVar = new DynamicVariable[Int](timeoutSecs)
+  private[this] val timeoutVar = new DynamicVariable[Int](timeoutSecs)
   private[this] var connected: Boolean = false
   private[this] var socket: Socket = connectSocket()
   private[this] var socketReader: SocketReader[A] = openReader(inputStream)
