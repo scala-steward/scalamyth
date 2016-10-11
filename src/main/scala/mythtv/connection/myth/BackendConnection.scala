@@ -2,7 +2,7 @@ package mythtv
 package connection
 package myth
 
-import java.io.{ BufferedOutputStream, InputStream, InputStreamReader, OutputStream, OutputStreamWriter }
+import java.io.{ BufferedOutputStream, InputStream, OutputStream }
 import java.net.InetAddress
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
@@ -15,8 +15,8 @@ private trait BackendCommandStream {
   final val SIZE_HEADER_BYTES = 8
 }
 
-private class BackendCommandReader(in: InputStream) extends BackendCommandStream {
-  def readString(length: Int): String = {
+private class BackendCommandReader(in: InputStream) extends SocketReader[String](in) with BackendCommandStream {
+  private def readStringWithLength(length: Int): String = {
     // TODO for efficiency re-use an existing buffer?
     val buf = new Array[Byte](length)
     var off: Int = 0
@@ -34,22 +34,22 @@ private class BackendCommandReader(in: InputStream) extends BackendCommandStream
     new String(buf, StandardCharsets.UTF_8)  // TODO need to replace call if we switch to a shared buffer
   }
 
-  def readResponse: String = {
+  def read(): String = {
     println("Waiting for size header")
-    val size = readString(SIZE_HEADER_BYTES).trim.toInt
+    val size = readStringWithLength(SIZE_HEADER_BYTES).trim.toInt
     println("Waiting for response of length " + size)
-    val response = readString(size)
+    val response = readStringWithLength(size)
     //println("Received response: " + response)
     println("Received response.")
     response
   }
 }
 
-private class BackendCommandWriter(out: OutputStream) extends BackendCommandStream {
+private class BackendCommandWriter(out: OutputStream) extends SocketWriter[String](out) with BackendCommandStream {
   private final val HEADER_FORMAT = "%-" + SIZE_HEADER_BYTES + "d"
   private final val utf8 = StandardCharsets.UTF_8
 
-  def write(bb: ByteBuffer): Unit = {
+  private def write(bb: ByteBuffer): Unit = {
     if (bb.hasArray) {
       out.write(bb.array, bb.arrayOffset, bb.limit)
     } else {
@@ -59,7 +59,7 @@ private class BackendCommandWriter(out: OutputStream) extends BackendCommandStre
     }
   }
 
-  def sendCommand(command: String): Unit = {
+  def write(command: String): Unit = {
     val message = utf8 encode command
     val header = utf8 encode (HEADER_FORMAT format message.limit)
     println("Sending command " + command)
@@ -84,8 +84,8 @@ final case class UnsupportedBackendCommandException(command: String, protocolVer
 trait BackendConnection extends SocketConnection with MythProtocol
 
 abstract class AbstractBackendConnection(host: String, port: Int, timeout: Int)
-    extends AbstractSocketConnection(host, port, timeout) with BackendConnection {
-  // TODO management of reader/writer lifecycle
+    extends AbstractSocketConnection[String](host, port, timeout)
+    with BackendConnection {
 
   protected def finishConnect(): Unit = {
     checkVersion()
@@ -93,22 +93,22 @@ abstract class AbstractBackendConnection(host: String, port: Int, timeout: Int)
 
   protected def gracefulDisconnect(): Unit = postCommandRaw("DONE")
 
-  protected def sendCommandRaw(command: String): Try[BackendResponse] = {
-    val writer = new BackendCommandWriter(new BufferedOutputStream(outputStream))
-    val reader = new BackendCommandReader(inputStream)
+  protected def openReader(inStream: InputStream): SocketReader[String] =
+    new BackendCommandReader(inStream)
 
+  protected def openWriter(outStream: OutputStream): SocketWriter[String] =
+    new BackendCommandWriter(new BufferedOutputStream(outStream))
+
+  protected def sendCommandRaw(command: String): Try[BackendResponse] = {
     Try {
-      writer.sendCommand(command)
-      Response(reader.readResponse)
+      writer.write(command)
+      Response(reader.read())
     }
   }
 
   protected def postCommandRaw(command: String): Unit = {
-    val writer = new BackendCommandWriter(new BufferedOutputStream(outputStream))
-    val reader = new BackendCommandReader(inputStream)
-
     // write the message
-    writer.sendCommand(command)
+    writer.write(command)
     // TODO: swallow any response (asynchronously?!?), but socket may be closed
   }
 

@@ -15,11 +15,13 @@ trait SocketConnection extends NetworkConnection {
 }
 
 // TODO is 'host' a hostname or IP address (or either?)
-abstract class AbstractSocketConnection(val host: String, val port: Int, timeoutSecs: Int)
+abstract class AbstractSocketConnection[A](val host: String, val port: Int, timeoutSecs: Int)
     extends SocketConnection {
   private[this] var timeoutVar = new DynamicVariable[Int](timeoutSecs)
   private[this] var connected: Boolean = false
   private[this] var socket: Socket = connectSocket()
+  private[this] var socketReader: SocketReader[A] = openReader(inputStream)
+  private[this] var socketWriter: SocketWriter[A] = openWriter(outputStream)
 
   // TODO management of reader/writer lifecycle
 
@@ -59,6 +61,10 @@ abstract class AbstractSocketConnection(val host: String, val port: Int, timeout
     connect()
   }
 
+  protected def openReader(inStream: InputStream): SocketReader[A]
+
+  protected def openWriter(outStream: OutputStream): SocketWriter[A]
+
   def timeout: Int = timeoutVar.value
 
   def withTimeout[T](timeOut: Int)(thunk: => T): T = {
@@ -75,4 +81,7 @@ abstract class AbstractSocketConnection(val host: String, val port: Int, timeout
 
   protected def inputStream: InputStream = socket.getInputStream
   protected def outputStream: OutputStream = socket.getOutputStream
+
+  protected def reader: SocketReader[A] = socketReader
+  protected def writer: SocketWriter[A] = socketWriter
 }
