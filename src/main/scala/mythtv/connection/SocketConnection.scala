@@ -31,7 +31,7 @@ abstract class AbstractSocketConnection[A](val host: String, val port: Int, time
 
   private def connectSocket(): Socket = {
     val newSocket = new Socket(host, port)
-    setSocketTimeout(newSocket, timeout)
+    if (timeout > 0) setSocketTimeout(newSocket, timeout)
     connected = true
     newSocket
   }
