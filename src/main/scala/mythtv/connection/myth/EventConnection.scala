@@ -51,6 +51,7 @@ trait EventConnection extends SocketConnection { /* with EventProtocol ?? */
 final class EventLock(eventConn: EventConnection, eventFilter: (BackendEvent) => Boolean)
     extends EventListener {
   private[this] var locked = true
+  @volatile private[this] var unlockEvent: Option[BackendEvent] = None
 
   eventConn.addListener(this)
 
@@ -59,10 +60,13 @@ final class EventLock(eventConn: EventConnection, eventFilter: (BackendEvent) =>
   def handle(event: BackendEvent): Unit = {
     synchronized {
       locked = false
+      unlockEvent = Some(event)
       notifyAll()
     }
     eventConn.removeListener(this)
   }
+
+  def event: Option[BackendEvent] = unlockEvent
 
   // TODO timeout doesn't do what you might think, and is of questionable use here
   def waitFor(timeout: Duration = Duration.Inf): Unit = {
