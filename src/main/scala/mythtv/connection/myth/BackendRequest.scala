@@ -8,7 +8,7 @@ sealed trait BackendRequest {
   def serialized: String
 }
 
-object BackendRequest {
+private object BackendRequest {
   def apply(command: String, args: Seq[Any], serialized: String): BackendRequest =
     Request(command, args, serialized)
 }
