@@ -71,9 +71,10 @@ final class EventLock(eventConn: EventConnection, eventFilter: (BackendEvent) =>
   }
 }
 
-private abstract class AbstractEventConnection(host: String, port: Int, timeout: Int,
-  val eventMode: MythProtocolEventMode = MythProtocolEventMode.Normal)
-    extends AbstractBackendConnection(host, port, timeout) with EventConnection {
+// TODO don't use infinite timeout for protocol negotiation
+private abstract class AbstractEventConnection(
+  host: String, port: Int, val eventMode: MythProtocolEventMode)
+    extends AbstractBackendConnection(host, port, 0) with EventConnection {
 
   self: AnnouncingConnection =>
 
@@ -139,14 +140,53 @@ private abstract class AbstractEventConnection(host: String, port: Int, timeout:
   }
 }
 
+private sealed trait EventConnectionFactory {
+  def apply(host: String, port: Int, eventMode: MythProtocolEventMode): EventConnection
+}
+
+object EventConnection {
+  private val supportedVersions = Map[Int, EventConnectionFactory](
+    75 -> EventConnection75,
+    77 -> EventConnection77
+  )
+
+  def apply(
+    host: String,
+    port: Int = BackendConnection.DEFAULT_PORT,
+    eventMode: MythProtocolEventMode = MythProtocolEventMode.Normal
+  ): EventConnection = {
+    try {
+      val factory = supportedVersions(BackendConnection.DEFAULT_VERSION)
+      factory(host, port, eventMode)
+    } catch {
+      case ex @ WrongMythProtocolException(requiredVersion) =>
+        if (supportedVersions contains requiredVersion) {
+          val factory = supportedVersions(requiredVersion)
+          factory(host, port, eventMode)
+        }
+        else throw new UnsupportedMythProtocolException(ex)
+    }
+  }
+}
+
 // NB Important that AnnouncingConnection is listed last, for initialization order
+
+private class EventConnection75(host: String, port: Int, eventMode: MythProtocolEventMode)
+    extends AbstractEventConnection(host, port, eventMode)
+    with MythProtocol75
+    with AnnouncingConnection
+
+private object EventConnection75 extends EventConnectionFactory {
+  def apply(host: String, port: Int, eventMode: MythProtocolEventMode) =
+    new EventConnection75(host, port, eventMode)
+}
+
 private class EventConnection77(host: String, port: Int, eventMode: MythProtocolEventMode)
-    extends AbstractEventConnection(host, port, 0, eventMode) // TODO don't use infinite timeout for protocol negotiation
+    extends AbstractEventConnection(host, port, eventMode)
     with MythProtocol77
     with AnnouncingConnection
 
-object EventConnection {
-  def apply(host: String, eventMode: MythProtocolEventMode): EventConnection =
-    // TODO negotiate protocol version, use default port, etc.
-    new EventConnection77(host, 6543, eventMode)
+private object EventConnection77 extends EventConnectionFactory {
+  def apply(host: String, port: Int, eventMode: MythProtocolEventMode) =
+    new EventConnection77(host, port, eventMode)
 }
