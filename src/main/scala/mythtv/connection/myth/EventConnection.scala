@@ -2,7 +2,7 @@ package mythtv
 package connection
 package myth
 
-import java.net.InetAddress
+import java.net.{ InetAddress, SocketException }
 
 import scala.concurrent.duration.Duration
 
@@ -124,11 +124,15 @@ private abstract class AbstractEventConnection(host: String, port: Int, timeout:
     def run(): Unit = {
       var myListeners = listeners
       while (myListeners.nonEmpty && isConnected) {
-        val event = readEvent()
-        myListeners = listeners
-        for (ear <- myListeners) {
-          if (ear.listenFor(event))
-            ear.handle(event)
+        try {
+          val event = readEvent()
+          myListeners = listeners
+          for (ear <- myListeners) {
+            if (ear.listenFor(event))
+              ear.handle(event)
+          }
+        } catch {
+          case ex: SocketException =>
         }
       }
     }
