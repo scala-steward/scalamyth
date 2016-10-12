@@ -6,9 +6,16 @@ import java.net.InetAddress
 
 import EnumTypes.MythProtocolEventMode
 
-trait BackendEvent extends BackendResponse {
+trait BackendEvent extends Any with BackendResponse {
   def isSystemEvent: Boolean = raw.substring(20,32) == "SYSTEM_EVENT"
 }
+
+private object BackendEvent {
+  def apply(r: String): BackendResponse = Event(r)
+}
+
+private final case class Event(raw: String) extends AnyVal with BackendEvent
+
 
 /*
  * Some BACKEND_MESSAGE examples
@@ -25,7 +32,7 @@ trait BackendEvent extends BackendResponse {
  */
 
 trait EventListener {
-  def listenFor(event: BackendEvent): Boolean
+  def listenFor(event: BackendEvent): Boolean  // TODO rename to filter?
   def handle(event: BackendEvent): Unit
 }
 
@@ -37,51 +44,76 @@ trait EventConnection extends SocketConnection { /* with EventProtocol ?? */
   def -= (listener: EventListener): Unit = removeListener(listener)
 }
 
-abstract class AbstractEventConnection(host: String, port: Int, timeout: Int,
+private abstract class AbstractEventConnection(host: String, port: Int, timeout: Int,
   val eventMode: MythProtocolEventMode = MythProtocolEventMode.Normal)
     extends AbstractBackendConnection(host, port, timeout) with EventConnection {
 
-  private[this] var announced = false
+  self: AnnouncingConnection =>
+
   private[this] var listeners: Set[EventListener] = Set.empty
+  private[this] var eventLoopThread: Thread = _
 
-  override protected def finishConnect(): Unit = {
-    super.finishConnect()
-    announce()
-  }
-
-  protected def announce(): Unit = {
-    val localHost = InetAddress.getLocalHost().getHostName()   // TODO
+  def announce(): Unit = {
+    val localHost = InetAddress.getLocalHost().getHostName() // TODO
     val result = sendCommand("ANN", "Monitor", localHost, eventMode)
-    announced = true
   }
 
   override def sendCommand(command: String, args: Any*): Option[_] = {
-    if (announced) None
-    else super.sendCommand(command, args)
+    if (hasAnnounced) None
+    else super.sendCommand(command, args: _*)
   }
 
   def addListener(listener: EventListener): Unit = {
     synchronized { listeners = listeners + listener }
+    if (!isEventLoopRunning) eventLoopThread = startEventLoop
   }
 
   def removeListener(listener: EventListener): Unit = {
     synchronized { listeners = listeners - listener }
   }
 
-  protected def readEvent(): BackendEvent  // TODO blocking read to wait for the next event
+  // blocking read to wait for the next event
+  // TODO this only blocks for 'timeout' seconds!
+  protected def readEvent(): BackendEvent = Event(reader.read())
 
-  private def eventLoop(): Unit = {
+  private def isEventLoopRunning: Boolean =
+    if (eventLoopThread eq null) false
+    else eventLoopThread.isAlive
+
+  private def startEventLoop: Thread = {
+    val thread = new Thread(new EventLoop)
+    thread.start()
+    thread
+  }
+
+  private class EventLoop extends Runnable {
     // TODO : this approach has the disadvantage that event listener de-/registration
     //   does not become visible until after the next event is received (which may not
     //   be for some time)  Can we interrupt the blocked call to process?
-    var myListeners = synchronized { listeners }
-    while (myListeners.nonEmpty && isConnected) {
-      val event = readEvent()
-      myListeners = synchronized { listeners }
-      for (ear <- myListeners) {
-        if (ear.listenFor(event))
-          ear.handle(event)
+
+    // TODO need to catch SocketException: Socket closed (when disconnect() is called)
+    def run(): Unit = {
+      var myListeners = synchronized { listeners }
+      while (myListeners.nonEmpty && isConnected) {
+        val event = readEvent()
+        myListeners = synchronized { listeners }
+        for (ear <- myListeners) {
+          if (ear.listenFor(event))
+            ear.handle(event)
+        }
       }
     }
   }
+}
+
+// NB Important that AnnouncingConnection is listed last, for initialization order
+private class EventConnection77(host: String, port: Int, eventMode: MythProtocolEventMode)
+    extends AbstractEventConnection(host, port, 0, eventMode) // TODO don't use infinite timeout for protocol negotiation
+    with MythProtocol77
+    with AnnouncingConnection
+
+object EventConnection {
+  def apply(host: String, eventMode: MythProtocolEventMode): EventConnection =
+    // TODO negotiate protocol version, use default port, etc.
+    new EventConnection77(host, 6543, eventMode)
 }
