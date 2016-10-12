@@ -42,6 +42,8 @@ trait EventConnection extends SocketConnection { /* with EventProtocol ?? */
   def addListener(listener: EventListener): Unit
   def removeListener(listener: EventListener): Unit
 
+  def listeners: Set[EventListener]
+
   final def += (listener: EventListener): Unit = addListener(listener)
   final def -= (listener: EventListener): Unit = removeListener(listener)
 }
@@ -75,7 +77,7 @@ private abstract class AbstractEventConnection(host: String, port: Int, timeout:
 
   self: AnnouncingConnection =>
 
-  private[this] var listeners: Set[EventListener] = Set.empty
+  private[this] var listenerSet: Set[EventListener] = Set.empty
   private[this] var eventLoopThread: Thread = _
 
   def announce(): Unit = {
@@ -88,13 +90,15 @@ private abstract class AbstractEventConnection(host: String, port: Int, timeout:
     else super.sendCommand(command, args: _*)
   }
 
+  def listeners: Set[EventListener] = synchronized { listenerSet }
+
   def addListener(listener: EventListener): Unit = {
-    synchronized { listeners = listeners + listener }
+    synchronized { listenerSet = listenerSet + listener }
     if (!isEventLoopRunning) eventLoopThread = startEventLoop
   }
 
   def removeListener(listener: EventListener): Unit = {
-    synchronized { listeners = listeners - listener }
+    synchronized { listenerSet = listenerSet - listener }
   }
 
   // blocking read to wait for the next event
@@ -118,10 +122,10 @@ private abstract class AbstractEventConnection(host: String, port: Int, timeout:
 
     // TODO need to catch SocketException: Socket closed (when disconnect() is called)
     def run(): Unit = {
-      var myListeners = synchronized { listeners }
+      var myListeners = listeners
       while (myListeners.nonEmpty && isConnected) {
         val event = readEvent()
-        myListeners = synchronized { listeners }
+        myListeners = listeners
         for (ear <- myListeners) {
           if (ear.listenFor(event))
             ear.handle(event)
