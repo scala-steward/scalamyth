@@ -84,7 +84,7 @@ final case class UnsupportedBackendCommandException(command: String, protocolVer
 
 trait BackendConnection extends SocketConnection with MythProtocol
 
-abstract class AbstractBackendConnection(host: String, port: Int, timeout: Int)
+private abstract class AbstractBackendConnection(host: String, port: Int, timeout: Int)
     extends AbstractSocketConnection[String](host, port, timeout)
     with BackendConnection {
 
