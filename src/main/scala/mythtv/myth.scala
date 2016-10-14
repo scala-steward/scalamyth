@@ -15,10 +15,9 @@ trait BackendOperations {
   def upcomingRecordings: Iterable[Recordable]
   def scheduledRecordings: Iterable[Recordable]
   def conflictingRecordings: Iterable[Recordable]
-/*
-  def recorders: Iterable[CaptureCard]   // this is a DB method in the python bindings
-  def availableRecorders: Iterable[CaptureCard]
- */
+
+  def availableRecorders: Iterable[CaptureCardId]
+
   def freeSpace: List[FreeSpace]
   def freeSpaceCombined: List[FreeSpace]
   def freeSpaceSummary: (ByteCount, ByteCount)
@@ -28,18 +27,27 @@ trait BackendOperations {
 
   def isActiveBackend(hostname: String): Boolean
 
+  def guideDataThrough: MythDateTime
+
 /*
-  def isRecording(card: CaptureCard): Boolean
+  def isRecording(cardId: CaptureCardId): Boolean  QUERY_RECORDER command, %d IS_RECORDING
  */
 
   // These are FileOps methods in the Python bindings ...
-/*
-  def recording(chanId: Int, startTime: LocalDateTime): Recording
+  def recording(chanId: ChanId, startTime: MythDateTime): Recording
+  def deleteRecording(rec: Recording, force: Boolean = false): Boolean
   def forgetRecording(rec: Recording): Boolean
-  def deleteRecording(rec: Recording, force: Option[Boolean]): Boolean
+  def stopRecording(rec: Recording): Option[CaptureCardId]
 
-  def reschedule(recordId: Option[Int], wait: Option[Boolean]): Unit
- */
+  /*
+   * Storage group file operations
+   def fileHash(fileName: String: storageGroup: String): String // TODO host optional param?
+   def fileExists(fileName: String, storageGroup: String): Boolean
+   */
+
+  /*
+  def reschedule(recordId: Option[RecordRuleId], wait: Boolean = false): Unit
+   */
 
   // These are MythXML methods in the Python bindings ...
 /*
@@ -47,6 +55,9 @@ trait BackendOperations {
   def programDetails(chanId: Int, startTime: LocalDateTime)
   def previewImage(chanId: Int, startTime: LocalDateTime, width: Option[Int], height: Option[Int], secsIn: Option[Int]): Array[Byte]
  */
+
+  // These are MythDB methods in the Python bindings ...
+  //def recorders: Iterable[CaptureCard]
 }
 
 trait FrontendOperations {

@@ -26,6 +26,24 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
     conn.queryRecording(chanId, startTime)
   }
 
+  def deleteRecording(rec: Recording, force: Boolean): Boolean = {
+    val status =
+      if (force) conn.forceDeleteRecording(rec)
+      else conn.deleteRecording(rec)
+    status == 0
+  }
+
+  def forgetRecording(rec: Recording): Boolean = {
+    val status = conn.forgetRecording(rec)
+    status == 0
+  }
+
+  def stopRecording(rec: Recording): Option[CaptureCardId] = {
+    val status = conn.stopRecording(rec)
+    if (status < 0) None
+    else Some(CaptureCardId(status))
+  }
+
   def recordingsIterator: ExpectedCountIterator[Recording] = conn.queryRecordings("Ascending")
   def recordings: List[Recording] = recordingsIterator.toList
 
@@ -63,4 +81,7 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
 
   def isActiveBackend(hostname: String): Boolean = conn.queryIsActiveBackend(hostname)
   def isActive: Boolean = isActiveBackend(host)   // TODO does this only work in master backends?
+
+  def guideDataThrough: MythDateTime = conn.queryGuideDataThrough
+
 }
