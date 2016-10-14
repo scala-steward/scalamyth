@@ -13,6 +13,10 @@ final case class RecordRuleId(id: Int) extends AnyVal
 final case class VideoId(id: Int) extends AnyVal
 final case class JobId(id: Int) extends AnyVal
 final case class ListingSourceId(id: Int) extends AnyVal
+
+/**
+ * Represents the position of a video stream as a frame number.
+ */
 final case class VideoPosition(pos: Long) extends AnyVal
 
 trait VideoSegment {
