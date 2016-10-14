@@ -44,6 +44,8 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
     else Some(CaptureCardId(status))
   }
 
+  def isRecording(cardId: CaptureCardId): Boolean = conn.queryRecorderIsRecording(cardId)
+
   def recordingsIterator: ExpectedCountIterator[Recording] = conn.queryRecordings("Ascending")
   def recordings: List[Recording] = recordingsIterator.toList
 

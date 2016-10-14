@@ -29,9 +29,7 @@ trait BackendOperations {
 
   def guideDataThrough: MythDateTime
 
-/*
-  def isRecording(cardId: CaptureCardId): Boolean  QUERY_RECORDER command, %d IS_RECORDING
- */
+  def isRecording(cardId: CaptureCardId): Boolean
 
   // These are FileOps methods in the Python bindings ...
   def recording(chanId: ChanId, startTime: MythDateTime): Recording
