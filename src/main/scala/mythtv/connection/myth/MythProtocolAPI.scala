@@ -4,8 +4,9 @@ package myth
 
 import java.time.{ Duration, Instant, ZoneOffset }
 
-import model.{ CaptureCardId, ChanId, FreeSpace, Recording, RemoteEncoder, VideoPosition, VideoSegment }
+import model.{ CaptureCardId, CardInput, Channel, ChanId, FreeSpace, Recording, RemoteEncoder, UpcomingProgram, VideoPosition, VideoSegment }
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
+import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, PictureAdjustType }
 import EnumTypes.MythProtocolEventMode
 
 // TODO these APIs should be converted to return Option[_] or Either[_] or something
@@ -57,6 +58,53 @@ trait MythProtocolAPI {
   def queryPixmapGetIfModified(maxFileSize: Long, rec: Recording): (MythDateTime, Option[PixmapInfo])
   def queryPixmapGetIfModified(modifiedSince: MythDateTime, maxFileSize: Long, rec: Recording): (MythDateTime, Option[PixmapInfo])
   def queryPixmapLastModified(rec: Recording): MythDateTime
+  // TODO also implement all these queryRecorderXXX methods on the RemoteEncoder class? (we return one, see above)
+  def queryRecorderCancelNextRecording(cardId: CaptureCardId, cancel: Boolean): Unit
+  def queryRecorderChangeBrightness(cardId: CaptureCardId, adjType: PictureAdjustType, up: Boolean): Int
+  def queryRecorderChangeChannel(cardId: CaptureCardId, dir: ChannelChangeDirection): Unit
+  def queryRecorderChangeColour(cardId: CaptureCardId, adjType: PictureAdjustType, up: Boolean): Int
+  def queryRecorderChangeContrast(cardId: CaptureCardId, adjType: PictureAdjustType, up: Boolean): Int
+  def queryRecorderChangeHue(cardId: CaptureCardId, adjType: PictureAdjustType, up: Boolean): Int
+  def queryRecorderCheckChannel(cardId: CaptureCardId, channum: String): Boolean
+  def queryRecorderCheckChannelPrefix(cardId: CaptureCardId, channumPrefix: String): (Boolean, Option[CaptureCardId], Boolean, String)
+  // This returns a map from frame number to duration, what is that???
+  def queryRecorderFillDurationMap(cardId: CaptureCardId, start: VideoPosition, end: VideoPosition): Map[VideoPosition, Long]
+  // This returns a map from frame number to file byte offset
+  def queryRecorderFillPositionMap(cardId: CaptureCardId, start: VideoPosition, end: VideoPosition): Map[VideoPosition, Long]
+  def queryRecorderFinishRecording(cardId: CaptureCardId): Unit
+  def queryRecorderFrontendReady(cardId: CaptureCardId): Unit
+  def queryRecorderGetBrightness(cardId: CaptureCardId): Int
+  def queryRecorderGetChannelInfo(cardId: CaptureCardId, chanId: ChanId): Channel
+  def queryRecorderGetColour(cardId: CaptureCardId): Int
+  def queryRecorderGetContrast(cardId: CaptureCardId): Int
+  def queryRecorderGetCurrentRecording(cardId: CaptureCardId): Recording
+  def queryRecorderGetFilePosition(cardId: CaptureCardId): Long
+  def queryRecorderGetFrameRate(cardId: CaptureCardId): Double
+  def queryRecorderGetFramesWritten(cardId: CaptureCardId): Long
+  def queryRecorderGetFreeInputs(cardId: CaptureCardId, excludedCards: CaptureCardId*): List[CardInput]
+  def queryRecorderGetHue(cardId: CaptureCardId): Int
+  def queryRecorderGetInput(cardId: CaptureCardId): String
+  // This returns byte offset from the approximate keyframe position
+  def queryRecorderGetKeyframePos(cardId: CaptureCardId, desiredPos: VideoPosition): Long
+  def queryRecorderGetMaxBitrate(cardId: CaptureCardId): Long
+  def queryRecorderGetNextProgramInfo(cardId: CaptureCardId, chanId: ChanId, dir: ChannelBrowseDirection,
+    startTime: MythDateTime): UpcomingProgram
+  def queryRecorderGetNextProgramInfo(cardId: CaptureCardId, channum: String, dir: ChannelBrowseDirection,
+    startTime: MythDateTime): UpcomingProgram
+  def queryRecorderGetRecording(cardId: CaptureCardId): Recording
+  def queryRecorderIsRecording(cardId: CaptureCardId): Boolean
+  def queryRecorderPause(cardId: CaptureCardId): Unit
+  // NB Must call queryRecorderPause before queryRecorderSetChannel
+  def queryRecorderSetChannel(cardId: CaptureCardId, channum: String): Unit
+  def queryRecorderSetInput(cardId: CaptureCardId, inputName: String): String
+  // NB the recordingState parameter is ignored by the backend implementation
+  def queryRecorderSetLiveRecording(cardId: CaptureCardId, recordingState: Int): Unit
+  def queryRecorderSetSignalMonitoringRate(cardId: CaptureCardId, rate: Int, notifyFrontend: Boolean): Boolean
+  def queryRecorderShouldSwitchCard(cardId: CaptureCardId, chanId: ChanId): Boolean
+  // TODO FIXME when I invoked spawnLiveTV during testing, it caused SIGABRT on the backend !!
+  def queryRecorderSpawnLiveTV(cardId: CaptureCardId, usePiP: Boolean, channumStart: String): Unit
+  def queryRecorderStopLiveTV(cardId: CaptureCardId): Unit
+  def queryRecorderToggleChannelFavorite(cardId: CaptureCardId, channelGroup: String): Unit
   def queryRecording(pathName: String): Recording
   def queryRecording(chanId: ChanId, startTime: MythDateTime): Recording
   def queryRecordings(specifier: String = "Unsorted"): ExpectedCountIterator[Recording]

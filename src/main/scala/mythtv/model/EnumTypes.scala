@@ -3,6 +3,8 @@ package model
 
 object EnumTypes {
   type AudioProperties = model.AudioProperties.Value
+  type ChannelBrowseDirection = model.ChannelBrowseDirection.Value
+  type ChannelChangeDirection = model.ChannelChangeDirection.Value
   type DupCheckIn = model.DupCheckIn.Value
   type DupCheckMethod = model.DupCheckMethod.Value
   type JobFlags = model.JobFlags.Value
@@ -10,6 +12,7 @@ object EnumTypes {
   type JobType = model.JobType.Value
   type ListingSourceType = model.ListingSourceType.Value
   type Markup = model.Markup.Value
+  type PictureAdjustType = model.PictureAdjustType.Value
   type RecSearchType = model.RecSearchType.Value
   type RecStatus = model.RecStatus.Value
   type RecType = model.RecType.Value

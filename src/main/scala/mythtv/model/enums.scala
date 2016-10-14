@@ -212,6 +212,33 @@ object ListingSourceType extends Enumeration {
   val DBOX2EPG        = Value(0x08)
 }
 
+object PictureAdjustType extends Enumeration {
+  type PictureAdjustType = Value
+  val None      = Value(0)
+  val Playback  = Value(1)
+  val Channel   = Value(2)
+  val Recording = Value(3)
+}
+
+object ChannelBrowseDirection extends Enumeration {
+  type ChannelBrowseDirection = Value
+  val Invalid   = Value(-1)
+  val Same      = Value(0)  // Current channel and time
+  val Up        = Value(1)  // Previous channel
+  val Down      = Value(2)  // Next channel
+  val Left      = Value(3)  // Current channel in the past
+  val Right     = Value(4)  // Current channel ni the future
+  val Favorite  = Value(5)  // Next favorite channel
+}
+
+object ChannelChangeDirection extends Enumeration {
+  type ChannelChangeDirection = Value
+  val Up        = Value(0)
+  val Down      = Value(1)
+  val Favorite  = Value(2)
+  val Same      = Value(3)
+}
+
 /*
 package object enums {
   type Markup = mythtv.Markup.Value

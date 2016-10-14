@@ -4,6 +4,8 @@ package myth
 
 import java.util.regex.Pattern
 
+import model.{ CaptureCardId, CardInput, Channel, Recording, UpcomingProgram, VideoPosition }
+
 trait MythProtocol extends MythProtocolLike {
   def PROTO_VERSION: Int
   def PROTO_TOKEN: String
@@ -12,6 +14,27 @@ trait MythProtocol extends MythProtocolLike {
 object MythProtocol extends MythProtocolSerializer {
   final val BACKEND_SEP: String = "[]:[]"
   final val SPLIT_PATTERN: String = Pattern.quote(BACKEND_SEP)
+
+  object QueryRecorder {
+    // Sum type representing return values from QUERY_RECORDER
+    sealed trait QueryRecorderResult
+    final case object QueryRecorderAcknowledgement extends QueryRecorderResult
+    final case class QueryRecorderBoolean(value: Boolean) extends QueryRecorderResult
+    final case class QueryRecorderFrameRate(rate: Double) extends QueryRecorderResult
+    final case class QueryRecorderFrameCount(frames: Long) extends QueryRecorderResult
+    final case class QueryRecorderPosition(pos: Long) extends QueryRecorderResult
+    final case class QueryRecorderBitrate(bitrate: Long) extends QueryRecorderResult
+    final case class QueryRecorderPositionMap(map: Map[VideoPosition, Long]) extends QueryRecorderResult
+    final case class QueryRecorderRecording(recording: Recording) extends QueryRecorderResult
+    final case class QueryRecorderCardList(cards: List[CaptureCardId]) extends QueryRecorderResult
+    final case class QueryRecorderCardInputList(inputs: List[CardInput]) extends QueryRecorderResult
+    final case class QueryRecorderInput(input: String) extends QueryRecorderResult
+    final case class QueryRecorderPictureAttribute(value: Int) extends QueryRecorderResult
+    final case class QueryRecorderCheckChannelPrefix(matched: Boolean, cardId: Option[CaptureCardId],
+      extraCharUseful: Boolean, spacer: String) extends QueryRecorderResult
+    final case class QueryRecorderChannelInfo(channel: Channel) extends QueryRecorderResult
+    final case class QueryRecorderNextProgramInfo(program: UpcomingProgram) extends QueryRecorderResult
+  }
 }
 
 //                                                          protocol version 63   // myth 0.24.x

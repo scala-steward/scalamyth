@@ -4,10 +4,14 @@ package myth
 
 import java.time.{ Duration, Instant, LocalDate, ZoneOffset }
 
-import data.{ BackendFreeSpace, BackendProgram, BackendRemoteEncoder, BackendVideoSegment }
-import model.{ CaptureCardId, ChanId, FreeSpace, Markup, RecordedMarkup, Recording, RemoteEncoder, VideoPosition, VideoSegment }
+import data.{ BackendCardInput, BackendChannel, BackendFreeSpace, BackendProgram, BackendRemoteEncoder, BackendUpcomingProgram, BackendVideoSegment }
+import model.{ CaptureCardId, CardInput, Channel, ChanId, FreeSpace, Markup, RecordedMarkup, Recording, RemoteEncoder, UpcomingProgram,
+  VideoPosition, VideoSegment }
 import util.{ ByteCount, BinaryByteCount, DecimalByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythDateTimeString }
+import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, PictureAdjustType }
 import EnumTypes.MythProtocolEventMode
+
+import MythProtocol.QueryRecorder.QueryRecorderResult
 
 private[myth] trait MythProtocolLike extends MythProtocolSerializer {
   type SerializeRequest = (String, Seq[Any]) => String
@@ -645,48 +649,52 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     "QUERY_PIXMAP_LASTMODIFIED" -> (serializeProgramInfo, handleQueryPixmapLastModified),
 
     /*
-     * QUERY_RECORDER %d  <recorder#> [    // NB two tokens! recorder# + subcommand list
-     *     IS_RECORDING
-     *   | GET_FRAMERATE
-     *   | GET_FRAMES_WRITTEN
-     *   | GET_FILE_POSITION
-     *   | GET_MAX_BITRATE
-     *   | GET_KEYFRAME_POS [%ld]          [<desiredFrame>]
-     *   | FILL_POSITION_MAP [%ld, %ld]    [<start> <end>]
-     *   | FILL_DURATION_MAP [%ld, %ld]    [<start> <end>]
-     *   | GET_CURRENT_RECORDING
-     *   | GET_RECORDING
-     *   | FRONTEND_READY
-     *   | CANCEL_NEXT_RECORDING [%b]      [<cancel>]
-     *   | SPAWN_LIVETV [%s, %d, %s]       [<chainid> ? ? ]
-     *   | STOP_LIVETV
-     *   | PAUSE
-     *   | FINISH_RECORDING
-     *   | SET_LIVE_RECORDING [%d]         [<recording>]  what is this param?
-     *   | GET_FREE_INPUTS [{%d {, %d}*}*] [{<excludeCardId...>}]
-     *   | GET_INPUT
-     *   | SET_INPUT [%s]                  [<input>]
-     *   | TOGGLE_CHANNEL_FAVORITE [%s]    [<chanGroup>]
-     *   | CHANGE_CHANNEL [%d]             [<channelChangeDirection>]
-     *   | SET_CHANNEL [%s]                [<channelName>]
-     *   | SET_SIGNAL_MONITORING_RATE [%d, %b]  [<rate>, <notifyFrontEnd>>]
-     *   | GET_COLOUR
-     *   | GET_CONTRAST
-     *   | GET_BRIGHTNESS
-     *   | GET_HUE
-     *   | CHANGE_COLOUR [%d, %b]          [<type> <up>]
-     *   | CHANGE_CONTRAST [%d, %b]        [<type> <up>]
-     *   | CHANGE_BRIGHTNESS [%d, %b]      [<type> <up>]
-     *   | CHANGE_HUE [%d, %d]             [<type> <up>]
-     *   | CHECK_CHANNEL [%s]              [<channelName>]
-     *   | SHOULD_SWITCH_CARD [%d]         [<ChanId>]
-     *   | CHECK_CHANNEL_PREFIX [%s]       [<prefix>]
-     *   | GET_NEXT_PROGRAM_INFO [%s, %d, %d, %s]   [<channelName> <ChanId> <BrowseDirection> <starttime>]
-     *   | GET_CHANNEL_INFO [%d]           [<ChanId>]
+     * QUERY_RECORDER [ %d                 <recorder#>     // NB two tokens! recorder# + subcommand list
+     *     IS_RECORDING                                                        -> Boolean
+     *   | GET_FRAMERATE                                                       -> Double
+     *   | GET_FRAMES_WRITTEN                                                  -> Long
+     *   | GET_FILE_POSITION                                                   -> Long
+     *   | GET_MAX_BITRATE                                                     -> Long
+     *   | GET_KEYFRAME_POS [%ld]          [<desiredFrame>]                    -> Long
+     *   | FILL_POSITION_MAP [%ld, %ld]    [<start> <end>]                     -> Map<VideoPosition,Long> or "OK" or "error"
+     *   | FILL_DURATION_MAP [%ld, %ld]    [<start> <end>]                     -> Map<VideoPosition,Long> or "OK" or "error"
+     *   | GET_CURRENT_RECORDING                                               -> Recording
+     *   | GET_RECORDING                                                       -> Recording
+     *   | FRONTEND_READY                                                      -> "OK"
+     *   | CANCEL_NEXT_RECORDING [%b]      [<cancel>]                          -> "OK"
+     *   | SPAWN_LIVETV [%s, %b, %s]       [<chainId> <pip> <channumStart>]    -> "OK"
+     *   | STOP_LIVETV                                                         -> "OK"
+     *   | PAUSE                                                               -> "OK"
+     *   | FINISH_RECORDING                                                    -> "OK"
+     *   | SET_LIVE_RECORDING [%d]         [<recordingState>]                  -> "OK"
+     *   | GET_FREE_INPUTS [{%d {, %d}*}*] [{<excludeCardId...>}]              -> List[CardInput] or "EMPTY_LIST"
+     *   | GET_INPUT                                                           -> String (input name?) or "UNKNOWN"
+     *   | SET_INPUT [%s]                  [<input>]                           -> String (input name?) or "UNKNOWN"
+     *   | TOGGLE_CHANNEL_FAVORITE [%s]    [<channelGroup>]                    -> "OK"
+     *   | CHANGE_CHANNEL [%d]             [<channelChangeDirection>]          -> "OK"
+     *   | SET_CHANNEL [%s]                [<channum>]                         -> "OK"
+     *   | SET_SIGNAL_MONITORING_RATE [%d, %b]  [<rate>, <notifyFrontEnd>]     -> 1 if turned on (-1 on error)
+     *   | GET_COLOUR                                                          -> Int (-1 on error)
+     *   | GET_CONTRAST                                                        -> Int      "
+     *   | GET_BRIGHTNESS                                                      -> Int      "
+     *   | GET_HUE                                                             -> Int      "
+     *   | CHANGE_COLOUR [%d, %b]          [<type> <up>]                       -> Int (-1 on error)
+     *   | CHANGE_CONTRAST [%d, %b]        [<type> <up>]                       -> Int      "
+     *   | CHANGE_BRIGHTNESS [%d, %b]      [<type> <up>]                       -> Int      "
+     *   | CHANGE_HUE [%d, %b]             [<type> <up>]                       -> Int      "
+     *   | CHECK_CHANNEL [%s]              [<channum>]                         -> Boolean
+     *   | SHOULD_SWITCH_CARD [%d]         [<ChanId>]                          -> Boolean
+     *   | CHECK_CHANNEL_PREFIX [%s]       [<channumPrefix>]                   -> (Boolean, Option[CaptureCardId], Boolean, String)
+     *   | GET_CHANNEL_INFO [%d]           [<ChanId>]                          -> Channel
+     *   | GET_NEXT_PROGRAM_INFO [%s, %d, %d, %s]                              -> UpcomingProgram
+     *                           [<channum> <ChanId> <BrowseDirection> <starttime>]
      * ]
-     *  TODO what format is starttime in GET_NEXT_PROGRAM_INFO? Gets passed to database as a string, so any valid fmt?
+     * result may be "bad" for unknown or unconnected encoder
+     *  NB for SET_SIGNAL_MONITORING_RATE, the actual rate is ignored by the backend, only check is > 0
+     *                                     also, notifyFrontend is no longer implemented and ignored
+     *  NB for SET_LIVE_RECORDING, the recordingState parameter is ignored by the backend implementation
      */
-    "QUERY_RECORDER" -> (serializeNOP, handleNOP),
+    "QUERY_RECORDER" -> (serializeQueryRecorder, handleQueryRecorder),
 
     /*
      * QUERY_RECORDING BASENAME %s                 <pathname>
@@ -1060,6 +1068,98 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     case _ => throw new BackendCommandArgumentException
   }
 
+  protected def serializeQueryRecorder(command: String, args: Seq[Any]): String = args match {
+    case Seq(
+      cardId: CaptureCardId,
+      sub @
+        ( "IS_RECORDING"
+        | "GET_FRAMERATE"
+        | "GET_FRAMES_WRITTEN"
+        | "GET_FILE_POSITION"
+        | "GET_MAX_BITRATE"
+        | "GET_CURRENT_RECORDING"
+        | "GET_RECORDING"
+        | "FRONTEND_READY"
+        | "STOP_LIVETV"
+        | "PAUSE"
+        | "FINISH_RECORDING"
+        | "GET_INPUT"
+        | "GET_COLOUR"
+        | "GET_CONTRAST"
+        | "GET_BRIGHTNESS"
+        | "GET_HUE"
+        )) =>
+      val args = List(serialize(cardId), sub)
+      val elems = List(command, args mkString BACKEND_SEP)
+      elems mkString " "
+    case Seq(cardId: CaptureCardId, sub @ "GET_KEYFRAME_POS", desiredPos: VideoPosition) =>
+      val args = List(serialize(cardId), sub, serialize(desiredPos))
+      val elems = List(command, args mkString BACKEND_SEP)
+      elems mkString " "
+    case Seq(cardId: CaptureCardId, sub @ ("FILL_POSITION_MAP" | "FILL_DURATION_MAP"),
+      start: VideoPosition, end: VideoPosition) =>
+      val args = List(serialize(cardId), sub, serialize(start), serialize(end))
+      val elems = List(command, args mkString BACKEND_SEP)
+      elems mkString " "
+    case Seq(cardId: CaptureCardId, sub @ "CANCEL_NEXT_RECORDING", cancel: Boolean) =>
+      val args = List(serialize(cardId), sub, serialize(cancel))
+      val elems = List(command, args mkString BACKEND_SEP)
+      elems mkString " "
+    case Seq(cardId: CaptureCardId, sub @ ("SET_CHANNEL" | "CHECK_CHANNEL"), channum: String) =>
+      val args = List(serialize(cardId), sub, channum)
+      val elems = List(command, args mkString BACKEND_SEP)
+      elems mkString " "
+    case Seq(cardId: CaptureCardId, sub @ "CHECK_CHANNEL_PREFIX", channumPrefix: String) =>
+      val args = List(serialize(cardId), sub, channumPrefix)
+      val elems = List(command, args mkString BACKEND_SEP)
+      elems mkString " "
+    case Seq(cardId: CaptureCardId, sub @ "SET_INPUT", inputName: String) =>
+      val args = List(serialize(cardId), sub, inputName)
+      val elems = List(command, args mkString BACKEND_SEP)
+      elems mkString " "
+    case Seq(cardId: CaptureCardId, sub @ "GET_FREE_INPUTS", excludedCardIds @ _*) =>
+      val excludedIds = excludedCardIds collect { case c: CaptureCardId => c } map serialize[CaptureCardId]
+      val args = List(serialize(cardId), sub) ++ excludedIds
+      val elems = List(command, args mkString BACKEND_SEP)
+      elems mkString " "
+    case Seq(cardId: CaptureCardId, sub @ ("GET_CHANNEL_INFO" | "SHOULD_SWITCH_CARD"), chanId: ChanId) =>
+      val args = List(serialize(cardId), sub, serialize(chanId))
+      val elems = List(command, args mkString BACKEND_SEP)
+      elems mkString " "
+    case Seq(cardId: CaptureCardId, sub @ "CHANGE_CHANNEL", dir: ChannelChangeDirection) =>
+      val args = List(serialize(cardId), sub, serialize(dir.id))
+      val elems = List(command, args mkString BACKEND_SEP)
+      elems mkString " "
+    case Seq(cardId: CaptureCardId, sub @ "TOGGLE_CHANNEL_FAVORITE", channelGroup: String) =>
+      val args = List(serialize(cardId), sub, channelGroup)
+      val elems = List(command, args mkString BACKEND_SEP)
+      elems mkString " "
+    case Seq(cardId: CaptureCardId, sub @ ("CHANGE_COLOUR" | "CHANGE_CONTRAST" | "CHANGE_BRIGHTNESS" | "CHANGE_HUE"),
+      adjType: PictureAdjustType, up: Boolean) =>
+      val args = List(serialize(cardId), sub, serialize(adjType.id), serialize(up))
+      val elems = List(command, args mkString BACKEND_SEP)
+      elems mkString " "
+    case Seq(cardId: CaptureCardId, sub @ "GET_NEXT_PROGRAM_INFO", channelName: String, chanId: ChanId,
+      dir: ChannelBrowseDirection, startTime: MythDateTime) =>
+      val channelId = if (chanId.id == 0) "" else serialize(chanId)
+      val args = List(serialize(cardId), sub, channelName, channelId, serialize(dir.id), startTime.toIsoFormat)
+      val elems = List(command, args mkString BACKEND_SEP)
+      elems mkString " "
+    case Seq(cardId: CaptureCardId, sub @ "SET_SIGNAL_MONITORING_RATE", rate: Int, notifyFrontend: Boolean) =>
+      val args = List(serialize(cardId), sub, serialize(rate), serialize(notifyFrontend))
+      val elems = List(command, args mkString BACKEND_SEP)
+      elems mkString " "
+    case Seq(cardId: CaptureCardId, sub @ "SPAWN_LIVETV", usePiP: Boolean, channumStart: String) =>
+      val args = List(serialize(cardId), sub, serialize(usePiP), channumStart)
+      val elems = List(command, args mkString BACKEND_SEP)
+      elems mkString " "
+    case Seq(cardId: CaptureCardId, sub @ "SET_LIVE_RECORDING", recordingState: Int) =>
+      val args = List(serialize(cardId), sub, serialize(recordingState))
+      val elems = List(command, args mkString BACKEND_SEP)
+      elems mkString " "
+    case _ => throw new BackendCommandArgumentException
+  }
+
   protected def serializeQueryRecording(command: String, args: Seq[Any]): String = args match {
     case Seq(sub @ "TIMESLOT", chanId: ChanId, startTime: MythDateTime) =>
       val time: MythDateTimeString = startTime
@@ -1144,6 +1244,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   // TODO this needs to return a (ftID, fileSize) for FileTransfer announces
+  // TODO convert this to return a sum type (like query recorder)
   protected def handleAnnounce(request: BackendRequest, response: BackendResponse): Option[Either[Boolean, (Int, ByteCount)]] = {
     val mode = request.args match { case Seq(mode: String, _*) => mode }
     if (mode == "FileTransfer") {
@@ -1262,8 +1363,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleQueryBookmark(request: BackendRequest, response: BackendResponse): Option[VideoPosition] = {
-    val pos = deserialize[Long](response.raw)
-    Some(VideoPosition(pos))
+    Some(deserialize[VideoPosition](response.raw))
   }
 
   protected def handleQueryCheckFile(request: BackendRequest, response: BackendResponse): Option[String] = {
@@ -1440,6 +1540,131 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     else {
       val modified = deserialize[MythDateTime](response.raw)
       Some(modified)
+    }
+  }
+
+  protected def handleQueryRecorder(request: BackendRequest, response: BackendResponse): Option[QueryRecorderResult] = {
+    import MythProtocol.QueryRecorder._
+
+    def acknowledgement: Option[QueryRecorderResult] =
+      if (response.raw == "OK") Some(QueryRecorderAcknowledgement)
+      else None
+
+    def boolean = Some(QueryRecorderBoolean(deserialize[Boolean](response.raw)))
+    def bitrate = Some(QueryRecorderBitrate(deserialize[Long](response.raw)))
+
+    def frameRate =
+      if (response.raw == "-1") None
+      else Some(QueryRecorderFrameRate(deserialize[Double](response.raw)))
+
+    def frameCount =
+      if (response.raw == "-1") None
+      else Some(QueryRecorderFrameCount(deserialize[Long](response.raw)))
+
+    def input =
+      if (response.raw == "UNKNOWN") None
+      else Some(QueryRecorderInput(response.raw))
+
+    def pictureAttribute = {
+      val value = deserialize[Int](response.raw)
+      if (value == -1) None
+      else Some(QueryRecorderPictureAttribute(value))
+    }
+
+    def position = Some(QueryRecorderPosition(deserialize[Long](response.raw)))
+
+    def positionMap: Option[QueryRecorderResult] =
+      if (response.raw == "OK") Some(QueryRecorderPositionMap(Map.empty))
+      else if (response.raw == "error") None
+      else {
+        val map = (response.split grouped 2 map {
+          case Array(frame, offset) =>
+            (deserialize[VideoPosition](frame), deserialize[Long](offset))
+        }).toMap
+        Some(QueryRecorderPositionMap(map))
+      }
+
+    def recording = {
+      val rec = deserialize[Recording](response.split)
+      if (rec.title.isEmpty && rec.chanId.id == 0) None
+      else Some(QueryRecorderRecording(rec))
+    }
+
+    def signalMonitorRate = {
+      val rate = deserialize[Int](response.raw)
+      if (rate < 0) None
+      else Some(QueryRecorderBoolean(rate != 0))
+    }
+
+    def freeInputs: Option[QueryRecorderResult] = {
+      if (response.raw == "EMPTY_LIST") None
+      else {
+        val fieldCount = BackendCardInput.FIELD_ORDER.length
+        val it = response.split.iterator grouped fieldCount withPartial false
+        val inputs = (it map (BackendCardInput(_))).toList    // TODO use deserialize
+        Some(QueryRecorderCardInputList(inputs))
+      }
+    }
+
+    def checkChannelPrefix: Option[QueryRecorderResult] = {
+      val items = response.split
+      val matched = deserialize[Boolean](items(0))
+      val cardId = deserialize[Int](items(1))
+      val extraCharUseful = deserialize[Boolean](items(2))
+      val spacer = items(3)
+      val card = if (cardId == 0) None else Some(CaptureCardId(cardId))
+      Some(QueryRecorderCheckChannelPrefix(matched, card, extraCharUseful, spacer))
+    }
+
+    def channelInfo: Option[QueryRecorderResult] =
+      Some(QueryRecorderChannelInfo(BackendChannel(response.split)))   // TODO use deserialize
+
+    def nextProgramInfo: Option[QueryRecorderResult] =
+      Some(QueryRecorderNextProgramInfo(BackendUpcomingProgram(response.split)))  // TODO use deserialize
+
+    if (response.raw == "bad") None
+    else {
+      val subcommand = request.args(1).toString
+      subcommand match {
+        case "IS_RECORDING"               => boolean
+        case "GET_FRAMERATE"              => frameRate
+        case "GET_FRAMES_WRITTEN"         => frameCount
+        case "GET_FILE_POSITION"          => position    // TODO this may be byte position vs frame position
+        case "GET_MAX_BITRATE"            => bitrate
+        case "GET_KEYFRAME_POS"           => position
+        case "FILL_POSITION_MAP"          => positionMap
+        case "FILL_DURATION_MAP"          => positionMap
+        case "GET_CURRENT_RECORDING"      => recording
+        case "GET_RECORDING"              => recording
+        case "FRONTEND_READY"             => acknowledgement
+        case "CANCEL_NEXT_RECORDING"      => acknowledgement
+        case "SPAWN_LIVETV"               => acknowledgement
+        case "STOP_LIVETV"                => acknowledgement
+        case "PAUSE"                      => acknowledgement
+        case "FINISH_RECORDING"           => acknowledgement
+        case "SET_LIVE_RECORDING"         => acknowledgement
+        case "GET_FREE_INPUTS"            => freeInputs
+        case "GET_INPUT"                  => input
+        case "SET_INPUT"                  => input
+        case "TOGGLE_CHANNEL_FAVORITE"    => acknowledgement
+        case "CHANGE_CHANNEL"             => acknowledgement
+        case "SET_CHANNEL"                => acknowledgement
+        case "SET_SIGNAL_MONITORING_RATE" => signalMonitorRate
+        case "GET_COLOUR"                 => pictureAttribute
+        case "GET_CONTRAST"               => pictureAttribute
+        case "GET_BRIGHTNESS"             => pictureAttribute
+        case "GET_HUE"                    => pictureAttribute
+        case "CHANGE_COLOUR"              => pictureAttribute
+        case "CHANGE_CONTRAST"            => pictureAttribute
+        case "CHANGE_BRIGHTNESS"          => pictureAttribute
+        case "CHANGE_HUE"                 => pictureAttribute
+        case "CHECK_CHANNEL"              => boolean
+        case "SHOULD_SWITCH_CARD"         => boolean
+        case "CHECK_CHANNEL_PREFIX"       => checkChannelPrefix
+        case "GET_CHANNEL_INFO"           => channelInfo
+        case "GET_NEXT_PROGRAM_INFO"      => nextProgramInfo
+        case _                            => None
+      }
     }
   }
 

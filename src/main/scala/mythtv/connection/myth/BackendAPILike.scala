@@ -5,9 +5,11 @@ package myth
 import java.net.InetAddress
 import java.time.{ Duration, Instant, ZoneOffset }
 
-import model.{ CaptureCardId, ChanId, FreeSpace, Recording, RemoteEncoder, VideoPosition, VideoSegment }
+import model.{ CaptureCardId, CardInput, Channel, ChanId, FreeSpace, Recording, RemoteEncoder, UpcomingProgram, VideoPosition, VideoSegment }
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
+import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, PictureAdjustType }
 import EnumTypes.MythProtocolEventMode
+import MythProtocol.QueryRecorder._
 
 private trait BackendAPILike {
   self: MythProtocolLike =>
@@ -250,6 +252,191 @@ private trait BackendAPILike {
   def queryPixmapLastModified(rec: Recording): MythDateTime = {
     val result = sendCommand("QUERY_PIXMAP_LASTMODIFIED", rec)
     (result map { case d: MythDateTime => d }).get
+  }
+
+  def queryRecorderCancelNextRecording(cardId: CaptureCardId, cancel: Boolean): Unit = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "CANCEL_NEXT_RECORDING", cancel)
+  }
+
+  def queryRecorderChangeBrightness(cardId: CaptureCardId, adjType: PictureAdjustType, up: Boolean): Int = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "CHANGE_BRIGHTNESS", adjType, up)
+    (result map { case QueryRecorderPictureAttribute(a) => a }).get
+  }
+
+  def queryRecorderChangeChannel(cardId: CaptureCardId, dir: ChannelChangeDirection): Unit = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "CHANGE_CHANNEL", dir)
+  }
+
+  def queryRecorderChangeColour(cardId: CaptureCardId, adjType: PictureAdjustType, up: Boolean): Int = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "CHANGE_COLOUR", adjType, up)
+    (result map { case QueryRecorderPictureAttribute(a) => a }).get
+  }
+
+  def queryRecorderChangeContrast(cardId: CaptureCardId, adjType: PictureAdjustType, up: Boolean): Int = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "CHANGE_CONTRAST", adjType, up)
+    (result map { case QueryRecorderPictureAttribute(a) => a }).get
+  }
+
+  def queryRecorderChangeHue(cardId: CaptureCardId, adjType: PictureAdjustType, up: Boolean): Int = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "CHANGE_HUE", adjType, up)
+    (result map { case QueryRecorderPictureAttribute(a) => a }).get
+  }
+
+  def queryRecorderCheckChannel(cardId: CaptureCardId, channum: String): Boolean = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "CHECK_CHANNEL", channum)
+    (result map { case QueryRecorderBoolean(b) => b }).get
+  }
+
+  def queryRecorderCheckChannelPrefix(cardId: CaptureCardId, channumPrefix: String):
+      (Boolean, Option[CaptureCardId], Boolean, String) = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "CHECK_CHANNEL_PREFIX", channumPrefix)
+    (result map { case QueryRecorderCheckChannelPrefix(matched, cardId, extraCharUseful, spacer) =>
+      (matched, cardId, extraCharUseful, spacer) }).get
+  }
+  // TODO return type more specific?
+  def queryRecorderFillDurationMap(cardId: CaptureCardId, start: VideoPosition, end: VideoPosition): Map[VideoPosition, Long] = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "FILL_DURATION_MAP", start, end)
+    (result map { case QueryRecorderPositionMap(m) => m }).get
+  }
+
+  // TODO return type more specific?
+  def queryRecorderFillPositionMap(cardId: CaptureCardId, start: VideoPosition, end: VideoPosition): Map[VideoPosition, Long] = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "FILL_POSITION_MAP", start, end)
+    (result map { case QueryRecorderPositionMap(m) => m }).get
+  }
+
+  def queryRecorderFinishRecording(cardId: CaptureCardId): Unit = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "FINISH_RECORDING")
+  }
+
+  def queryRecorderFrontendReady(cardId: CaptureCardId): Unit = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "FRONTEND_READY")
+  }
+
+  def queryRecorderGetBrightness(cardId: CaptureCardId): Int = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "GET_BRIGHTNESS")
+    (result map { case QueryRecorderPictureAttribute(a) => a }).get
+  }
+
+  def queryRecorderGetChannelInfo(cardId: CaptureCardId, chanId: ChanId): Channel = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "GET_CHANNEL_INFO", chanId)
+    (result map { case QueryRecorderChannelInfo(c) => c }).get
+  }
+
+  def queryRecorderGetColour(cardId: CaptureCardId): Int = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "GET_COLOUR")
+    (result map { case QueryRecorderPictureAttribute(a) => a }).get
+  }
+
+  def queryRecorderGetContrast(cardId: CaptureCardId): Int = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "GET_CONTRAST")
+    (result map { case QueryRecorderPictureAttribute(a) => a }).get
+  }
+
+  def queryRecorderGetCurrentRecording(cardId: CaptureCardId): Recording = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "GET_CURRENT_RECORDING")
+    (result map { case QueryRecorderRecording(r) => r }).get
+  }
+
+  def queryRecorderGetFilePosition(cardId: CaptureCardId): Long = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "GET_FILE_POSITION")
+    (result map { case QueryRecorderPosition(p) => p }).get
+  }
+
+  def queryRecorderGetFrameRate(cardId: CaptureCardId): Double = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "GET_FRAMERATE")
+    (result map { case QueryRecorderFrameRate(r) => r }).get
+  }
+
+  def queryRecorderGetFramesWritten(cardId: CaptureCardId): Long = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "GET_FRAMES_WRITTEN")
+    (result map { case QueryRecorderFrameCount(n) => n }).get
+  }
+
+  def queryRecorderGetFreeInputs(cardId: CaptureCardId, excludedCards: CaptureCardId*): List[CardInput] = {
+    val result = sendCommand("QUERY_RECORDER", cardId, excludedCards)
+    (result map { case QueryRecorderCardInputList(i) => i }).get
+  }
+
+  def queryRecorderGetHue(cardId: CaptureCardId): Int = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "GET_HUE")
+    (result map { case QueryRecorderPictureAttribute(a) => a }).get
+  }
+
+  def queryRecorderGetInput(cardId: CaptureCardId): String = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "GET_INPUT")
+    (result map { case QueryRecorderInput(input) => input }).get
+  }
+
+  def queryRecorderGetKeyframePos(cardId: CaptureCardId, desiredPos: VideoPosition): Long = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "GET_KEYFRAME_POS", desiredPos)
+    (result map { case QueryRecorderPosition(p) => p }).get
+  }
+
+  def queryRecorderGetMaxBitrate(cardId: CaptureCardId): Long = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "GET_MAX_BITRATE")
+    (result map { case QueryRecorderBitrate(b) => b }).get
+  }
+
+  def queryRecorderGetNextProgramInfo(cardId: CaptureCardId, chanId: ChanId, dir: ChannelBrowseDirection,
+    startTime: MythDateTime): UpcomingProgram = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "GET_NEXT_PROGRAM_INFO", "", chanId, dir, startTime)
+    (result map { case QueryRecorderNextProgramInfo(p) => p }).get
+  }
+
+  def queryRecorderGetNextProgramInfo(cardId: CaptureCardId, channum: String, dir: ChannelBrowseDirection,
+    startTime: MythDateTime): UpcomingProgram = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "GET_NEXT_PROGRAM_INFO", channum, ChanId(0), dir, startTime)
+    (result map { case QueryRecorderNextProgramInfo(p) => p }).get
+  }
+
+  def queryRecorderGetRecording(cardId: CaptureCardId): Recording = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "GET_RECORDING")
+    (result map { case QueryRecorderRecording(r) => r }).get
+  }
+
+  def queryRecorderIsRecording(cardId: CaptureCardId): Boolean = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "IS_RECORDING")
+    (result map { case QueryRecorderBoolean(b) => b }).get
+  }
+
+  def queryRecorderPause(cardId: CaptureCardId): Unit = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "PAUSE")
+  }
+
+  def queryRecorderSetChannel(cardId: CaptureCardId, channum: String): Unit = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "SET_CHANNEL", channum)
+  }
+
+  def queryRecorderSetInput(cardId: CaptureCardId, inputName: String): String = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "SET_INPUT", inputName)
+    (result map { case QueryRecorderInput(input) => input }).get
+  }
+
+  def queryRecorderSetLiveRecording(cardId: CaptureCardId, recordingState: Int): Unit = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "SET_LIVE_RECORDING", recordingState)
+  }
+
+  def queryRecorderSetSignalMonitoringRate(cardId: CaptureCardId, rate: Int, notifyFrontend: Boolean): Boolean = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "SET_SIGNAL_MONITORING_RATE", rate, notifyFrontend)
+    (result map { case QueryRecorderBoolean(b) => b }).get
+  }
+
+  def queryRecorderShouldSwitchCard(cardId: CaptureCardId, chanId: ChanId): Boolean = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "SHOULD_SWITCH_CARD", chanId)
+    (result map { case QueryRecorderBoolean(b) => b }).get
+  }
+
+  def queryRecorderSpawnLiveTV(cardId: CaptureCardId, usePiP: Boolean, channumStart: String): Unit = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "SPAWN_LIVETV", usePiP, channumStart)
+  }
+
+  def queryRecorderStopLiveTV(cardId: CaptureCardId): Unit = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "STOP_LIVETV")
+  }
+
+  def queryRecorderToggleChannelFavorite(cardId: CaptureCardId, channelGroup: String): Unit = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "TOGGLE_CHANNEL_FAVORITE", channelGroup)
   }
 
   def queryRecording(pathName: String): Recording = {

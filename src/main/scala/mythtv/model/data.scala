@@ -45,6 +45,15 @@ trait RemoteEncoder {
   def port: Int
 }
 
+trait CardInput {
+  def cardInputId: Int
+  def cardId: CaptureCardId
+  def sourceId: ListingSourceId   // is this the right source Id?
+  def name: String
+  def mplexId: Int
+  def liveTVorder: Int
+}
+
 trait FreeSpace {
   def host: String
   def path: String
@@ -86,6 +95,20 @@ trait Program {
   def year: Option[Year]           // NB called 'airdate' in program table
   def partNumber: Option[Int]
   def partTotal: Option[Int]
+}
+
+// Used, e.g. by Myth protocol QUERY_RECORDER/GET_NEXT_PROGRAM_INFO
+//  (that message also returns some additional channel info: callsign, channame, iconpath)
+trait UpcomingProgram {
+  def title: String
+  def subtitle: String
+  def description: String
+  def category: String
+  def chanId: ChanId
+  def startTime: MythDateTime
+  def endTime: MythDateTime
+  def seriesId: String
+  def programId: String
 }
 
 trait Recordable extends Program {
@@ -167,10 +190,19 @@ trait ProgramGuideEntry extends Program {
 trait Channel {
   def chanId: ChanId
   def name: String
+  def number: String
   def callsign: String
+  def sourceId: ListingSourceId  // TODO is this the right type? or do we need VideoSourceId?
+
+  /*
+  def xmltvId: String //TODO, expose this here? it is returned by QUERY_RECORDER/GET_CHANNEL_INFO in MythProtocol
+   */
+
+  /*
   def visible: Boolean
   def recPriority: Int           // TODO do we want this here?  Not in serivce object?
   def lastRecord: MythDateTime   // TODO do we want this here?  Not in service object?
+   */
 }
 
 trait Video {
