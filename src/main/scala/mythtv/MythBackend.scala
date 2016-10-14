@@ -3,14 +3,23 @@ package mythtv
 import java.time.Duration
 
 import model._
-import connection.myth.BackendAPIConnection
+import connection.myth.{ BackendAPIConnection, EventConnection }
 import util.{ ByteCount, ExpectedCountIterator, MythDateTime }
 
 class MythBackend(val host: String) extends Backend with BackendOperations {
   private[this] val conn = BackendAPIConnection(host)
+  @volatile private[this] var eventConnMayBeNull: EventConnection = _
+
+  conn.announce("Monitor")
 
   def close() = {
+    if (eventConnMayBeNull ne null) eventConnMayBeNull.disconnect()
     conn.disconnect()
+  }
+
+  private def eventConnection: EventConnection = synchronized {
+    if (eventConnMayBeNull eq null) eventConnMayBeNull = EventConnection(host)
+    eventConnMayBeNull
   }
 
   def recording(chanId: ChanId, startTime: MythDateTime): Recording = {
