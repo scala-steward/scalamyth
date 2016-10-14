@@ -45,8 +45,6 @@ class MythFrontend(val host: String) extends Frontend with FrontendOperations {
   lazy val jump = new Jumper      // TODO is it good practice to expose these lazy vals directly to the API?
   lazy val key = new KeySender
 
-  type JumpPoint = String
-
   // TODO should (can) this be an object? or private class?
   class Jumper extends PartialFunction[JumpPoint, Boolean] {
     lazy val points: Map[String, String] = retrieveJumpPoints
@@ -64,8 +62,6 @@ class MythFrontend(val host: String) extends Frontend with FrontendOperations {
       (for (m <- helpPat findAllMatchIn help) yield (m group 1, m group 2)).toMap
     }
   }
-
-  type KeyName = String
 
   class KeySender extends PartialFunction[KeyName, Boolean] {
     lazy val special: Set[KeyName] = retrieveSpecialKeys
@@ -97,4 +93,6 @@ class MythFrontend(val host: String) extends Frontend with FrontendOperations {
 
 object MythFrontend {
   final val DEFAULT_PORT: Int = 6546
+  type KeyName = String
+  type JumpPoint = String
 }

@@ -59,8 +59,8 @@ trait FrontendOperations {
   def currentTime: Instant
 
   // remote control methods
-  def key: PartialFunction[String, Boolean]   // TODO use KeyName type
-  def jump: PartialFunction[String, Boolean]  // TODO use JumpPoint type
+  def key: PartialFunction[MythFrontend.KeyName, Boolean]
+  def jump: PartialFunction[MythFrontend.JumpPoint, Boolean]
 }
 
 trait BackendServiceOperations {
