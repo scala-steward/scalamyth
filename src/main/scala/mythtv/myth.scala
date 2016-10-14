@@ -57,6 +57,7 @@ trait BackendOperations {
  */
 
   // These are MythDB methods in the Python bindings ...
+  def scanVideos(): Map[String, Set[VideoId]]
   //def recorders: Iterable[CaptureCard]
 }
 
