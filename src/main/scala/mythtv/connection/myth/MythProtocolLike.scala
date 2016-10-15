@@ -11,6 +11,7 @@ import util.{ ByteCount, BinaryByteCount, DecimalByteCount, ExpectedCountIterato
 import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, PictureAdjustType }
 import EnumTypes.MythProtocolEventMode
 
+import MythProtocol.Announce.AnnounceResult
 import MythProtocol.QueryRecorder.QueryRecorderResult
 
 private[myth] trait MythProtocolLike extends MythProtocolSerializer {
@@ -1298,7 +1299,8 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   // TODO this needs to return a (ftID, fileSize) for FileTransfer announces
   // TODO convert this to return a sum type (like query recorder)
-  protected def handleAnnounce(request: BackendRequest, response: BackendResponse): Option[Either[Boolean, (Int, ByteCount)]] = {
+  protected def handleAnnounce(request: BackendRequest, response: BackendResponse): Option[AnnounceResult] = {
+    import MythProtocol.Announce._
     val mode = request.args match { case Seq(mode: String, _*) => mode }
     if (mode == "FileTransfer") {
       val items = response.split
@@ -1306,10 +1308,13 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       else {
         val ftId = deserialize[Int](items(1))
         val fileSize = DecimalByteCount(deserialize[Long](items(2)))
-        Some(Right((ftId, fileSize)))
+        Some(AnnounceFileTransfer(ftId, fileSize))
       }
     }
-    else Some(Left(response.raw == "OK"))
+    else {
+      if (response.raw == "OK") Some(AnnounceAcknowledgement)
+      else None
+    }
   }
 
   protected def handleBlockShutdown(request: BackendRequest, response: BackendResponse): Option[Boolean] = {

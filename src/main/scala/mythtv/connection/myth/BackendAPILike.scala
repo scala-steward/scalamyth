@@ -20,15 +20,12 @@ private trait BackendAPILike {
   }
 
   def announce(mode: String, hostName: String, eventMode: MythProtocolEventMode): Boolean = {
+    import MythProtocol.Announce._
     val localHost =
       if (hostName != "") hostName
       else InetAddress.getLocalHost().getHostName()
     val result = sendCommand("ANN", mode, localHost, eventMode)
-    // result is an Option[ Either[Boolean, (Int, ByteCount)] ]
-    (result map {
-      case either: Either[_, _] =>
-        (either.left map { case r: Boolean => r }).left.get   // U-g-l-y!
-    }).get
+    (result map { case AnnounceAcknowledgement => true }).get
   }
 
   def announceFileTransfer(hostName: String, fileName: String, storageGroup: String,
@@ -36,12 +33,9 @@ private trait BackendAPILike {
     useReadAhead: Boolean = true,
     timeout: Duration = Duration.ofSeconds(2)
   ): (Int, ByteCount) = {
+    import MythProtocol.Announce._
     val result = sendCommand("ANN", "FileTransfer", hostName, writeMode, useReadAhead, timeout, fileName, storageGroup)
-    // result is an Option[ Either[Boolean, (Int, ByteCount)] ]
-    (result map {
-      case either: Either[_, _] =>
-        (either.right map { case (ftId: Int, fileSize: ByteCount) => (ftId, fileSize) }).right.get
-    }).get
+    (result map { case AnnounceFileTransfer(ftID, fileSize) => (ftID, fileSize) }).get
   }
 
   def blockShutdown(): Boolean = {

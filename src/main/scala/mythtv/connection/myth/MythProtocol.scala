@@ -4,6 +4,7 @@ package myth
 
 import java.util.regex.Pattern
 
+import util.ByteCount
 import model.{ CaptureCardId, CardInput, Channel, Recording, UpcomingProgram, VideoPosition }
 
 trait MythProtocol extends MythProtocolLike {
@@ -14,6 +15,13 @@ trait MythProtocol extends MythProtocolLike {
 object MythProtocol extends MythProtocolSerializer {
   final val BACKEND_SEP: String = "[]:[]"
   final val SPLIT_PATTERN: String = Pattern.quote(BACKEND_SEP)
+
+  object Announce {
+    // Sum type representing return values from ANN
+    sealed trait AnnounceResult
+    final case object AnnounceAcknowledgement extends AnnounceResult
+    final case class AnnounceFileTransfer(ftID: Int, size: ByteCount) extends AnnounceResult
+  }
 
   object QueryRecorder {
     // Sum type representing return values from QUERY_RECORDER
