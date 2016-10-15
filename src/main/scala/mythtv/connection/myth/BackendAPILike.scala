@@ -115,6 +115,22 @@ private trait BackendAPILike {
   def lockTuner(): Any = ??? // TODO capture the appropriate return type
   def lockTuner(cardId: CaptureCardId): Any = ???// see above for return type
 
+  def message(message: String, extra: String*): Boolean = {
+    val args = List(message) ++ extra
+    val result = sendCommand("MESSAGE", args: _*)
+    (result map { case r: Boolean => r }).get
+  }
+
+  def messageSetLogLevel(logLevel: String): Boolean = {
+    val result = sendCommand("MESSAGE", "SET_LOG_LEVEL", logLevel)
+    (result map { case r: Boolean => r }).get
+  }
+
+  def messageSetVerbose(verboseMask: String): Boolean = {
+    val result = sendCommand("MESSAGE", "SET_VERBOSE", verboseMask)
+    (result map { case r: Boolean => r }).get
+  }
+
   def protocolVersion(version: Int, token: String): (Boolean, Int) = {
     // NOTE that I believe an incorrect protocol version results in socket being closed
     val result = sendCommand("MYTH_PROTO_VERSION", version, token)

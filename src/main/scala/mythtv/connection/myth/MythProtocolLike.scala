@@ -414,7 +414,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *     SET_VERBOSE:   "OK" or "Failed"
      *     SET_LOG_LEVEL: "OK" or "Failed"
      */
-    "MESSAGE" -> ((serializeNOP, handleNOP)),
+    "MESSAGE" -> ((serializeMessage, handleMessage)),
 
     /*
      * MYTH_PROTO_VERSION %s %s    <version> <protocolToken>
@@ -1043,6 +1043,20 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     case _ => throw new BackendCommandArgumentException
   }
 
+  protected def serializeMessage(command: String, args: Seq[Any]): String = args match {
+    case Seq(sub @ "SET_VERBOSE", verboseMask: String) =>
+      val elems = List(command, sub, verboseMask)
+      elems mkString BACKEND_SEP
+    case Seq(sub @ "SET_LOG_LEVEL", logLevel: String) =>
+      val elems = List(command, sub, logLevel)
+      elems mkString BACKEND_SEP
+    case Seq(message: String, extra @ _*) =>
+      val extras = extra map (_.toString)
+      val elems = List(command, message) ++ extras
+      elems mkString BACKEND_SEP
+    case _ => throw new BackendCommandArgumentException
+  }
+
   protected def serializeMythProtoVersion(command: String, args: Seq[Any]): String = args match {
     case Seq(version: Int, token: String) =>
       val elems = List(command, serialize(version), token)
@@ -1402,6 +1416,10 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleGoToSleep(request: BackendRequest, response: BackendResponse): Option[Boolean] = {
+    Some(response.raw == "OK")
+  }
+
+  protected def handleMessage(request: BackendRequest, response: BackendResponse): Option[Boolean] = {
     Some(response.raw == "OK")
   }
 
