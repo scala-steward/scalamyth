@@ -4,11 +4,12 @@ package myth
 
 import java.time.{ Duration, Instant, LocalDate, ZoneOffset }
 
-import data.{ BackendCardInput, BackendChannel, BackendFreeSpace, BackendProgram, BackendRemoteEncoder, BackendUpcomingProgram, BackendVideoSegment }
-import model.{ CaptureCardId, CardInput, Channel, ChanId, FreeSpace, Markup, RecordedMarkup, Recording, RemoteEncoder, UpcomingProgram,
-  VideoPosition, VideoSegment }
+import data.{ BackendCardInput, BackendChannel, BackendFreeSpace, BackendProgram,
+  BackendRemoteEncoder, BackendUpcomingProgram, BackendVideoSegment }
+import model.{ CaptureCardId, CardInput, Channel, ChanId, FreeSpace, ListingSourceId, Markup, RecordedMarkup,
+  Recording, RecordRuleId, RemoteEncoder, UpcomingProgram, VideoPosition, VideoSegment }
 import util.{ ByteCount, BinaryByteCount, DecimalByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythDateTimeString }
-import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, PictureAdjustType }
+import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, PictureAdjustType, RecStatus }
 import EnumTypes.MythProtocolEventMode
 
 import MythProtocol.Announce.AnnounceResult
@@ -1260,15 +1261,16 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def serializeRescheduleRecordings(command: String, args: Seq[Any]): String = args match {
-    case Seq(sub @ "MATCH", recordId: Int, sourceId: Int, mplexId: Int, reason: String) =>
+    case Seq(sub @ "MATCH", recordId: RecordRuleId, sourceId: ListingSourceId, mplexId: Int, reason: String) =>
       val args = List(sub, serialize(recordId), serialize(sourceId), serialize(mplexId), "-", reason)
       val elems = List(command, args mkString " ")
       elems mkString BACKEND_SEP
-    case Seq(sub @ "MATCH", recordId: Int, sourceId: Int, mplexId: Int, maxStartTime: MythDateTime, reason: String) =>
+    case Seq(sub @ "MATCH", recordId: RecordRuleId, sourceId: ListingSourceId, mplexId: Int,
+      maxStartTime: MythDateTime, reason: String) =>
       val args = List(sub, serialize(recordId), serialize(sourceId), serialize(mplexId), maxStartTime.toIsoFormat, reason)
       val elems = List(command, args mkString " ")
       elems mkString BACKEND_SEP
-    case Seq(sub @ "CHECK", recStatus: Int, recordId: Int, findId: Int, reason: String,
+    case Seq(sub @ "CHECK", recStatus: RecStatus, recordId: RecordRuleId, findId: Int, reason: String,
       title: String, subtitle: String, description: String, programId: String) =>
       val args = List(sub, serialize(recStatus), serialize(recordId), serialize(findId), reason)
       val elems = List(command, args mkString " ", title, subtitle, description, programId)

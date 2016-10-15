@@ -5,9 +5,10 @@ package myth
 import java.net.InetAddress
 import java.time.{ Duration, Instant, ZoneOffset }
 
-import model.{ CaptureCardId, CardInput, Channel, ChanId, FreeSpace, Recording, RemoteEncoder, UpcomingProgram, VideoPosition, VideoSegment }
+import model.{ CaptureCardId, CardInput, Channel, ChanId, FreeSpace, ListingSourceId, Recording,
+  RecordRuleId, RemoteEncoder, UpcomingProgram, VideoPosition, VideoSegment }
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
-import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, PictureAdjustType }
+import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, PictureAdjustType, RecStatus }
 import EnumTypes.MythProtocolEventMode
 import MythProtocol.QueryRecorder._
 
@@ -497,15 +498,15 @@ private trait BackendAPILike {
     (result map { case r: Boolean => r }).get
   }
 
-  def rescheduleRecordingsCheck(recStatus: Int, recordId: Int, findId: Int, title: String, subtitle: String,
+  def rescheduleRecordingsCheck(recStatus: RecStatus, recordId: RecordRuleId, findId: Int, title: String, subtitle: String,
     description: String, programId: String, reason: String): Boolean = {
     val result = sendCommand("RESCHEDULE_RECORDINGS", "CHECK", recStatus, recordId, findId, reason,
       title, subtitle, description, programId)
     (result map { case r: Boolean => r }).get
   }
 
-  def rescheduleRecordingsMatch(recordId: Int, sourceId: Int, mplexId: Int, maxStartTime: Option[MythDateTime],
-    reason: String): Boolean = {
+  def rescheduleRecordingsMatch(recordId: RecordRuleId, sourceId: ListingSourceId, mplexId: Int,
+    maxStartTime: Option[MythDateTime], reason: String): Boolean = {
     val result =
       if (maxStartTime.isEmpty) sendCommand("RESCHEDULE_RECORDINGS", "MATCH", recordId, sourceId, mplexId, reason)
       else sendCommand("RESCHEDULE_RECORDINGS", "MATCH", recordId, sourceId, mplexId, maxStartTime.get, reason)

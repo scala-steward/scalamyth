@@ -4,9 +4,10 @@ package myth
 
 import java.time.{ Duration, Instant, ZoneOffset }
 
-import model.{ CaptureCardId, CardInput, Channel, ChanId, FreeSpace, Recording, RemoteEncoder, UpcomingProgram, VideoPosition, VideoSegment }
+import model.{ CaptureCardId, CardInput, Channel, ChanId, FreeSpace, ListingSourceId, Recording,
+  RecordRuleId, RecStatus, RemoteEncoder, UpcomingProgram, VideoPosition, VideoSegment }
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
-import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, PictureAdjustType }
+import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, PictureAdjustType, RecStatus }
 import EnumTypes.MythProtocolEventMode
 
 // TODO these APIs should be converted to return Option[_] or Either[_] or something
@@ -117,10 +118,10 @@ trait MythProtocolAPI {
   def queryTimeZone: (String, ZoneOffset, Instant)
   def queryUptime: Duration
   def refreshBackend: Boolean
-  def rescheduleRecordingsCheck(recStatus: Int = 0, recordId: Int = 0, findId: Int = 0, title: String = "",
-    subtitle: String = "", description: String = "", programId: String = "", reason: String = "Scala"): Boolean
-  def rescheduleRecordingsMatch(recordId: Int = 0, sourceId: Int = 0, mplexId: Int = 0,
-    maxStartTime: Option[MythDateTime] = None, reason: String = "Scala"): Boolean
+  def rescheduleRecordingsCheck(recStatus: RecStatus = RecStatus.Unknown, recordId: RecordRuleId = RecordRuleId(0), findId: Int = 0,
+    title: String = "", subtitle: String = "", description: String = "", programId: String = "", reason: String = "Scala"): Boolean
+  def rescheduleRecordingsMatch(recordId: RecordRuleId = RecordRuleId(0), sourceId: ListingSourceId = ListingSourceId(0),
+    mplexId: Int = 0, maxStartTime: Option[MythDateTime] = None, reason: String = "Scala"): Boolean
   def rescheduleRecordingsPlace(reason: String = "Scala"): Boolean
   def scanVideos: Boolean
   def setBookmark(chanId: ChanId, startTime: MythDateTime, pos: VideoPosition): Boolean

@@ -5,8 +5,9 @@ package myth
 import java.time.Instant
 
 import data.{ BackendProgram, BackendRecordedMarkup }
-import model.{ CaptureCardId, ChanId, Markup, RecordedMarkup, Recording, VideoPosition }
+import model.{ CaptureCardId, ChanId, ListingSourceId, Markup, RecordRuleId, RecordedMarkup, Recording, RecStatus, VideoPosition }
 import util.{ BinaryByteCount, DecimalByteCount, FileStats, MythDateTime, MythDateTimeString }
+import model.EnumTypes.RecStatus
 
 // Type class for serializable objects in the MythProtocol stream
 trait MythProtocolSerializable[T] {
@@ -59,6 +60,24 @@ object MythProtocolSerializable {
     def deserialize(in: String): ChanId = ChanId(in.toInt)
     def serialize(in: ChanId): String = in.id.toString
     override def serialize(in: ChanId, builder: StringBuilder): StringBuilder = { builder.append(in.id); builder }
+  }
+
+  implicit object ListingSourceIdSerializer extends MythProtocolSerializable[ListingSourceId] {
+    def deserialize(in: String): ListingSourceId = ListingSourceId(in.toInt)
+    def serialize(in: ListingSourceId): String = in.id.toString
+    override def serialize(in: ListingSourceId, builder: StringBuilder): StringBuilder = { builder.append(in.id); builder }
+  }
+
+  implicit object RecordRuleIdSerializer extends MythProtocolSerializable[RecordRuleId] {
+    def deserialize(in: String): RecordRuleId = RecordRuleId(in.toInt)
+    def serialize(in: RecordRuleId): String = in.id.toString
+    override def serialize(in: RecordRuleId, builder: StringBuilder): StringBuilder = { builder.append(in.id); builder }
+  }
+
+  implicit object RecStatusSerializer extends MythProtocolSerializable[RecStatus] {
+    def deserialize(in: String): RecStatus = RecStatus(in.toInt)
+    def serialize(in: RecStatus): String = in.id.toString
+    override def serialize(in: RecStatus, builder: StringBuilder): StringBuilder = { builder.append(in.id); builder }
   }
 
   implicit object VideoPositionSerializer extends MythProtocolSerializable[VideoPosition] {
