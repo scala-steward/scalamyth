@@ -1,13 +1,18 @@
 lazy val commonSettings = Seq(
-  organization := "org.mythtv",
-  version := "0.1.0",
   scalaVersion := "2.11.8",
-  scalacOptions += "-target:jvm-1.8"
+  scalacOptions ++= Seq(
+    "-unchecked",
+    "-deprecation",
+    "-Xlint",
+    "-target:jvm-1.8"
+  )
 )
 
 lazy val root = (project in file(".")).
   settings(commonSettings: _*).
   settings(
+    organization := "org.mythtv",
+    version := "0.1.0",
     name := "mythtv"
   )
 
