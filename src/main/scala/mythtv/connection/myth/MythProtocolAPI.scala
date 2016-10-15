@@ -58,7 +58,6 @@ trait MythProtocolAPI {
   def queryPixmapGetIfModified(maxFileSize: Long, rec: Recording): (MythDateTime, Option[PixmapInfo])
   def queryPixmapGetIfModified(modifiedSince: MythDateTime, maxFileSize: Long, rec: Recording): (MythDateTime, Option[PixmapInfo])
   def queryPixmapLastModified(rec: Recording): MythDateTime
-  // TODO also implement all these queryRecorderXXX methods on the RemoteEncoder class? (we return one, see above)
   def queryRecorderCancelNextRecording(cardId: CaptureCardId, cancel: Boolean): Unit
   def queryRecorderChangeBrightness(cardId: CaptureCardId, adjType: PictureAdjustType, up: Boolean): Int
   def queryRecorderChangeChannel(cardId: CaptureCardId, dir: ChannelChangeDirection): Unit
