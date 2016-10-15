@@ -489,6 +489,29 @@ private trait BackendAPILike {
     (result map { case r: Boolean => r }).get
   }
 
+  def rescheduleRecordingsCheck(recStatus: Int = 0, recordId: Int = 0, findId: Int = 0, title: String = "",
+    subtitle: String = "", description: String = "", programId: String = "", reason: String = "Scala"): Boolean = {
+    val result = sendCommand("RESCHEDULE_RECORDINGS", "CHECK", recStatus, recordId, findId, reason,
+      title, subtitle, description, programId)
+    (result map { case r: Boolean => r }).get
+  }
+
+  def rescheduleRecordingsMatch(recordId: Int = 0, sourceId: Int = 0, mplexId: Int = 0,
+    maxStartTime: Option[MythDateTime] = None, reason: String = "Scala"): Boolean = {
+    if (maxStartTime.isEmpty) {
+      val result = sendCommand("RESCHEDULE_RECORDINGS", "MATCH", recordId, sourceId, mplexId, reason)
+      (result map { case r: Boolean => r }).get
+    } else {
+      val result = sendCommand("RESCHEDULE_RECORDINGS", "MATCH", recordId, sourceId, mplexId, maxStartTime.get, reason)
+      (result map { case r: Boolean => r }).get
+    }
+  }
+
+  def rescheduleRecordingsPlace(reason: String = "Scala"): Boolean = {
+    val result = sendCommand("RESCHEDULE_RECORDINGS", "PLACE", reason)
+    (result map { case r: Boolean => r }).get
+  }
+
   def scanVideos: Boolean = {
     // TODO this may need a longer timeout, may take some time? Is this true?
     val result = sendCommand("SCAN_VIDEOS")

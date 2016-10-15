@@ -115,6 +115,11 @@ trait MythProtocolAPI {
   def queryTimeZone: (String, ZoneOffset, Instant)
   def queryUptime: Duration
   def refreshBackend: Boolean
+  def rescheduleRecordingsCheck(recStatus: Int = 0, recordId: Int = 0, findId: Int = 0, title: String = "",
+    subtitle: String = "", description: String = "", programId: String = "", reason: String = "Scala"): Boolean
+  def rescheduleRecordingsMatch(recordId: Int = 0, sourceId: Int = 0, mplexId: Int = 0,
+    maxStartTime: Option[MythDateTime] = None, reason: String = "Scala"): Boolean
+  def rescheduleRecordingsPlace(reason: String = "Scala"): Boolean
   def scanVideos: Boolean
   def setBookmark(chanId: ChanId, startTime: MythDateTime, pos: VideoPosition): Boolean
   def setSetting(hostName: String, settingName: String, value: String): Boolean

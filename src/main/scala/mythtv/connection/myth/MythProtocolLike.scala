@@ -725,7 +725,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     "QUERY_RECORDINGS" -> (serializeQueryRecordings, handleQueryRecordings),
 
     /*
-     * QUERY_REMOTEENCODER %d [          <encoder#>
+     * QUERY_REMOTEENCODER [ %d          <encoder#>
      *     GET_STATE
      *   | GET_SLEEPSTATUS
      *   | GET_FLAGS
@@ -798,11 +798,36 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     "REFRESH_BACKEND" -> (serializeEmpty, handleRefreshBackend),
 
     /*
-     * RESCHEDULE_RECORDINGS [] [CHECK %d %d %d {Python}, '', '', '', {**any**}]
-     * RESCHEDULE_RECORDINGS [] [MATCH %d %d %d {- Python}]
+     * RESCHEDULE_RECORDINGS
+     *   [ MATCH %d %d %d %T %s ]              <recordId> <sourceId> <mplexId> <maxStartTime> { reason }
+     *   [ CHECK %d %d %d %s ] [ %s %s %s %s]  <recstatus> <recordId> <findId> { reason }
+     *                                         <title> <subtitle> <descrip> <programId>
+     *   [ PLACE %s ]                          { reason }
+     *  @responds always
+     *  @returns [%b]      Boolean as to whether the reschedule request was processed
+     *
      *   TODO look @ Scheduler::HandleReschedule in programs/mythbackend/scheduler.cpp
+     *
+     *  Some example calls from the Python bindings:
+     *   RESCHEDULE_RECORDINGS [CHECK 0 0 0 Python] ['', '', '', '**any**']
+     *   RESCHEDULE_RECORDINGS [MATCH %d 0 0 - Python]
+     *
+     *  If any extra string are appended to the first argument group, they will be logged
+     *  but have no behavioral effect.
+     *
+     *  Looks like some special sentinel values may be used:
+     *       -      for maxStartTime =  QDateTime::fromString("-", Qt::ISODate) ? invalid?  TODO
+     *    **any**   for programId =  special value set in ProgLister::DeleteOldSeries()
+     *
+     *  All parameters to MATCH are optional, used if nonzero (or date is valid)
+     *  All parameters to CHECK are optional, used if nonzero (or nonempty)
+     *    CHECK recordId findId only used if programId != **all**, findId is nonzero
+     *                   findId => recordId
+     *
+     *  See log entry for git commit cbb8eb1ee32a658a519d2d5fb751ace114f63bf9 in mythtv tree
+     *  for lots of good info on the RESCHEDULE_RECORDINGS command parameters
      */
-    "RESCHEDULE_RECORDINGS" -> (serializeNOP, handleNOP),
+    "RESCHEDULE_RECORDINGS" -> (serializeRescheduleRecordings, handleRescheduleRecordings),
 
     /*
      * SCAN_VIDEOS
@@ -824,6 +849,11 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *                     <ChanId> <sourceid> <oldcnum> <callsign> <channum> <channame> <xmltv>
      *  @responds always
      *  @returns "1" for successful otherwise "0"
+     *
+     *  NB Implementation iterates over all (local) recorders
+     *  Writes channel info to the channel table in databae!
+     *   Updates { callsign, channum, name, xmltvId } keyed by (chanId, sourceId)
+     *  Used by OSD channel editor (tv_play.cpp)
      */
     "SET_CHANNEL_INFO" -> (serializeNOP, handleNOP),
 
@@ -1199,6 +1229,27 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     case Seq(hostName: String, settingName: String) =>
       val elems = List(command, hostName, settingName)
       elems mkString " "
+    case _ => throw new BackendCommandArgumentException
+  }
+
+  protected def serializeRescheduleRecordings(command: String, args: Seq[Any]): String = args match {
+    case Seq(sub @ "MATCH", recordId: Int, sourceId: Int, mplexId: Int, reason: String) =>
+      val args = List(sub, serialize(recordId), serialize(sourceId), serialize(mplexId), "-", reason)
+      val elems = List(command, args mkString " ")
+      elems mkString BACKEND_SEP
+    case Seq(sub @ "MATCH", recordId: Int, sourceId: Int, mplexId: Int, maxStartTime: MythDateTime, reason: String) =>
+      val args = List(sub, serialize(recordId), serialize(sourceId), serialize(mplexId), maxStartTime.toIsoFormat, reason)
+      val elems = List(command, args mkString " ")
+      elems mkString BACKEND_SEP
+    case Seq(sub @ "CHECK", recStatus: Int, recordId: Int, findId: Int, reason: String,
+      title: String, subtitle: String, description: String, programId: String) =>
+      val args = List(sub, serialize(recStatus), serialize(recordId), serialize(findId), reason)
+      val elems = List(command, args mkString " ", title, subtitle, description, programId)
+      elems mkString BACKEND_SEP
+    case Seq(sub @ "PLACE", reason: String) =>
+      val args = List(sub, reason)
+      val elems = List(command, args mkString " ")
+      elems mkString BACKEND_SEP
     case _ => throw new BackendCommandArgumentException
   }
 
@@ -1724,6 +1775,10 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   protected def handleRefreshBackend(request: BackendRequest, response: BackendResponse): Option[Boolean] = {
     val success = response.raw == "OK"
     Some(success)
+  }
+
+  protected def handleRescheduleRecordings(request: BackendRequest, response: BackendResponse): Option[Boolean] = {
+    Some(deserialize[Boolean](response.raw))
   }
 
   protected def handleScanVideos(request: BackendRequest, response: BackendResponse): Option[Boolean] = {
