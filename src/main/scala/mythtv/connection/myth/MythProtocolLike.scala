@@ -215,13 +215,15 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   /**
     * Myth protocol commands: (from programs/mythbackend/mainserver.cpp)
     */
+
+  // Extra parens on every map entry right hand side to keep auto-tupling at bay
   private val commandMap = Map[String, (SerializeRequest, HandleResponse)](
     /*
      * ALLOW_SHUTDOWN
      *  @responds sometime; only if tokenCount == 1
      *  @returns "OK"
      */
-    "ALLOW_SHUTDOWN" -> (serializeEmpty, handleAllowShutdown),
+    "ALLOW_SHUTDOWN" -> ((serializeEmpty, handleAllowShutdown)),
 
     /*
      * ANN Monitor %s %d                <clientHostName> <eventsMode>
@@ -240,35 +242,35 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *      FileTransfer: ["OK", %d, %ld]        <ftID>, <fileSize>
      *    or ["ERROR", ... ] on error conditions
      */
-    "ANN" -> (serializeAnnounce, handleAnnounce),
+    "ANN" -> ((serializeAnnounce, handleAnnounce)),
 
     /*
      * BACKEND_MESSAGE [] [%s {, %s}* ]   [<message> <extra...>]
      *  @responds never
      *  @returns nothing
      */
-    "BACKEND_MESSAGE" -> (serializeNOP, handleNOP),
+    "BACKEND_MESSAGE" -> ((serializeNOP, handleNOP)),
 
     /*
      * BLOCK_SHUTDOWN
      *  responds sometimes; only if tokenCount == 1
      *  @returns "OK"
      */
-    "BLOCK_SHUTDOWN" -> (serializeEmpty, handleBlockShutdown),
+    "BLOCK_SHUTDOWN" -> ((serializeEmpty, handleBlockShutdown)),
 
     /*
      * CHECK_RECORDING [] [%p]     [<ProgramInfo>]
      *  @responds always
      *  @returns boolean 0/1 as to whether the recording is currently taking place
      */
-    "CHECK_RECORDING" -> (serializeProgramInfo, handleCheckRecording),
+    "CHECK_RECORDING" -> ((serializeProgramInfo, handleCheckRecording)),
 
     /*
      * DELETE_FILE [] [%s, %s]   [<filename> <storage group name>]
      *  @responds sometime; only if slistCount >= 3
      *  @returns Boolean "0" on error, "1" on succesful file deletion
      */
-    "DELETE_FILE" -> (serializeDeleteFile, handleDeleteFile),
+    "DELETE_FILE" -> ((serializeDeleteFile, handleDeleteFile)),
 
     /*
      * DELETE_RECORDING %d %mt { FORCE { FORGET }}  <ChanId> <starttime> { can we specify NOFORCE or NOFORGET? }
@@ -281,14 +283,14 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *    -2 Error deleting file
      *  TODO needs more investigation
      */
-    "DELETE_RECORDING" -> (serializeDeleteRecording, handleDeleteRecording),
+    "DELETE_RECORDING" -> ((serializeDeleteRecording, handleDeleteRecording)),
 
     /*
      * DONE
      *  @responds never
      *  @returns nothing, closes the client's socket
      */
-    "DONE" -> (serializeEmpty, handleNOP),
+    "DONE" -> ((serializeEmpty, handleNOP)),
 
     /*
      * DOWNLOAD_FILE [] [%s, %s, %s]       [<srcURL> <storageGroup> <fileName>]
@@ -299,7 +301,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *       OK <storagegroup> <filename>      ??
      *       ERROR                             ?? only if synchronous?
      */
-    "DOWNLOAD_FILE" -> (serializeDownloadFile, handleNOP),
+    "DOWNLOAD_FILE" -> ((serializeDownloadFile, handleNOP)),
 
     /*
      * DOWNLOAD_FILE_NOW [] [%s, %s, %s]   [<srcURL> <storageGroup> <fileName>]
@@ -307,7 +309,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @responds sometimes; only if slistCount == 4
      *  @returns see DOWNLOAD_FILE
      */
-    "DOWNLOAD_FILE_NOW" -> (serializeDownloadFile, handleNOP),
+    "DOWNLOAD_FILE_NOW" -> ((serializeDownloadFile, handleNOP)),
 
     /*
      * FILL_PROGRAM_INFO [] [%s, %p]     [<playback host> <ProgramInfo>]
@@ -315,28 +317,28 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @returns ProgramInfo structure, populated
      *           (if already contained pathname, otherwise unchanged)
      */
-    "FILL_PROGRAM_INFO" -> (serializeNOP, handleNOP),
+    "FILL_PROGRAM_INFO" -> ((serializeNOP, handleNOP)),
 
     /*
      * FORCE_DELETE_RECORDING [] [%p]   [<ProgramInfo>]
      *  @responds sometimes; only if ChanId in program info
      *  @returns see DELETE_RECORDING
      */
-    "FORCE_DELETE_RECORDING" -> (serializeProgramInfo, handleForceDeleteRecording),
+    "FORCE_DELETE_RECORDING" -> ((serializeProgramInfo, handleForceDeleteRecording)),
 
     /*
      * FORGET_RECORDING [] [%p]    [<ProgramInfo>]
      *  @responds always
      *  @returns "0"
      */
-    "FORGET_RECORDING" -> (serializeProgramInfo, handleForgetRecording),
+    "FORGET_RECORDING" -> ((serializeProgramInfo, handleForgetRecording)),
 
     /*
      * FREE_TUNER %d        <cardId>
      *  @responds sometimes; only if tokens == 2
      *  @returns "OK" or "FAILED"
      */
-    "FREE_TUNER" -> (serializeFreeTuner, handleFreeTuner),
+    "FREE_TUNER" -> ((serializeFreeTuner, handleFreeTuner)),
 
     /*
      * GET_FREE_RECORDER
@@ -344,21 +346,21 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @returns [%d, %s, %d] = <best free encoder id> <host or IP> <port>
      *        or [-1, "nohost", -1] if no suitable encoder found
      */
-    "GET_FREE_RECORDER" -> (serializeEmpty, handleGetFreeRecorder),
+    "GET_FREE_RECORDER" -> ((serializeEmpty, handleGetFreeRecorder)),
 
     /*
      * GET_FREE_RECORDER_COUNT
      *  @responds always
      *  @returns Int: number of available encoders
      */
-    "GET_FREE_RECORDER_COUNT" -> (serializeEmpty, handleGetFreeRecorderCount),
+    "GET_FREE_RECORDER_COUNT" -> ((serializeEmpty, handleGetFreeRecorderCount)),
 
     /*
      * GET_FREE_RECORDER_LIST
      *  @responds always
      *  @returns [%d, {, %d}] = list of available encoder ids, or "0" if none
      */
-    "GET_FREE_RECORDER_LIST" -> (serializeEmpty, handleGetFreeRecorderList),
+    "GET_FREE_RECORDER_LIST" -> ((serializeEmpty, handleGetFreeRecorderList)),
 
     /*
      * GET_NEXT_FREE_RECORDER [] [%d]  [<currentRecorder#>]
@@ -366,7 +368,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @returns [%d, %s, %d] = <next free encoder id> <host or IP> <port>
      *        or [-1, "nohost", -1] if no suitable encoder found
      */
-    "GET_NEXT_FREE_RECORDER" -> (serializeCaptureCard, handleGetNextFreeRecorder),
+    "GET_NEXT_FREE_RECORDER" -> ((serializeCaptureCard, handleGetNextFreeRecorder)),
 
     /*
      * GET_RECORDER_FROM_NUM [] [%d]   [<recorder#>]
@@ -374,7 +376,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @returns [%s, %d] = <host or IP> <port>
      *        or ["nohost", -1] if no matching recorder found
      */
-    "GET_RECORDER_FROM_NUM" -> (serializeCaptureCard, handleGetRecorderFromNum),
+    "GET_RECORDER_FROM_NUM" -> ((serializeCaptureCard, handleGetRecorderFromNum)),
 
     /*
      * GET_RECORDER_NUM [] [%p]        [<ProgramInfo>]
@@ -382,7 +384,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @returns [%d, %s, %d] =   <encoder#> <host or IP> <port>
      *        or [-1, "nohost", -1] if no matching recorder found
      */
-    "GET_RECORDER_NUM" -> (serializeProgramInfo, handleGetRecorderNum),
+    "GET_RECORDER_NUM" -> ((serializeProgramInfo, handleGetRecorderNum)),
 
     /*
      * GO_TO_SLEEP
@@ -390,7 +392,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @returns "OK" or "ERROR: SleepCommand is empty"
      * (only for slaves, but no checking?! Looks @ CoreContext "SleepCommand" setting)
      */
-    "GO_TO_SLEEP" -> (serializeEmpty, handleGoToSleep),
+    "GO_TO_SLEEP" -> ((serializeEmpty, handleGoToSleep)),
 
     /*
      * LOCK_TUNER  (implicitly passes -1 as tuner id, what does this accomplish? first available local tuner?)
@@ -400,7 +402,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *       or  [-2, "", "", ""]  if tuner is already locked
      *       or  [-1, "", "", ""]  if no tuner found to lock
      */
-    "LOCK_TUNER" -> (serializeLockTuner, handleNOP),
+    "LOCK_TUNER" -> ((serializeLockTuner, handleNOP)),
 
     /*
      * MESSAGE [] [ %s {, %s }* ]        [<message> <extra...>]
@@ -411,28 +413,28 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *     SET_VERBOSE:   "OK" or "Failed"
      *     SET_LOG_LEVEL: "OK" or "Failed"
      */
-    "MESSAGE" -> (serializeNOP, handleNOP),
+    "MESSAGE" -> ((serializeNOP, handleNOP)),
 
     /*
      * MYTH_PROTO_VERSION %s %s    <version> <protocolToken>
      *  @responds sometimes; only if tokenCount >= 2
      *  @returns ["REJECT, %d"] or ["ACCEPT, %d"] where %d is MYTH_PROTO_VERSION
      */
-    "MYTH_PROTO_VERSION" -> (serializeMythProtoVersion, handleMythProtoVersion),
+    "MYTH_PROTO_VERSION" -> ((serializeMythProtoVersion, handleMythProtoVersion)),
 
     /*
      * QUERY_ACTIVE_BACKENDS
      *  @responds always
      *  @returns %d [] [ %s {, %s }* ]  <count> [ hostName, ... ]
      */
-    "QUERY_ACTIVE_BACKENDS" -> (serializeEmpty, handleQueryActiveBackends),
+    "QUERY_ACTIVE_BACKENDS" -> ((serializeEmpty, handleQueryActiveBackends)),
 
     /*
      * QUERY_BOOKMARK %d %t   <ChanId> <starttime>
      *  @responds sometimes, only if tokenCount == 3
      *  @returns %ld   <bookmarkPos> (frame number)
      */
-    "QUERY_BOOKMARK" -> (serializeChanIdStartTime, handleQueryBookmark),
+    "QUERY_BOOKMARK" -> ((serializeChanIdStartTime, handleQueryBookmark)),
 
     /*
      * QUERY_CHECKFILE [] [%b, %p]     <checkSlaves> <ProgramInfo>
@@ -440,7 +442,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @returns %d %s      <exists:0/1?>  <playbackURL>
      *    note playback url will be "" if file does not exist
      */
-    "QUERY_CHECKFILE" -> (serializeQueryCheckFile, handleQueryCheckFile),
+    "QUERY_CHECKFILE" -> ((serializeQueryCheckFile, handleQueryCheckFile)),
 
     /*
      * QUERY_COMMBREAK %d %t           <ChanId> <starttime>
@@ -452,14 +454,14 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *          of course it is possible for one side to be missing? what do we do then?
      * Are the returned positions guaranteed to be in sorted order?
      */
-    "QUERY_COMMBREAK" -> (serializeChanIdStartTime, handleQueryCommBreak),
+    "QUERY_COMMBREAK" -> ((serializeChanIdStartTime, handleQueryCommBreak)),
 
     /*
      * QUERY_CUTLIST %d %t             <ChanId> <starttime>
      *  @responds sometimes; only if tokenCount == 3
      *  @returns see QUERY_COMMBREAK
      */
-    "QUERY_CUTLIST" -> (serializeChanIdStartTime, handleQueryCutList),
+    "QUERY_CUTLIST" -> ((serializeChanIdStartTime, handleQueryCutList)),
 
     /*
      * QUERY_FILE_EXISTS [] [%s {, %s}]   <filename> {<storageGroup>}
@@ -474,7 +476,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *
      * If storage group name is not specified, then "Default" will be used as the default.
      */
-    "QUERY_FILE_EXISTS" -> (serializeQueryFileExists, handleQueryFileExists),
+    "QUERY_FILE_EXISTS" -> ((serializeQueryFileExists, handleQueryFileExists)),
 
     /*
      * QUERY_FILE_HASH [] [%s, %s {, %s}]     <filename> <storageGroup> {<hostname>}
@@ -486,7 +488,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      * NB storageGroup parameter seems to be a hint at most, specifying a non-existing or
      *    incorrect storageGroup does not prevent the proper hash being returned
      */
-    "QUERY_FILE_HASH" -> (serializeQueryFileHash, handleQueryFileHash),
+    "QUERY_FILE_HASH" -> ((serializeQueryFileHash, handleQueryFileHash)),
 
     /*
      * QUERY_FILETRANSFER %d [DONE]                 <ftID>
@@ -500,14 +502,14 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @responds TODO
      *  @returns TODO
      */
-    "QUERY_FILETRANSFER" -> (serializeEmpty, handleQueryFreeSpace),
+    "QUERY_FILETRANSFER" -> ((serializeEmpty, handleQueryFreeSpace)),
 
     /*
      * QUERY_FREE_SPACE
      *  @responds always
      *  @returns  TODO
      */
-    "QUERY_FREE_SPACE" -> (serializeEmpty, handleQueryFreeSpace),
+    "QUERY_FREE_SPACE" -> ((serializeEmpty, handleQueryFreeSpace)),
 
     /*
      * QUERY_FREE_SPACE_LIST
@@ -517,7 +519,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      * Like QUERY_FREE_SPACE but returns free space on all hosts, each directory
      * is reported as a URL, and a TotalDiskSpace is appended.
      */
-    "QUERY_FREE_SPACE_LIST" -> (serializeEmpty, handleQueryFreeSpaceList),
+    "QUERY_FREE_SPACE_LIST" -> ((serializeEmpty, handleQueryFreeSpaceList)),
 
     /*
      * QUERY_FREE_SPACE_SUMMARY
@@ -525,7 +527,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @returns [%d, %d]    <total size> <used size>  sizes are in kB (1024-byte blocks)
      *        or [ 0, 0 ]    if there was any sort of error
      */
-    "QUERY_FREE_SPACE_SUMMARY" -> (serializeEmpty, handleQueryFreeSpaceSummary),
+    "QUERY_FREE_SPACE_SUMMARY" -> ((serializeEmpty, handleQueryFreeSpaceSummary)),
 
     /*
      * QUERY_GENPIXMAP2 []
@@ -542,7 +544,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *       or ["ERROR", "FILE_INACCESSIBLE"]
      * Does this follow up later with a message when the pixmap generation is complete?
      */
-    "QUERY_GENPIXMAP2" -> (serializeNOP, handleNOP),
+    "QUERY_GENPIXMAP2" -> ((serializeNOP, handleNOP)),
 
     /*
      * QUERY_GETALLPENDING { %s {, %d}}  { <tmptable> {, <recordid>}}
@@ -551,7 +553,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *        or ["0", "0"] if not availble/error?
      *  TODO what is the purpose of the optional tmptable and recordid parameters?
      */
-    "QUERY_GETALLPENDING" -> (serializeQueryGetAllPending, handleQueryGetAllPending),
+    "QUERY_GETALLPENDING" -> ((serializeQueryGetAllPending, handleQueryGetAllPending)),
 
     /*
      * QUERY_GETALLSCHEDULED
@@ -559,7 +561,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @returns %d [%p {, %p}] <expectedCount> <list of ProgramInfo>
      *        or "0" if not availble/error?
      */
-    "QUERY_GETALLSCHEDULED" -> (serializeEmpty, handleQueryGetAllScheduled),
+    "QUERY_GETALLSCHEDULED" -> ((serializeEmpty, handleQueryGetAllScheduled)),
 
     /*
      * QUERY_GETCONFLICTING [] [%p]     [<ProgramInfo>]
@@ -567,7 +569,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @returns ? [%p {, %p}]  <list of ProgramInfo>  // TODO does this begin with a count?
      *        or "0" if not availble/error?
      */
-    "QUERY_GETCONFLICTING" -> (serializeProgramInfo, handleNOP),
+    "QUERY_GETCONFLICTING" -> ((serializeProgramInfo, handleNOP)),
 
     /*
      * QUERY_GETEXPIRING
@@ -575,7 +577,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @returns %d [%p {, %p}]  <list of ProgramInfo>
      *        or "0" if not availble/error?
      */
-    "QUERY_GETEXPIRING" -> (serializeEmpty, handleQueryGetExpiring),
+    "QUERY_GETEXPIRING" -> ((serializeEmpty, handleQueryGetExpiring)),
 
     /*
      * QUERY_GUIDEDATATHROUGH
@@ -583,14 +585,14 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @returns: Date/Time as a string in "YYYY-MM-DD hh:mm" format
      *         or "0000-00-00 00:00" in case of error or no data
      */
-    "QUERY_GUIDEDATATHROUGH" -> (serializeEmpty, handleQueryGuideDataThrough),
+    "QUERY_GUIDEDATATHROUGH" -> ((serializeEmpty, handleQueryGuideDataThrough)),
 
     /*
      * QUERY_HOSTNAME
      *  @responds always
      *  @returns %s  <hostname>
      */
-    "QUERY_HOSTNAME" -> (serializeEmpty, handleQueryHostname),
+    "QUERY_HOSTNAME" -> ((serializeEmpty, handleQueryHostname)),
 
     /*
      * QUERY_IS_ACTIVE_BACKEND [] [%s]   [<hostname>]
@@ -599,7 +601,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      * TODO may case NPE if hostname is not passed?
      *      what does QtStringList array index out of bounds do?
      */
-    "QUERY_IS_ACTIVE_BACKEND" -> (serializeQueryIsActiveBackend, handleQueryIsActiveBackend),
+    "QUERY_IS_ACTIVE_BACKEND" -> ((serializeQueryIsActiveBackend, handleQueryIsActiveBackend)),
 
     /*
      * QUERY_ISRECORDING
@@ -607,7 +609,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @returns [%d, %d]  <numRecordingsInProgress> <numLiveTVinProgress>
      *                           (liveTV is a subset of recordings)
      */
-    "QUERY_ISRECORDING" -> (serializeEmpty, handleQueryIsRecording),
+    "QUERY_ISRECORDING" -> ((serializeEmpty, handleQueryIsRecording)),
 
     /*
      * QUERY_LOAD
@@ -615,7 +617,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @returns [%f, %f, %f]   1-min  5-min  15-min load averages
      *        or ["ERROR", "getloadavg() failed"] in case of error
      */
-    "QUERY_LOAD" -> (serializeEmpty, handleQueryLoad),
+    "QUERY_LOAD" -> ((serializeEmpty, handleQueryLoad)),
 
     /*
      * QUERY_MEMSTATS
@@ -623,7 +625,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @returns [%d, %d, %d, %d]  <totalMB> <freeMB> <totalVM> <freeVM>
      *        or ["ERROR", "Could not determine memory stats."] on error
      */
-    "QUERY_MEMSTATS" -> (serializeEmpty, handleQueryMemStats),
+    "QUERY_MEMSTATS" -> ((serializeEmpty, handleQueryMemStats)),
 
     /*
      * QUERY_PIXMAP_GET_IF_MODIFIED [] [%t, %d, %p]  [<modifiedSince> <maxFileSize> <ProgramInfo>]
@@ -638,7 +640,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *        or ["ERROR", "5: Could not locate mythbackend that made this recording"
      *        or ["WARNING", "2: Could not locate requested file"]
      */
-    "QUERY_PIXMAP_GET_IF_MODIFIED" -> (serializeQueryPixmapGetIfModified, handleQueryPixmapGetIfModified),
+    "QUERY_PIXMAP_GET_IF_MODIFIED" -> ((serializeQueryPixmapGetIfModified, handleQueryPixmapGetIfModified)),
 
     /*
      * QUERY_PIXMAP_LASTMODIFIED [] [%p]      [<ProgramInfo>]
@@ -646,7 +648,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @returns %ld    <last modified (timestamp)>
      *        or "BAD"
      */
-    "QUERY_PIXMAP_LASTMODIFIED" -> (serializeProgramInfo, handleQueryPixmapLastModified),
+    "QUERY_PIXMAP_LASTMODIFIED" -> ((serializeProgramInfo, handleQueryPixmapLastModified)),
 
     /*
      * QUERY_RECORDER [ %d                 <recorder#>     // NB two tokens! recorder# + subcommand list
@@ -694,7 +696,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *                                     also, notifyFrontend is no longer implemented and ignored
      *  NB for SET_LIVE_RECORDING, the recordingState parameter is ignored by the backend implementation
      */
-    "QUERY_RECORDER" -> (serializeQueryRecorder, handleQueryRecorder),
+    "QUERY_RECORDER" -> ((serializeQueryRecorder, handleQueryRecorder)),
 
     /*
      * QUERY_RECORDING BASENAME %s                 <pathname>
@@ -703,7 +705,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @responds sometimes; only if tokenCount >= 3 (or >= 4 if TIMESLOT is specified)
      *  @returns ["OK", <ProgramInfo>] or "ERROR"
      */
-    "QUERY_RECORDING" -> (serializeQueryRecording, handleQueryRecording),
+    "QUERY_RECORDING" -> ((serializeQueryRecording, handleQueryRecording)),
 
     /*
      * QUERY_RECORDING_DEVICE
@@ -722,7 +724,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @responds sometimes; only if tokenCount == 2
      *  @returns [ %d, %p {, %p}*]   <expectedCount> list of ProgramInfo records
      */
-    "QUERY_RECORDINGS" -> (serializeQueryRecordings, handleQueryRecordings),
+    "QUERY_RECORDINGS" -> ((serializeQueryRecordings, handleQueryRecordings)),
 
     /*
      * QUERY_REMOTEENCODER [ %d          <encoder#>
@@ -741,7 +743,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *   | GET_FREE_INPUTS [%d {, %d}*]  <excludeCardId...>
      * ]
      */
-    "QUERY_REMOTEENCODER" -> (serializeNOP, handleNOP),
+    "QUERY_REMOTEENCODER" -> ((serializeNOP, handleNOP)),
 
     /*
      * QUERY_SETTING %s %s      <hostname> <settingName>
@@ -749,7 +751,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @returns %s or "-1" if not found   <settingValue>
      * NB doesn't seem possible to retrieve settings with "global" scope, i.e. hostname IS NULL
      */
-    "QUERY_SETTING" -> (serializeQuerySetting, handleQuerySetting),
+    "QUERY_SETTING" -> ((serializeQuerySetting, handleQuerySetting)),
 
     /*
      * QUERY_SG_GETFILELIST [] [%s, %s, %s {, %b}]  <hostName> <storageGroup> <path> { fileNamesOnly> }
@@ -762,7 +764,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  TODO parse formats... they may have file:: or sgdir:: or sgdir:: or such prefixed, or nothing...
      *  TODO are path and fileNamesOnly sort of mutually exclusive?
      */
-    "QUERY_SG_GETFILELIST" -> (serializeQuerySGGetFileList, handleQuerySGGetFileList),
+    "QUERY_SG_GETFILELIST" -> ((serializeQuerySGGetFileList, handleQuerySGGetFileList)),
 
     /*
      * QUERY_SG_FILEQUERY [] [%s, %s, %s]     <hostName> <storageGroup> <fileName>
@@ -771,7 +773,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *        or ["EMPTY LIST"]               if wrong number of parameters given or no file found
      *        or ["SLAVE UNREACHABLE: ", %s]  if slave specified and unreachable
      */
-    "QUERY_SG_FILEQUERY" -> (serializeQuerySGFileQuery, handleQuerySGFileQuery),
+    "QUERY_SG_FILEQUERY" -> ((serializeQuerySGFileQuery, handleQuerySGFileQuery)),
 
     /*
      * QUERY_TIME_ZONE
@@ -779,7 +781,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @returns [%s, %d, %s]  <timezoneName> <offsetSecsFromUtc> <currentTimeUTC>
      *    currentTimeUTC is in the ISO format "YYYY-MM-ddThh:mm:ssZ"
      */
-    "QUERY_TIME_ZONE" -> (serializeEmpty, handleQueryTimeZone),
+    "QUERY_TIME_ZONE" -> ((serializeEmpty, handleQueryTimeZone)),
 
     /*
      * QUERY_UPTIME
@@ -787,7 +789,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @returns %ld  <uptimeSeconds>
      *        or ["ERROR", "Could not determine uptime."] in case of error
      */
-    "QUERY_UPTIME" -> (serializeEmpty, handleQueryUptime),
+    "QUERY_UPTIME" -> ((serializeEmpty, handleQueryUptime)),
 
     /*
      * REFRESH_BACKEND
@@ -795,7 +797,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @returns "OK"
      *  Seems to be a NOP on the server.
      */
-    "REFRESH_BACKEND" -> (serializeEmpty, handleRefreshBackend),
+    "REFRESH_BACKEND" -> ((serializeEmpty, handleRefreshBackend)),
 
     /*
      * RESCHEDULE_RECORDINGS
@@ -827,14 +829,14 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  See log entry for git commit cbb8eb1ee32a658a519d2d5fb751ace114f63bf9 in mythtv tree
      *  for lots of good info on the RESCHEDULE_RECORDINGS command parameters
      */
-    "RESCHEDULE_RECORDINGS" -> (serializeRescheduleRecordings, handleRescheduleRecordings),
+    "RESCHEDULE_RECORDINGS" -> ((serializeRescheduleRecordings, handleRescheduleRecordings)),
 
     /*
      * SCAN_VIDEOS
      *  @responds always
      *  @returns "OK" or "ERROR"
      */
-    "SCAN_VIDEOS" -> (serializeEmpty, handleScanVideos),
+    "SCAN_VIDEOS" -> ((serializeEmpty, handleScanVideos)),
 
     /*
      * SET_BOOKMARK %d %t %ld          <ChanId> <starttime> <frame#position>
@@ -842,7 +844,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @returns "OK" or "FAILED"
      * NB If the given position is '0' then any existing bookmark will be deleted.
      */
-    "SET_BOOKMARK" -> (serializeSetBookmark, handleSetBookmark),
+    "SET_BOOKMARK" -> ((serializeSetBookmark, handleSetBookmark)),
 
     /*
      * SET_CHANNEL_INFO [] [%d, %d, %d, %d, %d, %d, %d]
@@ -855,28 +857,28 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *   Updates { callsign, channum, name, xmltvId } keyed by (chanId, sourceId)
      *  Used by OSD channel editor (tv_play.cpp)
      */
-    "SET_CHANNEL_INFO" -> (serializeNOP, handleNOP),
+    "SET_CHANNEL_INFO" -> ((serializeNOP, handleNOP)),
 
     /*
      * SET_NEXT_LIVETV_DIR %d %s  <encoder#> <dir>
      *  @responds sometimes; only if tokenCount == 3
      *  @returns "OK or "bad" if encoder nor found
      */
-    "SET_NEXT_LIVETV_DIR" -> (serializeNOP, handleNOP),
+    "SET_NEXT_LIVETV_DIR" -> ((serializeNOP, handleNOP)),
 
     /*
      * SET_SETTING %s %s %s       <hostname> <settingname> <value>
      *  @responds sometimes; only if tokenCount == 4
      *  @returns "OK" or "ERROR"
      */
-    "SET_SETTING" -> (serializeSetSetting, handleSetSetting),
+    "SET_SETTING" -> ((serializeSetSetting, handleSetSetting)),
 
     /*
      * SHUTDOWN_NOW { %s }        { <haltCommand> }
      *  @responds never
      *  @returns nothing
      */
-    "SHUTDOWN_NOW" -> (serializeShutdownNow, handleNOP),
+    "SHUTDOWN_NOW" -> ((serializeShutdownNow, handleNOP)),
 
     /*
      * STOP_RECORDING [] [<ProgramInfo>]
@@ -885,7 +887,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *           "%d" if recording was on a local encoder, <recnum>
      *        or "-1" if not found
      */
-    "STOP_RECORDING" -> (serializeProgramInfo, handleStopRecording),
+    "STOP_RECORDING" -> ((serializeProgramInfo, handleStopRecording)),
 
     /*
      * UNDELETE_RECORDING [] [%d, %mt]       [<ChanId> <starttime>]
@@ -894,7 +896,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @responds sometimes; if program info has ChanId
      *  @returns "0" on success and "-1" on error
      */
-    "UNDELETE_RECORDING" -> (serializeUndeleteRecording, handleUndeleteRecording)
+    "UNDELETE_RECORDING" -> ((serializeUndeleteRecording, handleUndeleteRecording))
   )
 
 
@@ -1403,7 +1405,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     assert(parts.length > 1)
     val accepted = parts(0) == "ACCEPT"
     val acceptedVersion = deserialize[Int](parts(1))
-    Some(accepted, acceptedVersion)
+    Some((accepted, acceptedVersion))
   }
 
   protected def handleQueryActiveBackends(request: BackendRequest, response: BackendResponse): Option[List[String]] = {
@@ -1548,7 +1550,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   protected def handleQueryIsRecording(request: BackendRequest, response: BackendResponse): Option[(Int, Int)] = {
     val results = response.split map deserialize[Int]
     assert(results.length > 1)
-    Some(results(0), results(1))
+    Some((results(0), results(1)))
   }
 
   protected def handleQueryLoad(request: BackendRequest, response: BackendResponse): Option[(Double, Double, Double)] = {
@@ -1576,7 +1578,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     if (items(0) == "ERROR" || items(0) == "WARNING") None
     else {
       val lastModified = deserialize[MythDateTime](items(0))
-      if (items.length == 1) Some(lastModified, None)
+      if (items.length == 1) Some((lastModified, None))
       else {
         val fileSize = deserialize[Long](items(1))
         val crc16 = deserialize[Int](items(2))
