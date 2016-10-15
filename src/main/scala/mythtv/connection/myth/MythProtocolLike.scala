@@ -506,7 +506,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @responds TODO
      *  @returns TODO
      */
-    "QUERY_FILETRANSFER" -> ((serializeEmpty, handleQueryFreeSpace)),
+    "QUERY_FILETRANSFER" -> ((serializeNOP, handleNOP)),
 
     /*
      * QUERY_FREE_SPACE
