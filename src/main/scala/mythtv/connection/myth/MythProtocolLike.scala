@@ -249,8 +249,10 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      * BACKEND_MESSAGE [] [%s {, %s}* ]   [<message> <extra...>]
      *  @responds never
      *  @returns nothing
+     *
+     * Just dispatches the passed message
      */
-    "BACKEND_MESSAGE" -> ((serializeNOP, handleNOP)),
+    "BACKEND_MESSAGE" -> ((serializeBackendMessage, handleNOP)),
 
     /*
      * BLOCK_SHUTDOWN
@@ -991,6 +993,14 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       elems mkString BACKEND_SEP
     // TODO support checkFiles varargs on FileTransfer mode
     // TODO SlaveBackend is complex
+    case _ => throw new BackendCommandArgumentException
+  }
+
+  protected def serializeBackendMessage(command: String, args: Seq[Any]): String = args match {
+    case Seq(message: String, extra @ _*) =>
+      val extras = extra map (_.toString)
+      val elems = List(command, message) ++ extras
+      elems mkString BACKEND_SEP
     case _ => throw new BackendCommandArgumentException
   }
 
