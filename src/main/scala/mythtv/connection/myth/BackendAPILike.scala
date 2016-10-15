@@ -361,7 +361,8 @@ private trait BackendAPILike {
   }
 
   def queryRecorderGetFreeInputs(cardId: CaptureCardId, excludedCards: CaptureCardId*): List[CardInput] = {
-    val result = sendCommand("QUERY_RECORDER", cardId, excludedCards)
+    val args = List(cardId) ++ excludedCards
+    val result = sendCommand("QUERY_RECORDER", args: _*)
     (result map { case QueryRecorderCardInputList(i) => i }).get
   }
 
