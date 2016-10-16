@@ -7,6 +7,7 @@ import EnumTypes._
 import util.{ ByteCount, MythDateTime }
 
 final case class ChanId(id: Int) extends AnyVal
+final case class ChannelNumber(num: String) extends AnyVal
 final case class CaptureCardId(id: Int) extends AnyVal
 final case class StorageGroupId(id: Int) extends AnyVal
 final case class RecordRuleId(id: Int) extends AnyVal
