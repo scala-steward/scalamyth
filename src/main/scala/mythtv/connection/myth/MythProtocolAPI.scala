@@ -50,6 +50,7 @@ trait MythProtocolAPI {
   def queryFreeSpaceList: List[FreeSpace]
   def queryFreeSpaceSummary: (ByteCount, ByteCount)
   def queryGenPixmap(rec: Recording, token: String = ""): Boolean
+  // TODO more GenPixmap methods, with improved type safety
   def queryGetAllPending: ExpectedCountIterator[Recording]
   def queryGetAllScheduled: ExpectedCountIterator[Recording]
   def queryGetConflicting: Iterable[Recording]  // TODO expected count iterator?

@@ -15,8 +15,8 @@ object EventLock {
     new Lock(eventConn, eventFilter)
 
   /**
-    * An event lock without an event; waitFor always returns immediately and
-    * event is always None.
+    * Returns an event lock object without an event; waitFor always returns
+    * immediately and event is always None.
     */
   def empty: EventLock = Empty
 

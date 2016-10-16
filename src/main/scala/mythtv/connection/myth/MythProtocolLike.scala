@@ -299,11 +299,12 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     /*
      * DOWNLOAD_FILE [] [%s, %s, %s]       [<srcURL> <storageGroup> <fileName>]
      *  @responds sometimes; only if slistCount == 4
-     *  @returns result token:
+     *  @returns
+     *     result token for some errors:
      *       downloadfile_directory_not_found
      *       downloadfile_filename_dangerous
-     *       OK <storagegroup> <filename>      ??
-     *       ERROR                             ?? only if synchronous?
+     *     OK <storagegroup> <filename>      ??
+     *     ERROR                             only if synchronous & download method fails
      */
     "DOWNLOAD_FILE" -> ((serializeDownloadFile, handleNOP)),
 

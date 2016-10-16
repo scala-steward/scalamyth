@@ -28,7 +28,47 @@ private final case class Event(raw: String) extends AnyVal with BackendEvent
  *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT CLIENT_DISCONNECTED HOSTNAME myth1 SENDER myth1[]:[]empty
  *  BACKEND_MESSAGE[]:[]VIDEO_LIST_NO_CHANGE[]:[]empty
  *  BACKEND_MESSAGE[]:[]RECORDING_LIST_CHANGE UPDATE[]:[]Survivor[]:[]Not Going Down Without a Fight[]:[]Castaways from all three tribes remain, and one will be crowned the Sole Survivor.[]:[]32[]:[]14[]:[]3214[]:[]Reality[]:[]1081[]:[]8-1[]:[]KFMB-DT[]:[]KFMBDT (KFMB-DT)[]:[]1081_20160519030000.mpg[]:[]13323011228[]:[]1463626800[]:[]1463634000[]:[]0[]:[]myth1[]:[]0[]:[]0[]:[]0[]:[]0[]:[]-3[]:[]380[]:[]0[]:[]15[]:[]6[]:[]1463626800[]:[]1463634001[]:[]11583492[]:[]Reality TV[]:[][]:[]EP00367078[]:[]EP003670780116[]:[]76733[]:[]1471849923[]:[]0[]:[]2016-05-18[]:[]Default[]:[]0[]:[]0[]:[]Default[]:[]9[]:[]17[]:[]1[]:[]0[]:[]0[]:[]0
- *  BACKEND_MESSAGE[]:[]GENERATED_PIXMAP[]:[]OK[]:[]1081_2016-05-19T05:00:00Z[]:[]Generated on myth1 in 3.919 seconds, starting at 16:19:33[]:[]2016-10-05T23:19:33Z[]:[]83401[]:[]39773[]:[] <<< base64 data redacted >>>
+ *  BACKEND_MESSAGE[]:[]GENERATED_PIXMAP[]:[]OK[]:[]1081_2016-05-19T05:00:00Z[]:[]Generated on myth1 in 3.919 seconds, starting at 16:19:33[]:[]2016-10-05T23:19:33Z[]:[]83401[]:[]39773[]:[] <<< base64 data + extra tokens redacted >>>
+ *  BACKEND_MESSAGE[]:[]GENERATED_PIXMAP[]:[]OK[]:[]1151_2016-07-30T20:30:00Z[]:[]On Disk[]:[]2016-10-05T23:19:42Z[]:[]87547[]:[]13912[]:[] << base64 data + extra tokens redacted >>
+ */
+
+/*
+ * Format of SYSTEM_EVENT
+ *   SYSTEM_EVENT %s SENDER %s
+ *
+ *   also look into libs/libmythtv/mythsystemevent.cpp
+ *              and libs/libmythbase/mythcorecontext.cpp
+ */
+
+/*
+ * Format of GENERATED_PIXMAP
+ *  On success:
+ *      "OK"
+ *      <programInfoKey>   (from pginfo->MakeUniqueKey())
+ *      <msg>              (e.g "On Disk" or "Generated...")
+ *      <datetime>         from the PREVIEW_SUCCESS Qt event received by the backend
+ *      <dataSize>         byte count of the data (in binary, not encoded base 64)
+ *      <checksum>         CRC-16 of the binary data (computed by qChecksum)
+ *      <base64Data>       data encoded in base-64 format
+ *      <token> *          may not be present, or may be multiple!
+ *  On failure:
+ *      "ERROR"
+ *      <programInfoKey>
+ *      <msg>              from the PREVIEW_FAILURE Qt event received by the backend
+ *      <token> *          may not be present, or may be multiple!
+ *   requestor token should be the first one in the token list?
+ */
+
+/*
+ * Format of VIDEO_LIST_CHANGE
+ *   ["added:%d"]*            %d is VideoId; repeated for each addition
+ *   ["moved:%d"]*                 "       ;     "     "    "  file move
+ *   ["deleted:%d"]*               "       ;     "     "    "  deletion
+ */
+
+/*
+ * Format of VIDEO_LIST_NO_CHANGE
+ *   <empty>
  */
 
 trait EventListener {
