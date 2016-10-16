@@ -6,8 +6,38 @@ import java.time.{ Duration, Instant, LocalDateTime, LocalDate, Year }
 import EnumTypes._
 import util.{ ByteCount, MythDateTime }
 
+/* We define the Ordering objects in companion objects to the case classes
+   because nested objects are currently prohibited inside value classes. */
+
 final case class ChanId(id: Int) extends AnyVal
+
+object ChanId {
+  object ChanIdOrdering extends Ordering[ChanId] {
+    def compare(x: ChanId, y: ChanId): Int = x.id compare y.id
+  }
+  implicit def ordering: Ordering[ChanId] = ChanIdOrdering
+}
+
 final case class ChannelNumber(num: String) extends AnyVal
+
+object ChannelNumber {
+  object ChannelNumberOrdering extends Ordering[ChannelNumber] {
+    def split(n: ChannelNumber): Array[String] = n.num split "[^0-9]"
+    def compare(x: ChannelNumber, y: ChannelNumber): Int = {
+      val xs = split(x)
+      val ys = split(y)
+      val len = math.min(xs.length, ys.length)
+      var i, cmp = 0
+      while (cmp == 0 && i < len) {
+        cmp = xs(i).toInt compare ys(i).toInt
+        i += 1
+      }
+      cmp
+    }
+  }
+  implicit def ordering: Ordering[ChannelNumber] = ChannelNumberOrdering
+}
+
 final case class CaptureCardId(id: Int) extends AnyVal
 final case class StorageGroupId(id: Int) extends AnyVal
 final case class RecordRuleId(id: Int) extends AnyVal
@@ -19,6 +49,13 @@ final case class ListingSourceId(id: Int) extends AnyVal
  * Represents the position of a video stream as a frame number.
  */
 final case class VideoPosition(pos: Long) extends AnyVal
+
+object VideoPosition {
+  object VideoPositionOrdering extends Ordering[VideoPosition] {
+    def compare(x: VideoPosition, y: VideoPosition): Int = x.pos compare y.pos
+  }
+  implicit def ordering: Ordering[VideoPosition] = VideoPositionOrdering
+}
 
 trait VideoSegment {
   def start: VideoPosition
