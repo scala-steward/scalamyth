@@ -163,9 +163,10 @@ private trait BackendAPILike {
     (result map { case xs: List[_] => xs.asInstanceOf[List[VideoSegment]] }).get
   }
 
-  // TODO storageGroup is optional parameter ....
   def queryFileExists(fileName: String, storageGroup: String): (String, FileStats) = {
-    val result = sendCommand("QUERY_FILE_EXISTS", fileName, storageGroup)
+    val result =
+      if (storageGroup.isEmpty) sendCommand("QUERY_FILE_EXISTS", fileName)
+      else sendCommand("QUERY_FILE_EXISTS", fileName, storageGroup)
     (result map { case (fullName: String, stats: FileStats) => (fullName, stats) }).get
   }
 

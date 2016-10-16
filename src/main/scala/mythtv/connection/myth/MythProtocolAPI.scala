@@ -44,7 +44,7 @@ trait MythProtocolAPI {
   def queryCheckFile(rec: Recording, checkSlaves: Boolean = true): String
   def queryCommBreak(chanId: ChanId, startTime: MythDateTime): List[VideoSegment]
   def queryCutList(chanId: ChanId, startTime: MythDateTime): List[VideoSegment]
-  def queryFileExists(fileName: String, storageGroup: String): (String, FileStats)
+  def queryFileExists(fileName: String, storageGroup: String = ""): (String, FileStats)
   def queryFileHash(fileName: String, storageGroup: String, hostName: String = ""): String
   def queryFreeSpace: List[FreeSpace]
   def queryFreeSpaceList: List[FreeSpace]
