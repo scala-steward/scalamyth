@@ -3,7 +3,7 @@ package connection
 package myth
 
 trait FrontendNetworkControl {
-  /**
+  /*
     * Commands:
     *
     * help

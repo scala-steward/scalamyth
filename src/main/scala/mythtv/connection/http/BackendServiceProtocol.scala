@@ -59,7 +59,7 @@ trait BackendServiceProtocol {
    *   GetXMLTVIdList        GET ==> { StringList }            (SourceID)
    */
 
-  /** TODO how is GetCaptureCardList different from GetEncoderList (same IDs...) */
+  /* TODO how is GetCaptureCardList different from GetEncoderList (same IDs...) */
 }
 
 trait FrontendServiceProtocol {
