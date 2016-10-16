@@ -71,6 +71,66 @@ private final case class Event(raw: String) extends AnyVal with BackendEvent
  *   <empty>
  */
 
+/*
+ * Format of RECORDING_LIST_CHANGE
+ *   <may have no body>
+ *   ADD     <chanId>
+ *   DELETE  <recstartts:ISO>
+ *   UPDATE  ?? see code in mainserver.cpp
+ *     update is sent by mainserver in response to Qt event MASTER_UPDATE_PROG_INFO
+ */
+
+/*
+ * Format of DOWNLOAD_FILE
+ *   UPDATE   <url> <outFile> <bytesReceived> <bytesTotal>
+ *   FINISHED <url> <outfile> <fileSize> <errorStringPlaceholder> <errorCode>
+ */
+
+/*
+ * Format of UPDATE_FILE_SIZE
+ *   <chanId> <recstartts:ISO> <fileSize>
+ */
+
+/*
+ * Format of MASTER_UPDATE_PROG_INFO
+ *   <chanId> <recstartts:ISO>
+ */
+
+/*
+ * Some other events:
+ *   LOCAL_RECONNECT_TO_MASTER
+ *   LOCAL_SLAVE_BACKEND_ONLINE %2
+ *   LOCAL_SLAVE_BACKEND_OFFLINE %1
+ *   LOCAL_SLAVE_BACKEND_ENCODERS_OFFLINE
+ *   THEME_INSTALLED
+ *   THEME_RELOAD
+ */
+
+/*
+ * Some system events:
+ *   CLIENT_CONNECTED HOSTNAME %1
+ *   CLIENT_DISCONNECTED HOSTNAME %1
+ *   SLAVE_CONNECTED HOSTNAME %1
+ *   SLAVE_DISCONNECTED HOSTNAME %1
+ *   REC_DELETED CHANID %1 STARTTIME %2
+ *   AIRTUNES_NEW_CONNECTION
+ *   AIRTUNES_DELETE_CONNECTION
+ *   AIRPLAY_NEW_CONNECTION
+ *   AIRPLAY_DELETE_CONNECTION
+ *   LIVETV_STARTED
+ *   PLAY_STOPPED
+ *   TUNING_SIGNAL_TIMEOUT CARDID %1
+ *   MASTER_STARTED
+ *   MASTER_SHUTDOWN
+ *   SCHEDULER_RAN
+ *   NET_CTRL_DISCONNECTED
+ *   NET_CTRL_CONNECTED
+ *   MYTHFILLDATABASE_RAN
+ *   SCREEN_TYPE CREATED %1
+ *   SCREEN_TYPE DESTROYED %1
+ *   THEME_INSTALLED PATH %1
+ */
+
 trait EventListener {
   def listenFor(event: BackendEvent): Boolean  // TODO rename to filter?
   def handle(event: BackendEvent): Unit
