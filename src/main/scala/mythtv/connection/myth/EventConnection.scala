@@ -58,6 +58,12 @@ object EventLock {
   def apply(eventConn: EventConnection, eventFilter: (BackendEvent) => Boolean): EventLock =
     new Lock(eventConn, eventFilter)
 
+  /**
+    * An event lock without an event; waitFor always returns immediately and
+    * event is always None.
+    */
+  def empty: EventLock = Empty
+
   private final class Lock(eventConn: EventConnection, eventFilter: (BackendEvent) => Boolean)
       extends EventListener with EventLock {
     private[this] var locked = true
@@ -82,6 +88,11 @@ object EventLock {
       val millis = if (timeout.isFinite()) timeout.toMillis else 0
       synchronized { while (locked) wait(millis) }
     }
+  }
+
+  private object Empty extends EventLock {
+    def event: Option[BackendEvent] = None
+    def waitFor(timeout: Duration = Duration.Inf): Unit = ()
   }
 }
 
