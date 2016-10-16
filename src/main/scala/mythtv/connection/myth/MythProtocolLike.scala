@@ -6,7 +6,7 @@ import java.time.{ Duration, Instant, LocalDate, ZoneOffset }
 
 import data.{ BackendCardInput, BackendChannel, BackendFreeSpace, BackendProgram,
   BackendRemoteEncoder, BackendUpcomingProgram, BackendVideoSegment }
-import model.{ BitmaskEnum, CaptureCardId, CardInput, Channel, ChanId, FreeSpace, ListingSourceId, Markup,
+import model.{ BitmaskEnum, CaptureCardId, CardInput, Channel, ChannelNumber, ChanId, FreeSpace, ListingSourceId, Markup,
   MythFileHash, RecordedMarkup, Recording, RecordRuleId, RemoteEncoder, UpcomingProgram, VideoPosition, VideoSegment }
 import util.{ ByteCount, BinaryByteCount, DecimalByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythDateTimeString }
 import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, PictureAdjustType, RecStatus }
@@ -1242,12 +1242,12 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       val args = List(serialize(cardId), sub, serialize(cancel))
       val elems = List(command, args mkString BACKEND_SEP)
       elems mkString " "
-    case Seq(cardId: CaptureCardId, sub @ ("SET_CHANNEL" | "CHECK_CHANNEL"), channum: String) =>
-      val args = List(serialize(cardId), sub, channum)
+    case Seq(cardId: CaptureCardId, sub @ ("SET_CHANNEL" | "CHECK_CHANNEL"), channum: ChannelNumber) =>
+      val args = List(serialize(cardId), sub, serialize(channum))
       val elems = List(command, args mkString BACKEND_SEP)
       elems mkString " "
-    case Seq(cardId: CaptureCardId, sub @ "CHECK_CHANNEL_PREFIX", channumPrefix: String) =>
-      val args = List(serialize(cardId), sub, channumPrefix)
+    case Seq(cardId: CaptureCardId, sub @ "CHECK_CHANNEL_PREFIX", channumPrefix: ChannelNumber) =>
+      val args = List(serialize(cardId), sub, serialize(channumPrefix))
       val elems = List(command, args mkString BACKEND_SEP)
       elems mkString " "
     case Seq(cardId: CaptureCardId, sub @ "SET_INPUT", inputName: String) =>
@@ -1276,18 +1276,18 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       val args = List(serialize(cardId), sub, serialize(adjType.id), serialize(up))
       val elems = List(command, args mkString BACKEND_SEP)
       elems mkString " "
-    case Seq(cardId: CaptureCardId, sub @ "GET_NEXT_PROGRAM_INFO", channelName: String, chanId: ChanId,
+    case Seq(cardId: CaptureCardId, sub @ "GET_NEXT_PROGRAM_INFO", channum: ChannelNumber, chanId: ChanId,
       dir: ChannelBrowseDirection, startTime: MythDateTime) =>
       val channelId = if (chanId.id == 0) "" else serialize(chanId)
-      val args = List(serialize(cardId), sub, channelName, channelId, serialize(dir.id), startTime.toIsoFormat)
+      val args = List(serialize(cardId), sub, serialize(channum), channelId, serialize(dir.id), startTime.toIsoFormat)
       val elems = List(command, args mkString BACKEND_SEP)
       elems mkString " "
     case Seq(cardId: CaptureCardId, sub @ "SET_SIGNAL_MONITORING_RATE", rate: Int, notifyFrontend: Boolean) =>
       val args = List(serialize(cardId), sub, serialize(rate), serialize(notifyFrontend))
       val elems = List(command, args mkString BACKEND_SEP)
       elems mkString " "
-    case Seq(cardId: CaptureCardId, sub @ "SPAWN_LIVETV", usePiP: Boolean, channumStart: String) =>
-      val args = List(serialize(cardId), sub, serialize(usePiP), channumStart)
+    case Seq(cardId: CaptureCardId, sub @ "SPAWN_LIVETV", usePiP: Boolean, channumStart: ChannelNumber) =>
+      val args = List(serialize(cardId), sub, serialize(usePiP), serialize(channumStart))
       val elems = List(command, args mkString BACKEND_SEP)
       elems mkString " "
     case Seq(cardId: CaptureCardId, sub @ "SET_LIVE_RECORDING", recordingState: Int) =>

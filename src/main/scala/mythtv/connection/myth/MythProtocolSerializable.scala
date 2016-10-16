@@ -5,7 +5,8 @@ package myth
 import java.time.Instant
 
 import data.{ BackendProgram, BackendRecordedMarkup }
-import model.{ CaptureCardId, ChanId, ListingSourceId, Markup, RecordRuleId, RecordedMarkup, Recording, RecStatus, VideoPosition }
+import model.{ CaptureCardId, ChanId, ChannelNumber, ListingSourceId, Markup, RecordRuleId, RecordedMarkup,
+  Recording, RecStatus, VideoPosition }
 import util.{ BinaryByteCount, DecimalByteCount, FileStats, MythDateTime, MythDateTimeString }
 import model.EnumTypes.RecStatus
 
@@ -60,6 +61,12 @@ object MythProtocolSerializable {
     def deserialize(in: String): ChanId = ChanId(in.toInt)
     def serialize(in: ChanId): String = in.id.toString
     override def serialize(in: ChanId, builder: StringBuilder): StringBuilder = { builder.append(in.id); builder }
+  }
+
+  implicit object ChannelNumberSerializer extends MythProtocolSerializable[ChannelNumber] {
+    def deserialize(in: String): ChannelNumber = ChannelNumber(in)
+    def serialize(in: ChannelNumber): String = in.num
+    override def serialize(in: ChannelNumber, builder: StringBuilder): StringBuilder = { builder.append(in.num); builder }
   }
 
   implicit object ListingSourceIdSerializer extends MythProtocolSerializable[ListingSourceId] {

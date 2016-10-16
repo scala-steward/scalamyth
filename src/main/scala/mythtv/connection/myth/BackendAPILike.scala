@@ -5,7 +5,7 @@ package myth
 import java.net.InetAddress
 import java.time.{ Duration, Instant, ZoneOffset }
 
-import model.{ CaptureCardId, CardInput, Channel, ChanId, FreeSpace, ListingSourceId, MythFileHash,
+import model.{ CaptureCardId, CardInput, Channel, ChannelNumber, ChanId, FreeSpace, ListingSourceId, MythFileHash,
   Recording, RecordRuleId, RemoteEncoder, UpcomingProgram, VideoPosition, VideoSegment }
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
 import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, PictureAdjustType, RecStatus }
@@ -297,12 +297,12 @@ private trait BackendAPILike {
     (result map { case QueryRecorderPictureAttribute(a) => a }).get
   }
 
-  def queryRecorderCheckChannel(cardId: CaptureCardId, channum: String): Boolean = {
+  def queryRecorderCheckChannel(cardId: CaptureCardId, channum: ChannelNumber): Boolean = {
     val result = sendCommand("QUERY_RECORDER", cardId, "CHECK_CHANNEL", channum)
     (result map { case QueryRecorderBoolean(b) => b }).get
   }
 
-  def queryRecorderCheckChannelPrefix(cardId: CaptureCardId, channumPrefix: String):
+  def queryRecorderCheckChannelPrefix(cardId: CaptureCardId, channumPrefix: ChannelNumber):
       (Boolean, Option[CaptureCardId], Boolean, String) = {
     val result = sendCommand("QUERY_RECORDER", cardId, "CHECK_CHANNEL_PREFIX", channumPrefix)
     (result map { case QueryRecorderCheckChannelPrefix(matched, cardId, extraCharUseful, spacer) =>
@@ -396,11 +396,11 @@ private trait BackendAPILike {
 
   def queryRecorderGetNextProgramInfo(cardId: CaptureCardId, chanId: ChanId, dir: ChannelBrowseDirection,
     startTime: MythDateTime): UpcomingProgram = {
-    val result = sendCommand("QUERY_RECORDER", cardId, "GET_NEXT_PROGRAM_INFO", "", chanId, dir, startTime)
+    val result = sendCommand("QUERY_RECORDER", cardId, "GET_NEXT_PROGRAM_INFO", ChannelNumber(""), chanId, dir, startTime)
     (result map { case QueryRecorderNextProgramInfo(p) => p }).get
   }
 
-  def queryRecorderGetNextProgramInfo(cardId: CaptureCardId, channum: String, dir: ChannelBrowseDirection,
+  def queryRecorderGetNextProgramInfo(cardId: CaptureCardId, channum: ChannelNumber, dir: ChannelBrowseDirection,
     startTime: MythDateTime): UpcomingProgram = {
     val result = sendCommand("QUERY_RECORDER", cardId, "GET_NEXT_PROGRAM_INFO", channum, ChanId(0), dir, startTime)
     (result map { case QueryRecorderNextProgramInfo(p) => p }).get
@@ -420,7 +420,7 @@ private trait BackendAPILike {
     val result = sendCommand("QUERY_RECORDER", cardId, "PAUSE")
   }
 
-  def queryRecorderSetChannel(cardId: CaptureCardId, channum: String): Unit = {
+  def queryRecorderSetChannel(cardId: CaptureCardId, channum: ChannelNumber): Unit = {
     val result = sendCommand("QUERY_RECORDER", cardId, "SET_CHANNEL", channum)
   }
 
@@ -443,7 +443,7 @@ private trait BackendAPILike {
     (result map { case QueryRecorderBoolean(b) => b }).get
   }
 
-  def queryRecorderSpawnLiveTV(cardId: CaptureCardId, usePiP: Boolean, channumStart: String): Unit = {
+  def queryRecorderSpawnLiveTV(cardId: CaptureCardId, usePiP: Boolean, channumStart: ChannelNumber): Unit = {
     val result = sendCommand("QUERY_RECORDER", cardId, "SPAWN_LIVETV", usePiP, channumStart)
   }
 
