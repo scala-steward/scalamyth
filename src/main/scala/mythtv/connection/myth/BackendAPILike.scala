@@ -9,7 +9,7 @@ import model.{ CaptureCardId, CardInput, Channel, ChanId, FreeSpace, ListingSour
   Recording, RecordRuleId, RemoteEncoder, UpcomingProgram, VideoPosition, VideoSegment }
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
 import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, PictureAdjustType, RecStatus }
-import EnumTypes.MythProtocolEventMode
+import EnumTypes.{ MythLogLevel, MythProtocolEventMode }
 import MythProtocol.QueryRecorder._
 
 private trait BackendAPILike {
@@ -122,7 +122,7 @@ private trait BackendAPILike {
     (result map { case r: Boolean => r }).get
   }
 
-  def messageSetLogLevel(logLevel: String): Boolean = {
+  def messageSetLogLevel(logLevel: MythLogLevel): Boolean = {
     val result = sendCommand("MESSAGE", "SET_LOG_LEVEL", logLevel)
     (result map { case r: Boolean => r }).get
   }

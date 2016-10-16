@@ -8,7 +8,7 @@ import model.{ CaptureCardId, CardInput, Channel, ChanId, FreeSpace, ListingSour
   Recording, RecordRuleId, RecStatus, RemoteEncoder, UpcomingProgram, VideoPosition, VideoSegment }
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
 import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, PictureAdjustType, RecStatus }
-import EnumTypes.MythProtocolEventMode
+import EnumTypes.{ MythLogLevel, MythProtocolEventMode }
 
 // TODO these APIs should be converted to return Option[_] or Either[_] or something
 trait MythProtocolAPI {
@@ -36,7 +36,7 @@ trait MythProtocolAPI {
   def lockTuner(): Any // TODO capture the appropriate return type
   def lockTuner(cardId: CaptureCardId): Any // see above for return type
   def message(message: String, extra: String*): Boolean
-  def messageSetLogLevel(logLevel: String): Boolean
+  def messageSetLogLevel(logLevel: MythLogLevel): Boolean
   def messageSetVerbose(verboseMask: String): Boolean
   def protocolVersion(ver: Int, token: String): (Boolean, Int)
   def queryActiveBackends: List[String]

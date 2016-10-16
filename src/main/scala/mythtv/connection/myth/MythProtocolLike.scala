@@ -6,11 +6,11 @@ import java.time.{ Duration, Instant, LocalDate, ZoneOffset }
 
 import data.{ BackendCardInput, BackendChannel, BackendFreeSpace, BackendProgram,
   BackendRemoteEncoder, BackendUpcomingProgram, BackendVideoSegment }
-import model.{ CaptureCardId, CardInput, Channel, ChanId, FreeSpace, ListingSourceId, Markup,
+import model.{ BitmaskEnum, CaptureCardId, CardInput, Channel, ChanId, FreeSpace, ListingSourceId, Markup,
   MythFileHash, RecordedMarkup, Recording, RecordRuleId, RemoteEncoder, UpcomingProgram, VideoPosition, VideoSegment }
 import util.{ ByteCount, BinaryByteCount, DecimalByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythDateTimeString }
 import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, PictureAdjustType, RecStatus }
-import EnumTypes.MythProtocolEventMode
+import EnumTypes.{ MythLogLevel, MythProtocolEventMode }
 
 import MythProtocol.Announce.AnnounceResult
 import MythProtocol.QueryRecorder.QueryRecorderResult
@@ -53,6 +53,64 @@ object MythProtocolEventMode extends Enumeration {
   val Normal     = Value(1)
   val NonSystem  = Value(2)
   val SystemOnly = Value(3)
+}
+
+object MythLogLevel extends Enumeration {
+  type MythLogLevel = Value
+  val Any        = Value(-1)
+  val Emerg      = Value(0)
+  val Alert      = Value(1)
+  val Crit       = Value(2)
+  val Err        = Value(3)
+  val Warning    = Value(4)
+  val Notice     = Value(5)
+  val Info       = Value(6)
+  val Debug      = Value(7)
+  val Unknown    = Value(8)
+}
+
+// To get strings used for verbose arguments, convert name to lowercase
+// TODO can't use Enumeration here because we need Long not Int
+object MythVerboseLevel extends BitmaskEnum {
+  type MythVerboseLevel = Value
+  val None       = Value(0)
+  val All        = Value //(0xffffffffffffffffL)  // mask/combo
+  val Most       = Value //(0xffffffff3ffeffffL)  // mask/combo
+  val General    = Value //(0x0000000000000002L)
+  val Record     = Value //(0x0000000000000004L)
+  val Playback   = Value //(0x0000000000000008L)
+  val Channel    = Value //(0x0000000000000010L)
+  val OSD        = Value //(0x0000000000000020L)
+  val File       = Value //(0x0000000000000040L)
+  val Schedule   = Value //(0x0000000000000080L)
+  val Network    = Value //(0x0000000000000100L)
+  val CommFlag   = Value //(0x0000000000000200L)
+  val Audio      = Value //(0x0000000000000400L)
+  val LibAV      = Value //(0x0000000000000800L)
+  val JobQueue   = Value //(0x0000000000001000L)
+  val Siparser   = Value //(0x0000000000002000L)
+  val EIT        = Value //(0x0000000000004000L)
+  val VBI        = Value //(0x0000000000008000L)
+  val Database   = Value //(0x0000000000010000L)
+  val DSMCC      = Value //(0x0000000000020000L)
+  val MHEG       = Value //(0x0000000000040000L)
+  val UPNP       = Value //(0x0000000000080000L)
+  val Socket     = Value //(0x0000000000100000L)
+  val XMLTV      = Value //(0x0000000000200000L)
+  val DVBCAM     = Value //(0x0000000000400000L)
+  val Media      = Value //(0x0000000000800000L)
+  val Idle       = Value //(0x0000000001000000L)
+  val ChanScan   = Value //(0x0000000002000000L)
+  val GUI        = Value //(0x0000000004000000L)
+  val System     = Value //(0x0000000008000000L)  // also Timestamp ?
+  val Process    = Value //(0x0000000100000000L)
+  val Frame      = Value //(0x0000000200000000L)
+  val RplxQueue  = Value //(0x0000000400000000L)
+  val Decode     = Value //(0x0000000800000000L)
+  val GPU        = Value //(0x0000004000000000L)
+  val GPUAudio   = Value //(0x0000008000000000L)
+  val GPUVideo   = Value //(0x0000010000000000L)
+  val RefCount   = Value //(0x0000020000000000L)
 }
 
 private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
@@ -1078,8 +1136,8 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       val args = List(sub, verboseMask)
       val elems = List(command, args mkString " ")
       elems mkString BACKEND_SEP
-    case Seq(sub @ "SET_LOG_LEVEL", logLevel: String) =>
-      val args = List(sub, logLevel)
+    case Seq(sub @ "SET_LOG_LEVEL", logLevel: MythLogLevel) =>
+      val args = List(sub, logLevel.toString.toLowerCase)
       val elems = List(command, args mkString " ")
       elems mkString BACKEND_SEP
     case Seq(message: String, extra @ _*) =>
