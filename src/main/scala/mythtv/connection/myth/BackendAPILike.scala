@@ -191,6 +191,12 @@ private trait BackendAPILike {
     (result map { case (total: ByteCount, used: ByteCount) => (total, used) }).get
   }
 
+  def queryGenPixmap(rec: Recording, token: String): Boolean = {
+    val sentToken = if (token.isEmpty) "do_not_care" else token
+    val result = sendCommand("QUERY_GENPIXMAP2", sentToken, rec)
+    (result map { case r: Boolean => r }).get
+  }
+
   def queryGetAllPending: ExpectedCountIterator[Recording] = {
     val result = sendCommand("QUERY_GETALLPENDING")
     (result map { case it: ExpectedCountIterator[_] => it.asInstanceOf[ExpectedCountIterator[Recording]] }).get

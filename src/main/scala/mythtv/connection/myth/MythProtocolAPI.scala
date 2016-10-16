@@ -49,6 +49,7 @@ trait MythProtocolAPI {
   def queryFreeSpace: List[FreeSpace]
   def queryFreeSpaceList: List[FreeSpace]
   def queryFreeSpaceSummary: (ByteCount, ByteCount)
+  def queryGenPixmap(rec: Recording, token: String = ""): Boolean
   def queryGetAllPending: ExpectedCountIterator[Recording]
   def queryGetAllScheduled: ExpectedCountIterator[Recording]
   def queryGetConflicting: Iterable[Recording]  // TODO expected count iterator?

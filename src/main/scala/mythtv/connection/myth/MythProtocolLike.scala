@@ -537,18 +537,23 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      * QUERY_GENPIXMAP2 []
      *     [%s, %p]                       <token> <ProgramInfo>
      *     [%s, %p, %s, %ld, %s, %d, %d]  <token> <ProgramInfo> <timeFmt:sORf> <time> <outputFile> <width> <height>
-     *   TODO first arg %s is a "token", can be the literal "do_not_care"
+     *   token can be the literal "do_not_care" if we want one randomly assigned
      *   outputFile may be "<EMPTY>"
+     *   time may be -1 (only in combination with "s" format?)
+     *   width may be 0
+     *   height may be 0
      *  @responds always?
-     *  @returns ["OK", %s]    <filename>
+     *  @returns
+     *    ["OK"]
+     *    or ["OK", %s]    <filename>   (if outputFile was given originally in request?)
      *       or ?? TODO follow up on successful return indication/other errors from slave pixmap generation
      *       or ["ERROR", "TOO_FEW_PARAMS"]
      *       or ["ERROR", "TOKEN_ABSENT"]
-     *       or ["BAD", "NO_PATHNAME"]
      *       or ["ERROR", "FILE_INACCESSIBLE"]
+     *       or ["BAD", "NO_PATHNAME"]
      * Does this follow up later with a message when the pixmap generation is complete?
      */
-    "QUERY_GENPIXMAP2" -> ((serializeNOP, handleNOP)),
+    "QUERY_GENPIXMAP2" -> ((serializeGenPixmap2, handleGenPixmap2)),
 
     /*
      * QUERY_GETALLPENDING { %s {, %d}}  { <tmptable> {, <recordid>}}
@@ -1046,6 +1051,19 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     case _ => throw new BackendCommandArgumentException
   }
 
+  protected def serializeGenPixmap2(command: String, args: Seq[Any]): String = args match {
+    case Seq(token: String, rec: Recording) =>
+      val elems = List(command, token, serialize(rec))
+      elems mkString BACKEND_SEP
+    case Seq(token: String, rec: Recording, timeFmt @ "s", time: Long, outputFile: String, width: Int, height: Int) =>
+      val elems = List(command, token, serialize(rec), timeFmt, serialize(time), outputFile, serialize(width), serialize(height))
+      elems mkString BACKEND_SEP
+    case Seq(token: String, rec: Recording, timeFmt @ "f", time: VideoPosition, outputFile: String, width: Int, height: Int) =>
+      val elems = List(command, token, serialize(rec), timeFmt, serialize(time), outputFile, serialize(width), serialize(height))
+      elems mkString BACKEND_SEP
+    case _ => throw new BackendCommandArgumentException
+  }
+
   protected def serializeLockTuner(command: String, args: Seq[Any]): String = args match {
     case Seq(cardId: CaptureCardId) =>
       val elems = List(command, serialize(cardId))
@@ -1369,6 +1387,11 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def handleFreeTuner(request: BackendRequest, response: BackendResponse): Option[Boolean] = {
     Some(response.raw == "OK")
+  }
+
+  protected def handleGenPixmap2(request: BackendRequest, response: BackendResponse): Option[Boolean] = {
+    val items = response.split
+    Some(items(0) == "OK")
   }
 
   protected def handleGetFreeRecorder(request: BackendRequest, response: BackendResponse): Option[RemoteEncoder] = {
