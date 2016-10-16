@@ -44,6 +44,15 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
     else Some(CaptureCardId(status))
   }
 
+  def reschedule(recordId: Option[RecordRuleId], wait: Boolean): Unit = {
+    val lock =
+      if (wait) EventLock(eventConnection, ev => ev.raw contains "SCHEDULE_CHANGE") // TODO more precise event filter
+      else EventLock.empty
+    if (recordId.isEmpty) conn.rescheduleRecordingsCheck(programId = "**any**")
+    else conn.rescheduleRecordingsMatch(recordId = recordId.get)
+    lock.waitFor()
+  }
+
   def isRecording(cardId: CaptureCardId): Boolean = conn.queryRecorderIsRecording(cardId)
 
   def recordingsIterator: ExpectedCountIterator[Recording] = conn.queryRecordings("Ascending")

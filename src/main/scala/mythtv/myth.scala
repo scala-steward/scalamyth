@@ -43,9 +43,7 @@ trait BackendOperations {
    def fileExists(fileName: String, storageGroup: String): Boolean
    */
 
-  /*
-  def reschedule(recordId: Option[RecordRuleId], wait: Boolean = false): Unit
-   */
+  def reschedule(recordId: Option[RecordRuleId] = None, wait: Boolean = false): Unit
 
   // These are MythXML methods in the Python bindings ...
 /*
