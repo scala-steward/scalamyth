@@ -6,8 +6,8 @@ import java.time.{ Duration, Instant, LocalDate, ZoneOffset }
 
 import data.{ BackendCardInput, BackendChannel, BackendFreeSpace, BackendProgram,
   BackendRemoteEncoder, BackendUpcomingProgram, BackendVideoSegment }
-import model.{ CaptureCardId, CardInput, Channel, ChanId, FreeSpace, ListingSourceId, Markup, RecordedMarkup,
-  Recording, RecordRuleId, RemoteEncoder, UpcomingProgram, VideoPosition, VideoSegment }
+import model.{ CaptureCardId, CardInput, Channel, ChanId, FreeSpace, ListingSourceId, Markup,
+  MythFileHash, RecordedMarkup, Recording, RecordRuleId, RemoteEncoder, UpcomingProgram, VideoPosition, VideoSegment }
 import util.{ ByteCount, BinaryByteCount, DecimalByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythDateTimeString }
 import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, PictureAdjustType, RecStatus }
 import EnumTypes.MythProtocolEventMode
@@ -1529,7 +1529,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   // TODO more specific return type to contain hash value
-  protected def handleQueryFileHash(request: BackendRequest, response: BackendResponse): Option[String] = {
+  protected def handleQueryFileHash(request: BackendRequest, response: BackendResponse): Option[MythFileHash] = {
     if (response.raw == "NULL") None
     else Some(response.raw)
   }

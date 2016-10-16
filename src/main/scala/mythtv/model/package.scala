@@ -4,4 +4,5 @@ package object model {
   type PropertyMap = Map[String, Any]
   type Guide = Iterable[ProgramGuideEntry]
   type BitmaskEnum = Enumeration
+  type MythFileHash = String
 }

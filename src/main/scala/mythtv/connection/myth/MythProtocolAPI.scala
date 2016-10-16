@@ -4,8 +4,8 @@ package myth
 
 import java.time.{ Duration, Instant, ZoneOffset }
 
-import model.{ CaptureCardId, CardInput, Channel, ChanId, FreeSpace, ListingSourceId, Recording,
-  RecordRuleId, RecStatus, RemoteEncoder, UpcomingProgram, VideoPosition, VideoSegment }
+import model.{ CaptureCardId, CardInput, Channel, ChanId, FreeSpace, ListingSourceId, MythFileHash,
+  Recording, RecordRuleId, RecStatus, RemoteEncoder, UpcomingProgram, VideoPosition, VideoSegment }
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
 import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, PictureAdjustType, RecStatus }
 import EnumTypes.MythProtocolEventMode
@@ -45,7 +45,7 @@ trait MythProtocolAPI {
   def queryCommBreak(chanId: ChanId, startTime: MythDateTime): List[VideoSegment]
   def queryCutList(chanId: ChanId, startTime: MythDateTime): List[VideoSegment]
   def queryFileExists(fileName: String, storageGroup: String = ""): (String, FileStats)
-  def queryFileHash(fileName: String, storageGroup: String, hostName: String = ""): String
+  def queryFileHash(fileName: String, storageGroup: String, hostName: String = ""): MythFileHash
   def queryFreeSpace: List[FreeSpace]
   def queryFreeSpaceList: List[FreeSpace]
   def queryFreeSpaceSummary: (ByteCount, ByteCount)

@@ -5,8 +5,8 @@ package myth
 import java.net.InetAddress
 import java.time.{ Duration, Instant, ZoneOffset }
 
-import model.{ CaptureCardId, CardInput, Channel, ChanId, FreeSpace, ListingSourceId, Recording,
-  RecordRuleId, RemoteEncoder, UpcomingProgram, VideoPosition, VideoSegment }
+import model.{ CaptureCardId, CardInput, Channel, ChanId, FreeSpace, ListingSourceId, MythFileHash,
+  Recording, RecordRuleId, RemoteEncoder, UpcomingProgram, VideoPosition, VideoSegment }
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
 import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, PictureAdjustType, RecStatus }
 import EnumTypes.MythProtocolEventMode
@@ -170,7 +170,7 @@ private trait BackendAPILike {
     (result map { case (fullName: String, stats: FileStats) => (fullName, stats) }).get
   }
 
-  def queryFileHash(fileName: String, storageGroup: String, hostName: String): String = {
+  def queryFileHash(fileName: String, storageGroup: String, hostName: String): MythFileHash = {
     val result =
       if (hostName == "") sendCommand("QUERY_FILE_HASH", fileName, storageGroup)
       else sendCommand("QUERY_FILE_HASH", fileName, storageGroup, hostName)
