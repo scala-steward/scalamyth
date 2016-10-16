@@ -1593,8 +1593,8 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleQueryGuideDataThrough(request: BackendRequest, response: BackendResponse): Option[MythDateTime] = {
-    val result = deserialize[MythDateTime](response.raw)
-    Some(result)
+    if (response.raw startsWith "0000") None
+    else Some(deserialize[MythDateTime](response.raw))
   }
 
   protected def handleQueryHostname(request: BackendRequest, response: BackendResponse): Option[String] = {
@@ -1797,22 +1797,26 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     }
   }
 
+  // TODO returns "-1" on error but that could also be a legitimate value!!?
+  protected def handleQuerySetting(request: BackendRequest, response: BackendResponse): Option[String] = {
+    Some(response.raw)
+  }
+
   protected def handleQuerySGFileQuery(request: BackendRequest, response: BackendResponse): Option[(String, MythDateTime, ByteCount)] = {
     val items = response.split
-    // TODO check for error conditions
-    val fullPath = items(0)
-    val timestamp = deserialize[MythDateTime](items(1))
-    val fileSize = deserialize[Long](items(2))
-    Some((fullPath, timestamp, DecimalByteCount(fileSize)))
+    if (items(0) == "EMPTY LIST" || items(0).startsWith("SLAVE UNREACHABLE")) None
+    else {
+      val fullPath = items(0)
+      val timestamp = deserialize[MythDateTime](items(1))
+      val fileSize = deserialize[Long](items(2))
+      Some((fullPath, timestamp, DecimalByteCount(fileSize)))
+    }
   }
 
   protected def handleQuerySGGetFileList(request: BackendRequest, response: BackendResponse): Option[List[String]] = {
-    // TODO check for error conditions
-    Some(response.split.toList)
-  }
-
-  protected def handleQuerySetting(request: BackendRequest, response: BackendResponse): Option[String] = {
-    Some(response.raw)
+    val items = response.split
+    if (items(0) == "EMPTY LIST" || items(0).startsWith("SLAVE UNREACHABLE")) None
+    else Some(items.toList)
   }
 
   protected def handleQueryTimeZone(request: BackendRequest, response: BackendResponse): Option[(String, ZoneOffset, Instant)] = {
