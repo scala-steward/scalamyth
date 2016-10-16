@@ -5,7 +5,6 @@ import java.time.format.DateTimeFormatter
 
 package object util {
 
-  // TODO: do we need to/from ISO (w,w/o zone offset, ISO_DATE_TIME, parseBest() ?)
   // TODO: do we need to/from RFC format (RFC_1123_DATE_TIME) ?
 
   // TODO: do we want to use LocalDateTime or Instant as our representation of Myth UTC time?
@@ -39,10 +38,16 @@ package object util {
       new MythDateTime(LocalDateTime.ofInstant(Instant.ofEpochSecond(ts), tz))
 
     def now: MythDateTime = new MythDateTime(LocalDateTime.now(ZoneOffset.UTC))
+
+    object MythDateTimeOrdering extends Ordering[MythDateTime] {
+      def compare(x: MythDateTime, y: MythDateTime) = x.localDateTime compareTo y.localDateTime
+    }
+
+    implicit def ordering: Ordering[MythDateTime] = MythDateTimeOrdering
   }
 
   // Used to indicate serialization format for certain MythProtocol commands
-  implicit class MythDateTimeString(mythDateTime: MythDateTime) {
+  private[mythtv] implicit class MythDateTimeString(mythDateTime: MythDateTime) {
     override def toString: String = mythDateTime.mythformat
     def toMythDateTime: MythDateTime = mythDateTime
   }
