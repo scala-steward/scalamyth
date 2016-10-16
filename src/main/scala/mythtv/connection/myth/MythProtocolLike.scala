@@ -1075,10 +1075,12 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def serializeMessage(command: String, args: Seq[Any]): String = args match {
     case Seq(sub @ "SET_VERBOSE", verboseMask: String) =>
-      val elems = List(command, sub, verboseMask)
+      val args = List(sub, verboseMask)
+      val elems = List(command, args mkString " ")
       elems mkString BACKEND_SEP
     case Seq(sub @ "SET_LOG_LEVEL", logLevel: String) =>
-      val elems = List(command, sub, logLevel)
+      val args = List(sub, logLevel)
+      val elems = List(command, args mkString " ")
       elems mkString BACKEND_SEP
     case Seq(message: String, extra @ _*) =>
       val extras = extra map (_.toString)
