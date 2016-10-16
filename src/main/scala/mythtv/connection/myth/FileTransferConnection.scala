@@ -6,6 +6,7 @@ import java.net.InetAddress
 
 trait FileTransferConnection extends SocketConnection
 
+// TODO are we expected to send "DONE" command when finished with a FileTransfer socket?
 // TODO do I want a base class without the [String] reader/writer so I can read/write raw byte blocks?
 private abstract class AbstractFileTransferConnection(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String)
     extends AbstractBackendConnection(host, port, timeout)

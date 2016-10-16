@@ -33,6 +33,12 @@ private final case class Event(raw: String) extends AnyVal with BackendEvent
  */
 
 /*
+ * Some MESSAGE examples
+ *
+ *   MESSAGE[]:[]MASTER_UPDATE_PROG_INFO 1151 2016-04-14T04:00:00Z
+ */
+
+/*
  * Format of SYSTEM_EVENT
  *   SYSTEM_EVENT %s SENDER %s
  *
