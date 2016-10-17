@@ -23,6 +23,16 @@ object MythProtocol extends MythProtocolSerializer {
     final case class AnnounceFileTransfer(ftID: Int, size: ByteCount) extends AnnounceResult
   }
 
+  // Sum type representing return values from QUERY_FILETRANSFER
+  sealed trait QueryFileTransferResult
+  object QueryFileTransferResult {
+    final case object QueryFileTransferAcknowledgement extends QueryFileTransferResult
+    final case class QueryFileTransferBoolean(value: Boolean) extends QueryFileTransferResult
+    final case class QueryFileTransferPosition(pos: Long) extends QueryFileTransferResult
+    final case class QueryFileTransferBytesTransferred(count: Int) extends QueryFileTransferResult
+    final case class QueryFileTransferRequestSize(size: Long, readOnly: Boolean) extends QueryFileTransferResult
+  }
+
   object QueryRecorder {
     // Sum type representing return values from QUERY_RECORDER
     sealed trait QueryRecorderResult

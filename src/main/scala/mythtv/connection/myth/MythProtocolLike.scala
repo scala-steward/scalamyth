@@ -13,6 +13,7 @@ import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, Picture
 import EnumTypes.{ MythLogLevel, MythProtocolEventMode }
 
 import MythProtocol.Announce.AnnounceResult
+import MythProtocol.QueryFileTransferResult
 import MythProtocol.QueryRecorder.QueryRecorderResult
 
 private[myth] trait MythProtocolLike extends MythProtocolSerializer {
@@ -575,7 +576,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *      SET_TIMEOUT   -> "OK"
      *      REQUEST_SIZE  -> [%ld, %b]  ft->GetFileSize, !gCoreContext->IsRegisteredFileForWrite(ft->GetFileName())
      */
-    "QUERY_FILETRANSFER" -> ((serializeQueryFileTransfer, handleNOP)),
+    "QUERY_FILETRANSFER" -> ((serializeQueryFileTransfer, handleQueryFileTransfer)),
 
     /*
      * QUERY_FREE_SPACE
@@ -1619,10 +1620,54 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     else None
   }
 
-  // TODO more specific return type to contain hash value
   protected def handleQueryFileHash(request: BackendRequest, response: BackendResponse): Option[MythFileHash] = {
     if (response.raw == "NULL") None
     else Some(response.raw)
+  }
+
+  protected def handleQueryFileTransfer(request: BackendRequest, response: BackendResponse): Option[QueryFileTransferResult] = {
+    import QueryFileTransferResult._
+
+    def acknowledgement: Option[QueryFileTransferResult] =
+      if (response.raw == "OK") Some(QueryFileTransferAcknowledgement)
+      else None
+
+    def boolean = Some(QueryFileTransferBoolean(deserialize[Boolean](response.raw)))
+
+    def bytesTransferred: Option[QueryFileTransferResult] = {
+      val count = deserialize[Int](response.raw)
+      if (count >= 0) Some(QueryFileTransferBytesTransferred(count))
+      else None
+    }
+
+    def position: Option[QueryFileTransferResult] = {
+      val pos = deserialize[Long](response.raw)
+      if (pos >= 0) Some(QueryFileTransferPosition(pos))
+      else None
+    }
+
+    def requestSize: Option[QueryFileTransferResult] = {
+      val items = response.split
+      val size = deserialize[Long](items(0))
+      val readOnly = deserialize[Boolean](items(1))
+      Some(QueryFileTransferRequestSize(size, readOnly))
+    }
+
+    if (response.raw startsWith "ERROR") None
+    else {
+      val subcommand = request.args(1).toString
+      subcommand match {
+        case "DONE"          => acknowledgement
+        case "REQUEST_BLOCK" => bytesTransferred
+        case "WRITE_BLOCK"   => bytesTransferred
+        case "SEEK"          => position
+        case "IS_OPEN"       => boolean
+        case "REOPEN"        => boolean
+        case "SET_TIMEOUT"   => acknowledgement
+        case "REQUEST_SIZE"  => requestSize
+        case _               => None
+      }
+    }
   }
 
   protected def handleQueryFreeSpace(request: BackendRequest, response: BackendResponse): Option[List[FreeSpace]] = {
