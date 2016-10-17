@@ -56,6 +56,18 @@ private trait BackendAPILike {
     (result map { case r: Int => r }).get
   }
 
+  def deleteRecording(chanId: ChanId, startTime: MythDateTime): Int = {
+    val result = sendCommand("DELETE_RECORDING", chanId, startTime)
+    (result map { case r: Int => r }).get
+  }
+
+  def deleteRecording(chanId: ChanId, startTime: MythDateTime, forceDeleteMetadata: Boolean, forgetHistory: Boolean): Int = {
+    val force = if (forceDeleteMetadata) "FORCE" else "-"
+    val forget = if (forgetHistory) "FORGET" else ""
+    val result = sendCommand("DELETE_RECORDING", chanId, startTime, force, forget)
+    (result map { case r: Int => r }).get
+  }
+
   def done(): Unit = ???
 
   def fillProgramInfo(playbackHost: String, p: Recording): Recording = ???

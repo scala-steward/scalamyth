@@ -21,6 +21,8 @@ trait MythProtocolAPI {
   def checkRecording(rec: Recording): Boolean
   def deleteFile(fileName: String, storageGroup: String): Boolean
   def deleteRecording(rec: Recording): Int
+  def deleteRecording(chanId: ChanId, startTime: MythDateTime): Int
+  def deleteRecording(chanId: ChanId, startTime: MythDateTime, forceDeleteMetadata: Boolean = false, forgetHistory: Boolean = false): Int
   def done(): Unit
   def fillProgramInfo(playbackHost: String, p: Recording): Recording
   def forceDeleteRecording(rec: Recording): Int
