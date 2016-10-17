@@ -11,10 +11,7 @@ import model.{ BitmaskEnum, CaptureCardId, CardInput, Channel, ChannelNumber, Ch
 import util.{ ByteCount, BinaryByteCount, DecimalByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythDateTimeString }
 import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, PictureAdjustType, RecStatus }
 import EnumTypes.{ MythLogLevel, MythProtocolEventMode }
-
-import MythProtocol.Announce.AnnounceResult
-import MythProtocol.QueryFileTransferResult
-import MythProtocol.QueryRecorder.QueryRecorderResult
+import MythProtocol.{ AnnounceResult, QueryFileTransferResult, QueryRecorderResult }
 
 private[myth] trait MythProtocolLike extends MythProtocolSerializer {
   type SerializeRequest = (String, Seq[Any]) => String
@@ -1437,7 +1434,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   // TODO this needs to return a (ftID, fileSize) for FileTransfer announces
   // TODO convert this to return a sum type (like query recorder)
   protected def handleAnnounce(request: BackendRequest, response: BackendResponse): Option[AnnounceResult] = {
-    import MythProtocol.Announce._
+    import AnnounceResult._
     val mode = request.args match { case Seq(mode: String, _*) => mode }
     if (mode == "FileTransfer") {
       val items = response.split
@@ -1792,7 +1789,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleQueryRecorder(request: BackendRequest, response: BackendResponse): Option[QueryRecorderResult] = {
-    import MythProtocol.QueryRecorder._
+    import QueryRecorderResult._
 
     def acknowledgement: Option[QueryRecorderResult] =
       if (response.raw == "OK") Some(QueryRecorderAcknowledgement)

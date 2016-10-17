@@ -16,9 +16,9 @@ object MythProtocol extends MythProtocolSerializer {
   final val BACKEND_SEP: String = "[]:[]"
   final val SPLIT_PATTERN: String = Pattern.quote(BACKEND_SEP)
 
-  object Announce {
-    // Sum type representing return values from ANN
-    sealed trait AnnounceResult
+  // Sum type representing return values from ANN
+  sealed trait AnnounceResult
+  object AnnounceResult {
     final case object AnnounceAcknowledgement extends AnnounceResult
     final case class AnnounceFileTransfer(ftID: Int, size: ByteCount) extends AnnounceResult
   }
@@ -33,9 +33,9 @@ object MythProtocol extends MythProtocolSerializer {
     final case class QueryFileTransferRequestSize(size: Long, readOnly: Boolean) extends QueryFileTransferResult
   }
 
-  object QueryRecorder {
-    // Sum type representing return values from QUERY_RECORDER
-    sealed trait QueryRecorderResult
+  // Sum type representing return values from QUERY_RECORDER
+  sealed trait QueryRecorderResult
+  object QueryRecorderResult {
     final case object QueryRecorderAcknowledgement extends QueryRecorderResult
     final case class QueryRecorderBoolean(value: Boolean) extends QueryRecorderResult
     final case class QueryRecorderFrameRate(rate: Double) extends QueryRecorderResult

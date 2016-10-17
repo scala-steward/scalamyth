@@ -10,7 +10,7 @@ import model.{ CaptureCardId, CardInput, Channel, ChannelNumber, ChanId, FreeSpa
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
 import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, PictureAdjustType, RecStatus }
 import EnumTypes.{ MythLogLevel, MythProtocolEventMode }
-import MythProtocol.QueryRecorder._
+import MythProtocol.QueryRecorderResult._
 
 private trait BackendAPILike {
   self: MythProtocolLike =>
@@ -21,7 +21,7 @@ private trait BackendAPILike {
   }
 
   def announce(mode: String, hostName: String, eventMode: MythProtocolEventMode): Boolean = {
-    import MythProtocol.Announce._
+    import MythProtocol.AnnounceResult._
     val localHost =
       if (hostName != "") hostName
       else InetAddress.getLocalHost().getHostName()
@@ -31,7 +31,7 @@ private trait BackendAPILike {
 
   def announceFileTransfer(hostName: String, fileName: String, storageGroup: String,
     writeMode: Boolean, useReadAhead: Boolean, timeout: Duration): (Int, ByteCount) = {
-    import MythProtocol.Announce._
+    import MythProtocol.AnnounceResult._
     val result = sendCommand("ANN", "FileTransfer", hostName, writeMode, useReadAhead, timeout, fileName, storageGroup)
     (result map { case AnnounceFileTransfer(ftID, fileSize) => (ftID, fileSize) }).get
   }
