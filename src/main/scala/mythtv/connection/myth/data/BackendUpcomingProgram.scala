@@ -18,7 +18,7 @@ private[myth] class BackendUpcomingProgram(data: Seq[String]) extends UpcomingPr
 
   override def toString: String = s"<BackendUpcomingProgram $chanId, $startTime: $title>"
 
-  private def isoDateTimeField(f: String): MythDateTime = MythDateTime.fromIso(fields(f))
+  private def isoDateTimeField(f: String): MythDateTime = MythDateTime.fromNaiveIso(fields(f))
 
   /* Convenience accessors with proper type */
 

@@ -105,10 +105,10 @@ object MythProtocolSerializable {
       } catch {
         case _ : NumberFormatException =>
           try {
-            MythDateTime.fromIso(in)
+            MythDateTime.fromNaiveIso(in)
           } catch {
             case _ : java.time.format.DateTimeParseException =>
-              MythDateTime.fromIsoLoose(in)
+              MythDateTime.fromNaiveIsoLoose(in)
           }
       }
     }
