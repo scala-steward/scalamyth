@@ -557,15 +557,25 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      * QUERY_FILETRANSFER %d [DONE]                 <ftID>
      * QUERY_FILETRANSFER %d [REQUEST_BLOCK, %d]    <ftID> [ blockSize ]
      * QUERY_FILETRANSFER %d [WRITE_BLOCK, %d]      <ftID> [ blockSize ]
-     * QUERY_FILETRANSFER %d [SEEK, %d, %d, %d]     <ftID> [ pos, whence, curPos ]
+     * QUERY_FILETRANSFER %d [SEEK, %ld, %d, %ld]   <ftID> [ pos, whence, curPos ]
      * QUERY_FILETRANSFER %d [IS_OPEN]              <ftID>
      * QUERY_FILETRANSFER %d [REOPEN %s]            <ftID> [ newFilename ]
      * QUERY_FILETRANSFER %d [SET_TIMEOUT %b]       <ftID> [ fast ]
      * QUERY_FILETRANSFER %d [REQUEST_SIZE]         <ftID>
-     *  @responds TODO
-     *  @returns TODO
+     *  @responds sometimes, only if tokenCount == 2
+     *  @returns
+     *       "ERROR: ......."           if ftID not found
+     *       "ERROR", "invalid call"    if unknown command
+     *      DONE          -> "OK"
+     *      REQUEST_BLOCK ->  %d        bytes sent, -1 on error  [does this block until transfer is complete?]
+     *      WRITE_BLOCK   ->  %d        bytes received, -1 on error  [ " ]
+     *      SEEK          ->  %ld       new file position?, -1 on error
+     *      IS_OPEN       ->  %b        boolean result of ft->isOpen
+     *      REOPEN        ->  %b        boolean result of ft->ReOpen  [ false if not writemode ]
+     *      SET_TIMEOUT   -> "OK"
+     *      REQUEST_SIZE  -> [%ld, %b]  ft->GetFileSize, !gCoreContext->IsRegisteredFileForWrite(ft->GetFileName())
      */
-    "QUERY_FILETRANSFER" -> ((serializeNOP, handleNOP)),
+    "QUERY_FILETRANSFER" -> ((serializeQueryFileTransfer, handleNOP)),
 
     /*
      * QUERY_FREE_SPACE
@@ -876,8 +886,6 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @responds always
      *  @returns [%b]      Boolean as to whether the reschedule request was processed
      *
-     *   TODO look @ Scheduler::HandleReschedule in programs/mythbackend/scheduler.cpp
-     *
      *  Some example calls from the Python bindings:
      *   RESCHEDULE_RECORDINGS [CHECK 0 0 0 Python] ['', '', '', '**any**']
      *   RESCHEDULE_RECORDINGS [MATCH %d 0 0 - Python]
@@ -1179,6 +1187,29 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       val elems = List(command, fileName, storageGroup)
       elems mkString BACKEND_SEP
     case _ => throw new BackendCommandArgumentException
+  }
+
+  protected def serializeQueryFileTransfer(command: String, args: Seq[Any]): String = args match {
+    case Seq(ftId: Int, sub @ ("DONE" | "IS_OPEN" | "REQUEST_SIZE")) =>
+      val prefix = List(command, ftId) mkString " "
+      val elems = List(prefix, sub)
+      elems mkString BACKEND_SEP
+    case Seq(ftId: Int, sub @ ("REQUEST_BLOCK" | "WRITE_BLOCK"), blockSize: Int) =>
+      val prefix = List(command, ftId) mkString " "
+      val elems = List(prefix, sub, serialize(blockSize))
+      elems mkString BACKEND_SEP
+    case Seq(ftId: Int, sub @ "SEEK", pos: Long, whence: Int, curPos: Long) =>
+      val prefix = List(command, ftId) mkString " "
+      val elems = List(prefix, sub, serialize(pos), serialize(whence), serialize(curPos))
+      elems mkString BACKEND_SEP
+    case Seq(ftId: Int, sub @ "REOPEN", newFileName: String) =>
+      val prefix = List(command, ftId) mkString " "
+      val elems = List(prefix, sub, newFileName)
+      elems mkString BACKEND_SEP
+    case Seq(ftId: Int, sub @ "SET_TIMEOUT", fast: Boolean) =>
+      val prefix = List(command, ftId) mkString " "
+      val elems = List(prefix, sub, serialize(fast))
+      elems mkString BACKEND_SEP
   }
 
   protected def serializeQueryGetAllPending(command: String, args: Seq[Any]): String = args match {
