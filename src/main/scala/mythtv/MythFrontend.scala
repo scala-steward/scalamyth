@@ -42,11 +42,10 @@ class MythFrontend(val host: String) extends Frontend with FrontendOperations {
     Instant.parse(res)
   }
 
-  lazy val jump = new Jumper      // TODO is it good practice to expose these lazy vals directly to the API?
-  lazy val key = new KeySender
+  lazy val jump = Jumper      // TODO is it good practice to expose these lazy vals directly to the API?
+  lazy val key = KeySender
 
-  // TODO should (can) this be an object? or private class?
-  class Jumper extends PartialFunction[JumpPoint, Boolean] {
+  object Jumper extends PartialFunction[JumpPoint, Boolean] {
     lazy val points: Map[String, String] = retrieveJumpPoints
     private val helpPat = """(\w+)[ ]+- ([\w /,]+)""".r
 
@@ -63,7 +62,7 @@ class MythFrontend(val host: String) extends Frontend with FrontendOperations {
     }
   }
 
-  class KeySender extends PartialFunction[KeyName, Boolean] {
+  object KeySender extends PartialFunction[KeyName, Boolean] {
     lazy val special: Set[KeyName] = retrieveSpecialKeys
 
     private val alphanum: Map[String, Char] = (('0' to '9') ++ ('A' to 'Z') ++ ('a' to 'z')
@@ -84,9 +83,9 @@ class MythFrontend(val host: String) extends Frontend with FrontendOperations {
     }
   }
 
-  /*******
-   frontend http server methods (port 6547)
-   ******/
+  /*
+   * frontend http server methods (port 6547)
+   */
 
   def screenshot(format: String, width: Int, height: Int): Array[Byte] = ???
 }
