@@ -4,10 +4,9 @@ package myth
 
 import java.time.Instant
 
-import data.{ BackendProgram, BackendRecordedMarkup }
-import model.{ CaptureCardId, ChanId, ChannelNumber, ListingSourceId, Markup, RecordRuleId, RecordedMarkup,
-  Recording, RecStatus, VideoPosition }
-import util.{ BinaryByteCount, DecimalByteCount, FileStats, MythDateTime, MythDateTimeString }
+import data._
+import util._
+import model._
 import model.EnumTypes.RecStatus
 
 // Type class for serializable objects in the MythProtocol stream

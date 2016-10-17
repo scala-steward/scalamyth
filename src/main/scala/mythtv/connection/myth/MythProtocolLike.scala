@@ -4,12 +4,10 @@ package myth
 
 import java.time.{ Duration, Instant, LocalDate, ZoneOffset }
 
-import data.{ BackendCardInput, BackendChannel, BackendFreeSpace, BackendProgram,
-  BackendRemoteEncoder, BackendUpcomingProgram, BackendVideoSegment }
-import model.{ BitmaskEnum, CaptureCardId, CardInput, Channel, ChannelNumber, ChanId, FreeSpace, ListingSourceId, Markup,
-  MythFileHash, RecordedMarkup, Recording, RecordRuleId, RemoteEncoder, UpcomingProgram, VideoPosition, VideoSegment }
-import util.{ ByteCount, BinaryByteCount, DecimalByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythDateTimeString }
-import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, PictureAdjustType, RecStatus }
+import data._
+import util._
+import model._
+import model.EnumTypes._
 import EnumTypes.{ MythLogLevel, MythProtocolEventMode }
 import MythProtocol.{ AnnounceResult, QueryFileTransferResult, QueryRecorderResult }
 
@@ -1431,8 +1429,6 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     Some(response.raw == "OK")
   }
 
-  // TODO this needs to return a (ftID, fileSize) for FileTransfer announces
-  // TODO convert this to return a sum type (like query recorder)
   protected def handleAnnounce(request: BackendRequest, response: BackendResponse): Option[AnnounceResult] = {
     import AnnounceResult._
     val mode = request.args match { case Seq(mode: String, _*) => mode }

@@ -2,9 +2,9 @@ package mythtv
 package connection
 package myth
 
+import model._
+import model.EnumTypes._
 import util.MythDateTime
-import model.{ CaptureCardId, CardInput, ChanId, Channel, ChannelNumber, Recording, RemoteEncoder, UpcomingProgram, VideoPosition }
-import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, PictureAdjustType }
 
 trait RecorderAPI {
   def cancelNextRecording(cancel: Boolean): Unit

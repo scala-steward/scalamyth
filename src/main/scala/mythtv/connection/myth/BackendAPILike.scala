@@ -5,10 +5,9 @@ package myth
 import java.net.InetAddress
 import java.time.{ Duration, Instant, ZoneOffset }
 
-import model.{ CaptureCardId, CardInput, Channel, ChannelNumber, ChanId, FreeSpace, ListingSourceId, MythFileHash,
-  Recording, RecordRuleId, RemoteEncoder, UpcomingProgram, VideoPosition, VideoSegment }
+import model._
+import model.EnumTypes._
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
-import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, PictureAdjustType, RecStatus }
 import EnumTypes.{ MythLogLevel, MythProtocolEventMode }
 import MythProtocol.QueryRecorderResult._
 

@@ -4,8 +4,8 @@ package myth
 
 import java.util.regex.Pattern
 
+import model._
 import util.ByteCount
-import model.{ CaptureCardId, CardInput, Channel, Recording, UpcomingProgram, VideoPosition }
 
 trait MythProtocol extends MythProtocolLike {
   def PROTO_VERSION: Int

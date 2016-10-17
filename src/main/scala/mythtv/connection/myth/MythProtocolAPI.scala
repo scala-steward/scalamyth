@@ -4,10 +4,9 @@ package myth
 
 import java.time.{ Duration, Instant, ZoneOffset }
 
-import model.{ CaptureCardId, CardInput, Channel, ChanId, ChannelNumber, FreeSpace, ListingSourceId, MythFileHash,
-  Recording, RecordRuleId, RecStatus, RemoteEncoder, UpcomingProgram, VideoPosition, VideoSegment }
+import model._
+import model.EnumTypes._
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
-import model.EnumTypes.{ ChannelBrowseDirection, ChannelChangeDirection, PictureAdjustType, RecStatus }
 import EnumTypes.{ MythLogLevel, MythProtocolEventMode }
 
 // TODO these APIs should be converted to return Option[_] or Either[_] or something
