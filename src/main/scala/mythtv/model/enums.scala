@@ -1,12 +1,11 @@
 package mythtv
 package model
 
-/* TODO: can I create a "LooseEnum" class that will allow creation
-    of instances with unknown mapping (and preserve original int value? */
+import util.LooseEnum
 
 /* TODO create some sort of equivalent of Java's EnumSet for storing bit flag enums */
 
-object Markup extends Enumeration {
+object Markup extends LooseEnum {
   type Markup = Value
   val MARK_ALL           = Value(-100)
   val MARK_UNSET         = Value(-10)
@@ -37,7 +36,7 @@ object Markup extends Enumeration {
   val MARK_TOTAL_FRAMES  = Value(34)
 }
 
-object RecType extends Enumeration {
+object RecType extends LooseEnum {
   type RecType = Value
   val NotRecording     = Value(0)
   val SingleRecord     = Value(1)
@@ -53,7 +52,7 @@ object RecType extends Enumeration {
   val TemplateRecord   = Value(11)
 }
 
-object RecSearchType extends Enumeration {
+object RecSearchType extends LooseEnum {
   type RecSearchType = Value
   val NoSearch      = Value(0)
   val PowerSearch   = Value(1)
@@ -63,7 +62,7 @@ object RecSearchType extends Enumeration {
   val ManualSearch  = Value(5)
 }
 
-object RecStatus extends Enumeration {
+object RecStatus extends LooseEnum {
   type RecStatus = Value
   val OtherRecording    = Value(-13)
   val OtherTuning       = Value(-12)
@@ -93,7 +92,6 @@ object RecStatus extends Enumeration {
   val Offline           = Value(12)
   val OtherShowing      = Value(13)
 }
-
 
 object AudioProperties extends BitmaskEnum {
   type AudioProperties = Value
@@ -142,7 +140,7 @@ object DupCheckMethod extends BitmaskEnum {
   val DupCheckSubThenDesc = Value(0x08) // subtitle, then description
 }
 
-object JobStatus extends Enumeration {
+object JobStatus extends LooseEnum {
   type JobStatus = Value
   val Unknown     = Value(0x0000)
   val Queued      = Value(0x0001)
@@ -166,7 +164,7 @@ object JobStatus extends Enumeration {
   }
 }
 
-object JobType extends Enumeration {
+object JobType extends LooseEnum {
   type JobType = Value
   val None      = Value(0x0000)
   val Transcode = Value(0x0001)
@@ -186,7 +184,7 @@ object JobType extends Enumeration {
   }
 }
 
-object JobCommand extends Enumeration {
+object JobCommand extends LooseEnum {
   type JobCommand = Value
   val Run     = Value(0x0000)
   val Pause   = Value(0x0001)
@@ -204,7 +202,7 @@ object JobFlags extends BitmaskEnum {
   val Rebuild    = Value(0x0008)
 }
 
-object ListingSourceType extends Enumeration {
+object ListingSourceType extends LooseEnum {
   type ListingSourceType = Value
   val EIT             = Value(0x01)
   val SchedulesDirect = Value(0x02)
@@ -212,7 +210,7 @@ object ListingSourceType extends Enumeration {
   val DBOX2EPG        = Value(0x08)
 }
 
-object PictureAdjustType extends Enumeration {
+object PictureAdjustType extends LooseEnum {
   type PictureAdjustType = Value
   val None      = Value(0)
   val Playback  = Value(1)
@@ -220,7 +218,7 @@ object PictureAdjustType extends Enumeration {
   val Recording = Value(3)
 }
 
-object ChannelBrowseDirection extends Enumeration {
+object ChannelBrowseDirection extends LooseEnum {
   type ChannelBrowseDirection = Value
   val Invalid   = Value(-1)
   val Same      = Value(0)  // Current channel and time
@@ -231,20 +229,10 @@ object ChannelBrowseDirection extends Enumeration {
   val Favorite  = Value(5)  // Next favorite channel
 }
 
-object ChannelChangeDirection extends Enumeration {
+object ChannelChangeDirection extends LooseEnum {
   type ChannelChangeDirection = Value
   val Up        = Value(0)
   val Down      = Value(1)
   val Favorite  = Value(2)
   val Same      = Value(3)
 }
-
-/*
-package object enums {
-  type Markup = mythtv.Markup.Value
-  type RecType = mythtv.RecType.Value
-  type RecSearchType = mythtv.RecSearchType.Value
-  type RecStatus = mythtv.RecStatus.Value
-  type JobStatus = mythtv.JobStatus.Value
-}
- */
