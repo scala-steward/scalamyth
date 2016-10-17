@@ -52,9 +52,9 @@ private[mythtv] class BackendProgram(data: Seq[String]) extends Program with Rec
   lazy val cardId: CaptureCardId = CaptureCardId(fields("cardId").toInt)
   lazy val inputId: Int = fields("inputId").toInt
   lazy val recPriority: Int = fields("recPriority").toInt
-  lazy val recStatus: RecStatus = RecStatus(fields("recStatus").toInt)
+  lazy val recStatus: RecStatus = RecStatus.applyOrUnknown(fields("recStatus").toInt)
   lazy val recordId: RecordRuleId = RecordRuleId(fields("recordId").toInt)
-  lazy val recType: RecType = RecType(fields("recType").toInt)
+  lazy val recType: RecType = RecType.applyOrUnknown(fields("recType").toInt)
   lazy val dupIn: DupCheckIn = DupCheckIn(fields("dupIn").toInt)
   lazy val dupMethod: DupCheckMethod = DupCheckMethod(fields("dupMethod").toInt)
   lazy val recStartTS: MythDateTime = timestampField("recStartTS")

@@ -82,7 +82,7 @@ object MythProtocolSerializable {
   }
 
   implicit object RecStatusSerializer extends MythProtocolSerializable[RecStatus] {
-    def deserialize(in: String): RecStatus = RecStatus(in.toInt)
+    def deserialize(in: String): RecStatus = RecStatus.applyOrUnknown(in.toInt)
     def serialize(in: RecStatus): String = in.id.toString
     override def serialize(in: RecStatus, builder: StringBuilder): StringBuilder = { builder.append(in.id); builder }
   }
@@ -152,7 +152,7 @@ object MythProtocolSerializable {
     override def deserialize(in: Seq[String]): RecordedMarkup = {
       assert(in.lengthCompare(1) > 0)
       BackendRecordedMarkup(
-        Markup(MythProtocol.deserialize[Int](in(0))),
+        Markup.applyOrUnknown(MythProtocol.deserialize[Int](in(0))),
         MythProtocol.deserialize[VideoPosition](in(1))
       )
     }
