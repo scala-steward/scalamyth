@@ -5,7 +5,7 @@ package data
 
 import model.{ Channel, ChanId, ListingSourceId }
 
-private[myth] class BackendChannel(data: Seq[String]) extends Channel {
+private[myth] class BackendChannel(data: Seq[String]) extends GenericBackendObject with Channel {
   import BackendChannel.FIELD_ORDER
 
   // assumes data.length >= FIELD_ORDER.length, or else some fields will be missing
@@ -27,7 +27,9 @@ private[myth] class BackendChannel(data: Seq[String]) extends Channel {
   def xmltvId: String = fields("xmltvId")
 }
 
-private[myth] object BackendChannel {
+private[myth] trait BackendChannelFactory extends GenericBackendObjectFactory[BackendChannel]
+
+private[myth] object BackendChannel extends BackendChannelFactory {
   final val FIELD_ORDER = IndexedSeq (
     "chanId", "sourceId", "callsign", "number", "name", "xmltvId"
   )

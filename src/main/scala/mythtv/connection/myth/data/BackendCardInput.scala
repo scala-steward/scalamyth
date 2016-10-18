@@ -5,7 +5,7 @@ package data
 
 import model.{ CaptureCardId, CardInput, ListingSourceId }
 
-private[myth] class BackendCardInput(data: Seq[String]) extends CardInput {
+private[myth] class BackendCardInput(data: Seq[String]) extends GenericBackendObject with CardInput {
   import BackendCardInput.FIELD_ORDER
 
   // assumes data.length >= FIELD_ORDER.length, or else some fields will be missing
@@ -27,7 +27,9 @@ private[myth] class BackendCardInput(data: Seq[String]) extends CardInput {
   lazy val liveTVorder: Int = fields("liveTVorder").toInt
 }
 
-private[myth] object BackendCardInput {
+private[myth] trait BackendCardInputFactory extends GenericBackendObjectFactory[BackendCardInput]
+
+private[myth] object BackendCardInput extends BackendCardInputFactory {
   final val FIELD_ORDER = IndexedSeq (
     "name", "sourceId", "cardInputId", "cardId", "mplexId", "liveTVorder"
   )

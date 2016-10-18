@@ -11,7 +11,7 @@ import model._
 import EnumTypes._
 import util.{ ByteCount, DecimalByteCount, MythDateTime }
 
-private[myth] class BackendProgram(data: Seq[String]) extends Program with Recordable with Recording {
+private[myth] class BackendProgram(data: Seq[String]) extends GenericBackendObject with Program with Recordable with Recording {
   import BackendProgram.FIELD_ORDER
 
   // assumes data.length >= FIELD_ORDER.length, or else some fields will be missing
@@ -80,7 +80,9 @@ private[myth] class BackendProgram(data: Seq[String]) extends Program with Recor
   lazy val partTotal: Option[Int] = optionalNonZeroIntField("partTotal")
 }
 
-private[myth] object BackendProgram {
+private[myth] trait BackendProgramFactory extends GenericBackendObjectFactory[BackendProgram]
+
+private[myth] object BackendProgram extends BackendProgramFactory {
   final val FIELD_ORDER = IndexedSeq(
     // TODO should this be a tuple or array or other such constant?
     //      Looks like a Vector wrapped around an array in bytecode

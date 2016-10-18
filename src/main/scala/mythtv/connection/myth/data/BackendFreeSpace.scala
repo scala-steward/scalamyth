@@ -6,7 +6,7 @@ package data
 import model.{ FreeSpace, StorageGroupId }
 import util.{ ByteCount, DecimalByteCount }
 
-private[myth] class BackendFreeSpace(data: Seq[String]) extends FreeSpace {
+private[myth] class BackendFreeSpace(data: Seq[String]) extends GenericBackendObject with FreeSpace {
   import BackendFreeSpace.FIELD_ORDER
 
   // assumes data.length >= FIELD_ORDER.length, or else some fields will be missing
@@ -30,7 +30,9 @@ private[myth] class BackendFreeSpace(data: Seq[String]) extends FreeSpace {
   lazy val freeSpace: ByteCount = totalSpace - usedSpace
 }
 
-private[myth] object BackendFreeSpace {
+private[myth] trait BackendFreeSpaceFactory extends GenericBackendObjectFactory[BackendFreeSpace]
+
+private[myth] object BackendFreeSpace extends BackendFreeSpaceFactory {
   final val FIELD_ORDER = IndexedSeq(
     "host", "path", "isLocal", "diskNumber", "sGroupId", "blockSize", "totalSpace", "usedSpace"
   )

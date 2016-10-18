@@ -6,7 +6,7 @@ package data
 import model.{ ChanId, UpcomingProgram }
 import util.MythDateTime
 
-private[myth] class BackendUpcomingProgram(data: Seq[String]) extends UpcomingProgram {
+private[myth] class BackendUpcomingProgram(data: Seq[String]) extends GenericBackendObject with UpcomingProgram {
   import BackendUpcomingProgram.FIELD_ORDER
 
   // assumes data.length >= FIELD_ORDER.length, or else some fields will be missing
@@ -33,7 +33,9 @@ private[myth] class BackendUpcomingProgram(data: Seq[String]) extends UpcomingPr
   def programId: String = fields("programId")
 }
 
-private[myth] object BackendUpcomingProgram {
+private[myth] trait BackendUpcomingProgramFactory extends GenericBackendObjectFactory[BackendUpcomingProgram]
+
+private[myth] object BackendUpcomingProgram extends BackendUpcomingProgramFactory {
   final val FIELD_ORDER = IndexedSeq(
     "title", "subtitle", "description", "category", "startTime", "endTime",
     "callsign", "iconpath", "channame", "chanId", "seriesId", "programId"

@@ -116,7 +116,11 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   override def commands = commandMap
 
   // override as necessary in versioned traits to get proper serialization
-  protected implicit val programInfoSerializer = ProgramInfoSerializerCurrent
+  protected implicit val programInfoSerializer     = ProgramInfoSerializerGeneric
+  protected implicit val freeSpaceSerializer       = FreeSpaceSerializerGeneric
+  protected implicit val cardInputSerializer       = CardInputSerializerGeneric
+  protected implicit val channelSerializer         = ChannelSerializerGeneric
+  protected implicit val upcomingProgramSerializer = UpcomingProgramSerializerGeneric
 
 /*
   protected def verifyArgsNOP(args: Seq[Any]): Boolean = true
@@ -1763,14 +1767,14 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   protected def handleQueryFreeSpace(request: BackendRequest, response: BackendResponse): Option[List[FreeSpace]] = {
     val items = response.split
     val fieldCount = BackendFreeSpace.FIELD_ORDER.length
-    val it = items.iterator grouped fieldCount withPartial false map (BackendFreeSpace(_))
+    val it = items.iterator grouped fieldCount withPartial false map deserialize[FreeSpace]
     Some(it.toList)
   }
 
   protected def handleQueryFreeSpaceList(request: BackendRequest, response: BackendResponse): Option[List[FreeSpace]] = {
     val items = response.split
     val fieldCount = BackendFreeSpace.FIELD_ORDER.length
-    val it = items.iterator grouped fieldCount withPartial false map (BackendFreeSpace(_))
+    val it = items.iterator grouped fieldCount withPartial false map deserialize[FreeSpace]
     Some(it.toList)
   }
 
@@ -1939,7 +1943,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       else {
         val fieldCount = BackendCardInput.FIELD_ORDER.length
         val it = response.split.iterator grouped fieldCount withPartial false
-        val inputs = (it map (BackendCardInput(_))).toList    // TODO use deserialize
+        val inputs = (it map deserialize[CardInput]).toList
         Some(QueryRecorderCardInputList(inputs))
       }
     }
@@ -1955,10 +1959,10 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     }
 
     def channelInfo: Option[QueryRecorderResult] =
-      Some(QueryRecorderChannelInfo(BackendChannel(response.split)))   // TODO use deserialize
+      Some(QueryRecorderChannelInfo(deserialize[Channel](response.split)))
 
     def nextProgramInfo: Option[QueryRecorderResult] =
-      Some(QueryRecorderNextProgramInfo(BackendUpcomingProgram(response.split)))  // TODO use deserialize
+      Some(QueryRecorderNextProgramInfo(deserialize[UpcomingProgram](response.split)))
 
     if (response.raw == "bad") None
     else {

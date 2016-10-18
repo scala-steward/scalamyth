@@ -159,35 +159,60 @@ object MythProtocolSerializable {
   }
 }
 
-// Idea here is a generic deserializer for objects that can be built from a Seq[String] and a FIELD_ORDER
-trait GenericObjectDeserializer[A] {
-  def deserialize(in: String): A = {
+// Idea here is a generic de-/serializer for backend objects that can be
+//  - constructed from a Seq[String] and a FIELD_ORDER
+//  - deconstructed using FIELD_ORDER and the apply-based fields accessor
+trait GenericBackendObjectSerializer[T, F <: GenericBackendObjectFactory[T]]
+    extends MythProtocolSerializable[T] {
+  def newFactory: F
+
+  // TODO pass FIELD_ORDER into factory apply/constructor...
+
+  // TODO do we really need to call take() in deserialize? Use a view slice instead?
+  // What about deserialization of a adjacent sequence of like-typed objects?
+
+  def deserialize(in: String): T = {
+    val factory = newFactory
     val data: Seq[String] = in split MythProtocol.SPLIT_PATTERN
-    //new A(data)   // TODO how do I do this? need a Builder or Factory?
-    ???
+    factory(data take factory.FIELD_ORDER.length)
+  }
+
+  override def deserialize(in: Seq[String]): T = {
+    val factory = newFactory
+    factory(in take factory.FIELD_ORDER.length)
+  }
+
+  def serialize(in: T): String = in match {
+    case g: GenericBackendObject =>
+      val factory = newFactory
+      factory.FIELD_ORDER map (g(_)) mkString MythProtocol.BACKEND_SEP
+    case _ => ???
+  }
+
+  override def serialize(in: T, builder: StringBuilder): StringBuilder = in match {
+    case g: GenericBackendObject =>
+      val factory = newFactory
+      (factory.FIELD_ORDER map (g(_))).addString(builder, MythProtocol.BACKEND_SEP)
+    case _ => ???
   }
 }
 
-// NB "ProgramInfo" serializer may vary across protocol versions
-// TODO deserialize also may vary across versions! Depends on FIELD_ORDER definition, anything else ...
-// TODO generalize this over different potential FIELD_ORDERs for different protocol versions
-object ProgramInfoSerializerCurrent extends MythProtocolSerializable[Recording] {
-  // TODO might like to be able to serialize a Program or Recordable...
-  //       ... we would need some defaults for the missing fields ...
-  //       ... is this advisable? we should probably only ever pass back records we got from the backend
-  //def serialize(in: Recording): String = ???
+object ProgramInfoSerializerGeneric extends GenericBackendObjectSerializer[Recording, BackendProgramFactory] {
+  def newFactory = BackendProgram
+}
 
-  def deserialize(in: String): Recording = BackendProgram(in split MythProtocol.SPLIT_PATTERN)
-  override def deserialize(in: Seq[String]): BackendProgram = BackendProgram(in)
+object FreeSpaceSerializerGeneric extends GenericBackendObjectSerializer[FreeSpace, BackendFreeSpaceFactory] {
+  def newFactory = BackendFreeSpace
+}
 
-  def serialize(in: Recording): String = in match {
-    // This works because BackendProgram keeps a copy of the original string data around in the fields map
-    case p: BackendProgram => BackendProgram.FIELD_ORDER map (p(_)) mkString MythProtocol.BACKEND_SEP
-    case _ => ???
-  }
+object CardInputSerializerGeneric extends GenericBackendObjectSerializer[CardInput, BackendCardInputFactory] {
+  def newFactory = BackendCardInput
+}
 
-  override def serialize(in: Recording, builder: StringBuilder): StringBuilder = in match {
-    case p: BackendProgram => (BackendProgram.FIELD_ORDER map (p(_))).addString(builder, MythProtocol.BACKEND_SEP)
-    case _ => ???
-  }
+object ChannelSerializerGeneric extends GenericBackendObjectSerializer[Channel, BackendChannelFactory] {
+  def newFactory = BackendChannel
+}
+
+object UpcomingProgramSerializerGeneric extends GenericBackendObjectSerializer[UpcomingProgram, BackendUpcomingProgramFactory] {
+  def newFactory = BackendUpcomingProgram
 }
