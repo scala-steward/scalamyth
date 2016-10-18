@@ -11,11 +11,11 @@ import model._
 import EnumTypes._
 import util.{ ByteCount, DecimalByteCount, MythDateTime }
 
-private[myth] class BackendProgram(data: Seq[String]) extends GenericBackendObject with Program with Recordable with Recording {
-  import BackendProgram.FIELD_ORDER
+private[myth] class BackendProgram(data: Seq[String], fieldOrder: IndexedSeq[String])
+    extends GenericBackendObject with Program with Recordable with Recording {
 
-  // assumes data.length >= FIELD_ORDER.length, or else some fields will be missing
-  val fields: Map[String, String] = (FIELD_ORDER zip data).toMap
+  // assumes data.length >= fieldOrder.length, or else some fields will be missing
+  val fields: Map[String, String] = (fieldOrder zip data).toMap
 
   def apply(fieldName: String): String = fields(fieldName)
 
@@ -96,5 +96,5 @@ private[myth] object BackendProgram extends BackendProgramFactory {
     "audioProps", "videoProps",      "subtitleType", "year",         "partNumber", "partTotal"
   )
 
-  def apply(data: Seq[String]): BackendProgram = new BackendProgram(data)
+  def apply(data: Seq[String]): BackendProgram = new BackendProgram(data, FIELD_ORDER)
 }

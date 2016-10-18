@@ -5,11 +5,11 @@ package data
 
 import model.{ Channel, ChanId, ListingSourceId }
 
-private[myth] class BackendChannel(data: Seq[String]) extends GenericBackendObject with Channel {
-  import BackendChannel.FIELD_ORDER
+private[myth] class BackendChannel(data: Seq[String], fieldOrder: IndexedSeq[String])
+    extends GenericBackendObject with Channel {
 
-  // assumes data.length >= FIELD_ORDER.length, or else some fields will be missing
-  val fields: Map[String, String] = (FIELD_ORDER zip data).toMap
+  // assumes data.length >= fieldOrder.length, or else some fields will be missing
+  val fields: Map[String, String] = (fieldOrder zip data).toMap
 
   def apply(fieldName: String): String = fields(fieldName)
 
@@ -34,5 +34,5 @@ private[myth] object BackendChannel extends BackendChannelFactory {
     "chanId", "sourceId", "callsign", "number", "name", "xmltvId"
   )
 
-  def apply(data: Seq[String]): BackendChannel = new BackendChannel(data)
+  def apply(data: Seq[String]): BackendChannel = new BackendChannel(data, FIELD_ORDER)
 }

@@ -6,11 +6,11 @@ package data
 import model.{ FreeSpace, StorageGroupId }
 import util.{ ByteCount, DecimalByteCount }
 
-private[myth] class BackendFreeSpace(data: Seq[String]) extends GenericBackendObject with FreeSpace {
-  import BackendFreeSpace.FIELD_ORDER
+private[myth] class BackendFreeSpace(data: Seq[String], fieldOrder: IndexedSeq[String])
+    extends GenericBackendObject with FreeSpace {
 
-  // assumes data.length >= FIELD_ORDER.length, or else some fields will be missing
-  val fields: Map[String, String] = (FIELD_ORDER zip data).toMap
+  // assumes data.length >= fieldOrder.length, or else some fields will be missing
+  val fields: Map[String, String] = (fieldOrder zip data).toMap
 
   def apply(fieldName: String): String = fields(fieldName)
 
@@ -37,5 +37,5 @@ private[myth] object BackendFreeSpace extends BackendFreeSpaceFactory {
     "host", "path", "isLocal", "diskNumber", "sGroupId", "blockSize", "totalSpace", "usedSpace"
   )
 
-  def apply(data: Seq[String]): BackendFreeSpace = new BackendFreeSpace(data)
+  def apply(data: Seq[String]): BackendFreeSpace = new BackendFreeSpace(data, FIELD_ORDER)
 }

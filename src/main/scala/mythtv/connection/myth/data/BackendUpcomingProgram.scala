@@ -6,11 +6,11 @@ package data
 import model.{ ChanId, UpcomingProgram }
 import util.MythDateTime
 
-private[myth] class BackendUpcomingProgram(data: Seq[String]) extends GenericBackendObject with UpcomingProgram {
-  import BackendUpcomingProgram.FIELD_ORDER
+private[myth] class BackendUpcomingProgram(data: Seq[String], fieldOrder: IndexedSeq[String])
+    extends GenericBackendObject with UpcomingProgram {
 
-  // assumes data.length >= FIELD_ORDER.length, or else some fields will be missing
-  val fields: Map[String, String] = (FIELD_ORDER zip data).toMap
+  // assumes data.length >= fieldOrder.length, or else some fields will be missing
+  val fields: Map[String, String] = (fieldOrder zip data).toMap
 
   def apply(fieldName: String): String = fields(fieldName)
 
@@ -41,5 +41,5 @@ private[myth] object BackendUpcomingProgram extends BackendUpcomingProgramFactor
     "callsign", "iconpath", "channame", "chanId", "seriesId", "programId"
   )
 
-  def apply(data: Seq[String]): BackendUpcomingProgram = new BackendUpcomingProgram(data)
+  def apply(data: Seq[String]): BackendUpcomingProgram = new BackendUpcomingProgram(data, FIELD_ORDER)
 }
