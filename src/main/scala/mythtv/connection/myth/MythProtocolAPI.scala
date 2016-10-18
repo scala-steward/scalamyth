@@ -10,6 +10,9 @@ import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
 import EnumTypes.{ MythLogLevel, MythProtocolEventMode }
 
 // TODO these APIs should be converted to return Option[_] or Either[_] or something
+/**
+  * A strongly-typed, thin API wrapper over the MythProtocol commands.
+  */
 trait MythProtocolAPI {
   def allowShutdown(): Boolean
   def announce(mode: String, hostName: String = "", eventMode: MythProtocolEventMode = MythProtocolEventMode.None): Boolean

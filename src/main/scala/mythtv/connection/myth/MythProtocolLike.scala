@@ -541,9 +541,15 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      * QUERY_FILE_HASH [] [%s, %s {, %s}]     <filename> <storageGroup> {<hostname>}
      *  @responds sometimes; only if slistCount >= 3
      *  @returns
-     *      ""  on error checking for file, invalid input  ----> TODO cannot reproduce this
+     *      ""  on error checking for file, invalid input
+     *          ----> NB cannot reproduce this; seems to be a bug/limitation in the backend code
+     *                   as when I trigger this condition, the server throws this log entry:
+     *                E MythSocketThread(56) mythsocket.cpp:694 (WriteStringListReal) MythSocket(27f1540:56):
+     *                      WriteStringList: Error, joined null string.
+     *           ----> Same problem as above if pass wrong number of arguments
+     *           TODO File bug/pull request with MythTV upstream
      *      %s  hash of the file (currently 64-bit, so 16 hex characters)
-     *     "NULL" if file was zero-length or did not exist (any other conditions? TODO)
+     *     "NULL" if file was zero-length or did not exist (any other conditions?)
      * NB storageGroup parameter seems to be a hint at most, specifying a non-existing or
      *    incorrect storageGroup does not prevent the proper hash being returned
      */
@@ -576,14 +582,22 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     /*
      * QUERY_FREE_SPACE
      *  @responds always
-     *  @returns  TODO
+     *  @returns  one or more "FreeSpace" objects comprised of the following fields:
+     *      %s   host name
+     *      %s   path name
+     *      %b   is local
+     *      %d   disk number
+     *      %d   StorageGroupId
+     *      %ld  block size
+     *      %ld  total space
+     *      %ld  used space
      */
     "QUERY_FREE_SPACE" -> ((serializeEmpty, handleQueryFreeSpace)),
 
     /*
      * QUERY_FREE_SPACE_LIST
      *  @responds always
-     *  @returns TODO
+     *  @returns see return value for QUERY_FREE_SPACE
      *
      * Like QUERY_FREE_SPACE but returns free space on all hosts, each directory
      * is reported as a URL, and a TotalDiskSpace is appended.
