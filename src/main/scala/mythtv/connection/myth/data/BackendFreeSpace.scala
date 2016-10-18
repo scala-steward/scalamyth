@@ -7,14 +7,7 @@ import model.{ FreeSpace, StorageGroupId }
 import util.{ ByteCount, DecimalByteCount }
 
 private[myth] class BackendFreeSpace(data: Seq[String], fieldOrder: IndexedSeq[String])
-    extends GenericBackendObject with FreeSpace {
-
-  // assumes data.length >= fieldOrder.length, or else some fields will be missing
-  val fields: Map[String, String] = (fieldOrder zip data).toMap
-
-  def apply(fieldName: String): String = fields(fieldName)
-
-  def get(fieldName: String): Option[String] = fields.get(fieldName)
+    extends GenericBackendObject(data, fieldOrder) with FreeSpace {
 
   override def toString: String = s"<FreeSpace $path@$host: $freeSpace>"
 

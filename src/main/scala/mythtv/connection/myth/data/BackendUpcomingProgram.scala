@@ -7,14 +7,7 @@ import model.{ ChanId, UpcomingProgram }
 import util.MythDateTime
 
 private[myth] class BackendUpcomingProgram(data: Seq[String], fieldOrder: IndexedSeq[String])
-    extends GenericBackendObject with UpcomingProgram {
-
-  // assumes data.length >= fieldOrder.length, or else some fields will be missing
-  val fields: Map[String, String] = (fieldOrder zip data).toMap
-
-  def apply(fieldName: String): String = fields(fieldName)
-
-  def get(fieldName: String): Option[String] = fields.get(fieldName)
+    extends GenericBackendObject(data, fieldOrder) with UpcomingProgram {
 
   override def toString: String = s"<BackendUpcomingProgram $chanId, $startTime: $title>"
 

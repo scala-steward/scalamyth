@@ -12,14 +12,7 @@ import EnumTypes._
 import util.{ ByteCount, DecimalByteCount, MythDateTime }
 
 private[myth] class BackendProgram(data: Seq[String], fieldOrder: IndexedSeq[String])
-    extends GenericBackendObject with Program with Recordable with Recording {
-
-  // assumes data.length >= fieldOrder.length, or else some fields will be missing
-  val fields: Map[String, String] = (fieldOrder zip data).toMap
-
-  def apply(fieldName: String): String = fields(fieldName)
-
-  def get(fieldName: String): Option[String] = fields.get(fieldName)
+    extends GenericBackendObject(data, fieldOrder) with Program with Recordable with Recording {
 
   override def toString: String = s"<BackendProgram $chanId, $startTime: $title>"
 

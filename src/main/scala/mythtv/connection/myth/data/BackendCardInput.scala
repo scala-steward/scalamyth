@@ -6,14 +6,7 @@ package data
 import model.{ CaptureCardId, CardInput, ListingSourceId }
 
 private[myth] class BackendCardInput(data: Seq[String], fieldOrder: IndexedSeq[String])
-    extends GenericBackendObject with CardInput {
-
-  // assumes data.length >= fieldOrder.length, or else some fields will be missing
-  val fields: Map[String, String] = (fieldOrder zip data).toMap
-
-  def apply(fieldName: String): String = fields(fieldName)
-
-  def get(fieldName: String): Option[String] = fields.get(fieldName)
+    extends GenericBackendObject(data, fieldOrder) with CardInput {
 
   override def toString: String = s"<BackendCardInput $cardInputId, $cardId $name>"
 
