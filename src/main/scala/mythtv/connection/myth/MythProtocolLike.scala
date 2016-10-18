@@ -98,7 +98,8 @@ object MythVerboseLevel extends BitmaskEnum {
   val Idle       = Value //(0x0000000001000000L)
   val ChanScan   = Value //(0x0000000002000000L)
   val GUI        = Value //(0x0000000004000000L)
-  val System     = Value //(0x0000000008000000L)  // also Timestamp ?
+  val System     = Value //(0x0000000008000000L)
+  val Timestamp  = System                         // alias for System
   val Process    = Value //(0x0000000100000000L)
   val Frame      = Value //(0x0000000200000000L)
   val RplxQueue  = Value //(0x0000000400000000L)
