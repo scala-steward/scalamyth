@@ -7,7 +7,7 @@ import model.{ FreeSpace, StorageGroupId }
 import util.{ ByteCount, DecimalByteCount }
 
 private[myth] class BackendFreeSpace(data: Seq[String]) extends FreeSpace {
-  import BackendFreeSpace._
+  import BackendFreeSpace.FIELD_ORDER
 
   // assumes data.length >= FIELD_ORDER.length, or else some fields will be missing
   val fields: Map[String, String] = (FIELD_ORDER zip data).toMap

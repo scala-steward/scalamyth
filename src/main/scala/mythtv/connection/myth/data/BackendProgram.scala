@@ -12,7 +12,7 @@ import EnumTypes._
 import util.{ ByteCount, DecimalByteCount, MythDateTime }
 
 private[myth] class BackendProgram(data: Seq[String]) extends Program with Recordable with Recording {
-  import BackendProgram._
+  import BackendProgram.FIELD_ORDER
 
   // assumes data.length >= FIELD_ORDER.length, or else some fields will be missing
   val fields: Map[String, String] = (FIELD_ORDER zip data).toMap
