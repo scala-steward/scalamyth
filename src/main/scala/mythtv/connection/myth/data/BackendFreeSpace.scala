@@ -30,7 +30,7 @@ private[myth] class BackendFreeSpace(data: Seq[String]) extends FreeSpace {
   lazy val freeSpace: ByteCount = totalSpace - usedSpace
 }
 
-private[mythtv] object BackendFreeSpace {
+private[myth] object BackendFreeSpace {
   final val FIELD_ORDER = IndexedSeq(
     "host", "path", "isLocal", "diskNumber", "sGroupId", "blockSize", "totalSpace", "usedSpace"
   )
