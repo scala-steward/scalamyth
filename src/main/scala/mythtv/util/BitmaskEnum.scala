@@ -89,6 +89,7 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
   }
 
   trait Value extends Base {
+    def isDefined: Boolean
     final def toMask: Mask = Mask(id)
   }
 
@@ -175,6 +176,7 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
     nextId = i << 1
 
     def id = i
+    final def isDefined = true
 
     override def toString =
       if (name ne null) name
@@ -184,6 +186,7 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
 
   private class UndefinedVal(i: T) extends Value {
     def id = i
+    final def isDefined = false
     override def toString = s"<undefined ${thisenum}.Value 0x${i.toHexString}>"
   }
 }
