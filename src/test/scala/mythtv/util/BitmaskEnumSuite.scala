@@ -81,4 +81,10 @@ class BitmaskEnumSuite extends FunSuite {
   test("Mask factory apply") {
     assert(Days.Mask(Days.Thursday).id === Days.Thursday.id)
   }
+
+  test("Value toMask") {
+    val m = Days.Tuesday.toMask
+    assert(m.isInstanceOf[Days.Mask])
+    assert(m.id === Days.Tuesday.id)
+  }
 }

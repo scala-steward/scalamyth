@@ -89,7 +89,7 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
   }
 
   trait Value extends Base {
-    // TODO add a toMask function?
+    final def toMask: Mask = Mask(id)
   }
 
   object Mask {
