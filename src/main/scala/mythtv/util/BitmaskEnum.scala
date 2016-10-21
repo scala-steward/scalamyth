@@ -64,8 +64,8 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
   private def nameOf(i: T): String =
     synchronized { nmap.getOrElse(i, { populateNameMap() ; nmap(i) }) }
 
-  private def unknown(i: T): Value =
-    synchronized { umap.getOrElseUpdate(i, new UnknownVal(i)) }
+  private def undefined(i: T): Value =
+    synchronized { umap.getOrElseUpdate(i, new UndefinedVal(i)) }
 
   import BitWise.BitwiseOps
 
@@ -161,7 +161,7 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
       shifts += 1
 
       if (vmap contains i) vmap(i)
-      else unknown(i)
+      else undefined(i)
     }
   }
 
@@ -182,8 +182,8 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
       catch { case _: NoSuchElementException => s"<Invalid enum: no field for #$i>" }
   }
 
-  private class UnknownVal(i: T) extends Value {
+  private class UndefinedVal(i: T) extends Value {
     def id = i
-    override def toString = s"<unknown ${thisenum}.Value 0x${i.toHexString}>"
+    override def toString = s"<undefined ${thisenum}.Value 0x${i.toHexString}>"
   }
 }
