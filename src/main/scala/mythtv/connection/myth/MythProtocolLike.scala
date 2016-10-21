@@ -68,7 +68,7 @@ object MythLogLevel extends Enumeration {
 // To get strings used for verbose arguments, convert name to lowercase
 // TODO can't use Enumeration here because we need Long not Int
 object MythVerboseLevel extends BitmaskEnum[Long] {
-  type MythVerboseLevel = Value
+  type MythVerboseLevel = Base
   val None       =  Mask(0)
   val All        =  Mask(0xffffffffffffffffL)
   val Most       =  Mask(0xffffffff3ffeffffL)

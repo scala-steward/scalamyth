@@ -2,12 +2,12 @@ package mythtv
 package model
 
 object EnumTypes {
-  type AudioProperties = model.AudioProperties.Value
+  type AudioProperties = model.AudioProperties.Base
   type ChannelBrowseDirection = model.ChannelBrowseDirection.Value
   type ChannelChangeDirection = model.ChannelChangeDirection.Value
-  type DupCheckIn = model.DupCheckIn.Value
-  type DupCheckMethod = model.DupCheckMethod.Value
-  type JobFlags = model.JobFlags.Value
+  type DupCheckIn = model.DupCheckIn.Base
+  type DupCheckMethod = model.DupCheckMethod.Base
+  type JobFlags = model.JobFlags.Base
   type JobStatus = model.JobStatus.Value
   type JobType = model.JobType.Value
   type ListingSourceType = model.ListingSourceType.Value
@@ -16,6 +16,6 @@ object EnumTypes {
   type RecSearchType = model.RecSearchType.Value
   type RecStatus = model.RecStatus.Value
   type RecType = model.RecType.Value
-  type SubtitleType = model.SubtitleType.Value
-  type VideoProperties = model.VideoProperties.Value
+  type SubtitleType = model.SubtitleType.Base
+  type VideoProperties = model.VideoProperties.Base
 }

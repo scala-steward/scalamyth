@@ -94,7 +94,7 @@ object RecStatus extends LooseEnum {
 }
 
 object AudioProperties extends BitmaskEnum[Int] {
-  type AudioProperties = Value
+  type AudioProperties = Base
   val Unknown      =  Mask(0x00)
   val Stereo       = Value(0x01)
   val Mono         = Value(0x02)
@@ -105,7 +105,7 @@ object AudioProperties extends BitmaskEnum[Int] {
 }
 
 object VideoProperties extends BitmaskEnum[Int] {
-  type VideoProperties = Value
+  type VideoProperties = Base
   val Unknown    =  Mask(0x00)
   val Hdtv       = Value(0x01)
   val Widescreen = Value(0x02)
@@ -115,7 +115,7 @@ object VideoProperties extends BitmaskEnum[Int] {
 }
 
 object SubtitleType extends BitmaskEnum[Int] {
-  type SubtitleType = Value
+  type SubtitleType = Base
   val Unknown  =  Mask(0x00)
   val HardHear = Value(0x01)
   val Normal   = Value(0x02)
@@ -124,7 +124,7 @@ object SubtitleType extends BitmaskEnum[Int] {
 }
 
 object DupCheckIn extends BitmaskEnum[Int] {
-  type DupCheckIn = Value
+  type DupCheckIn = Base
   val DupsInRecorded    = Value(0x01)
   val DupsInOldRecorded = Value(0x02)
   val DupsInAll         =  Mask(0x0f)
@@ -132,7 +132,7 @@ object DupCheckIn extends BitmaskEnum[Int] {
 }
 
 object DupCheckMethod extends BitmaskEnum[Int] {
-  type DupCheckMethod = Value
+  type DupCheckMethod = Base
   val DupCheckNone        = Value(0x01)
   val DupCheckSubtitle    = Value(0x02)
   val DupCheckDescription = Value(0x04)
@@ -194,7 +194,7 @@ object JobCommand extends LooseEnum {
 }
 
 object JobFlags extends BitmaskEnum[Int] {
-  type JobFlags = Value
+  type JobFlags = Base
   val None       =  Mask(0x0000)
   val UseCutlist = Value(0x0001)
   val LiveRec    = Value(0x0002)
