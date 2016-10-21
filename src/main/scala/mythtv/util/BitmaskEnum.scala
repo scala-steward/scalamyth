@@ -5,7 +5,7 @@ package util
 // TODO check when we have run out of bits!
 
 import java.lang.reflect.{ Field => JField, Method => JMethod }
-import scala.collection.{ mutable, immutable, AbstractIterator, AbstractSet, Set }
+import scala.collection.{ mutable, immutable, AbstractIterator, AbstractSet, GenSet, Set, SetLike }
 import scala.reflect.NameTransformer._
 import scala.util.matching.Regex
 
@@ -98,7 +98,7 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
   }
 
   // TODO inherit from SetLike[Value, Mask] also? to make Set method return Mask type rather than Set[Value]
-  abstract class Mask extends AbstractSet[Value] with Base {
+  abstract class Mask extends AbstractSet[Value] with SetLike[Value, Mask] with Base {
     override def empty: Mask = Mask.empty
   }
 
@@ -109,15 +109,33 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
   /*private*/ class MaskImpl(m: T, name: String) extends Mask {
     def this(i: T) = this(i, null)
 
-    // TODO do I want to override diff, union, intersect? Any other set operators?
-
     final def id = m
     final def contains(elem: Value) = (id & elem.id) != 0
     def iterator: Iterator[Value] = new MaskIterator(id)
     override def size = implicitly[BitWise[T]].bitCount(id)
     override def stringPrefix = thisenum + ".Mask"
 
-    //def union(that: Mask): Mask = | (that)   // TODO should be an override...
+    /* methods & | &~ defined to GenSetLike to forward to intersect, union, diff */
+
+    final override def diff(that: GenSet[Value]): Mask = that match {
+      case mask: Mask => new MaskImpl(id & ~mask.id)
+      case _ => super.diff(that)
+    }
+
+    final override def intersect(that: GenSet[Value]): Mask = that match {
+      case mask: Mask => new MaskImpl(id & mask.id)
+      case _ => super.intersect(that)
+    }
+
+    final override def union(that: GenSet[Value]): Mask = that match {
+      case mask: Mask => new MaskImpl(id | mask.id)
+      case _ => super.union(that)
+    }
+
+    final override def subsetOf(that: GenSet[Value]): Boolean = that match {
+      case mask: Mask => (id & mask.id) == id
+      case _ => super.subsetOf(that)
+    }
 
     override def toString =
       if (name ne null) name
