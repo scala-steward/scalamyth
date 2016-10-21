@@ -39,14 +39,10 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
   protected final def Value(i: T): Value = new Val(i)
   protected final def Value(i: T, name: String): Value = new Val(i, name)
 
-  protected final def Mask(i: T): Mask = new MaskImpl(i, null, true)
-  protected final def Mask(i: T, name: String): Mask = new MaskImpl(i, name, true)
-  protected final def Mask(m: Mask, name: String): Mask = new MaskImpl(m.id, name, true)
-  protected final def Mask(m: Mask): Mask = {
-    assert(!vmap.isDefinedAt(m.id), "Duplicate id: " + m.id)
-    vmap(m.id) = m
-    m
-  }
+  protected final def Mask(i: T): Mask = new MaskImpl(i, null)
+  protected final def Mask(i: T, name: String): Mask = new MaskImpl(i, name)
+  protected final def Mask(m: Mask): Mask = m
+  protected final def Mask(m: Mask, name: String): Mask = new MaskImpl(m.id, name)
 
   /* Use Java reflection to populate the name map */
   private def populateNameMap() {
@@ -56,15 +52,15 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
 
     val methods: Array[JMethod] = getClass.getMethods filter (m =>
         m.getParameterTypes.isEmpty &&
-        classOf[Value].isAssignableFrom(m.getReturnType) &&
+        classOf[Base].isAssignableFrom(m.getReturnType) &&
         m.getDeclaringClass != classOf[BitmaskEnum[_]] &&
         isValDef(m))
 
     methods foreach { m =>
       val name = m.getName
-      val value = m.invoke(this).asInstanceOf[Value]
+      val value = m.invoke(this).asInstanceOf[Base]
       if (value.outerEnum eq thisenum) {
-        val id = implicitly[BitWise[T]].unbox(classOf[Value] getMethod "id" invoke value)
+        val id = implicitly[BitWise[T]].unbox(classOf[Base] getMethod "id" invoke value)
         nmap += ((id, name))
       }
     }
@@ -78,7 +74,7 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
 
   import BitWise.BitwiseOps
 
-  trait Value {
+  trait Base {
     private[BitmaskEnum] val outerEnum = thisenum
 
     def id: T
@@ -90,8 +86,6 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
     final def ^ (elem: Value): Mask = new MaskImpl(id ^ elem.id)
     final def unary_~ : Mask = new MaskImpl(~id)
 
-    // TODO add a toMask function?
-
     override def equals(other: Any) = other match {
       case that: BitmaskEnum[_]#Value => (outerEnum eq that.outerEnum) && (id == that.id)
       case _                          => false
@@ -99,20 +93,21 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
     override def hashCode: Int = id.##
   }
 
+  trait Value extends Base {
+    // TODO add a toMask function?
+  }
+
   // TODO inherit from SetLike[Value, Mask] also? to make Set method return Mask type rather than Set[Value]
-  abstract class Mask extends AbstractSet[Value] with Value
+  abstract class Mask extends AbstractSet[Value] with Base {
+    override def empty: Mask = Mask.empty
+  }
 
-  /*private*/ class MaskImpl(m: T, name: String, cached: Boolean) extends Mask {
-    def this(i: T) = this(i, null, false)
+  object Mask {
+    val empty = new MaskImpl(implicitly[BitWise[T]].zero, "<empty>")
+  }
 
-    // This conflicted with |= with vset Mask on every Val added (we got dup ids)
-    //    however that messes up apply.... can we make vset more dynamic? or not
-    //    convert to a mask until requested? maybe we need to be able to create
-    //    non-cached masks (i.e. ones that are not defined in the enum)
-    if (cached) {
-      assert(!vmap.isDefinedAt(m), "Duplicate id: " + m)
-      vmap(m) = this
-    }
+  /*private*/ class MaskImpl(m: T, name: String) extends Mask {
+    def this(i: T) = this(i, null)
 
     // TODO do I want to override diff, union, intersect? Any other set operators?
 
@@ -122,7 +117,7 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
     override def size = implicitly[BitWise[T]].bitCount(id)
     override def stringPrefix = thisenum + ".Mask"
 
-    def union(that: Mask): Mask = | (that)   // TODO should be an override...
+    //def union(that: Mask): Mask = | (that)   // TODO should be an override...
 
     override def toString =
       if (name ne null) name
