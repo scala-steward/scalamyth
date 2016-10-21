@@ -1,7 +1,7 @@
 package mythtv
 package model
 
-import util.LooseEnum
+import util.{ BitmaskEnum, LooseEnum }
 
 /* TODO create some sort of equivalent of Java's EnumSet for storing bit flag enums */
 
@@ -93,20 +93,20 @@ object RecStatus extends LooseEnum {
   val OtherShowing      = Value(13)
 }
 
-object AudioProperties extends BitmaskEnum {
+object AudioProperties extends BitmaskEnum[Int] {
   type AudioProperties = Value
-  val Unknown      = Value(0x00)
+  val Unknown      =  Mask(0x00)
   val Stereo       = Value(0x01)
   val Mono         = Value(0x02)
-  val Surround     = Value(0x03)
+  val Surround     =  Mask(0x03)
   val Dolby        = Value(0x04)
   val HardHear     = Value(0x10)
   val VisualImpair = Value(0x20)
 }
 
-object VideoProperties extends BitmaskEnum {
+object VideoProperties extends BitmaskEnum[Int] {
   type VideoProperties = Value
-  val Unknown    = Value(0x00)
+  val Unknown    =  Mask(0x00)
   val Hdtv       = Value(0x01)
   val Widescreen = Value(0x02)
   val AVC        = Value(0x04)
@@ -114,29 +114,29 @@ object VideoProperties extends BitmaskEnum {
   val Hd1080     = Value(0x10)
 }
 
-object SubtitleType extends BitmaskEnum {
+object SubtitleType extends BitmaskEnum[Int] {
   type SubtitleType = Value
-  val Unknown  = Value(0x00)
+  val Unknown  =  Mask(0x00)
   val HardHear = Value(0x01)
   val Normal   = Value(0x02)
   val OnScreen = Value(0x04)
   val Signed   = Value(0x08)
 }
 
-object DupCheckIn extends BitmaskEnum {
+object DupCheckIn extends BitmaskEnum[Int] {
   type DupCheckIn = Value
   val DupsInRecorded    = Value(0x01)
   val DupsInOldRecorded = Value(0x02)
-  val DupsInAll         = Value(0x0f)  // this is a mask/combined value
+  val DupsInAll         =  Mask(0x0f)
   val DupsNewEpisodes   = Value(0x10)  // this should always be combined with DupsInAll ??
 }
 
-object DupCheckMethod extends BitmaskEnum {
+object DupCheckMethod extends BitmaskEnum[Int] {
   type DupCheckMethod = Value
   val DupCheckNone        = Value(0x01)
   val DupCheckSubtitle    = Value(0x02)
   val DupCheckDescription = Value(0x04)
-  val DupCheckSubDesc     = Value(0x06) // this is a mask/combined value
+  val DupCheckSubDesc     =  Mask(0x06)
   val DupCheckSubThenDesc = Value(0x08) // subtitle, then description
 }
 
@@ -193,9 +193,9 @@ object JobCommand extends LooseEnum {
   val Restart = Value(0x0008)
 }
 
-object JobFlags extends BitmaskEnum {
+object JobFlags extends BitmaskEnum[Int] {
   type JobFlags = Value
-  val None       = Value(0x0000)
+  val None       =  Mask(0x0000)
   val UseCutlist = Value(0x0001)
   val LiveRec    = Value(0x0002)
   val External   = Value(0x0004)
