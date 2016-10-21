@@ -29,9 +29,9 @@ class MythDateTime(val instant: Instant) extends AnyVal {
   // converters
   def toTimestamp: Long = instant.getEpochSecond
   def toInstant: Instant = instant
-  def toLocalDateTime: LocalDateTime = offsetDt.toLocalDateTime   // is this naive UTC? TODO rename method?
-  def toOffsetDateTime: OffsetDateTime = offsetDt
-  def toZonedDateTime: ZonedDateTime = instant atZone ZoneOffset.UTC
+  def toLocalDateTime(zoneId: ZoneId = ZoneOffset.UTC): LocalDateTime = toZonedDateTime(zoneId).toLocalDateTime
+  def toOffsetDateTime(offset: ZoneOffset = ZoneOffset.UTC): OffsetDateTime = instant atOffset offset
+  def toZonedDateTime(zoneId: ZoneId = ZoneOffset.UTC): ZonedDateTime = instant atZone zoneId
 }
 
 object MythDateTime {

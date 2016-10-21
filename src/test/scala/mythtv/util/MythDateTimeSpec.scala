@@ -79,7 +79,7 @@ class MythDateTimeSpec extends FlatSpec {
   }
   it should "support conversion to java.time.LocalDateTime" in {
     val mdt = new MythDateTime(myInstant)
-    val local = mdt.toLocalDateTime
+    val local = mdt.toLocalDateTime()
     assert(local.getYear === myYear)
     assert(local.getMonthValue === myMonth)
     assert(local.getDayOfMonth === myDay)
