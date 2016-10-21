@@ -13,6 +13,7 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
   thisenum =>
 
   private val vmap: mutable.Map[T, Value] = new mutable.HashMap
+  private val umap: mutable.Map[T, Value] = new mutable.HashMap
   private val nmap: mutable.Map[T, String] = new mutable.HashMap
   private var vset: Mask = _
   protected var nextId: T = _
@@ -71,6 +72,9 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
 
   private def nameOf(i: T): String =
     synchronized { nmap.getOrElse(i, { populateNameMap() ; nmap(i) }) }
+
+  private def unknown(i: T): Value =
+    synchronized { umap.getOrElseUpdate(i, new UnknownVal(i)) }
 
   import BitWise.BitwiseOps
 
@@ -144,7 +148,7 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
       shifts += 1
 
       if (vmap contains i) vmap(i)
-      else Value(i)   // TODO FIXME don't create new Value that wasn't in original enum
+      else unknown(i)
     }
   }
 
@@ -163,5 +167,10 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
       if (name ne null) name
       else try thisenum.nameOf(i)
       catch { case _: NoSuchElementException => s"<Invalid enum: no field for #$i>" }
+  }
+
+  private class UnknownVal(i: T) extends Value {
+    def id = i
+    override def toString = s"<unknown ${thisenum}.Value 0x${i.toHexString}>"
   }
 }
