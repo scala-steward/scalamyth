@@ -19,8 +19,8 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
   protected var nextId: T = _
 
   // work around specialization bugs with initializing fields
-  private def init(): Unit = {
-    vset = new MaskImpl(implicitly[BitWise[T]].zero)
+  private def init() = {
+    vset = Mask(implicitly[BitWise[T]].zero)
     nextId = implicitly[BitWise[T]].one
   }
   init()
@@ -38,11 +38,6 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
 
   protected final def Value(i: T): Value = new Val(i)
   protected final def Value(i: T, name: String): Value = new Val(i, name)
-
-  protected final def Mask(i: T): Mask = new MaskImpl(i, null)
-  protected final def Mask(i: T, name: String): Mask = new MaskImpl(i, name)
-  protected final def Mask(m: Mask): Mask = m
-  protected final def Mask(m: Mask, name: String): Mask = new MaskImpl(m.id, name)
 
   /* Use Java reflection to populate the name map */
   private def populateNameMap() {
@@ -80,11 +75,11 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
     def id: T
 
     final def + (elem: Value): Mask = | (elem)
-    final def - (elem: Value): Mask = new MaskImpl(id & ~elem.id)
-    final def | (elem: Value): Mask = new MaskImpl(id | elem.id)
-    final def & (elem: Value): Mask = new MaskImpl(id & elem.id)
-    final def ^ (elem: Value): Mask = new MaskImpl(id ^ elem.id)
-    final def unary_~ : Mask = new MaskImpl(~id)
+    final def - (elem: Value): Mask = Mask(id & ~elem.id)
+    final def | (elem: Value): Mask = Mask(id | elem.id)
+    final def & (elem: Value): Mask = Mask(id & elem.id)
+    final def ^ (elem: Value): Mask = Mask(id ^ elem.id)
+    final def unary_~ : Mask = Mask(~id)
 
     override def equals(other: Any) = other match {
       case that: BitmaskEnum[_]#Value => (outerEnum eq that.outerEnum) && (id == that.id)
@@ -97,38 +92,43 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
     // TODO add a toMask function?
   }
 
-  // TODO inherit from SetLike[Value, Mask] also? to make Set method return Mask type rather than Set[Value]
-  abstract class Mask extends AbstractSet[Value] with SetLike[Value, Mask] with Base {
-    override def empty: Mask = Mask.empty
-  }
-
   object Mask {
-    val empty = new MaskImpl(implicitly[BitWise[T]].zero, "<empty>")
+    val empty = new Mask(implicitly[BitWise[T]].zero, "<empty>")
+
+    def apply(i: T): Mask = new Mask(i, null)
+    def apply(i: T, name: String) = new Mask(i, name)
+
+    def apply(v: Value) = new Mask(v.id, null)
+    def apply(v: Value, name: String) = new Mask(v.id, name)
+
+    def apply(m: Mask): Mask = m
+    def apply(m: Mask, name: String): Mask = new Mask(m.id, name)
   }
 
-  /*private*/ class MaskImpl(m: T, name: String) extends Mask {
-    def this(i: T) = this(i, null)
+  class Mask private(m: T, name: String) extends AbstractSet[Value] with SetLike[Value, Mask] with Base {
+    private def this(i: T) = this(i, null)
 
     final def id = m
     final def contains(elem: Value) = (id & elem.id) != 0
     def iterator: Iterator[Value] = new MaskIterator(id)
+    override def empty: Mask = Mask.empty
     override def size = implicitly[BitWise[T]].bitCount(id)
     override def stringPrefix = thisenum + ".Mask"
 
     /* methods & | &~ defined to GenSetLike to forward to intersect, union, diff */
 
     final override def diff(that: GenSet[Value]): Mask = that match {
-      case mask: Mask => new MaskImpl(id & ~mask.id)
+      case mask: Mask => new Mask(id & ~mask.id)
       case _ => super.diff(that)
     }
 
     final override def intersect(that: GenSet[Value]): Mask = that match {
-      case mask: Mask => new MaskImpl(id & mask.id)
+      case mask: Mask => new Mask(id & mask.id)
       case _ => super.intersect(that)
     }
 
     final override def union(that: GenSet[Value]): Mask = that match {
-      case mask: Mask => new MaskImpl(id | mask.id)
+      case mask: Mask => new Mask(id | mask.id)
       case _ => super.union(that)
     }
 

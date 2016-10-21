@@ -77,4 +77,8 @@ class BitmaskEnumSuite extends FunSuite {
     assert(Days(0x40) === Days.Sunday)
     //assert(Days(0x1f) === Days.Weekday)  // FIXME? mask values are no longer in vmap to be processed by apply()
   }
+
+  test("Mask factory apply") {
+    assert(Days.Mask(Days.Thursday).id === Days.Thursday.id)
+  }
 }
