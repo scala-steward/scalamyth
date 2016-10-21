@@ -88,9 +88,14 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
     override def hashCode: Int = id.##
   }
 
-  trait Value extends Base {
+  trait Value extends Ordered[Value] with Base {
     def isDefined: Boolean
     final def toMask: Mask = Mask(id)
+
+    override def compare(that: Value): Int =
+      if (id < that.id) -1
+      else if (id == that.id) 0
+      else 1
   }
 
   object Mask {

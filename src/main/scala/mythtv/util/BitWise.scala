@@ -22,6 +22,7 @@ trait BitCountable[@specialized(Int,Long) T] {
 trait BitWise[@specialized(Int, Long) T] extends BitwiseOperable[T] with BitCountable[T] {
   def toHexString(x: T): String
   def unbox(x: AnyRef): T
+  def lt(x: T, y: T): Boolean
   def zero: T
   def one: T
 }
@@ -64,6 +65,7 @@ object BitWise {
   trait IntIsBitWise extends BitWise[Int] with IntIsBitCountable with IntIsBitwiseOperable {
     def toHexString(x: Int): String = x.toHexString
     def unbox(x: AnyRef): Int = Int.unbox(x)
+    def lt(x: Int, y: Int): Boolean = x < y
     def zero = 0
     def one = 1
   }
@@ -71,6 +73,7 @@ object BitWise {
   trait LongIsBitWise extends BitWise[Long] with LongIsBitCountable with LongIsBitwiseOperable {
     def toHexString(x: Long): String = x.toHexString
     def unbox(x: AnyRef): Long = Long.unbox(x)
+    def lt(x: Long, y: Long): Boolean = x < y
     def zero = 0
     def one = 1
   }
@@ -88,6 +91,7 @@ object BitWise {
     def >> (n: Int): T = ev.bitwise_shr(lhs, n)
     def @<< (n: Int): T = ev.bitwise_rol(lhs, n)
     def @>> (n: Int): T = ev.bitwise_ror(lhs, n)
+    def < (rhs: T): Boolean = ev.lt(lhs, rhs)
     def toHexString: String = ev.toHexString(lhs)
   }
 }
