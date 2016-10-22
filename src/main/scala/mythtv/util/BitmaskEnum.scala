@@ -15,7 +15,7 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
 
   private val vmap: mutable.Map[T, Value] = new mutable.HashMap
   private val umap: mutable.Map[T, Value] = new mutable.HashMap
-  private val mmap: mutable.Map[T, Mask] = new mutable.HashMap
+  private val mmap: mutable.Map[T, Mask] = new mutable.HashMap // TODO use a weak map here?
   private val nmap: mutable.Map[T, String] = new mutable.HashMap
   private var vset: Mask = _
   private var nextId: T = _
@@ -77,6 +77,7 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
     private[BitmaskEnum] val outerEnum = thisenum
 
     def id: T
+    def contains(elem: Value): Boolean
 
     final def + (elem: Value): Mask = | (elem)
     final def - (elem: Value): Mask = transientMask(id & ~elem.id)
@@ -97,6 +98,7 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
   trait Value extends Ordered[Value] with Base {
     def isDefined: Boolean
     final def toMask: Mask = transientMask(id)
+    final def contains(elem: Value): Boolean = id == elem.id
 
     override def compare(that: Value): Int =
       if (id < that.id) -1
