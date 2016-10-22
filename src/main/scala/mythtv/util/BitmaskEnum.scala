@@ -2,7 +2,6 @@ package mythtv
 package util
 
 // TODO check when we have run out of bits!
-// TODO caching of (some?) Mask values?
 // TODO override newBuilder in Mask object?
 // TODO investigate java.lang.Long.lowestOneBit
 
@@ -16,13 +15,14 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
 
   private val vmap: mutable.Map[T, Value] = new mutable.HashMap
   private val umap: mutable.Map[T, Value] = new mutable.HashMap
+  private val mmap: mutable.Map[T, Mask] = new mutable.HashMap
   private val nmap: mutable.Map[T, String] = new mutable.HashMap
   private var vset: Mask = _
   private var nextId: T = _
 
   // work around specialization bugs with initializing fields
   private def init() = {
-    vset = Mask(implicitly[BitWise[T]].zero)
+    vset = Mask.empty
     nextId = implicitly[BitWise[T]].one
   }
   init()
@@ -31,7 +31,9 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
     ((getClass.getName stripSuffix MODULE_SUFFIX_STRING split '.').last split
       Regex.quote(NAME_JOIN_STRING)).last
 
-  final def apply(x: T): Value = vmap(x)
+  final def apply(x: T): Base =
+    try vmap(x)
+    catch { case _: NoSuchElementException => mmap(x) }
 
   def values: Set[Value] = vset
 
@@ -77,11 +79,13 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
     def id: T
 
     final def + (elem: Value): Mask = | (elem)
-    final def - (elem: Value): Mask = Mask(id & ~elem.id)
-    final def | (elem: Value): Mask = Mask(id | elem.id)
-    final def & (elem: Value): Mask = Mask(id & elem.id)
-    final def ^ (elem: Value): Mask = Mask(id ^ elem.id)
-    final def unary_~ : Mask = Mask(~id)
+    final def - (elem: Value): Mask = transientMask(id & ~elem.id)
+    final def | (elem: Value): Mask = transientMask(id | elem.id)
+    final def & (elem: Value): Mask = transientMask(id & elem.id)
+    final def ^ (elem: Value): Mask = transientMask(id ^ elem.id)
+    final def unary_~ : Mask = transientMask(~id)
+
+    protected def transientMask(id: T): Mask = Mask(id, null, false)
 
     override def equals(other: Any) = other match {
       case that: BitmaskEnum[_]#Value => (outerEnum eq that.outerEnum) && (id == that.id)
@@ -92,7 +96,7 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
 
   trait Value extends Ordered[Value] with Base {
     def isDefined: Boolean
-    final def toMask: Mask = Mask(id)
+    final def toMask: Mask = transientMask(id)
 
     override def compare(that: Value): Int =
       if (id < that.id) -1
@@ -105,28 +109,32 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
   }
 
   object Mask {
-    val empty = new Mask(implicitly[BitWise[T]].zero, "<empty>")
+    val empty = new Mask(implicitly[BitWise[T]].zero, "<empty>", false)
 
-    def apply(i: T): Mask = new Mask(i, null)
-    def apply(i: T, name: String) = new Mask(i, name)
+    def apply(i: T): Mask = Mask(i, null, true)
+    def apply(i: T, name: String): Mask = Mask(i, name, true)
 
-    def apply(v: Value) = new Mask(v.id, null)
-    def apply(v: Value, name: String) = new Mask(v.id, name)
+    def apply(v: Value): Mask = Mask(v.id, null, true)
+    def apply(v: Value, name: String): Mask = Mask(v.id, name, true)
 
-    def apply(m: Mask): Mask = m
-    def apply(m: Mask, name: String): Mask = new Mask(m.id, name)
+    def apply(m: Mask): Mask = Mask(m.id, m.name, true)
+    def apply(m: Mask, name: String): Mask = new Mask(m.id, name, true) // special case, may be renaming a Mask already cached
+
+    private[BitmaskEnum] def apply(id: T, name: String, cache: Boolean): Mask = {
+      if (mmap isDefinedAt id) mmap(id)
+      else new Mask(id, name, cache)
+    }
   }
 
-  class Mask private(m: T, name: String)
+  class Mask private(m: T, private val name: String, cache: Boolean)
     extends AbstractSet[Value]
        with immutable.SortedSet[Value]
        with SortedSetLike[Value, Mask]
        with Base {
-    private def this(i: T) = this(i, null)
-
     final def id = m
     final def contains(elem: Value) = (id & elem.id) != 0
     implicit final def ordering: Ordering[Value] = ValueOrdering
+    if (cache) mmap(id) = this
 
     def iterator: Iterator[Value] = new MaskIterator(id)
     override def empty: Mask = Mask.empty
@@ -150,24 +158,24 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
         val nz = implicitly[BitWise[T]].numberOfTrailingZeros(until.get.id)
         span &= ~(implicitly[BitWise[T]].minusone << nz)
       }
-      Mask(span)
+      transientMask(span)
     }
 
     /* methods & | &~ defined in GenSetLike to forward to intersect, union, diff
        so we only override the latter methods here*/
 
     final override def diff(that: GenSet[Value]): Mask = that match {
-      case mask: Mask => new Mask(id & ~mask.id)
+      case mask: Mask => transientMask(id & ~mask.id)
       case _ => super.diff(that)
     }
 
     final override def intersect(that: GenSet[Value]): Mask = that match {
-      case mask: Mask => new Mask(id & mask.id)
+      case mask: Mask => transientMask(id & mask.id)
       case _ => super.intersect(that)
     }
 
     final override def union(that: GenSet[Value]): Mask = that match {
-      case mask: Mask => new Mask(id | mask.id)
+      case mask: Mask => transientMask(id | mask.id)
       case _ => super.union(that)
     }
 
