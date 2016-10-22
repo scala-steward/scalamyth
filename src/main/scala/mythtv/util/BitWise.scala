@@ -23,6 +23,7 @@ trait BitWise[@specialized(Int, Long) T] extends BitwiseOperable[T] with BitCoun
   def toHexString(x: T): String
   def unbox(x: AnyRef): T
   def lt(x: T, y: T): Boolean
+  def minusone: T
   def zero: T
   def one: T
 }
@@ -66,6 +67,7 @@ object BitWise {
     def toHexString(x: Int): String = x.toHexString
     def unbox(x: AnyRef): Int = Int.unbox(x)
     def lt(x: Int, y: Int): Boolean = x < y
+    def minusone = -1
     def zero = 0
     def one = 1
   }
@@ -74,8 +76,9 @@ object BitWise {
     def toHexString(x: Long): String = x.toHexString
     def unbox(x: AnyRef): Long = Long.unbox(x)
     def lt(x: Long, y: Long): Boolean = x < y
-    def zero = 0
-    def one = 1
+    def minusone = -1L
+    def zero = 0L
+    def one = 1L
   }
 
   implicit object IntIsBitWise extends IntIsBitWise

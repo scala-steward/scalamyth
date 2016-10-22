@@ -1,11 +1,13 @@
 package mythtv
 package util
 
-// TODO: add in sortedset/ordering?
 // TODO check when we have run out of bits!
+// TODO caching of (some?) Mask values?
+// TODO override newBuilder in Mask object?
+// TODO investigate java.lang.Long.lowestOneBit
 
 import java.lang.reflect.{ Field => JField, Method => JMethod }
-import scala.collection.{ mutable, immutable, AbstractIterator, AbstractSet, GenSet, Set, SetLike }
+import scala.collection.{ mutable, immutable, AbstractIterator, AbstractSet, GenSet, Set, SortedSetLike }
 import scala.reflect.NameTransformer._
 import scala.util.matching.Regex
 
@@ -16,7 +18,7 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
   private val umap: mutable.Map[T, Value] = new mutable.HashMap
   private val nmap: mutable.Map[T, String] = new mutable.HashMap
   private var vset: Mask = _
-  protected var nextId: T = _
+  private var nextId: T = _
 
   // work around specialization bugs with initializing fields
   private def init() = {
@@ -67,7 +69,7 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
   private def undefined(i: T): Value =
     synchronized { umap.getOrElseUpdate(i, new UndefinedVal(i)) }
 
-  import BitWise.BitwiseOps
+  import BitWise.BitwiseOps   // TODO can we eliminate this import?
 
   trait Base {
     private[BitmaskEnum] val outerEnum = thisenum
@@ -98,6 +100,10 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
       else 1
   }
 
+  object ValueOrdering extends Ordering[Value] {
+    def compare(x: Value, y: Value) = x compare y
+  }
+
   object Mask {
     val empty = new Mask(implicitly[BitWise[T]].zero, "<empty>")
 
@@ -111,17 +117,44 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
     def apply(m: Mask, name: String): Mask = new Mask(m.id, name)
   }
 
-  class Mask private(m: T, name: String) extends AbstractSet[Value] with SetLike[Value, Mask] with Base {
+  class Mask private(m: T, name: String)
+    extends AbstractSet[Value]
+       with immutable.SortedSet[Value]
+       with SortedSetLike[Value, Mask]
+       with Base {
     private def this(i: T) = this(i, null)
 
     final def id = m
     final def contains(elem: Value) = (id & elem.id) != 0
+    implicit final def ordering: Ordering[Value] = ValueOrdering
+
     def iterator: Iterator[Value] = new MaskIterator(id)
     override def empty: Mask = Mask.empty
     override def size = implicitly[BitWise[T]].bitCount(id)
     override def stringPrefix = thisenum + ".Mask"
 
-    /* methods & | &~ defined to GenSetLike to forward to intersect, union, diff */
+    // TODO override foreach?
+
+    def keysIteratorFrom(start: Value): Iterator[Value] = {
+      val nz = implicitly[BitWise[T]].numberOfTrailingZeros(start.id)
+      new MaskIterator(id & (implicitly[BitWise[T]].minusone << nz))
+    }
+
+    def rangeImpl(from: Option[Value], until: Option[Value]): Mask = {
+      var span = id
+      if (from.isDefined) {
+        val nz = implicitly[BitWise[T]].numberOfTrailingZeros(from.get.id)
+        span &= (implicitly[BitWise[T]].minusone << nz)
+      }
+      if (until.isDefined) {
+        val nz = implicitly[BitWise[T]].numberOfTrailingZeros(until.get.id)
+        span &= ~(implicitly[BitWise[T]].minusone << nz)
+      }
+      Mask(span)
+    }
+
+    /* methods & | &~ defined in GenSetLike to forward to intersect, union, diff
+       so we only override the latter methods here*/
 
     final override def diff(that: GenSet[Value]): Mask = that match {
       case mask: Mask => new Mask(id & ~mask.id)
