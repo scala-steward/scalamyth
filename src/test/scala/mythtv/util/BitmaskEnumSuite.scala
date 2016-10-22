@@ -117,6 +117,33 @@ class BitmaskEnumSuite extends FunSuite {
     assert(Days.Mask(Days.Thursday).id === Days.Thursday.id)
   }
 
+  test("Value equality") {
+    object A extends BitmaskEnum[Int] {
+      val One = Value
+      val Two = Value
+    }
+
+    object B extends BitmaskEnum[Int] {
+      val One = Value
+      val Two = Value
+    }
+
+    assert(A.One equals A.One)
+    assert(A.Two equals A.Two)
+    assert(!(A.One equals A.Two))
+    assert(A.One equals A(1))
+
+    assert(B.One equals B.One)
+    assert(B.Two equals B.Two)
+    assert(!(B.One equals B.Two))
+    assert(B.One equals B(1))
+
+    assert(A.One.id equals B.One.id)
+    assert(A.Two.id equals B.Two.id)
+    assert(!(A.One equals B.One))
+    assert(!(A.Two equals B.Two))
+  }
+
   test("Value toMask") {
     val m = Days.Tuesday.toMask
     assert(m.isInstanceOf[Days.Mask])
