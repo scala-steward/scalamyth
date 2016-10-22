@@ -16,6 +16,41 @@ class BitmaskEnumSuite extends FunSuite {
     val Weekend   = Mask(Saturday | Sunday)
   }
 
+  abstract class AbstractOrdinals extends BitmaskEnum[Int] {
+    val First         = Value
+    val Second        = Value
+    val Third         = Value
+    val Fouth         = Value
+    val Fifth         = Value
+    val Sixth         = Value
+    val Seventh       = Value
+    val Eighth        = Value
+    val Ninth         = Value
+    val Tenth         = Value
+    val Eleventh      = Value
+    val Twelfth       = Value
+    val Thirteenth    = Value
+    val Fourteenth    = Value
+    val Fixteenth     = Value
+    val Sixteenth     = Value
+    val Seventeenth   = Value
+    val Eighteenth    = Value
+    val Nineteenth    = Value
+    val Twentieth     = Value
+    val TwentyFirst   = Value
+    val TwentySecond  = Value
+    val TwenthThird   = Value
+    val TwentyFourth  = Value
+    val TwentyFifth   = Value
+    val TwentySixth   = Value
+    val TwentySeventh = Value
+    val TwentyEighth  = Value
+    val TwentyNinth   = Value
+    val Thirtieth     = Value
+    val ThirtyFirst   = Value
+    val ThirtySecond  = Value
+  }
+
   test("Days of week bitmask enum of Int with autoincrement values") {
     assert(Days.Monday.id    === 0x01)
     assert(Days.Tuesday.id   === 0x02)
@@ -97,5 +132,20 @@ class BitmaskEnumSuite extends FunSuite {
   test("Mask range") {
     assert((Days.Weekday range (Days.Tuesday, Days.Thursday)).toList ===
       List(Days.Tuesday, Days.Wednesday))
+  }
+
+  test("Extreme ends of autonumbering") {
+    object Ordinals extends AbstractOrdinals
+    assert(Ordinals.First.id === 1)
+    assert(Ordinals.ThirtySecond.id === (1 << 31))
+  }
+
+  test("Excessive number of values defined should fail") {
+    object ExtraOrdinals extends AbstractOrdinals {
+      val ThirtyThird   = Value
+    }
+    intercept[AssertionError] {  // TODO should throw a different exception to indicate fullness?
+      val x = ExtraOrdinals.First
+    }
   }
 }
