@@ -7,7 +7,7 @@ package util
 
 import java.lang.reflect.{ Field => JField, Method => JMethod }
 import scala.collection.{ mutable, immutable, AbstractIterator, AbstractSet, GenSet, Set, SortedSetLike }
-import scala.reflect.NameTransformer._
+import scala.reflect.NameTransformer.{ MODULE_SUFFIX_STRING, NAME_JOIN_STRING }
 import scala.util.matching.Regex
 
 abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
@@ -88,8 +88,8 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
     protected def transientMask(id: T): Mask = Mask(id, null, false)
 
     override def equals(other: Any) = other match {
-      case that: BitmaskEnum[_]#Value => (outerEnum eq that.outerEnum) && (id == that.id)
-      case _                          => false
+      case that: BitmaskEnum[_]#Base => (outerEnum eq that.outerEnum) && (id == that.id)
+      case _                         => false
     }
     override def hashCode: Int = id.##
   }

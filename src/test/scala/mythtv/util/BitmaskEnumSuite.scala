@@ -134,6 +134,21 @@ class BitmaskEnumSuite extends FunSuite {
       List(Days.Tuesday, Days.Wednesday))
   }
 
+  test("Mask equality") {
+    assert(Days.Weekend equals Days.Weekend)
+    assert(Days.Weekend equals Days.Mask(Days.Saturday | Days.Sunday))
+    assert(!(Days.Weekend equals Days.Weekday))
+
+    object Binary extends BitmaskEnum[Int] {
+      val Zero = Mask(0)
+      val One  = Value(1)
+    }
+
+    assert(Binary.Zero equals Binary.Zero)
+    assert(Binary.Zero equals Binary.Mask.empty)
+    assert(!(Binary.Zero equals Binary.One))
+  }
+
   test("Extreme ends of autonumbering") {
     object Ordinals extends AbstractOrdinals
     assert(Ordinals.First.id === 1)
