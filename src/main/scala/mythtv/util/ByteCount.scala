@@ -61,7 +61,7 @@ case class BinaryByteCount(bytes: Long) extends AnyVal with ByteCount {
 }
 
 case class DecimalByteCount(bytes: Long) extends AnyVal with ByteCount {
-  def kilobytes: Long = bytes / (1000L)
+  def kilobytes: Long = bytes /  1000L
   def megabytes: Long = bytes / (1000L * 1000)
   def gigabytes: Long = bytes / (1000L * 1000 * 1000)
   def terabytes: Long = bytes / (1000L * 1000 * 1000 * 1000)

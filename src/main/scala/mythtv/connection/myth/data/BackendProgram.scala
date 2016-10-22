@@ -68,7 +68,7 @@ private[myth] class BackendProgram(data: Seq[String], fieldOrder: IndexedSeq[Str
   lazy val audioProps: AudioProperties = AudioProperties(fields("audioProps").toInt)
   lazy val videoProps: VideoProperties = VideoProperties(fields("videoProps").toInt)
   lazy val subtitleType: SubtitleType = SubtitleType(fields("subtitleType").toInt)
-  lazy val year: Option[Year] = optionalNonZeroIntField("year") map (Year.of(_))
+  lazy val year: Option[Year] = optionalNonZeroIntField("year") map Year.of
   lazy val partNumber: Option[Int] = optionalNonZeroIntField("partNumber")
   lazy val partTotal: Option[Int] = optionalNonZeroIntField("partTotal")
 }

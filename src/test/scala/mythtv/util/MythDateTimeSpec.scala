@@ -1,7 +1,7 @@
 package mythtv
 package util
 
-import java.time.{ Instant, LocalDateTime }
+import java.time.Instant
 
 import org.scalatest.FlatSpec
 
@@ -33,6 +33,7 @@ class MythDateTimeSpec extends FlatSpec {
 
   "A MythDateTime" should "be constructed from a java.time.Instant" in {
     val mdt = new MythDateTime(myInstant)
+    assert(mdt.isInstanceOf[MythDateTime])
   }
 
   it should "have a working year accessor" in {

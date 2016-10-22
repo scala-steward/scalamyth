@@ -15,7 +15,7 @@ private abstract class AbstractFileTransferConnection(host: String, port: Int, t
   self: MythProtocolAPI with AnnouncingConnection =>
 
   protected def announce(): Unit = {
-    val localHost = InetAddress.getLocalHost().getHostName()
+    val localHost = InetAddress.getLocalHost.getHostName
     val (ftID, size) = announceFileTransfer(localHost, fileName, storageGroup)
   }
 

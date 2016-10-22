@@ -3,7 +3,6 @@ package connection
 package myth
 
 import java.io.{ BufferedOutputStream, InputStream, OutputStream }
-import java.net.InetAddress
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
@@ -122,7 +121,7 @@ private abstract class AbstractBackendConnection(host: String, port: Int, timeou
       val response = sendCommandRaw(cmdstring).get
       handle(request, response)
     }
-    else throw new UnsupportedBackendCommandException(command, PROTO_VERSION)
+    else throw UnsupportedBackendCommandException(command, PROTO_VERSION)
   }
 
   def checkVersion(): Boolean = checkVersion(PROTO_VERSION, PROTO_TOKEN)
@@ -137,7 +136,7 @@ private abstract class AbstractBackendConnection(host: String, port: Int, timeou
     if (status == "ACCEPT") true
     else {
       disconnect(false)
-      throw new WrongMythProtocolException(requiredVersion.toInt)
+      throw WrongMythProtocolException(requiredVersion.toInt)
     }
   }
 }

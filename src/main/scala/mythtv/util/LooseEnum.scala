@@ -38,6 +38,6 @@ abstract class LooseEnum(initial: Int) extends Enumeration(initial) {
 
   private class UnknownVal(i: Int) extends super.Value {
     def id = i
-    override def toString = s"<unknown ${thisenum}.Value $i>"
+    override def toString = s"<unknown $thisenum.Value $i>"
   }
 }

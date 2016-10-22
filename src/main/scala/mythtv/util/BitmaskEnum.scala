@@ -86,7 +86,7 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
     final def ^ (elem: Value): Mask = transientMask(id ^ elem.id)
     final def unary_~ : Mask = transientMask(~id)
 
-    protected def transientMask(id: T): Mask = Mask(id, null, false)
+    protected def transientMask(id: T): Mask = Mask(id, null, cache=false)
 
     override def equals(other: Any) = other match {
       case that: BitmaskEnum[_]#Base => (outerEnum eq that.outerEnum) && (id == that.id)
@@ -113,14 +113,14 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
   object Mask {
     val empty = new Mask(implicitly[BitWise[T]].zero, "<empty>", false)
 
-    def apply(i: T): Mask = Mask(i, null, true)
-    def apply(i: T, name: String): Mask = Mask(i, name, true)
+    def apply(i: T): Mask = Mask(i, null, cache=true)
+    def apply(i: T, name: String): Mask = Mask(i, name, cache=true)
 
-    def apply(v: Value): Mask = Mask(v.id, null, true)
-    def apply(v: Value, name: String): Mask = Mask(v.id, name, true)
+    def apply(v: Value): Mask = Mask(v.id, null, cache=true)
+    def apply(v: Value, name: String): Mask = Mask(v.id, name, cache=true)
 
-    def apply(m: Mask): Mask = Mask(m.id, m.name, true)
-    def apply(m: Mask, name: String): Mask = new Mask(m.id, name, true) // special case, may be renaming a Mask already cached
+    def apply(m: Mask): Mask = Mask(m.id, m.name, cache=true)
+    def apply(m: Mask, name: String): Mask = new Mask(m.id, name, cache=true) // special case, may be renaming a Mask already cached
 
     private[BitmaskEnum] def apply(id: T, name: String, cache: Boolean): Mask = {
       if (mmap isDefinedAt id) mmap(id)
@@ -235,6 +235,6 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
   private class UndefinedVal(i: T) extends Value {
     def id = i
     final def isDefined = false
-    override def toString = s"<undefined ${thisenum}.Value 0x${i.toHexString}>"
+    override def toString = s"<undefined $thisenum.Value 0x${i.toHexString}>"
   }
 }

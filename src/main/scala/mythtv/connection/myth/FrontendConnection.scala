@@ -22,8 +22,6 @@ trait FrontendNetworkControl {
 import java.io.{ InputStreamReader, OutputStreamWriter, InputStream, OutputStream }
 import java.nio.charset.StandardCharsets
 
-import scala.util.Try
-
 private class FrontendSocketReader(in: InputStream) extends SocketReader[String](in) {
   val underlying = new InputStreamReader(in)
 

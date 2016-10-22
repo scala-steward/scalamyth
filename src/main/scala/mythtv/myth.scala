@@ -1,9 +1,8 @@
 package mythtv
 
-import java.time.{ Duration, Instant, LocalDateTime }
+import java.time.{ Duration, Instant }
 
 import model._
-import EnumTypes._
 import util.{ ByteCount, MythDateTime }
 
 

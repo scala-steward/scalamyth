@@ -105,9 +105,9 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
       if (parts(1) == "VIDEO_LIST_CHANGE") {
         // This is a list of { added | deleted | moved } :: <videoid>
         val changeItems = parts.slice(2, parts.length)
-        val changeTuples = (changeItems map (_ split "::") collect {
+        val changeTuples = changeItems map (_ split "::") collect {
           case Array(x, y) => (x, VideoId(y.toInt))
-        })
+        }
         // ... group by change type (key), change value to set of videoId
         changeTuples groupBy (_._1) mapValues { a => (a map (_._2)).toSet }
       } else {

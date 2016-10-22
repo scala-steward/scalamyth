@@ -23,7 +23,7 @@ private trait BackendAPILike {
     import MythProtocol.AnnounceResult._
     val localHost =
       if (hostName != "") hostName
-      else InetAddress.getLocalHost().getHostName()
+      else InetAddress.getLocalHost.getHostName
     val result = sendCommand("ANN", mode, localHost, eventMode)
     (result map { case AnnounceAcknowledgement => true }).get
   }
@@ -125,7 +125,7 @@ private trait BackendAPILike {
   }
 
   def lockTuner(): Any = ??? // TODO capture the appropriate return type
-  def lockTuner(cardId: CaptureCardId): Any = ???// see above for return type
+  def lockTuner(cardId: CaptureCardId): Any = ??? // see above for return type
 
   def message(message: String, extra: String*): Boolean = {
     val args = List(message) ++ extra

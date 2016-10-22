@@ -19,14 +19,14 @@ object MythProtocol extends MythProtocolSerializer {
   // Sum type representing return values from ANN
   sealed trait AnnounceResult
   object AnnounceResult {
-    final case object AnnounceAcknowledgement extends AnnounceResult
+    case object AnnounceAcknowledgement extends AnnounceResult
     final case class AnnounceFileTransfer(ftID: Int, size: ByteCount) extends AnnounceResult
   }
 
   // Sum type representing return values from QUERY_FILETRANSFER
   sealed trait QueryFileTransferResult
   object QueryFileTransferResult {
-    final case object QueryFileTransferAcknowledgement extends QueryFileTransferResult
+    case object QueryFileTransferAcknowledgement extends QueryFileTransferResult
     final case class QueryFileTransferBoolean(value: Boolean) extends QueryFileTransferResult
     final case class QueryFileTransferPosition(pos: Long) extends QueryFileTransferResult
     final case class QueryFileTransferBytesTransferred(count: Int) extends QueryFileTransferResult
@@ -36,7 +36,7 @@ object MythProtocol extends MythProtocolSerializer {
   // Sum type representing return values from QUERY_RECORDER
   sealed trait QueryRecorderResult
   object QueryRecorderResult {
-    final case object QueryRecorderAcknowledgement extends QueryRecorderResult
+    case object QueryRecorderAcknowledgement extends QueryRecorderResult
     final case class QueryRecorderBoolean(value: Boolean) extends QueryRecorderResult
     final case class QueryRecorderFrameRate(rate: Double) extends QueryRecorderResult
     final case class QueryRecorderFrameCount(frames: Long) extends QueryRecorderResult

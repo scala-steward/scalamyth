@@ -163,7 +163,7 @@ private abstract class AbstractEventConnection(
   private[this] var eventLoopThread: Thread = _
 
   def announce(): Unit = {
-    val localHost = InetAddress.getLocalHost().getHostName() // TODO
+    val localHost = InetAddress.getLocalHost.getHostName // TODO
     val result = sendCommand("ANN", "Monitor", localHost, eventMode)
   }
 
