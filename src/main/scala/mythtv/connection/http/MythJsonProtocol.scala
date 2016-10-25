@@ -5,34 +5,39 @@ package http
 import java.time.{ LocalTime, Year }
 
 import spray.json.{ RootJsonFormat, JsonFormat, deserializationError }
-import spray.json.{ JsArray, JsString, JsValue }
+import spray.json.{ JsArray, JsObject, JsString, JsValue }
 
-import util.{ ByteCount, DecimalByteCount }
+import util.{ ByteCount, DecimalByteCount, MythDateTime }
 import model.EnumTypes._
 import model._
+
+/* ----------------------------------------------------------------- */
+
+trait MythJsonObjectList[T] {
+  def items: List[T]
+  def asOf: MythDateTime
+  def mythVersion: String
+  def mythProtocolVersion: String
+}
+
+trait MythJsonPagedObjectList[T] extends MythJsonObjectList[T] {
+  def count: Int
+  def totalAvailable: Int
+  def startIndex: Int
+}
+
+/* ----------------------------------------------------------------- */
 
 trait MythJsonObjectFormat[T] extends RootJsonFormat[T] {
   def objectFieldName: String
 }
 
-trait MythJsonObjectList[T] {
-  def items: List[T]
-  def totalAvailable: Int     // TODO only in "paged" versions of the list, GetVideoSourceList is not paged...
-  def mythVersion: String
-  def mythProtocolVersion: String
-}
-
-// TODO pass in a higher kinded-type (List of MythJsonObjectList) so that MythJsonObjectListFormat can extend form this?
-trait MythJsonListFormat[T] extends MythJsonObjectFormat[List[T]] {
+trait BaseMythJsonListFormat[T] {
   def listFieldName: String
 
   def convertElement(value: JsValue): T
 
-  def write(obj: List[T]): JsValue = ???
-
-  def read(value: JsValue): List[T] = {
-    val obj = value.asJsObject
-
+  def readItems(obj: JsObject): List[T] = {
     if (!(obj.fields contains listFieldName))
       deserializationError(s"expected to find field name $listFieldName")
 
@@ -44,53 +49,72 @@ trait MythJsonListFormat[T] extends MythJsonObjectFormat[List[T]] {
   }
 }
 
-trait MythJsonObjectListFormat[T] extends MythJsonObjectFormat[MythJsonObjectList[T]] {
-  /*
-   *  Top level object will contain a field for the list,
-   *    e.g. RecRuleList or ProgramList, etc.
-   *
-   *  This List object will then contain fields:
-   *
-   "AsOf": "2016-10-23T06:06:17Z",
-   "Count": "171",
-   "StartIndex": "0",
-   "TotalAvailable": "171",
-   "ProtoVer": "77",
-   "Version": "0.27.20140323-1"
-   *
-   *  plus a field for the objects, e.g.
-   *
-   "Programs": [ ... ]
-   *
-   *
-   * Not all of the "*List" objects follow, this pattern.
-   * Exceptions include:
-   *    StringList, StorageGroupDirList, ...
-   */
+trait MythJsonListFormat[T] extends BaseMythJsonListFormat[T] with MythJsonObjectFormat[List[T]] {
+  def write(obj: List[T]): JsValue = ???
 
+  def read(value: JsValue): List[T] = {
+    val obj = value.asJsObject
+    readItems(obj)
+  }
+}
 
+trait MythJsonObjectListFormat[T]
+  extends BaseMythJsonListFormat[T]
+     with MythJsonObjectFormat[MythJsonObjectList[T]] {
   import RichJsonObject._
-
-  def listFieldName: String
-
-  def convertElement(value: JsValue): T
 
   def write(obj: MythJsonObjectList[T]): JsValue = ???
 
   def read(value: JsValue): MythJsonObjectList[T] = {
     val obj = value.asJsObject
-
-    if (!(obj.fields contains listFieldName))
-      deserializationError(s"expected to find field name $listFieldName")
-
-    val itemList: List[T] = obj.fields(listFieldName) match {
-      case JsArray(elements) => elements.map(convertElement)(scala.collection.breakOut)
-      case x => deserializationError(s"expected array in $listFieldName but got $x")
-    }
-
+    val itemList = readItems(obj)
     new MythJsonObjectList[T] {
       def items = itemList
+      def asOf = obj.dateTimeField("AsOf")
+      def mythVersion = obj.stringField("Version")
+      def mythProtocolVersion = obj.stringField("ProtoVer")
+    }
+  }
+}
+
+/* Top level object will contain a field for the list,
+ *    e.g. RecRuleList or ProgramList, etc.
+ *
+ *  This List object will then contain fields:
+ *
+ "AsOf": "2016-10-23T06:06:17Z",
+ "Count": "171",
+ "StartIndex": "0",
+ "TotalAvailable": "171",
+ "ProtoVer": "77",
+ "Version": "0.27.20140323-1"
+ *
+ *  plus a field for the objects, e.g.
+ *
+ "Programs": [ ... ]
+ *
+ *
+ * Not all of the "*List" objects follow, this pattern.
+ * Exceptions include:
+ *    StringList, StorageGroupDirList, ...
+ */
+trait MythJsonPagedObjectListFormat[T]
+  extends BaseMythJsonListFormat[T]
+     with MythJsonObjectFormat[MythJsonPagedObjectList[T]] {
+  import RichJsonObject._
+
+  def write(obj: MythJsonPagedObjectList[T]): JsValue = ???
+
+  def read(value: JsValue): MythJsonPagedObjectList[T] = {
+    val obj = value.asJsObject
+    val itemList = readItems(obj)
+
+    new MythJsonPagedObjectList[T] {
+      def items = itemList
+      def count = obj.intField("Count")
       def totalAvailable = obj.intField("TotalAvailable")
+      def startIndex = obj.intField("StartIndex")
+      def asOf = obj.dateTimeField("AsOf")
       def mythVersion = obj.stringField("Version")
       def mythProtocolVersion = obj.stringField("ProtoVer")
     }
@@ -360,7 +384,7 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
 
   }
 
-  implicit object ProgramListJsonFormat extends MythJsonObjectListFormat[Program] {
+  implicit object ProgramListJsonFormat extends MythJsonPagedObjectListFormat[Program] {
     def objectFieldName = "ProgramList"
     def listFieldName = "Programs"
     def convertElement(value: JsValue): Program = value.convertTo[Program]
@@ -394,7 +418,7 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
     }
   }
 
-  implicit object ChannelDetailsListJsonFormat extends MythJsonObjectListFormat[ChannelDetails] {
+  implicit object ChannelDetailsListJsonFormat extends MythJsonPagedObjectListFormat[ChannelDetails] {
     def objectFieldName = "ChannelInfoList"
     def listFieldName = "ChannelInfos"
     def convertElement(value: JsValue): ChannelDetails = value.convertTo[ChannelDetails]
@@ -507,7 +531,7 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
     }
   }
 
-  implicit object RecordRuleListJsonFormat extends MythJsonObjectListFormat[RecordRule] {
+  implicit object RecordRuleListJsonFormat extends MythJsonPagedObjectListFormat[RecordRule] {
     def objectFieldName = "RecRuleList"
     def listFieldName = "RecRules"
     def convertElement(value: JsValue): RecordRule = value.convertTo[RecordRule]

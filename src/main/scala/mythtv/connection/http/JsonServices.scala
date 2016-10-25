@@ -31,7 +31,7 @@ class JsonChannelService(conn: BackendJSONConnection) extends MythJsonProtocol w
   def getChannelInfoList: List[Channel] = {
     val response = conn.request(s"/$serviceName/GetChannelInfoList")
     val root = response.json.asJsObject.fields("ChannelInfoList")
-    val list = root.convertTo[MythJsonObjectList[ChannelDetails]]
+    val list = root.convertTo[MythJsonPagedObjectList[ChannelDetails]]
     list.items
   }
 
@@ -64,7 +64,7 @@ class JsonDvrService(conn: BackendJSONConnection) extends MythJsonProtocol with 
     // TODO support parameters
     val response = conn.request(s"/$serviceName/GetRecordedList")
     val root = response.json.asJsObject.fields("ProgramList")
-    val list = root.convertTo[MythJsonObjectList[Program]]
+    val list = root.convertTo[MythJsonPagedObjectList[Program]]
     list.items
   }
 
@@ -72,14 +72,14 @@ class JsonDvrService(conn: BackendJSONConnection) extends MythJsonProtocol with 
     // TODO support parameters
     val response = conn.request(s"/$serviceName/GetExpiringList")
     val root = response.json.asJsObject.fields("ProgramList")
-    val list = root.convertTo[MythJsonObjectList[Program]]
+    val list = root.convertTo[MythJsonPagedObjectList[Program]]
     list.items
   }
 
   def getUpcomingList(startIndex: Int, count: OptionalCount[Int], showAll: Boolean): List[Program] = {
     val response = conn.request(s"/$serviceName/GetUpcomingList")
     val root = response.json.asJsObject.fields("ProgramList")
-    val list = root.convertTo[MythJsonObjectList[Program]]
+    val list = root.convertTo[MythJsonPagedObjectList[Program]]
     list.items
   }
 
@@ -95,7 +95,7 @@ class JsonDvrService(conn: BackendJSONConnection) extends MythJsonProtocol with 
     // TODO support parameters
     val response = conn.request(s"/$serviceName/GetRecordScheduleList")
     val root = response.json.asJsObject.fields("RecRuleList")
-    val list = root.convertTo[MythJsonObjectList[RecordRule]]
+    val list = root.convertTo[MythJsonPagedObjectList[RecordRule]]
     list.items
   }
 
