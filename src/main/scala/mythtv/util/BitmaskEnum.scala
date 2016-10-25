@@ -44,7 +44,7 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
   protected final def Value(i: T, name: String): Value = new Val(i, name)
 
   /* Use Java reflection to populate the name map */
-  private def populateNameMap() {
+  private def populateNameMap() = {
     val fields: Array[JField] = getClass.getDeclaredFields
     def isValDef(m: JMethod): Boolean =
       fields exists (fd => fd.getName == m.getName && fd.getType == m.getReturnType)
@@ -86,7 +86,7 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
     final def ^ (elem: Value): Mask = transientMask(id ^ elem.id)
     final def unary_~ : Mask = transientMask(~id)
 
-    protected def transientMask(id: T): Mask = Mask(id, null, cache=false)
+    protected def transientMask(id: T): Mask = Mask(id, null, cache = false)
 
     override def equals(other: Any) = other match {
       case that: BitmaskEnum[_]#Base => (outerEnum eq that.outerEnum) && (id == that.id)
@@ -113,17 +113,17 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
   object Mask {
     val empty = new Mask(implicitly[BitWise[T]].zero, "<empty>", false)
 
-    def apply(i: T): Mask = Mask(i, null, cache=true)
-    def apply(i: T, name: String): Mask = Mask(i, name, cache=true)
+    def apply(i: T): Mask = Mask(i, null, cache = true)
+    def apply(i: T, name: String): Mask = Mask(i, name, cache = true)
 
-    def apply(v: Value): Mask = Mask(v.id, null, cache=true)
-    def apply(v: Value, name: String): Mask = Mask(v.id, name, cache=true)
+    def apply(v: Value): Mask = Mask(v.id, null, cache = true)
+    def apply(v: Value, name: String): Mask = Mask(v.id, name, cache = true)
 
-    def apply(m: Mask): Mask = Mask(m.id, m.name, cache=true)
-    def apply(m: Mask, name: String): Mask = new Mask(m.id, name, cache=true) // special case, may be renaming a Mask already cached
+    def apply(m: Mask): Mask = Mask(m.id, m.name, cache = true)
+    def apply(m: Mask, name: String): Mask = new Mask(m.id, name, cache = true) // special case, may be renaming a Mask already cached
 
     private[BitmaskEnum] def apply(id: T, name: String, cache: Boolean): Mask = {
-      if (mmap isDefinedAt id) mmap(id)
+      if (mmap contains id) mmap(id)
       else new Mask(id, name, cache)
     }
   }
@@ -217,7 +217,7 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
   private class Val(i: T, name: String) extends Value {
     def this(i: T) = this(i, null)
 
-    assert(!vmap.isDefinedAt(i), "Duplicate id: " + i)
+    assert(!vmap.contains(i), "Duplicate id: " + i)
     assert(implicitly[BitWise[T]].bitCount(i) == 1, s"value 0x${i.toHexString} contains more than one bit")
     vmap(i) = this
     vset |= this
