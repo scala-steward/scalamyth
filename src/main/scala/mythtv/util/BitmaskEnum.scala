@@ -143,7 +143,28 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
     override def size = implicitly[BitWise[T]].bitCount(id)
     override def stringPrefix = thisenum + ".Mask"
 
-    // TODO override foreach?
+    override def foreach[U](f: Value => U): Unit = {
+      var bits = id
+      var shifts = 0
+      val ev: BitWise[T] = implicitly[BitWise[T]]
+
+      while (ev.bitCount(bits) != 0) {
+        val nz = ev.numberOfTrailingZeros(bits)
+        if (nz > 0) {
+          bits >>= nz
+          shifts += nz
+        }
+
+        val i = ev.one << shifts
+        val v =
+          if (vmap contains i) vmap(i)
+          else undefined(i)
+        f(v)
+
+        bits >>= 1
+        shifts += 1
+      }
+    }
 
     def keysIteratorFrom(start: Value): Iterator[Value] = {
       val nz = implicitly[BitWise[T]].numberOfTrailingZeros(start.id)
