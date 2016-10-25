@@ -3,7 +3,7 @@ package connection
 package myth
 package data
 
-import model.{ Channel, ChanId, ListingSourceId }
+import model.{ Channel, ChannelNumber, ChanId, ListingSourceId }
 
 private[myth] class BackendChannel(data: Seq[String], fieldOrder: IndexedSeq[String])
     extends GenericBackendObject(data, fieldOrder) with Channel {
@@ -14,7 +14,7 @@ private[myth] class BackendChannel(data: Seq[String], fieldOrder: IndexedSeq[Str
 
   lazy val chanId: ChanId = ChanId(fields("chanId").toInt)
   def name: String = fields("name")
-  def number: String = fields("number")
+  def number: ChannelNumber = ChannelNumber(fields("number"))
   def callsign: String = fields("callsign")
   lazy val sourceId: ListingSourceId = ListingSourceId(fields("sourceId").toInt)
   def xmltvId: String = fields("xmltvId")

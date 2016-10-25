@@ -16,6 +16,8 @@ object EnumTypes {
   type RecSearchType = model.RecSearchType.Value
   type RecStatus = model.RecStatus.Value
   type RecType = model.RecType.Value
+  type SleepStatus = model.SleepStatus.Value
   type SubtitleType = model.SubtitleType.Base
+  type TvState = model.TvState.Value
   type VideoProperties = model.VideoProperties.Base
 }

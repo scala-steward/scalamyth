@@ -32,8 +32,8 @@ trait ChannelService extends BackendService {
 
   def getChannelInfo(chanId: ChanId): Channel
   def getChannelInfoList: List[Channel]
-  def getVideoSource(sourceId: Int): VideoSource
-  def getVideoSourceList: List[VideoSource]
+  def getVideoSource(sourceId: ListingSourceId): ListingSource
+  def getVideoSourceList: List[ListingSource]
   def getXMLTVIdList: List[String]
   // TODO more methods
 }
@@ -81,14 +81,14 @@ trait DvrService extends BackendService {
     count: OptionalCount[Int] = OptionalCount.all
   ): List[Program]
 
-  def getEncoderList: List[Encoder]
+  def getEncoderList: List[RemoteEncoderState]
 
   def getRecordScheduleList(
     startIndex: Int = 0,
     count: OptionalCount[Int] = OptionalCount.all
   ): List[RecordRule]
 
-  def getRecordSchedule(recordId: Int): RecordRule
+  def getRecordSchedule(recordId: RecordRuleId): RecordRule
 }
 
 trait VideoService extends BackendService {
@@ -102,7 +102,7 @@ trait VideoService extends BackendService {
 trait CaptureService extends BackendService {
   def serviceName: String = "Capture"
 
-  def getCaptureCard(cardId: Int): CaptureCard
+  def getCaptureCard(cardId: CaptureCardId): CaptureCard
   def getCaptureCardList(hostName: String = "", cardType: String = ""): List[CaptureCard]
 }
 

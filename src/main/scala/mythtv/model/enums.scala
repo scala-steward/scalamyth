@@ -236,3 +236,26 @@ object ChannelChangeDirection extends LooseEnum {
   val Favorite  = Value(2)
   val Same      = Value(3)
 }
+
+object SleepStatus extends LooseEnum {
+  type SleepStatus = Value
+  val Awake         = Value(0x0)
+  val Asleep        = Value(0x1)
+  val FallingAsleep = Value(0x3)
+  val Waking        = Value(0x5)
+  val Undefined     = Value(0x8)
+}
+
+object TvState extends LooseEnum {
+  type TvState = Value
+  val Error               = Value(-1)
+  val None                = Value(0)
+  val WatchingLiveTv      = Value(1)
+  val WatchingPreRecorded = Value(2)
+  val WatchingVideo       = Value(3)
+  val WatchingDvd         = Value(4)
+  val WatchingBd          = Value(5)
+  val WatchingRecording   = Value(6)
+  val RecordingOnly       = Value(7)
+  val ChangingState       = Value(8)
+}

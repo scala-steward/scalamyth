@@ -26,8 +26,8 @@ trait BackendServiceProtocol {
    *   GetTimeZone           GET ==> { TimeZoneInfo }          ()
    *   SendMessage           POST ==>                          (Address, Message, Timeout, udpPort...)
    * Guide/
-   *   GetProgramGuide
-   *   GetProgramDetails
+   *   GetProgramGuide       GET ==> { ProgramGuide }
+   *   GetProgramDetails     ???
    *   GetChannelIcon        [ DataStream ]
    * Dvr/
    *   GetRecorded           GET ==> { Program }               (ChanId, StartTime) or (RecordedId) {0.28+}
@@ -52,14 +52,18 @@ trait BackendServiceProtocol {
    *   GetCaptureCard        GET ==> { CaptureCard }           (CardId)
    *   GetCaptureCardList    GET ==> { CaptureCardList }       [HostName, CardType]
    * Channel/
-   *   GetChannelInfo        GET ==> { ChannelInfo }           (ChanId)
+   *   GetChannelInfo        GET ==> { ChannelInfo }           (ChanID)
    *   GetChannelInfoList    GET ==> { ChannelInfoList }       (SourceID)
    *   GetVideoSource        GET ==> { VideoSource }           (SourceID)
    *   GetVideoSourceList    GET ==> { VideoSourceList }       ()
    *   GetXMLTVIdList        GET ==> { StringList }            (SourceID)
    */
 
-  /* TODO how is GetCaptureCardList different from GetEncoderList (same IDs...) */
+  /* How is GetCaptureCardList different from GetEncoderList?
+     Answer: CaptureCardList is much more detailed information; aligns with the capturecard database table.
+             EncoderList is higher level information (id/host/port + state).
+             They are related by common CaptureCardId.
+   */
 }
 
 trait FrontendServiceProtocol {

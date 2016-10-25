@@ -1,7 +1,7 @@
 package mythtv
 package model
 
-import java.time.{ Duration, Instant, LocalDateTime, LocalDate, Year }
+import java.time.{ Duration, Instant, LocalDateTime, LocalDate, LocalTime, Year }
 
 import EnumTypes._
 import util.{ ByteCount, MythDateTime }
@@ -71,16 +71,49 @@ trait RecordedMarkup {
 trait Backend extends BackendOperations
 trait Frontend extends FrontendOperations
 
-trait Encoder  // TODO how is Encoder different than CaptureCard?
 trait CaptureCard {
   def cardId: CaptureCardId
-  // TODO more
+  def videoDevice: Option[String]
+  def audioDevice: Option[String]
+  def vbiDevice: Option[String]
+  def cardType: Option[String]
+  def audioRateLimit: Option[Int]
+  def hostName: String    // TODO can this really be nullable as the DB schema says?
+  def dvbSwFilter: Option[Int]  // TODO what is this?
+  def dvbSatType: Option[Int]   // TODO what is this?
+  def dvbWaitForSeqStart: Boolean
+  def skipBtAudio: Boolean
+  def dvbOnDemand: Boolean
+  def dvbDiseqcType: Option[Int] // TODO what is this?
+  def firewireSpeed: Option[Int] // TODO what is this?
+  def firewireModel: Option[String]
+  def firewireConnection: Option[Int]
+  def signalTimeout: Int   // TODO what are units?
+  def channelTimeout: Int  // TODO what are units?
+  def dvbTuningDelay: Int  // TODO what are units?
+  def contrast: Int        // TODO these all default to zero, is that a valid value?, i.e. can we map to None?
+  def brightness: Int
+  def colour: Int
+  def hue: Int
+  def diseqcId: Option[Int]
+  def dvbEitScan: Boolean
+  // field 'defaultinput' from the DB capturecard table is excluded here
 }
 
 trait RemoteEncoder {
   def cardId: CaptureCardId  // is this correct type?
   def host: String
   def port: Int
+}
+
+// this does not seem to include "port" data, though, hmm...
+trait RemoteEncoderState extends RemoteEncoder {
+  def local: Boolean
+  def connected: Boolean
+  def lowFreeSpace: Boolean
+  def state: TvState
+  def sleepStatus: SleepStatus
+  def currentRecording: Option[Recording]
 }
 
 trait CardInput {
@@ -170,9 +203,9 @@ trait Recordable extends Program {
 
   def parentId: Int                // TODO what is? move to recordable?
   def lastModified: MythDateTime   // TODO what is? move to recordable?
-  def chanNum: String              // TODO only in backend program
-  def callsign: String             // TODO only in backend program
-  def chanName: String             // TODO only in backend program
+  def chanNum: ChannelNumber       // TODO only in backend program, services recording Channel
+  def callsign: String             // TODO only in backend program, services recording Channel
+  def chanName: String             // TODO only in backend program, services recording Channel
   def programFlags: Int            // TODO what is? move to recordable?, is it HDTV, etc. bitmask?
   def outputFilters: String        // TODO what is? move to recordable?
 }
@@ -225,10 +258,13 @@ trait ProgramGuideEntry extends Program {
 // TODO make a tuple type for (chanid, starttime) to shorten parameter lists?
 //        and to ease switchover to 0.28+ recordedId in places?
 
+/* TODO these five items are included in the channel info we get from the MythProtocol
+   command QUERY_RECORDER/GET_CHANNEL_INFO (+xmltvId) ; but there are many more fields
+   in the database and returned from services API */
 trait Channel {
   def chanId: ChanId
   def name: String
-  def number: String
+  def number: ChannelNumber
   def callsign: String
   def sourceId: ListingSourceId  // TODO is this the right type? or do we need VideoSourceId?
 
@@ -241,6 +277,46 @@ trait Channel {
   def recPriority: Int           // TODO do we want this here?  Not in serivce object?
   def lastRecord: MythDateTime   // TODO do we want this here?  Not in service object?
    */
+}
+
+trait ChannelDetails extends Channel {
+  def freqId: Option[String]
+  def iconPath: String  // TODO is this a URL or file path (or could be either!)
+  def fineTune: Option[Int]   // TODO what is this?
+  /* TODO does videofilters field map anywhere? */
+  def xmltvId: String
+  /* TODO: does recpriority field map anywhere? */
+  // also contrast, brightness, colour, hue
+  def format: String   // sometimes set to "" even when database entry disagrees (e.g. in return from GetRecorded...)
+  def visible: Boolean
+  /* TODO does outputfilters field map anywhere? */
+  def useOnAirGuide: Boolean  // TODO is this really nullable as database schema indicates?
+  def mplexId: Option[Int]    // TODO what is this?
+  def serviceId: Option[Int]  // TODO what is this?
+  /* TODO does tmoffset map anywhere */
+  def atscMajorChan: Option[Int]      // sometimes set to "0" even when data is avail (e.g. in return from GetRecorded...)
+  def atscMinorChan: Option[Int]      //     "       "  "   "
+  /* TODO last_record? */
+  def defaultAuthority: Option[String]  // TODO what is this?
+  /* TODO does db commmethod map to commfree ? */
+  /* iptvid? */
+  /* Results not in DB: ??
+       ChanFilters, CommFree, Frequency, FrequencyTable, Modulation, NetworkId, SIStandard, TransportId
+       some of this data may come from dtv_multiple or channelscan_dtv_multiplex table?
+   */
+}
+
+trait ListingSource {
+  def sourceId: ListingSourceId
+  def name: String
+  def grabber: Option[String]
+  def freqTable: String
+  def lineupId: Option[String]
+  def userId: Option[String]
+  def password: Option[String]
+  def useEit: Boolean
+  def configPath: Option[String]
+  def dvbNitId: Option[Int]
 }
 
 trait Video {
@@ -283,13 +359,44 @@ trait RecordRule {    // TODO seems like this contains most of the elements of P
   def title: String
   def subtitle: String
   def description: String
+  def season: Option[Int]
+  def episode: Option[Int]
   def category: String
+  def recProfile: String
+  def recPriority: Int
+  def autoExpire: Boolean
+  def maxEpisodes: Int
+  def maxNewest: Boolean
+  def startOffset: Int   // TODO what is units? minutes?
+  def endOffset: Int     // TODO what is units? minutes?
+  def recGroup: String
+  def dupMethod: DupCheckMethod
+  def dupIn: DupCheckIn
+  def callsign: String   // NB called "station" in the record DB table
   def seriesId: Option[String]
   def programId: Option[String]
+  def inetRef: Option[String]
+  def searchType: RecSearchType
+  def autoTranscode: Boolean
+  def autoCommFlag: Boolean
+  def autoUserJob1: Boolean
+  def autoUserJob2: Boolean
+  def autoUserJob3: Boolean
+  def autoUserJob4: Boolean
+  def autoMetadata: Boolean
+  def findDay: Int      // TODO is this really a day-of-week integer?
+  def findTime: Option[LocalTime]
   def inactive: Boolean
-  def nextRecord: MythDateTime
-  def lastRecord: MythDateTime
-  // TODO more
+  def parentId: Option[RecordRuleId]
+  def transcoder: Option[Int]   // TODO what type is this?
+  def playGroup: String
+  def preferredInput: Option[Int]       // TODO what type is this?
+  def nextRecord: Option[MythDateTime]
+  def lastRecord: Option[MythDateTime]
+  def lastDelete: Option[MythDateTime]
+  def storageGroup: String
+  def averageDelay: Int   // TODO what units?
+  def filter: Option[Int] // TODO what type is this? bitmask enum?
 }
 
 trait Job {
@@ -331,7 +438,6 @@ trait StorageGroupDir  // TODO move
 trait LiveStreamInfo   // TODO move
 trait FrontendStatus   // TODO move
 trait FrontendAction   // TODO move
-trait VideoSource      // TODO move
 
 /**************************************************************************/
 /* Database backed, at least in part */

@@ -32,7 +32,7 @@ private[myth] class BackendProgram(data: Seq[String], fieldOrder: IndexedSeq[Str
   def syndicatedEpisodeNumber: String = fields("syndicatedEpisodeNumber")
   def category: String = fields("category")
   lazy val chanId: ChanId = ChanId(fields("chanId").toInt)
-  def chanNum: String = fields("chanNum")
+  def chanNum: ChannelNumber = ChannelNumber(fields("chanNum"))
   def callsign: String = fields("callsign")
   def chanName: String = fields("chanName")
   def filename: String = fields("filename")
