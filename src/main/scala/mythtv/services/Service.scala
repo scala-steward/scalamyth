@@ -47,7 +47,7 @@ trait GuideService extends BackendService {
     startChanId: ChanId = ChanId(0),
     numChannels: OptionalCount[Int] = OptionalCount.all,
     details: Boolean = false
-  ): Guide
+  ): Guide[Channel, Program]
 
   def getProgramDetails(chanId: ChanId, startTime: MythDateTime): Program
 

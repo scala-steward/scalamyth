@@ -262,13 +262,15 @@ trait ProgramGuideEntry extends Program {
 
 // This structure optimized for channel-based access rather than time-based access.
 // This mirrors what is returned by the Services API GetProgramGuide
-trait Guide {
+trait Guide[Chan <: Channel, +Prog <: Program] {
   def startTime: MythDateTime
   def endTime: MythDateTime
   def startChanId: ChanId
   def endChanId: ChanId
-  def programs: Map[Channel, Seq[Program]]
+  def programCount: Int
+  def programs: Map[Chan, Seq[Prog]]
 }
+
 
 // TODO storage group stuff ...
 

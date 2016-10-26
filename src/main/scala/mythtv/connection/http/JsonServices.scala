@@ -116,7 +116,7 @@ class JsonGuideService(conn: BackendJSONConnection) extends MythJsonProtocol wit
     startChanId: ChanId,
     numChannels: OptionalCount[Int],
     details: Boolean
-  ): Guide = ???
+  ): Guide[Channel, Program] = ???
 
   /*
    * Note: for a program currently recording, the StartTS field inside the Recording
