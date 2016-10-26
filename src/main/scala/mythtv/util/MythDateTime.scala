@@ -3,11 +3,13 @@ package util
 
 import java.time.{ LocalDateTime, OffsetDateTime, Instant, ZoneId, ZoneOffset, ZonedDateTime }
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 // TODO: do we need to/from RFC format (RFC_1123_DATE_TIME) ?
 
 class MythDateTime(val instant: Instant) extends AnyVal {
   private def offsetDt = instant atOffset ZoneOffset.UTC
+  private def truncated = instant truncatedTo ChronoUnit.SECONDS
 
   // accessors
   def year: Int = offsetDt.getYear
@@ -22,8 +24,8 @@ class MythDateTime(val instant: Instant) extends AnyVal {
   import MythDateTime.FORMATTER_MYTH
   def mythformat: String = offsetDt format FORMATTER_MYTH
   def toMythFormat: String = mythformat
-  def toIsoFormat: String = instant.toString
-  def toNaiveIsoFormat: String = offsetDt format DateTimeFormatter.ISO_LOCAL_DATE_TIME
+  def toIsoFormat: String = truncated.toString
+  def toNaiveIsoFormat: String = truncated.atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
   override def toString: String = instant.toString
 
   // converters
