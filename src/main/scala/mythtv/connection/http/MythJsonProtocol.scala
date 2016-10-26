@@ -148,7 +148,8 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
   import RichJsonObject._
 
   val channelContext = new DynamicVariable[RichJsonObject](EmptyJsonObject)
-  implicit object RecSearchTypeFormat extends EnumDescriptionFormat[RecSearchType] {
+
+  implicit object RecSearchTypeJsonFormat extends EnumDescriptionFormat[RecSearchType] {
     val id2Description: Map[RecSearchType, String] = Map(
       RecSearchType.NoSearch      -> "None",
       RecSearchType.PowerSearch   -> "Power Search",
@@ -164,7 +165,7 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
   // This also means there is a loss of precision between a record rule
   // RecType and how it is described in the services API representation.
   // TODO this mapping changed between Myth versions (0.26 -> 0.27?)
-  implicit object RecTypeFormat extends EnumDescriptionFormat[RecType] {
+  implicit object RecTypeJsonFormat extends EnumDescriptionFormat[RecType] {
     val id2Description: Map[RecType, String] = Map(
       RecType.NotRecording   -> "Not Recording",
       RecType.SingleRecord   -> "Single Record",
@@ -176,7 +177,7 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
     )
   }
 
-  implicit object DupCheckInFormat extends EnumDescriptionFormat[DupCheckIn] {
+  implicit object DupCheckInJsonFormat extends EnumDescriptionFormat[DupCheckIn] {
     val id2Description: Map[DupCheckIn, String] = Map(
       DupCheckIn.DupsInRecorded    -> "Current Recordings",
       DupCheckIn.DupsInOldRecorded -> "Previous Recordings",
@@ -185,7 +186,7 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
     )
   }
 
-  implicit object DupCheckMethodFormat extends EnumDescriptionFormat[DupCheckMethod] {
+  implicit object DupCheckMethodJsonFormat extends EnumDescriptionFormat[DupCheckMethod] {
     val id2Description: Map[DupCheckMethod, String] = Map(
       DupCheckMethod.DupCheckNone        -> "None",
       DupCheckMethod.DupCheckSubtitle    -> "Subtitle",
@@ -195,14 +196,14 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
     )
   }
 
-  implicit object StringListFormat extends MythJsonListFormat[String] {
+  implicit object StringListJsonFormat extends MythJsonListFormat[String] {
     import DefaultJsonProtocol.StringJsonFormat
     def objectFieldName = ""
     def listFieldName = "StringList"
     def convertElement(value: JsValue) = value.convertTo[String]
   }
 
-  implicit object ZoneOffsetFormat extends MythJsonObjectFormat[ZoneOffset] {
+  implicit object ZoneOffsetJsonFormat extends MythJsonObjectFormat[ZoneOffset] {
     def objectFieldName = "UTCOffset"
 
     def write(x: ZoneOffset): JsValue = ???
@@ -216,7 +217,7 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
     }
   }
 
-  implicit object InstantFormat extends JsonFormat[Instant] {
+  implicit object InstantJsonFormat extends JsonFormat[Instant] {
     def write(x: Instant): JsValue = ???
 
     def read(value: JsValue): Instant = {
@@ -471,7 +472,7 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
 
   }
 
-  implicit object ProgramListJsonFormat extends MythJsonPagedObjectListFormat[Program] {
+  implicit object PagedProgramListJsonFormat extends MythJsonPagedObjectListFormat[Program] {
     def objectFieldName = "ProgramList"
     def listFieldName = "Programs"
     def convertElement(value: JsValue): Program = value.convertTo[Program]
@@ -753,7 +754,7 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
     }
   }
 
-  implicit object TimeZoneInfoFormat extends MythJsonObjectFormat[TimeZoneInfo] {
+  implicit object TimeZoneInfoJsonFormat extends MythJsonObjectFormat[TimeZoneInfo] {
     def objectFieldName = "TimeZoneInfo"
 
     def write(z: TimeZoneInfo): JsValue = ???
