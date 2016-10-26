@@ -294,6 +294,8 @@ trait Channel {
   def recPriority: Int           // TODO do we want this here?  Not in serivce object?
   def lastRecord: MythDateTime   // TODO do we want this here?  Not in service object?
    */
+
+  override def toString: String = s"<Channel $chanId ${number.num} $callsign>"
 }
 
 trait ChannelDetails extends Channel {
