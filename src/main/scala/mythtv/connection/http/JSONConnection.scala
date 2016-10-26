@@ -37,7 +37,6 @@ case class JSONResponse(statusCode: Int, headers: HttpHeaders, json: JsValue) ex
 }
 
 /*abstract*/ class BackendJSONConnection(host: String, port: Int) extends JSONConnection("http", host, port)
-    with BackendServiceProtocol
     with BackendServiceOperations {
   def hosts: List[String] = ???
   def keys: List[String] = ???

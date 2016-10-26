@@ -22,7 +22,6 @@ case class XMLResponse(statusCode: Int, headers: HttpHeaders, root: xml.Elem) ex
 }
 
 abstract class BackendXMLConnection(host: String, port: Int) extends XMLConnection("http", host, port)
-    with BackendServiceProtocol
     with BackendServiceOperations {
   def hosts: List[String] = ???
   def keys: List[String] = ???

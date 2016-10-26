@@ -2,7 +2,22 @@ package mythtv
 package connection
 package http
 
-trait BackendServiceProtocol {
+import services.Service
+
+trait MythServiceProtocol {
+  self: Service =>
+  def buildPath(endpoint: String, params: Map[String, Any] = Map.empty): String = {
+    val b = new StringBuilder("/") ++= serviceName += '/' ++= endpoint
+    if (params.nonEmpty) {
+      // TODO URL escaping
+      params.iterator.map { case (k, v) => k + "=" + v }.addString(b, "?", "&", "")
+    }
+    b.toString
+  }
+}
+
+trait BackendServiceProtocol extends MythServiceProtocol {
+  self: Service =>
   /*
    *  NB some requests are POST requests while others are GET
    *     split up somehow into different operation sets (mutable vs immutable) (query vs action?)
@@ -66,7 +81,8 @@ trait BackendServiceProtocol {
    */
 }
 
-trait FrontendServiceProtocol {
+trait FrontendServiceProtocol extends MythServiceProtocol {
+  self: Service =>
   /*
    * Frontend/
    *   GetActionList         GET ==> { FrontendActionList }    ()
