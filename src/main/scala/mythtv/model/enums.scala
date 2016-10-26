@@ -98,8 +98,8 @@ object AudioProperties extends BitmaskEnum[Int] {
   val Unknown      =  Mask(0x00)
   val Stereo       = Value(0x01)
   val Mono         = Value(0x02)
-  val Surround     =  Mask(0x03)
-  val Dolby        = Value(0x04)
+  val Surround     = Value(0x04)
+  val Dolby        = Value(0x08)
   val HardHear     = Value(0x10)
   val VisualImpair = Value(0x20)
 }
@@ -112,6 +112,8 @@ object VideoProperties extends BitmaskEnum[Int] {
   val AVC        = Value(0x04)
   val Hd720      = Value(0x08)
   val Hd1080     = Value(0x10)
+  val Damaged    = Value(0x20)
+  val ThreeD     = Value(0x40)
 }
 
 object SubtitleType extends BitmaskEnum[Int] {
