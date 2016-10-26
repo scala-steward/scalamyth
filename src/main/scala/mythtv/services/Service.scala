@@ -21,7 +21,7 @@ trait MythService extends BackendService {
   def getHostName: String
   def getHosts: List[String]
   def getKeys: List[String]
-  def getSetting(hostName: String, key: String = ""): List[Setting]
+  def getSetting(hostName: String, key: String = ""): Settings
 
   def getTimeZone: TimeZoneInfo
   def getStorageGroupDirs(hostName: String = "", groupName: String = ""): List[StorageGroupDir]

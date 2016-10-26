@@ -2,9 +2,9 @@ package mythtv
 package connection
 package http
 
-import java.time.{ LocalTime, Year }
+import java.time.{ Instant, LocalTime, Year, ZoneOffset }
 
-import spray.json.{ RootJsonFormat, JsonFormat, deserializationError }
+import spray.json.{ DefaultJsonProtocol, RootJsonFormat, JsonFormat, deserializationError }
 import spray.json.{ JsArray, JsObject, JsString, JsValue }
 
 import util.{ ByteCount, DecimalByteCount, MythDateTime }
@@ -189,6 +189,39 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
       DupCheckMethod.DupCheckSubDesc     -> "Subtitle and Description",
       DupCheckMethod.DupCheckSubThenDesc -> "Subtitle then Description"
     )
+  }
+
+  implicit object StringListFormat extends MythJsonListFormat[String] {
+    import DefaultJsonProtocol.StringJsonFormat
+    def objectFieldName = ""
+    def listFieldName = "StringList"
+    def convertElement(value: JsValue) = value.convertTo[String]
+  }
+
+  implicit object ZoneOffsetFormat extends MythJsonObjectFormat[ZoneOffset] {
+    def objectFieldName = "UTCOffset"
+
+    def write(x: ZoneOffset): JsValue = ???
+
+    def read(value: JsValue): ZoneOffset = {
+      val secs = value match {
+        case JsString(s) => s.toInt
+        case x => x.toString.toInt
+      }
+      ZoneOffset.ofTotalSeconds(secs)
+    }
+  }
+
+  implicit object InstantFormat extends JsonFormat[Instant] {
+    def write(x: Instant): JsValue = ???
+
+    def read(value: JsValue): Instant = {
+      val dtString = value match {
+        case JsString(s) => s
+        case x => x.toString
+      }
+      Instant.parse(dtString)
+    }
   }
 
   implicit object ProgramJsonFormat extends MythJsonObjectFormat[Program] {
@@ -636,6 +669,44 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
     def listFieldName = "VideoSources"
     def convertElement(value: JsValue): ListingSource = value.convertTo[ListingSource]
   }
+
+  implicit object SettingsJsonFormat extends MythJsonObjectFormat[Settings] {
+    def objectFieldName = "SettingList"
+
+    def write(s: Settings): JsValue = ???
+
+    def read(value: JsValue): Settings = {
+      val obj = value.asJsObject
+      val fields = obj.fields("Settings").asJsObject.fields
+      val settingsMap: Map[String, String] =
+        if (fields.contains("") && fields.size == 1) Map.empty
+        else fields mapValues {
+          case JsString(s) => s
+          case x => x.toString
+        }
+
+      new Settings {
+        def hostName = obj.stringField("HostName")
+        def settings = settingsMap
+      }
+    }
+  }
+
+  implicit object TimeZoneInfoFormat extends MythJsonObjectFormat[TimeZoneInfo] {
+    def objectFieldName = "TimeZoneInfo"
+
+    def write(z: TimeZoneInfo): JsValue = ???
+
+    def read(value: JsValue): TimeZoneInfo = {
+      val obj = value.asJsObject
+      new TimeZoneInfo {
+        def tzName      = obj.stringField("TimeZoneID")
+        def offset      = obj.fields("UTCOffset").convertTo[ZoneOffset]
+        def currentTime = obj.fields("CurrentDateTime").convertTo[Instant]
+      }
+    }
+  }
+
 }
 
 object MythJsonProtocol extends MythJsonProtocol

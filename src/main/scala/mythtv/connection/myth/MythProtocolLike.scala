@@ -2049,13 +2049,17 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     else Some(items.toList)
   }
 
-  protected def handleQueryTimeZone(request: BackendRequest, response: BackendResponse): Option[(String, ZoneOffset, Instant)] = {
+  protected def handleQueryTimeZone(request: BackendRequest, response: BackendResponse): Option[TimeZoneInfo] = {
     val items = response.split
     assert(items.length > 2)
-    val tzName = items(0)
-    val offset = ZoneOffset.ofTotalSeconds(deserialize[Int](items(1)))
+    val tz = items(0)
+    val off = ZoneOffset.ofTotalSeconds(deserialize[Int](items(1)))
     val time = deserialize[Instant](items(2))
-    Some((tzName, offset, time))
+    Some(new TimeZoneInfo {
+      def tzName = tz
+      def offset = off
+      def currentTime = time
+    })
   }
 
   protected def handleQueryUptime(request: BackendRequest, response: BackendResponse): Option[Duration] = {

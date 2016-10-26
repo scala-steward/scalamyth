@@ -2,7 +2,7 @@ package mythtv
 package connection
 package myth
 
-import java.time.{ Duration, Instant, ZoneOffset }
+import java.time.{ Duration }
 
 import model._
 import model.EnumTypes._
@@ -121,7 +121,7 @@ trait MythProtocolAPI {
   def querySGGetFileList(hostName: String, storageGroup: String, path: String): List[String]
   def querySGGetFileList(hostName: String, storageGroup: String, path: String, fileNamesOnly: Boolean): List[String]
   def querySGFileQuery(hostName: String, storageGroup: String, fileName: String): (String, MythDateTime, ByteCount)
-  def queryTimeZone: (String, ZoneOffset, Instant)
+  def queryTimeZone: TimeZoneInfo
   def queryUptime: Duration
   def refreshBackend: Boolean
   def rescheduleRecordingsCheck(recStatus: RecStatus = RecStatus.Unknown, recordId: RecordRuleId = RecordRuleId(0), findId: Int = 0,

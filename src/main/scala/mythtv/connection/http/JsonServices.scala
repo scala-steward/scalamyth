@@ -2,8 +2,10 @@ package mythtv
 package connection
 package http
 
+import spray.json.DefaultJsonProtocol
+
 import model._
-import services.{ CaptureService, ChannelService, DvrService }
+import services.{ CaptureService, ChannelService, DvrService, MythService }
 import util.{ MythDateTime, OptionalCount }
 
 class JsonCaptureService(conn: BackendJSONConnection) extends MythJsonProtocol with CaptureService {
@@ -104,4 +106,43 @@ class JsonDvrService(conn: BackendJSONConnection) extends MythJsonProtocol with 
     val root = response.json.asJsObject.fields("RecRule")
     root.convertTo[RecordRule]
   }
+}
+
+class JsonMythService(conn: BackendJSONConnection) extends MythJsonProtocol with MythService {
+  def getHostName: String = {
+    import DefaultJsonProtocol.StringJsonFormat
+    val response = conn.request(s"/$serviceName/GetHostName")
+    val root = response.json.asJsObject.fields("String")
+    root.convertTo[String]
+  }
+
+  def getHosts: List[String] = {
+    val response = conn.request(s"/$serviceName/GetHosts")
+    val root = response.json.asJsObject
+    root.convertTo[List[String]]
+  }
+
+  def getKeys: List[String] = {
+    val response = conn.request(s"/$serviceName/GetKeys")
+    val root = response.json.asJsObject
+    root.convertTo[List[String]]
+  }
+
+  def getSetting(hostName: String, key: String): Settings = {
+    val url =
+      if (key.isEmpty) s"/$serviceName/GetSetting?HostName=$hostName"
+      else s"/$serviceName/GetSetting?HostName=$hostName&Key=$key"
+    val response = conn.request(url)
+    val root = response.json.asJsObject.fields("SettingList")
+    root.convertTo[Settings]
+  }
+
+  def getStorageGroupDirs(hostName: String, groupName: String): List[StorageGroupDir] = ???
+
+  def getTimeZone: TimeZoneInfo = {
+    val response = conn.request(s"/$serviceName/GetTimeZone")
+    val root = response.json.asJsObject.fields("TimeZoneInfo")
+    root.convertTo[TimeZoneInfo]
+  }
+
 }

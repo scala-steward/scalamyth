@@ -3,7 +3,7 @@ package connection
 package myth
 
 import java.net.InetAddress
-import java.time.{ Duration, Instant, ZoneOffset }
+import java.time.{ Duration }
 
 import model._
 import model.EnumTypes._
@@ -501,9 +501,9 @@ private trait BackendAPILike {
     result map { case s: String => s }
   }
 
-  def queryTimeZone: (String, ZoneOffset, Instant) = {
+  def queryTimeZone: TimeZoneInfo = {
     val result = sendCommand("QUERY_TIME_ZONE")
-    (result map { case (tzName: String, offset: ZoneOffset, time: Instant) => (tzName, offset, time) }).get
+    (result map { case (tzi: TimeZoneInfo) => tzi }).get
   }
 
   def queryUptime: Duration = {

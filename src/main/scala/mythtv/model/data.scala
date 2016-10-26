@@ -1,7 +1,7 @@
 package mythtv
 package model
 
-import java.time.{ Duration, Instant, LocalDateTime, LocalDate, LocalTime, Year }
+import java.time.{ Duration, Instant, LocalDateTime, LocalDate, LocalTime, Year, ZoneOffset }
 
 import EnumTypes._
 import util.{ ByteCount, MythDateTime }
@@ -431,9 +431,22 @@ trait VideoLike extends PlayableMedia {
   // TODO
 }
 
+trait Settings {
+  def hostName: String
+  def settings: Map[String, String]
+
+  override def toString: String = s"<Settings for $hostName (${settings.size})>"
+}
+
+trait TimeZoneInfo {
+  def tzName: String
+  def offset: ZoneOffset
+  def currentTime: Instant
+
+  override def toString: String = s"<TimeZoneInfo $tzName $offset>"
+}
+
 // TODO from services
-trait Setting          // TODO move
-trait TimeZoneInfo     // TODO move
 trait StorageGroupDir  // TODO move
 trait LiveStreamInfo   // TODO move
 trait FrontendStatus   // TODO move
