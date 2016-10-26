@@ -33,7 +33,7 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
 
   final def apply(x: T): Base =
     try vmap(x)
-    catch { case _: NoSuchElementException => mmap(x) }
+    catch { case _: NoSuchElementException => Mask(x, null, cache = false) }
 
   def values: Set[Value] = vset
 
@@ -122,7 +122,7 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
     def apply(m: Mask): Mask = Mask(m.id, m.name, cache = true)
     def apply(m: Mask, name: String): Mask = new Mask(m.id, name, cache = true) // special case, may be renaming a Mask already cached
 
-    private[BitmaskEnum] def apply(id: T, name: String, cache: Boolean): Mask = {
+    /*private[BitmaskEnum]*/ def apply(id: T, name: String, cache: Boolean): Mask = {
       if (mmap contains id) mmap(id)
       else new Mask(id, name, cache)
     }
