@@ -411,13 +411,13 @@ trait RecordRule {    // TODO seems like this contains most of the elements of P
   def parentId: Option[RecordRuleId]
   def transcoder: Option[Int]   // TODO what type is this? (ugh, see what I do here in mythjango...)
   def playGroup: String
-  def preferredInput: Option[Int]       // TODO what type is this?  (stuff from the cardinput table? again, see mythjango...)
+  def preferredInput: Option[Int]       // TODO what type is this? CardInputId from the cardinput table (NOT CaptureCardId)
   def nextRecord: Option[MythDateTime]
   def lastRecord: Option[MythDateTime]
   def lastDelete: Option[MythDateTime]
   def storageGroup: String
   def averageDelay: Int   // TODO what units?
-  def filter: Option[Int] // TODO what type is this? bitmask enum?
+  def filter: Option[Int] // TODO what type is this? bitmask enum of data from the recordfilter table?
 }
 
 trait Job {
