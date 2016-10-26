@@ -5,7 +5,7 @@ package http
 import spray.json.DefaultJsonProtocol
 
 import model._
-import services.{ CaptureService, ChannelService, DvrService, MythService }
+import services.{ CaptureService, ChannelService, GuideService, DvrService, MythService }
 import util.{ MythDateTime, OptionalCount }
 
 class JsonCaptureService(conn: BackendJSONConnection) extends MythJsonProtocol with CaptureService {
@@ -56,6 +56,7 @@ class JsonChannelService(conn: BackendJSONConnection) extends MythJsonProtocol w
 class JsonDvrService(conn: BackendJSONConnection) extends MythJsonProtocol with DvrService {
   //import MythJsonProtocol._  importing saves code space in 2.11 but is less elegant?
 
+  // TODO catch when we get bogus data back and don't return an object?
   def getRecorded(chanId: ChanId, startTime: MythDateTime): Program = {
     val response = conn.request(s"/$serviceName/GetRecorded?ChanId=${chanId.id}&StartTime=${startTime.toNaiveIsoFormat}")
     val root = response.json.asJsObject.fields("Program")
@@ -106,6 +107,31 @@ class JsonDvrService(conn: BackendJSONConnection) extends MythJsonProtocol with 
     val root = response.json.asJsObject.fields("RecRule")
     root.convertTo[RecordRule]
   }
+}
+
+class JsonGuideService(conn: BackendJSONConnection) extends MythJsonProtocol with GuideService {
+  def getProgramGuide(
+    startTime: MythDateTime,
+    endTime: MythDateTime,
+    startChanId: ChanId,
+    numChannels: OptionalCount[Int],
+    details: Boolean
+  ): Guide = ???
+
+  /*
+   * Note: for a program currently recording, the StartTS field inside the Recording
+   * object will contain the actual time the recording started (which may not be the
+   * same as the program start time). However, once the recording is completed, this
+   * field reverts to containing the actual start time of the program, and thus is
+   * unsuitable for looking up the actual recording in all cases.  TODO example
+   */
+  def getProgramDetails(chanId: ChanId, startTime: MythDateTime): Program = {
+    val response = conn.request(s"/$serviceName/GetProgramDetails?ChanId=${chanId.id}&StartTime=${startTime.toNaiveIsoFormat}")
+    val root = response.json.asJsObject.fields("Program")
+    root.convertTo[Program]
+  }
+
+  def getChannelIcon(chanId: ChanId) = ???
 }
 
 class JsonMythService(conn: BackendJSONConnection) extends MythJsonProtocol with MythService {

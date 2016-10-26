@@ -12,7 +12,7 @@ trait BackendServiceProtocol {
    *    https://www.mythtv.org/wiki/API_parameters_0.27
    *    https://www.mythtv.org/wiki/API_parameters_0.28
    *
-   *   Use WDSL to discover services at run time?
+   *   Use WSDL to discover services at run time?
    */
 
   /*
@@ -26,8 +26,8 @@ trait BackendServiceProtocol {
    *   GetTimeZone           GET ==> { TimeZoneInfo }          ()
    *   SendMessage           POST ==>                          (Address, Message, Timeout, udpPort...)
    * Guide/
-   *   GetProgramGuide       GET ==> { ProgramGuide }
-   *   GetProgramDetails     ???
+   *   GetProgramGuide       GET ==> { ProgramGuide }          (StartTime, EndTime)[StartChanId, NumChannels, Details]
+   *   GetProgramDetails     GET ==> { Program }               (ChanId, StartTime)
    *   GetChannelIcon        [ DataStream ]
    * Dvr/
    *   GetRecorded           GET ==> { Program }               (ChanId, StartTime) or (RecordedId) {0.28+}

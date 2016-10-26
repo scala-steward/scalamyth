@@ -184,7 +184,7 @@ trait UpcomingProgram {
 
 trait Recordable extends Program {
   def findId: Int
-  def hostname: String
+  def hostname: String           // TODO why is this in Recordable vs Recording? Services API only has data here for recordings
   def sourceId: ListingSourceId
   def cardId: CaptureCardId
   def inputId: Int
@@ -251,6 +251,16 @@ trait ProgramGuideEntry extends Program {
   def recStatus: RecStatus
 
   // TODO : what else?
+}
+
+// This structure optimized for channel-based access rather than time-based access.
+// This mirrors what is returned by the Services API GetProgramGuide
+trait Guide {
+  def startTime: MythDateTime
+  def endTime: MythDateTime
+  def startChanId: ChanId
+  def endChanId: ChanId
+  def programs: Map[Channel, Seq[Program]]
 }
 
 // TODO storage group stuff ...
@@ -388,9 +398,9 @@ trait RecordRule {    // TODO seems like this contains most of the elements of P
   def findTime: Option[LocalTime]
   def inactive: Boolean
   def parentId: Option[RecordRuleId]
-  def transcoder: Option[Int]   // TODO what type is this?
+  def transcoder: Option[Int]   // TODO what type is this? (ugh, see what I do here in mythjango...)
   def playGroup: String
-  def preferredInput: Option[Int]       // TODO what type is this?
+  def preferredInput: Option[Int]       // TODO what type is this?  (stuff from the cardinput table? again, see mythjango...)
   def nextRecord: Option[MythDateTime]
   def lastRecord: Option[MythDateTime]
   def lastDelete: Option[MythDateTime]
