@@ -131,7 +131,13 @@ class JsonGuideService(conn: BackendJSONConnection)
     startChanId: ChanId,
     numChannels: OptionalCount[Int],
     details: Boolean
-  ): Guide[Channel, Program] = ???
+  ): Guide[Channel, Program] = {
+    // TODO support parameters
+    val params: Map[String, Any] = Map("StartTime" -> startTime.toIsoFormat, "EndTime" -> endTime.toIsoFormat)
+    val response = conn.request(buildPath("GetProgramGuide", params))
+    val root = response.json.asJsObject.fields("ProgramGuide")
+    root.convertTo[Guide[Channel, Program]]
+  }
 
   /*
    * Note: for a program currently recording, the StartTS field inside the Recording
