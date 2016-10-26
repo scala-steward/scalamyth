@@ -4,6 +4,8 @@ package http
 
 import java.time.{ Instant, LocalTime, Year, ZoneOffset }
 
+import scala.util.DynamicVariable
+
 import spray.json.{ DefaultJsonProtocol, RootJsonFormat, JsonFormat, deserializationError }
 import spray.json.{ JsArray, JsObject, JsString, JsValue }
 
@@ -13,6 +15,7 @@ import model._
 
 /* ----------------------------------------------------------------- */
 
+// TODO Pull out all but `items` into a separate trait and share with guide result?
 trait MythJsonObjectList[T] {
   def items: List[T]
   def asOf: MythDateTime
@@ -144,6 +147,7 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
 
   import RichJsonObject._
 
+  val channelContext = new DynamicVariable[RichJsonObject](EmptyJsonObject)
   implicit object RecSearchTypeFormat extends EnumDescriptionFormat[RecSearchType] {
     val id2Description: Map[RecSearchType, String] = Map(
       RecSearchType.NoSearch      -> "None",
@@ -266,7 +270,7 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
       // snagging the chanId; maybe callsign, channum, channame
       val channel: RichJsonObject =  // inner object
         if (obj.fields contains "Channel") obj.fields("Channel").asJsObject
-        else EmptyJsonObject
+        else channelContext.value
 
       val rec: RichJsonObject =      // inner object
         if (obj.fields contains "Recording") obj.fields("Recording").asJsObject
@@ -470,6 +474,13 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
 
   implicit object ProgramListJsonFormat extends MythJsonPagedObjectListFormat[Program] {
     def objectFieldName = "ProgramList"
+    def listFieldName = "Programs"
+    def convertElement(value: JsValue): Program = value.convertTo[Program]
+  }
+
+  // used for reading Guide
+  implicit object ProgramListJsonFormat extends MythJsonListFormat[Program] {
+    def objectFieldName = "ChannelInfo"
     def listFieldName = "Programs"
     def convertElement(value: JsValue): Program = value.convertTo[Program]
   }
@@ -754,6 +765,56 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         def tzName      = obj.stringField("TimeZoneID")
         def offset      = obj.fields("UTCOffset").convertTo[ZoneOffset]
         def currentTime = obj.fields("CurrentDateTime").convertTo[Instant]
+      }
+    }
+  }
+
+  implicit object ChannelGuideJsonFormat extends MythJsonObjectFormat[(Channel, Seq[Program])] {
+    def objectFieldName = "ChannelInfo"
+
+    def write(x: (Channel, Seq[Program])): JsValue = ???
+
+    def read(value: JsValue): (Channel, Seq[Program]) = {
+      val obj = value.asJsObject
+
+      val progs = channelContext.withValue(obj) { obj.convertTo[List[Program]] }
+      val chan = new Channel {
+        def chanId   = ChanId(obj.intField("ChanId"))
+        def name     = obj.stringField("ChannelName")
+        def number   = ChannelNumber(obj.stringField("ChanNum"))
+        def callsign = obj.stringField("CallSign")
+        def sourceId = ???
+      }
+      (chan, progs)
+    }
+  }
+
+  implicit object ChannelGuideListJsonFormat extends MythJsonListFormat[(Channel, Seq[Program])] {
+    def objectFieldName = "ProgramGuide"
+    def listFieldName = "Channels"
+
+    def convertElement(value: JsValue) = value.convertTo[(Channel, Seq[Program])]
+  }
+
+  implicit object GuideJsonFormat extends MythJsonObjectFormat[Guide[Channel, Program]] {
+    def objectFieldName = "ProgramGuide"
+
+    def write(g: Guide[Channel, Program]): JsValue = ???
+
+    def read(value: JsValue): Guide[Channel, Program] = {
+      val obj = value.asJsObject
+
+      // TODO FIXME avoid intermediate conversion to list
+      val channelGuideList = value.convertTo[List[(Channel, Seq[Program])]]
+      val channelGuide = channelGuideList.toMap
+
+      new Guide[Channel, Program] {
+        def startTime    = obj.dateTimeField("StartTime")
+        def endTime      = obj.dateTimeField("EndTime")
+        def startChanId  = ChanId(obj.intField("StartChanId"))
+        def endChanId    = ChanId(obj.intField("EndChanId"))
+        def programCount = obj.intField("Count")
+        def programs     = channelGuide
       }
     }
   }
