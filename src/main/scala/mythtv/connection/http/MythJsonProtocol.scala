@@ -316,12 +316,12 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
             def programId               = obj.stringField("ProgramId")
             def stars                   = obj.doubleFieldOption("Stars")
             def originalAirDate         = obj.dateFieldOption("Airdate")
-            def audioProps              = ???
-            def videoProps              = ???
-            def subtitleType            = ???
+            def audioProps              = AudioProperties(obj.intField("AudioProps"))
+            def videoProps              = VideoProperties(obj.intField("VideoProps"))
+            def subtitleType            = SubtitleType(obj.intField("SubProps"))
             def year                    = obj.intFieldOption("Year") map Year.of  // TODO year field does not exist
-            def partNumber              = None // TODO?
-            def partTotal               = None // TODO?
+            def partNumber              = None
+            def partTotal               = None
 
             def findId                  = ???
             def hostname                = obj.stringField("HostName")
@@ -371,12 +371,12 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
             def programId               = obj.stringField("ProgramId")
             def stars                   = obj.doubleFieldOption("Stars")
             def originalAirDate         = obj.dateFieldOption("Airdate")
-            def audioProps              = ???
-            def videoProps              = ???
-            def subtitleType            = ???
+            def audioProps              = AudioProperties(obj.intField("AudioProps"))
+            def videoProps              = VideoProperties(obj.intField("VideoProps"))
+            def subtitleType            = SubtitleType(obj.intField("SubProps"))
             def year                    = obj.intFieldOption("Year") map Year.of  // TODO year field does not exist
-            def partNumber              = None // TODO?
-            def partTotal               = None // TODO?
+            def partNumber              = None
+            def partTotal               = None
 
             def findId                  = ???
             def hostname                = obj.stringField("HostName")
@@ -426,12 +426,12 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         def programId               = obj.stringField("ProgramId")
         def stars                   = obj.doubleFieldOption("Stars")
         def originalAirDate         = obj.dateFieldOption("Airdate")
-        def audioProps              = ???
-        def videoProps              = ???
-        def subtitleType            = ???
+        def audioProps              = AudioProperties(obj.intField("AudioProps"))
+        def videoProps              = VideoProperties(obj.intField("VideoProps"))
+        def subtitleType            = SubtitleType(obj.intField("SubProps"))
         def year                    = obj.intFieldOption("Year") map Year.of
-        def partNumber              = None  // TODO
-        def partTotal               = None  // TODO
+        def partNumber              = None
+        def partTotal               = None
       }
 
       /*
@@ -464,7 +464,6 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
 
        missing:
          syndicatedEpisodeNumber   (but we do have "Season" and "Episode")
-         subtitleType      (infer from "SubProps" integer/bitmask?)
          partNumber
          partTotal
        */
