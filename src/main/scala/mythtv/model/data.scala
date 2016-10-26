@@ -166,6 +166,11 @@ trait Program {
   def year: Option[Year]           // NB called 'airdate' in program table
   def partNumber: Option[Int]
   def partTotal: Option[Int]
+
+  def stereo: Boolean    = audioProps contains AudioProperties.Stereo
+  def subtitled: Boolean = subtitleType != SubtitleType.Unknown
+  def hdtv: Boolean      = videoProps contains VideoProperties.Hdtv  // TODO might need to check Hd1080 and Hd720 also
+  def closeCaptioned: Boolean = ???  // Do we use audioProps or subtitleType (or both?)
 }
 
 // Used, e.g. by Myth protocol QUERY_RECORDER/GET_NEXT_PROGRAM_INFO
@@ -231,10 +236,12 @@ trait ProgramGuideEntry extends Program {
   def subtitletypes: Set[Any]  // TODO enum set -- called subtitleType in Program
 
   // These fields are not present (at least not directly) in Program object
+  /*
   def stereo: Boolean            // These are bound into Audio/Video properties bitmask in Program?
   def subtitled: Boolean
   def hdtv: Boolean
   def closeCaptioned: Boolean
+  */
 
   def titlePronounce: String  // TODO what is this?
   def categoryType: String
