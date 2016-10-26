@@ -299,6 +299,9 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
        "StorageGroup": "Default"
        */
 
+      // TODO Year field does not exist separately, but it the "Airdate" field may sometimes only
+      //      contain a year, in which case originalAirDate should be None....
+
       // Return a Recording if there is a non-empty recording start time AND a non-empty filename
       if (rec.stringFieldOption("StartTs", "").nonEmpty) {
         if (obj.stringFieldOption("FileName", "").nonEmpty) {
