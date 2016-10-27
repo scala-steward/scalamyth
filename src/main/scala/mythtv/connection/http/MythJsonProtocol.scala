@@ -615,7 +615,7 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         def findDay         = obj.intField("FindDay")
         def findTime        = obj.timeFieldOption("FindTime", LocalTime.MIN)
         def inactive        = obj.booleanField("Inactive")
-        def parentId        = obj.intFieldOption("ParentId", 0) map (RecordRuleId(_))
+        def parentId        = obj.intFieldOption("ParentId", 0) map RecordRuleId
         def transcoder      = obj.intFieldOption("Transcoder", 0)
         def playGroup       = obj.stringField("PlayGroup")
         def preferredInput  = obj.intFieldOption("PreferredInput", 0)
