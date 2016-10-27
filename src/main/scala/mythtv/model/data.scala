@@ -98,6 +98,9 @@ trait CaptureCard {
   def diseqcId: Option[Int]
   def dvbEitScan: Boolean
   // field 'defaultinput' from the DB capturecard table is excluded here
+
+  override def toString: String
+    = s"<CaptureCard $cardId $hostName ${cardType.getOrElse("")} ${videoDevice.getOrElse("")}>"
 }
 
 trait RemoteEncoder {
@@ -418,6 +421,8 @@ trait RecordRule {    // TODO seems like this contains most of the elements of P
   def storageGroup: String
   def averageDelay: Int   // TODO what units?
   def filter: Option[Int] // TODO what type is this? bitmask enum of data from the recordfilter table?
+
+  override def toString: String = s"<RecordRule $id $title>"
 }
 
 trait Job {
