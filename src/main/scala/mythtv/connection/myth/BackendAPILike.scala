@@ -7,7 +7,7 @@ import java.time.{ Duration }
 
 import model._
 import model.EnumTypes._
-import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
+import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythFileHash }
 import EnumTypes.{ MythLogLevel, MythProtocolEventMode }
 import MythProtocol.QueryRecorderResult._
 
@@ -185,7 +185,7 @@ private trait BackendAPILike {
     val result =
       if (hostName == "") sendCommand("QUERY_FILE_HASH", fileName, storageGroup)
       else sendCommand("QUERY_FILE_HASH", fileName, storageGroup, hostName)
-    (result map { case h: String => h }).get
+    (result map { case h: MythFileHash => h }).get
   }
 
   def queryFreeSpace: List[FreeSpace] = {

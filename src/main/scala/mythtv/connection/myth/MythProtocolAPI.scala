@@ -6,7 +6,7 @@ import java.time.{ Duration }
 
 import model._
 import model.EnumTypes._
-import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime }
+import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythFileHash }
 import EnumTypes.{ MythLogLevel, MythProtocolEventMode }
 
 // TODO these APIs should be converted to return Option[_] or Either[_] or something

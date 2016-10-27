@@ -1715,8 +1715,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleQueryFileHash(request: BackendRequest, response: BackendResponse): Option[MythFileHash] = {
-    if (response.raw == "NULL") None
-    else Some(response.raw)
+    Some(new MythFileHash(response.raw))
   }
 
   protected def handleQueryFileTransfer(request: BackendRequest, response: BackendResponse): Option[QueryFileTransferResult] = {
