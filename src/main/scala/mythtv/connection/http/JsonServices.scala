@@ -5,8 +5,10 @@ package http
 import spray.json.DefaultJsonProtocol
 
 import model._
-import services.{ CaptureService, ChannelService, GuideService, DvrService, MythService }
-import util.{ MythDateTime, OptionalCount }
+import services.{ CaptureService, ChannelService, ContentService, DvrService, GuideService, MythService }
+import util.{ MythDateTime, OptionalCount, MythFileHash }
+
+import services.DataBytes // FIXME temporary placeholder
 
 class JsonCaptureService(conn: BackendJSONConnection)
   extends BackendServiceProtocol
@@ -218,5 +220,35 @@ class JsonMythService(conn: BackendJSONConnection)
     val root = response.json.asJsObject.fields("TimeZoneInfo")
     root.convertTo[TimeZoneInfo]
   }
+}
 
+class JsonContentService(conn: BackendJSONConnection)
+  extends BackendServiceProtocol
+     with MythJsonProtocol
+     with ContentService {
+  def getFileList(storageGroup: String): List[String] = {
+    val params: Map[String, Any] = Map("StorageGroup" -> storageGroup)
+    val response = conn.request(buildPath("GetFileList", params))
+    val root = response.json.asJsObject
+    root.convertTo[List[String]]
+  }
+
+  // TODO handle error conditions, such as file not existing...
+  def getHash(storageGroup: String, fileName: String): MythFileHash = {
+    import DefaultJsonProtocol.StringJsonFormat
+    val params: Map[String, Any] = Map("StorageGroup" -> storageGroup, "FileName" -> fileName)
+    val response = conn.request(buildPath("GetHash", params))
+    val root = response.json.asJsObject.fields("String")
+    new MythFileHash(root.convertTo[String])
+  }
+
+  def getAlbumArt(id: Int): DataBytes = ???
+  def getFile(storageGroup: String, fileName: String): DataBytes = ???
+  def getImageFile(storageGroup: String, fileName: String): DataBytes = ???
+  def getLiveStream(id: String): LiveStreamInfo = ???
+  def getLiveStreamList: List[LiveStreamInfo] = ???
+  def getMusic(id: String): DataBytes = ???
+  def getPreviewImage(chanId: ChanId, startTime: MythDateTime): DataBytes = ???
+  def getRecording(chanId: ChanId, startTime: MythDateTime): DataBytes = ???
+  def getVideo(id: Int): DataBytes = ???
 }

@@ -2,7 +2,7 @@ package mythtv
 package services
 
 import model._
-import util.{ OptionalCount, MythDateTime }
+import util.{ OptionalCount, MythDateTime, MythFileHash }
 
 trait Service {
   def serviceName: String
@@ -133,7 +133,7 @@ trait ContentService extends BackendService {
   def getAlbumArt(id: Int): DataBytes  // TODO optional width, height
   def getFile(storageGroup: String, fileName: String): DataBytes
   def getFileList(storageGroup: String): List[String]
-  def getHash(storageGroup: String, fileName: String): String
+  def getHash(storageGroup: String, fileName: String): MythFileHash
   def getImageFile(storageGroup: String, fileName: String): DataBytes  // optional width, height
   def getLiveStream(id: String): LiveStreamInfo  // TODO is id really a string or an Int?
   def getLiveStreamList: List[LiveStreamInfo]
