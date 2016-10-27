@@ -128,6 +128,37 @@ trait CardInput {
   def liveTVorder: Int
 }
 
+// from the dtv_multiplex table and the GetVideoMultiplex services command
+trait VideoMultiplex {
+  def mplexId: Int
+  def sourceId: ListingSourceId  // TODO can sourceId/transportId really be null?
+  def transportId: Int
+  def networkId: Option[Int]
+  def frequency: Int
+  def inversion: Char
+  def symbolRate: Int
+  def fec: String
+  def polarity: Char
+  def modulation: String
+  def bandwidth: Char
+  def lpCodeRate: String
+  def transmissionMode: Char
+  def guardInterval: String
+  def visible: Boolean
+  def constellation: String
+  def hierarchy: String
+  def hpCodeRate: String
+  def modulationSystem: String
+  def rolloff: String
+  def siStandard: String
+  def serviceVersion: Int
+  def updateTimestamp: Instant
+  def defaultAuthority: Option[String]
+
+  override def toString: String =
+    s"<VideoMultiplex $mplexId $sourceId $transportId $frequency $modulation>"
+}
+
 trait FreeSpace {
   def host: String
   def path: String
@@ -477,7 +508,6 @@ trait StorageGroupDir  // TODO move
 trait LiveStreamInfo   // TODO move
 trait FrontendStatus   // TODO move
 trait FrontendAction   // TODO move
-trait VideoMultiplex
 trait TitleInfo
 
 /**************************************************************************/

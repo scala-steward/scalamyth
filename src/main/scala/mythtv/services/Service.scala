@@ -37,7 +37,11 @@ trait ChannelService extends BackendService {
   def getVideoSourceList: List[ListingSource]
 
   def getVideoMultiplex(mplexId: Int): VideoMultiplex
-  def getVideoMultiplexList(sourceId: ListingSourceId): List[VideoMultiplex]
+  def getVideoMultiplexList(
+    sourceId: ListingSourceId,
+    startIndex: Int = 0,
+    count: OptionalCount[Int] = OptionalCount.all
+  ): List[VideoMultiplex]
 
   def getXmltvIdList(sourceId: ListingSourceId): List[String]
 

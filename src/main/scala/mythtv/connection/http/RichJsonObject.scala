@@ -19,6 +19,10 @@ trait RichJsonObject extends Any {
   def booleanFieldOption(fieldName: String): Option[Boolean]
   def booleanFieldOrElse(fieldName: String, default: => Boolean): Boolean
 
+  def charField(fieldName: String): Char
+  def charFieldOption(fieldName: String): Option[Char]
+  def charFieldOrElse(fieldName: String, default: => Char): Char
+
   def dateField(fieldName: String): LocalDate
   def dateFieldOption(fieldName: String): Option[LocalDate]
   def dateFieldOrElse(fieldName: String, default: => LocalDate): LocalDate
@@ -57,6 +61,10 @@ object EmptyJsonObject extends RichJsonObject {
   def booleanField(fieldName: String) = throw new NoSuchElementException(fieldName)
   def booleanFieldOption(fieldName: String) = None
   def booleanFieldOrElse(fieldName: String, default: => Boolean) = default
+
+  def charField(fieldName: String) = throw new NoSuchElementException(fieldName)
+  def charFieldOption(fieldName: String) = None
+  def charFieldOrElse(fieldName: String, default: => Char) = default
 
   def dateField(fieldName: String) = throw new NoSuchElementException(fieldName)
   def dateFieldOption(fieldName: String) = None
@@ -115,6 +123,10 @@ object RichJsonObject {
     def booleanField(fieldName: String) = stringField(fieldName).toBoolean
     def booleanFieldOption(fieldName: String) = stringFieldOption(fieldName) map (_.toBoolean)
     def booleanFieldOrElse(fieldName: String, default: => Boolean) = booleanFieldOption(fieldName).getOrElse(default)
+
+    def charField(fieldName: String): Char = stringField(fieldName).charAt(0)
+    def charFieldOption(fieldName: String): Option[Char] = stringFieldOption(fieldName, "") map (_.charAt(0))
+    def charFieldOrElse(fieldName: String, default: => Char): Char = charFieldOption(fieldName).getOrElse(default)
 
     def dateField(fieldName: String): LocalDate = LocalDate.parse(stringField(fieldName))
     def dateFieldOption(fieldName: String): Option[LocalDate] =

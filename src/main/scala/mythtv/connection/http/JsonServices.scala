@@ -63,9 +63,21 @@ class JsonChannelService(conn: BackendJSONConnection)
     list.items
   }
 
-  def getVideoMultiplex(mplexId: Int): VideoMultiplex = ???
+  def getVideoMultiplex(mplexId: Int): VideoMultiplex = {
+    val params: Map[String, Any] = Map("MplexID" -> mplexId)
+    val response = conn.request(buildPath("GetVideoMultiplex", params))
+    val root = response.json.asJsObject.fields("VideoMultiplex")
+    root.convertTo[VideoMultiplex]
+  }
 
-  def getVideoMultiplexList(sourceId: ListingSourceId): List[VideoMultiplex] = ???
+  def getVideoMultiplexList(sourceId: ListingSourceId, startIndex: Int, count: OptionalCount[Int]
+  ): List[VideoMultiplex] = {
+    val params = buildStartCountParams(startIndex, count) + ("SourceID" -> sourceId.id)
+    val response = conn.request(buildPath("GetVideoMultiplexList", params))
+    val root = response.json.asJsObject.fields("VideoMultiplexList")
+    val list = root.convertTo[MythJsonPagedObjectList[VideoMultiplex]]
+    list.items
+  }
 
   def getXmltvIdList(sourceId: ListingSourceId): List[String] = {
     val params: Map[String, Any] = Map("SourceID" -> sourceId.id)

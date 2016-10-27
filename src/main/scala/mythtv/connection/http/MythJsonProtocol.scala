@@ -822,6 +822,48 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
     }
   }
 
+  implicit object VideoMultiplexJsonFormat extends MythJsonObjectFormat[VideoMultiplex] {
+    def objectFieldName = "VideoMultiplex"
+
+    def write(m: VideoMultiplex): JsValue = ???
+
+    def read(value: JsValue): VideoMultiplex = {
+      val obj = value.asJsObject
+      new VideoMultiplex {
+        def mplexId          = obj.intField("MplexId")
+        def sourceId         = ListingSourceId(obj.intField("SourceId"))
+        def transportId      = obj.intField("TransportId")
+        def networkId        = obj.intFieldOption("NetworkId", 0)
+        def frequency        = obj.intField("Frequency")
+        def inversion        = obj.charField("Inversion")
+        def symbolRate       = obj.intField("SymbolRate")
+        def fec              = obj.stringField("FEC")
+        def polarity         = obj.charField("Polarity")
+        def modulation       = obj.stringField("Modulation")
+        def bandwidth        = obj.charField("Bandwidth")
+        def lpCodeRate       = obj.stringField("LPCodeRate")
+        def transmissionMode = obj.charField("TransmissionMode")
+        def guardInterval    = obj.stringField("GuardInterval")
+        def visible          = obj.booleanField("Visible")
+        def constellation    = obj.stringField("Constellation")
+        def hierarchy        = obj.stringField("Hierarchy")
+        def hpCodeRate       = obj.stringField("HPCodeRate")
+        def modulationSystem = obj.stringField("ModulationSystem")
+        def rolloff          = obj.stringField("RollOff")
+        def siStandard       = obj.stringField("SIStandard")
+        def serviceVersion   = obj.intField("ServiceVersion")
+        def updateTimestamp  = obj.fields("UpdateTimeStamp").convertTo[Instant]
+        def defaultAuthority = obj.stringFieldOption("DefaultAuthority", "")
+      }
+    }
+  }
+
+  implicit object VideoMultiplexListJsonFormat extends MythJsonPagedObjectListFormat[VideoMultiplex] {
+    def objectFieldName = "VideoMultiplexList"
+    def listFieldName = "VideoMultiplexes"
+    def convertElement(value: JsValue): VideoMultiplex = value.convertTo[VideoMultiplex]
+  }
+
 }
 
 object MythJsonProtocol extends MythJsonProtocol
