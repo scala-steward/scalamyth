@@ -1,0 +1,57 @@
+Decomposing the fields of RecordRule by commonality with other traits:
+
+in Program
+  def chanId: Option[ChanId]
+  def startTime: MythDateTime
+  def endTime: MythDateTime
+  def title: String
+  def subtitle: String
+  def description: String
+  def category: String
+  def seriesId: Option[String]
+  def programId: Option[String]
+
+in Recordable
+  def recordId: RecordRuleId
+  def recType: RecType
+  def recPriority: Int
+  def recGroup: String
+  def dupMethod: DupCheckMethod
+  def dupIn: DupCheckIn
+  def callsign: String   // NB called "station" in the record DB table
+  def playGroup: String
+  def storageGroup: String
+  def parentId: Option[RecordRuleId]
+
+in Recording
+  def season: Option[Int]
+  def episode: Option[Int]
+  def inetRef: Option[String]
+
+in ProgramGuideEntry
+
+in RecordRule
+  def recProfile: String
+  def autoExpire: Boolean
+  def maxEpisodes: Int
+  def maxNewest: Boolean
+  def startOffset: Int   // TODO what is units? minutes?
+  def endOffset: Int     // TODO what is units? minutes?
+  def searchType: RecSearchType
+  def autoTranscode: Boolean
+  def autoCommFlag: Boolean
+  def autoUserJob1: Boolean
+  def autoUserJob2: Boolean
+  def autoUserJob3: Boolean
+  def autoUserJob4: Boolean
+  def autoMetadata: Boolean
+  def findDay: Int      // TODO is this really a day-of-week integer?
+  def findTime: Option[LocalTime]
+  def inactive: Boolean
+  def transcoder: Option[Int]   // TODO what type is this? (ugh, see what I do here in mythjango...)
+  def preferredInput: Option[Int]       // TODO what type is this? CardInputId from the cardinput table (NOT CaptureCardId)
+  def nextRecord: Option[MythDateTime]
+  def lastRecord: Option[MythDateTime]
+  def lastDelete: Option[MythDateTime]
+  def averageDelay: Int   // TODO what units?
+  def filter: Option[Int] // TODO what type is this? bitmask enum of data from the recordfilter table?
