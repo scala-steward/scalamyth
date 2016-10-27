@@ -32,10 +32,25 @@ trait ChannelService extends BackendService {
 
   def getChannelInfo(chanId: ChanId): Channel
   def getChannelInfoList: List[Channel]
+
   def getVideoSource(sourceId: ListingSourceId): ListingSource
   def getVideoSourceList: List[ListingSource]
-  def getXMLTVIdList: List[String]
-  // TODO more methods
+
+  def getVideoMultiplex(mplexId: Int): VideoMultiplex
+  def getVideoMultiplexList(sourceId: ListingSourceId): List[VideoMultiplex]
+
+  def getXmltvIdList(sourceId: ListingSourceId): List[String]
+
+  /* TODO unimplemented methods
+  def updateDbChannel(...): Boolean
+  def addDbChannel(...): Boolean
+  def removeDbChannel(chanId: ChanId): Boolean
+  def updateVideoSource(...): Boolean
+  def addVideoSource(...): Int
+  def removeVideoSource(...): Boolean
+  def getDdLineupList(...): ???
+  def fetchChannelsFromSource(sourceId: ListingSourceId, cardId: CaptureCardId, waitForFinish: Boolean) = ???
+   */
 }
 
 trait GuideService extends BackendService {
@@ -89,6 +104,12 @@ trait DvrService extends BackendService {
   ): List[RecordRule]
 
   def getRecordSchedule(recordId: RecordRuleId): RecordRule
+
+  def getRecGroupList: List[String]
+
+  def getTitleList: List[String]
+
+  def getTitleInfoList: List[TitleInfo]
 }
 
 trait VideoService extends BackendService {

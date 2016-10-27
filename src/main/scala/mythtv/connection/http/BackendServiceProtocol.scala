@@ -40,6 +40,20 @@ trait BackendServiceProtocol extends MythServiceProtocol {
    *   GetStorageGroupDirs   GET ==> { StorageGroupDirList }   [GroupName, HostName]
    *   GetTimeZone           GET ==> { TimeZoneInfo }          ()
    *   SendMessage           POST ==>                          (Address, Message, Timeout, udpPort...)
+   *   AddStorageGroupDir    POST
+   *   RemoveStorageGroupDir POST
+   *   GetLogs                                                 ???
+   *   PutSetting
+   *   ChangePassword        POST
+   *   TestDBSettings
+   *   SendNotification
+   *   BackupDatabase
+   *   CheckDatabase
+   *   ProfileSubmit
+   *   ProfileDelete
+   *   ProfileURL
+   *   ProfileUpdated
+   *   ProfileText
    * Guide/
    *   GetProgramGuide       GET ==> { ProgramGuide }          (StartTime, EndTime)[StartChanId, NumChannels, Details]
    *   GetProgramDetails     GET ==> { Program }               (ChanId, StartTime)
@@ -53,25 +67,73 @@ trait BackendServiceProtocol extends MythServiceProtocol {
    *   GetEncoderList        GET ==> { EncoderList }           ()
    *   GetRecordScheduleList GET ==> { RecRuleList }           [Count, StartIndex]
    *   GetRecordSchedule     GET ==> { RecRule }               (RecordId) [Template] [ChanId,StartTime] [MakeOverride]
+   *   RemoveRecorded        POST
+   *   GetRecGroupList       GET ==> { StringList }            ()
+   *   GetTitleList          GET ==> { StringList }            ()
+   *   GetTitleInfoList      GET ==> { TitleInfoList }         ()
+   *   AddRecordSchedule
+   *   UpdateRecordSchedule
+   *   RemoveRecordSchedule
+   *   EnableRecordSchedule
+   *   DisableRecordSchedule
+   *   UpdateRecordedWatchedStatus
    * Video/
    *   GetVideo              GET ==> { VideoMetadataInfo }     (Id)
    *   GetVideoByFileName    GET ==> { VideoMetadataInfo }     (FileName)
    *   GetVideoList          GET ==> { VideoMetadataInfoList } [Count, StartIndex, Descending]
    *   LookupVideo           GET ==> { VideoLookupList }       [Title, Subtitle, Inetref] [(Season, Episode)]
+   *   GetBluray
+   *   RemoveVideoFromDB
+   *   AddVideo
+   *   UpdateVideoWatchedStatus
    *      **** LookupVideo retrieves metadata from the Internet rather than the Myth server?
    * Content/
-   *   GetPreviewImage       [ DataStream ]
+   *   GetPreviewImage       GET ==> <image>                   (ChanId, StartTime)[Width, Height, SecsIn]
    *   GetFileList           GET ==> { StringList }            (StorageGroup)
    *   GetHash               GET ==> { String }                (StorageGroup, FileName)
+   *   GetFile               GET ==> <filedata>                (StorageGroup, FileName)
+   *   GetImageFile          GET ==> <image>                   (StorageGroup, FileName)[Width, Height]
+   *   GetMusic                 GET ==> <music>                (Id)
+   *   GetRecordingArtwork      GET ==> <image>                (Type, Inetref, Season)[Width, Height]
+   *   GetRecordingArtworkList  GET ==> { ArtworkInfoList }    (ChanId, StartTime)
+   *   GetProgramArtworkList    GET ==>                        (Inetref, Season)
+   *   GetVideoArtwork          GET ==> <image>                (Type, Id)[Width, Height]
+   *   GetAlbumArt              GET ==> <image>                (Id)[Width, Height]
+   *   GetRecording             GET ==> <video>                (ChanId, StartTime)
+   *   GetVideo                 GET ==> <video>                (Id)
+   *   DownloadFile
+   *   GetLiveStream
+   *   GetLiveStreamList
+   *   AddLiveStream
+   *   AddRecordingLiveStream
+   *   AddVideoLiveStream
+   *   StopLiveStream
+   *   RemoveLiveStream
    * Capture/
    *   GetCaptureCard        GET ==> { CaptureCard }           (CardId)
    *   GetCaptureCardList    GET ==> { CaptureCardList }       [HostName, CardType]
+   *   RemoveCaptureCard     POST
+   *   AddCaptureCard        POST
+   *   UpdateCaptureCard     POST
+   *   RemoveCardInput       POST
+   *   AddCardInput          POST
+   *   UpdateCardInput       POST
    * Channel/
    *   GetChannelInfo        GET ==> { ChannelInfo }           (ChanID)
    *   GetChannelInfoList    GET ==> { ChannelInfoList }       (SourceID)
    *   GetVideoSource        GET ==> { VideoSource }           (SourceID)
    *   GetVideoSourceList    GET ==> { VideoSourceList }       ()
+   *   GetVideoMultiplex     GET ==> { VideoMultiplex }        (MplexID)
+   *   GetVideoMultiplexList GET ==> { VideoMultiplexList }    (SourceID)[StartIndex, Count]
+   *   GetDDLineupList       POST ?                            (Source, UserId, Password)
+   *   FetchChannelsFromSource  POST?                          (SourceId, CardId, WaitForFinish)
    *   GetXMLTVIdList        GET ==> { StringList }            (SourceID)
+   *   UpdateDBChannel       POST
+   *   AddDBChannel          POST
+   *   RemoveDBChannel       POST
+   *   UpdateVideoSource     POST
+   *   AddVideoSource        POST
+   *   RemoveVideoSource     POST
    */
 
   /* How is GetCaptureCardList different from GetEncoderList?

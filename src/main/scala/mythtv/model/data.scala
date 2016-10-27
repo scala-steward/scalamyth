@@ -472,6 +472,8 @@ trait StorageGroupDir  // TODO move
 trait LiveStreamInfo   // TODO move
 trait FrontendStatus   // TODO move
 trait FrontendAction   // TODO move
+trait VideoMultiplex
+trait TitleInfo
 
 /**************************************************************************/
 /* Database backed, at least in part */

@@ -59,7 +59,16 @@ class JsonChannelService(conn: BackendJSONConnection)
     list.items
   }
 
-  def getXMLTVIdList: List[String] = ???
+  def getVideoMultiplex(mplexId: Int): VideoMultiplex = ???
+
+  def getVideoMultiplexList(sourceId: ListingSourceId): List[VideoMultiplex] = ???
+
+  def getXmltvIdList(sourceId: ListingSourceId): List[String] = {
+    val params: Map[String, Any] = Map("SourceID" -> sourceId.id)
+    val response = conn.request(buildPath("GetXMLTVIdList", params))
+    val root = response.json.asJsObject
+    root.convertTo[List[String]]
+  }
 }
 
 class JsonDvrService(conn: BackendJSONConnection)
@@ -119,6 +128,21 @@ class JsonDvrService(conn: BackendJSONConnection)
     val root = response.json.asJsObject.fields("RecRule")
     root.convertTo[RecordRule]
   }
+
+  def getRecGroupList: List[String] = {
+    val response = conn.request(buildPath("GetRecGroupList"))
+    val root = response.json.asJsObject
+    root.convertTo[List[String]]
+  }
+
+  def getTitleList: List[String] = {
+    val response = conn.request(buildPath("GetTitleList"))
+    val root = response.json.asJsObject
+    root.convertTo[List[String]]
+  }
+
+  def getTitleInfoList: List[TitleInfo] = ???
+
 }
 
 class JsonGuideService(conn: BackendJSONConnection)
