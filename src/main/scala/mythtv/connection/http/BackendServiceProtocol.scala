@@ -3,6 +3,7 @@ package connection
 package http
 
 import services.Service
+import util.{ OptionalCount, OptionalCountSome }
 
 trait MythServiceProtocol {
   self: Service =>
@@ -13,6 +14,15 @@ trait MythServiceProtocol {
       params.iterator.map { case (k, v) => k + "=" + v }.addString(b, "?", "&", "")
     }
     b.toString
+  }
+
+  def buildStartCountParams(startIndex: Int, count: OptionalCount[Int]): Map[String, Any] = {
+    var params: Map[String, Any] = count match {
+      case OptionalCountSome(n) => Map("Count" -> n)
+      case _ => Map.empty
+    }
+    if (startIndex != 0) params += "StartIndex" -> startIndex
+    params
   }
 }
 

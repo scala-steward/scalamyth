@@ -6,7 +6,7 @@ import spray.json.DefaultJsonProtocol
 
 import model._
 import services.{ CaptureService, ChannelService, ContentService, DvrService, GuideService, MythService }
-import util.{ MythDateTime, OptionalCount, MythFileHash }
+import util.{ MythDateTime, OptionalCount, OptionalCountSome, MythFileHash }
 
 import services.DataBytes // FIXME temporary placeholder
 
@@ -22,8 +22,10 @@ class JsonCaptureService(conn: BackendJSONConnection)
   }
 
   def getCaptureCardList(hostName: String, cardType: String): List[CaptureCard] = {
-    // TODO support parameters
-    val response = conn.request(buildPath("GetCaptureCardList"))
+    var params: Map[String, Any] = Map.empty
+    if (hostName.nonEmpty) params += "HostName" -> hostName
+    if (cardType.nonEmpty) params += "CardType" -> cardType
+    val response = conn.request(buildPath("GetCaptureCardList", params))
     val root = response.json.asJsObject.fields("CaptureCardList")
     root.convertTo[List[CaptureCard]]
   }
@@ -86,23 +88,26 @@ class JsonDvrService(conn: BackendJSONConnection)
   }
 
   def getRecordedList(startIndex: Int, count: OptionalCount[Int], descending: Boolean): List[Program] = {
-    // TODO support parameters
-    val response = conn.request(buildPath("GetRecordedList"))
+    var params = buildStartCountParams(startIndex, count)
+    if (descending) params += "Descending" -> descending
+    val response = conn.request(buildPath("GetRecordedList", params))
     val root = response.json.asJsObject.fields("ProgramList")
     val list = root.convertTo[MythJsonPagedObjectList[Program]]
     list.items
   }
 
   def getExpiringList(startIndex: Int, count: OptionalCount[Int]): List[Program] = {
-    // TODO support parameters
-    val response = conn.request(buildPath("GetExpiringList"))
+    val params = buildStartCountParams(startIndex, count)
+    val response = conn.request(buildPath("GetExpiringList", params))
     val root = response.json.asJsObject.fields("ProgramList")
     val list = root.convertTo[MythJsonPagedObjectList[Program]]
     list.items
   }
 
   def getUpcomingList(startIndex: Int, count: OptionalCount[Int], showAll: Boolean): List[Program] = {
-    val response = conn.request(buildPath("GetUpcomingList"))
+    var params = buildStartCountParams(startIndex, count)
+    if (showAll) params += "ShowAll" -> showAll
+    val response = conn.request(buildPath("GetUpcomingList", params))
     val root = response.json.asJsObject.fields("ProgramList")
     val list = root.convertTo[MythJsonPagedObjectList[Program]]
     list.items
@@ -117,8 +122,8 @@ class JsonDvrService(conn: BackendJSONConnection)
   }
 
   def getRecordScheduleList(startIndex: Int, count: OptionalCount[Int]): List[RecordRule] = {
-    // TODO support parameters
-    val response = conn.request(buildPath("GetRecordScheduleList"))
+    val params = buildStartCountParams(startIndex, count)
+    val response = conn.request(buildPath("GetRecordScheduleList", params))
     val root = response.json.asJsObject.fields("RecRuleList")
     val list = root.convertTo[MythJsonPagedObjectList[RecordRule]]
     list.items
@@ -158,8 +163,15 @@ class JsonGuideService(conn: BackendJSONConnection)
     numChannels: OptionalCount[Int],
     details: Boolean
   ): Guide[Channel, Program] = {
-    // TODO support parameters
-    val params: Map[String, Any] = Map("StartTime" -> startTime.toIsoFormat, "EndTime" -> endTime.toIsoFormat)
+    // TODO there seems to be an off-by-one error on my 0.27 backend implementation of NumChannels
+    //      NumChannels=1 returns 1 channels, NumChannels={n|n>1} returns n-1 channels
+    var params: Map[String, Any] = Map("StartTime" -> startTime.toIsoFormat, "EndTime" -> endTime.toIsoFormat)
+    if (startChanId.id != 0) params += "StartChanId" -> startChanId.id
+    if (details) params += "Details" -> details
+    numChannels match {
+      case OptionalCountSome(n) => params += "NumChannels" -> n
+      case _ => ()
+    }
     val response = conn.request(buildPath("GetProgramGuide", params))
     val root = response.json.asJsObject.fields("ProgramGuide")
     root.convertTo[Guide[Channel, Program]]
