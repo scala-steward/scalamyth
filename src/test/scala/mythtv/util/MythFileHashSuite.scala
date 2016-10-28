@@ -5,11 +5,11 @@ import org.scalatest.FunSuite
 
 class MythFileHashSuite extends FunSuite {
   test("Hash of empty buffer equals 'NULL'") {
-    assert(MythFileHash(new Array[Byte](0)) === "NULL")
+    assert(MythFileHash(new Array[Byte](0)).hash === "NULL")
   }
 
   test("Hash of zero'd array of size 1 equals '1'") {
-    assert(MythFileHash(new Array[Byte](1)) === "1")
+    assert(MythFileHash(new Array[Byte](1)).hash === "1")
   }
 }
 
