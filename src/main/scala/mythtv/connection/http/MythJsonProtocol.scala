@@ -331,7 +331,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
 
             def findId                  = ???
             def hostname                = obj.stringField("HostName")
-            def sourceId                = ???
+            def sourceId                = ListingSourceId(channel.intFieldOrElse("SourceId", 0))
             def cardId                  = CaptureCardId(rec.intField("EncoderId"))
             def inputId                 = InputId(channel.intFieldOrElse("InputId", 0))
             def recPriority             = rec.intField("Priority")
@@ -386,7 +386,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
 
             def findId                  = ???
             def hostname                = obj.stringField("HostName")
-            def sourceId                = ???
+            def sourceId                = ListingSourceId(channel.intFieldOrElse("SourceId", 0))
             def cardId                  = CaptureCardId(rec.intField("EncoderId"))
             def inputId                 = InputId(channel.intFieldOrElse("InputId", 0))
             def recPriority             = rec.intField("Priority")
@@ -411,7 +411,6 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         }
         // Recordable/Recording fields missing
         // findId
-        // sourceId
         // recpriority2
         // parentId
         // outputFilters
