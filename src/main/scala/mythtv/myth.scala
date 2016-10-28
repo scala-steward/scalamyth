@@ -69,9 +69,3 @@ trait FrontendOperations {
   def key: PartialFunction[MythFrontend.KeyName, Boolean]
   def jump: PartialFunction[MythFrontend.JumpPoint, Boolean]
 }
-
-trait BackendServiceOperations {
-  def hosts: List[String]
-  def keys: List[String]
-  def setting(key: String, hostname: Option[String] = None, default: Option[String] = None)
-}
