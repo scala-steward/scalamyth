@@ -219,7 +219,10 @@ private trait BackendAPILike {
     (result map { case it: ExpectedCountIterator[_] => it.asInstanceOf[ExpectedCountIterator[Recording]] }).get
   }
 
-  def queryGetConflicting: Iterable[Recording] = ??? // TODO expected count iterator?
+  def queryGetConflicting(rec: Recording): ExpectedCountIterator[Recording] = {
+    val result = sendCommand("QUERY_GETCONFLICTING", rec)
+    (result map { case it: ExpectedCountIterator[_] => it.asInstanceOf[ExpectedCountIterator[Recording]] }).get
+  }
 
   def queryGetExpiring: ExpectedCountIterator[Recording] = {
     val result = sendCommand("QUERY_GETEXPIRING")

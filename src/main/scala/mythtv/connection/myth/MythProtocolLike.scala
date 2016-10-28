@@ -659,10 +659,10 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     /*
      * QUERY_GETCONFLICTING [] [%p]     [<ProgramInfo>]
      *  @responds always
-     *  @returns ? [%p {, %p}]  <list of ProgramInfo>  // TODO does this begin with a count?
+     *  @returns %d [%p {, %p}]  <expectedCount> <list of ProgramInfo>
      *        or "0" if not availble/error?
      */
-    "QUERY_GETCONFLICTING" -> ((serializeProgramInfo, handleNOP)),
+    "QUERY_GETCONFLICTING" -> ((serializeProgramInfo, handleQueryGetConflicting)),
 
     /*
      * QUERY_GETEXPIRING
@@ -1800,6 +1800,17 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleQueryGetAllScheduled(request: BackendRequest, response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
+    val recs = response.split
+    val expectedCount = deserialize[Int](recs(0))
+    if (expectedCount == 0) None
+    else {
+      val fieldCount = BackendProgram.FIELD_ORDER.length
+      val it = recs.iterator drop 1 grouped fieldCount withPartial false
+      Some(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
+    }
+  }
+
+  protected def handleQueryGetConflicting(request: BackendRequest, response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
     val recs = response.split
     val expectedCount = deserialize[Int](recs(0))
     if (expectedCount == 0) None

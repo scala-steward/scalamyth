@@ -57,7 +57,7 @@ trait MythProtocolAPI {
   // TODO more GenPixmap methods, with improved type safety
   def queryGetAllPending: ExpectedCountIterator[Recording]
   def queryGetAllScheduled: ExpectedCountIterator[Recording]
-  def queryGetConflicting: Iterable[Recording]  // TODO expected count iterator?
+  def queryGetConflicting(rec: Recording): ExpectedCountIterator[Recording]  // TODO should parameter really be a Recordable?
   def queryGetExpiring: ExpectedCountIterator[Recording]
   def queryGuideDataThrough: MythDateTime
   def queryHostname: String
