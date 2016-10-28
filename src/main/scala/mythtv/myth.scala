@@ -46,9 +46,9 @@ trait BackendOperations {
 
   // These are MythXML methods in the Python bindings ...
 /*
-  def programGuide(startTime: LocalDateTime, endTime: LocalDateTime, startChannelId: Int, numChannels: Option[Int]): Guide
-  def programDetails(chanId: Int, startTime: LocalDateTime)
-  def previewImage(chanId: Int, startTime: LocalDateTime, width: Option[Int], height: Option[Int], secsIn: Option[Int]): Array[Byte]
+  def programGuide(startTime: MythDateTime, endTime: MythDateTime, startChanId: ChanId, numChannels: Option[Int]): Guide[Channel, Program]
+  def programDetails(chanId: ChanId, startTime: MythDateTime)
+  def previewImage(chanId: ChanId, startTime: MythDateTime, width: Option[Int], height: Option[Int], secsIn: Option[Int]): Array[Byte]
  */
 
   // These are MythDB methods in the Python bindings ...
