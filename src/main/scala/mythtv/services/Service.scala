@@ -2,7 +2,7 @@ package mythtv
 package services
 
 import model._
-import util.{ OptionalCount, MythDateTime, MythFileHash }
+import util.MythDateTime
 
 trait Service {
   def serviceName: String

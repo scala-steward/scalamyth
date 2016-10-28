@@ -2,7 +2,7 @@ package mythtv
 package connection
 package myth
 
-import java.time.{ Duration }
+import java.time.Duration
 
 import model._
 import model.EnumTypes._

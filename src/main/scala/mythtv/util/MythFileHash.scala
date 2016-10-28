@@ -2,7 +2,7 @@ package mythtv
 package util
 
 import java.nio.{ ByteOrder, ByteBuffer }
-import java.nio.file.{ Files, Path, Paths, StandardOpenOption }
+import java.nio.file.{ Files, Path, StandardOpenOption }
 
 class MythFileHash(val hash: String) extends AnyVal {
   def verify(data: Array[Byte]): Boolean = this == MythFileHash(data)
@@ -11,9 +11,9 @@ class MythFileHash(val hash: String) extends AnyVal {
 }
 
 object MythFileHash {
-  private final var ChunkSize = 65536
-  private final var LongSize = java.lang.Long.SIZE / 8
-  private final var NumChunks = ChunkSize / LongSize
+  private final val ChunkSize = 65536
+  private final val LongSize = java.lang.Long.SIZE / 8
+  private final val NumChunks = ChunkSize / LongSize
 
   private def chunk(bb: ByteBuffer, initHash: Long): Long = {
     val buf = bb.asLongBuffer
