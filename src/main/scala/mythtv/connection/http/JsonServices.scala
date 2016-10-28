@@ -5,19 +5,36 @@ package http
 import spray.json.DefaultJsonProtocol
 
 import model._
-import services.{ CaptureService, ChannelService, ContentService, DvrService, GuideService, MythService, VideoService }
+import services.{ Service, CaptureService, ChannelService, ContentService, DvrService,
+  GuideService, MythService, VideoService }
 import util.{ MythDateTime, OptionalCount, OptionalCountSome, MythFileHash }
 
 import services.DataBytes // FIXME temporary placeholder
 
-class JsonCaptureService(conn: BackendJSONConnection)
+abstract class JsonService(conn: BackendJSONConnection)
   extends BackendServiceProtocol
-     with MythJsonProtocol
+     with MythJsonProtocol {
+
+  self: Service =>
+
+  def request(endpoint: String, params: Map[String, Any] = Map.empty): JSONResponse =
+    conn.request(buildPath(endpoint, params))
+
+  def responseRoot(response: JSONResponse) =
+    response.json.asJsObject
+
+  def responseRoot(response: JSONResponse, fieldName: String) =
+    response.json.asJsObject.fields(fieldName)
+}
+
+
+class JsonCaptureService(conn: BackendJSONConnection)
+  extends JsonService(conn)
      with CaptureService {
   def getCaptureCard(cardId: CaptureCardId): CaptureCard = {
     val params: Map[String, Any] = Map("CardId" -> cardId.id)
-    val response = conn.request(buildPath("GetCaptureCard", params))
-    val root = response.json.asJsObject.fields("CaptureCard")
+    val response = request("GetCaptureCard", params)
+    val root = responseRoot(response, "CaptureCard")
     root.convertTo[CaptureCard]
   }
 
@@ -25,93 +42,91 @@ class JsonCaptureService(conn: BackendJSONConnection)
     var params: Map[String, Any] = Map.empty
     if (hostName.nonEmpty) params += "HostName" -> hostName
     if (cardType.nonEmpty) params += "CardType" -> cardType
-    val response = conn.request(buildPath("GetCaptureCardList", params))
-    val root = response.json.asJsObject.fields("CaptureCardList")
+    val response = request("GetCaptureCardList", params)
+    val root = responseRoot(response, "CaptureCardList")
     root.convertTo[List[CaptureCard]]
   }
 }
 
 class JsonChannelService(conn: BackendJSONConnection)
-  extends BackendServiceProtocol
-     with MythJsonProtocol
+  extends JsonService(conn)
      with ChannelService {
   def getChannelInfo(chanId: ChanId): Channel = {
     val params: Map[String, Any] = Map("ChanID" -> chanId.id)
-    val response = conn.request(buildPath("GetChannelInfo", params))
-    val root = response.json.asJsObject.fields("ChannelInfo")
+    val response = request("GetChannelInfo", params)
+    val root = responseRoot(response, "ChannelInfo")
     root.convertTo[ChannelDetails]
   }
 
   def getChannelInfoList: List[Channel] = {
-    val response = conn.request(buildPath("GetChannelInfoList"))
-    val root = response.json.asJsObject.fields("ChannelInfoList")
+    val response = request("GetChannelInfoList")
+    val root = responseRoot(response, "ChannelInfoList")
     val list = root.convertTo[MythJsonPagedObjectList[ChannelDetails]]
     list.items
   }
 
   def getVideoSource(sourceId: ListingSourceId): ListingSource = {
     val params: Map[String, Any] = Map("SourceID" -> sourceId.id)
-    val response = conn.request(buildPath("GetVideoSource", params))
-    val root = response.json.asJsObject.fields("VideoSource")
+    val response = request("GetVideoSource", params)
+    val root = responseRoot(response, "VideoSource")
     root.convertTo[ListingSource]
   }
 
   def getVideoSourceList: List[ListingSource] = {
-    val response = conn.request(buildPath("GetVideoSourceList"))
-    val root = response.json.asJsObject.fields("VideoSourceList")
+    val response = request("GetVideoSourceList")
+    val root = responseRoot(response, "VideoSourceList")
     val list = root.convertTo[MythJsonObjectList[ListingSource]]
     list.items
   }
 
   def getVideoMultiplex(mplexId: Int): VideoMultiplex = {
     val params: Map[String, Any] = Map("MplexID" -> mplexId)
-    val response = conn.request(buildPath("GetVideoMultiplex", params))
-    val root = response.json.asJsObject.fields("VideoMultiplex")
+    val response = request("GetVideoMultiplex", params)
+    val root = responseRoot(response, "VideoMultiplex")
     root.convertTo[VideoMultiplex]
   }
 
   def getVideoMultiplexList(sourceId: ListingSourceId, startIndex: Int, count: OptionalCount[Int]
   ): List[VideoMultiplex] = {
     val params = buildStartCountParams(startIndex, count) + ("SourceID" -> sourceId.id)
-    val response = conn.request(buildPath("GetVideoMultiplexList", params))
-    val root = response.json.asJsObject.fields("VideoMultiplexList")
+    val response = request("GetVideoMultiplexList", params)
+    val root = responseRoot(response, "VideoMultiplexList")
     val list = root.convertTo[MythJsonPagedObjectList[VideoMultiplex]]
     list.items
   }
 
   def getXmltvIdList(sourceId: ListingSourceId): List[String] = {
     val params: Map[String, Any] = Map("SourceID" -> sourceId.id)
-    val response = conn.request(buildPath("GetXMLTVIdList", params))
-    val root = response.json.asJsObject
+    val response = request("GetXMLTVIdList", params)
+    val root = responseRoot(response)
     root.convertTo[List[String]]
   }
 }
 
 class JsonDvrService(conn: BackendJSONConnection)
-  extends BackendServiceProtocol
-     with MythJsonProtocol
+  extends JsonService(conn)
      with DvrService {
   // TODO catch when we get bogus data back and don't return an object?
   def getRecorded(chanId: ChanId, startTime: MythDateTime): Program = {
     val params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
-    val response = conn.request(buildPath("GetRecorded", params))
-    val root = response.json.asJsObject.fields("Program")
+    val response = request("GetRecorded", params)
+    val root = responseRoot(response, "Program")
     root.convertTo[Program]
   }
 
   def getRecordedList(startIndex: Int, count: OptionalCount[Int], descending: Boolean): List[Program] = {
     var params = buildStartCountParams(startIndex, count)
     if (descending) params += "Descending" -> descending
-    val response = conn.request(buildPath("GetRecordedList", params))
-    val root = response.json.asJsObject.fields("ProgramList")
+    val response = request("GetRecordedList", params)
+    val root = responseRoot(response, "ProgramList")
     val list = root.convertTo[MythJsonPagedObjectList[Program]]
     list.items
   }
 
   def getExpiringList(startIndex: Int, count: OptionalCount[Int]): List[Program] = {
     val params = buildStartCountParams(startIndex, count)
-    val response = conn.request(buildPath("GetExpiringList", params))
-    val root = response.json.asJsObject.fields("ProgramList")
+    val response = request("GetExpiringList", params)
+    val root = responseRoot(response, "ProgramList")
     val list = root.convertTo[MythJsonPagedObjectList[Program]]
     list.items
   }
@@ -119,8 +134,8 @@ class JsonDvrService(conn: BackendJSONConnection)
   def getUpcomingList(startIndex: Int, count: OptionalCount[Int], showAll: Boolean): List[Program] = {
     var params = buildStartCountParams(startIndex, count)
     if (showAll) params += "ShowAll" -> showAll
-    val response = conn.request(buildPath("GetUpcomingList", params))
-    val root = response.json.asJsObject.fields("ProgramList")
+    val response = request("GetUpcomingList", params)
+    val root = responseRoot(response, "ProgramList")
     val list = root.convertTo[MythJsonPagedObjectList[Program]]
     list.items
   }
@@ -128,35 +143,35 @@ class JsonDvrService(conn: BackendJSONConnection)
   def getConflictList(startIndex: Int, count: OptionalCount[Int]): List[Program] = ???
 
   def getEncoderList: List[RemoteEncoderState] = {
-    val response = conn.request(buildPath("GetEncoderList"))
-    val root = response.json.asJsObject.fields("EncoderList")
+    val response = request("GetEncoderList")
+    val root = responseRoot(response, "EncoderList")
     root.convertTo[List[RemoteEncoderState]]
   }
 
   def getRecordScheduleList(startIndex: Int, count: OptionalCount[Int]): List[RecordRule] = {
     val params = buildStartCountParams(startIndex, count)
-    val response = conn.request(buildPath("GetRecordScheduleList", params))
-    val root = response.json.asJsObject.fields("RecRuleList")
+    val response = request("GetRecordScheduleList", params)
+    val root = responseRoot(response, "RecRuleList")
     val list = root.convertTo[MythJsonPagedObjectList[RecordRule]]
     list.items
   }
 
   def getRecordSchedule(recordId: RecordRuleId): RecordRule = {
     val params: Map[String, Any] = Map("RecordId" -> recordId.id)
-    val response = conn.request(buildPath("GetRecordSchedule", params))
-    val root = response.json.asJsObject.fields("RecRule")
+    val response = request("GetRecordSchedule", params)
+    val root = responseRoot(response, "RecRule")
     root.convertTo[RecordRule]
   }
 
   def getRecGroupList: List[String] = {
-    val response = conn.request(buildPath("GetRecGroupList"))
-    val root = response.json.asJsObject
+    val response = request("GetRecGroupList")
+    val root = responseRoot(response)
     root.convertTo[List[String]]
   }
 
   def getTitleList: List[String] = {
-    val response = conn.request(buildPath("GetTitleList"))
-    val root = response.json.asJsObject
+    val response = request("GetTitleList")
+    val root = responseRoot(response)
     root.convertTo[List[String]]
   }
 
@@ -165,8 +180,7 @@ class JsonDvrService(conn: BackendJSONConnection)
 }
 
 class JsonGuideService(conn: BackendJSONConnection)
-  extends BackendServiceProtocol
-     with MythJsonProtocol
+  extends JsonService(conn)
      with GuideService {
   def getProgramGuide(
     startTime: MythDateTime,
@@ -184,8 +198,8 @@ class JsonGuideService(conn: BackendJSONConnection)
       case OptionalCountSome(n) => params += "NumChannels" -> n
       case _ => ()
     }
-    val response = conn.request(buildPath("GetProgramGuide", params))
-    val root = response.json.asJsObject.fields("ProgramGuide")
+    val response = request("GetProgramGuide", params)
+    val root = responseRoot(response, "ProgramGuide")
     root.convertTo[Guide[Channel, Program]]
   }
 
@@ -198,8 +212,8 @@ class JsonGuideService(conn: BackendJSONConnection)
    */
   def getProgramDetails(chanId: ChanId, startTime: MythDateTime): Program = {
     val params: Map[String, Any] = Map("StartTime" -> startTime.toIsoFormat, "ChanId" -> chanId.id)
-    val response = conn.request(buildPath("GetProgramDetails", params))
-    val root = response.json.asJsObject.fields("Program")
+    val response = request("GetProgramDetails", params)
+    val root = responseRoot(response, "Program")
     root.convertTo[Program]
   }
 
@@ -207,53 +221,51 @@ class JsonGuideService(conn: BackendJSONConnection)
 }
 
 class JsonMythService(conn: BackendJSONConnection)
-  extends BackendServiceProtocol
-     with MythJsonProtocol
+  extends JsonService(conn)
      with MythService {
   def getHostName: String = {
     import DefaultJsonProtocol.StringJsonFormat
-    val response = conn.request(buildPath("GetHostName"))
-    val root = response.json.asJsObject.fields("String")
+    val response = request("GetHostName")
+    val root = responseRoot(response, "String")
     root.convertTo[String]
   }
 
   def getHosts: List[String] = {
-    val response = conn.request(buildPath("GetHosts"))
-    val root = response.json.asJsObject
+    val response = request("GetHosts")
+    val root = responseRoot(response)
     root.convertTo[List[String]]
   }
 
   def getKeys: List[String] = {
-    val response = conn.request(buildPath("GetKeys"))
-    val root = response.json.asJsObject
+    val response = request("GetKeys")
+    val root = responseRoot(response)
     root.convertTo[List[String]]
   }
 
   def getSetting(hostName: String, key: String): Settings = {
     var params: Map[String, Any] = Map("HostName" -> hostName)
     if (key.nonEmpty) params += "Key" -> key
-    val response = conn.request(buildPath("GetSetting", params))
-    val root = response.json.asJsObject.fields("SettingList")
+    val response = request("GetSetting", params)
+    val root = responseRoot(response, "SettingList")
     root.convertTo[Settings]
   }
 
   def getStorageGroupDirs(hostName: String, groupName: String): List[StorageGroupDir] = ???
 
   def getTimeZone: TimeZoneInfo = {
-    val response = conn.request(buildPath("GetTimeZone"))
-    val root = response.json.asJsObject.fields("TimeZoneInfo")
+    val response = request("GetTimeZone")
+    val root = responseRoot(response, "TimeZoneInfo")
     root.convertTo[TimeZoneInfo]
   }
 }
 
 class JsonContentService(conn: BackendJSONConnection)
-  extends BackendServiceProtocol
-     with MythJsonProtocol
+  extends JsonService(conn)
      with ContentService {
   def getFileList(storageGroup: String): List[String] = {
     val params: Map[String, Any] = Map("StorageGroup" -> storageGroup)
-    val response = conn.request(buildPath("GetFileList", params))
-    val root = response.json.asJsObject
+    val response = request("GetFileList", params)
+    val root = responseRoot(response)
     root.convertTo[List[String]]
   }
 
@@ -261,8 +273,8 @@ class JsonContentService(conn: BackendJSONConnection)
   def getHash(storageGroup: String, fileName: String): MythFileHash = {
     import DefaultJsonProtocol.StringJsonFormat
     val params: Map[String, Any] = Map("StorageGroup" -> storageGroup, "FileName" -> fileName)
-    val response = conn.request(buildPath("GetHash", params))
-    val root = response.json.asJsObject.fields("String")
+    val response = request("GetHash", params)
+    val root = responseRoot(response, "String")
     new MythFileHash(root.convertTo[String])
   }
 
@@ -278,28 +290,27 @@ class JsonContentService(conn: BackendJSONConnection)
 }
 
 class JsonVideoService(conn: BackendJSONConnection)
-  extends BackendServiceProtocol
-     with MythJsonProtocol
+  extends JsonService(conn)
      with VideoService {
   def getVideo(videoId: VideoId): Video = {
     val params: Map[String, Any] = Map("Id" -> videoId.id)
-    val response = conn.request(buildPath("GetVideo", params))
-    val root = response.json.asJsObject.fields("VideoMetadataInfo")
+    val response = request("GetVideo", params)
+    val root = responseRoot(response, "VideoMetadataInfo")
     root.convertTo[Video]
   }
 
   def getVideoByFileName(fileName: String): Video = {
     val params: Map[String, Any] = Map("FileName" -> fileName)
-    val response = conn.request(buildPath("GetVideoByFileName", params))
-    val root = response.json.asJsObject.fields("VideoMetadataInfo")
+    val response = request("GetVideoByFileName", params)
+    val root = responseRoot(response, "VideoMetadataInfo")
     root.convertTo[Video]
   }
 
   def getVideoList(startIndex: Int, count: OptionalCount[Int], descending: Boolean): List[Video] = {
     var params = buildStartCountParams(startIndex, count)
     if (descending) params += "Descending" -> descending
-    val response = conn.request(buildPath("GetVideoList", params))
-    val root = response.json.asJsObject.fields("VideoMetadataInfoList")
+    val response = request("GetVideoList", params)
+    val root = responseRoot(response, "VideoMetadataInfoList")
     val list = root.convertTo[MythJsonPagedObjectList[Video]]
     list.items
   }
