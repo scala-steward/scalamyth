@@ -9,7 +9,7 @@ import spray.json.{ JsObject, JsString }
 
 import util.MythDateTime
 
-trait RichJsonObject extends Any {
+private trait RichJsonObject extends Any {
   def stringField(fieldName: String): String
   def stringFieldOption(fieldName: String): Option[String]
   def stringFieldOption(fieldName: String, default: String): Option[String]
@@ -52,7 +52,7 @@ trait RichJsonObject extends Any {
 
 // TODO the NoSuchElementException message is misleading,
 //      because it is parent object that does not exist
-object EmptyJsonObject extends RichJsonObject {
+private object EmptyJsonObject extends RichJsonObject {
   def stringField(fieldName: String) = throw new NoSuchElementException(fieldName)
   def stringFieldOption(fieldName: String) = None
   def stringFieldOption(fieldName: String, default: String): Option[String] = None
@@ -93,7 +93,7 @@ object EmptyJsonObject extends RichJsonObject {
   def timeFieldOrElse(fieldName: String, default: => LocalTime) = default
 }
 
-object RichJsonObject {
+private object RichJsonObject {
   implicit class MythJsonObject(val jsObj: JsObject) extends AnyVal with RichJsonObject {
 
     // Three choices for failure handling:

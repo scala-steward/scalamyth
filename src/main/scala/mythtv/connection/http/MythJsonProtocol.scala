@@ -17,14 +17,15 @@ import model._
 /* ----------------------------------------------------------------- */
 
 // TODO Pull out all but `items` into a separate trait and share with guide result?
-trait MythJsonObjectList[+T] {
+private[http] trait MythJsonObjectList[+T] {
   def items: List[T]
   def asOf: MythDateTime
   def mythVersion: String
   def mythProtocolVersion: String
 }
 
-abstract class MythJsonPagedObjectList[+T] extends PagedList[T] with MythJsonObjectList[T] {
+private[http] abstract class MythJsonPagedObjectList[+T]
+  extends PagedList[T] with MythJsonObjectList[T] {
   def count: Int
   def totalAvailable: Int
   def startIndex: Int
@@ -32,11 +33,11 @@ abstract class MythJsonPagedObjectList[+T] extends PagedList[T] with MythJsonObj
 
 /* ----------------------------------------------------------------- */
 
-trait MythJsonObjectFormat[T] extends RootJsonFormat[T] {
+private[http] trait MythJsonObjectFormat[T] extends RootJsonFormat[T] {
   def objectFieldName: String
 }
 
-trait BaseMythJsonListFormat[T] {
+private[http] trait BaseMythJsonListFormat[T] {
   def listFieldName: String
 
   def convertElement(value: JsValue): T
@@ -53,7 +54,7 @@ trait BaseMythJsonListFormat[T] {
   }
 }
 
-trait MythJsonListFormat[T] extends BaseMythJsonListFormat[T] with MythJsonObjectFormat[List[T]] {
+private[http] trait MythJsonListFormat[T] extends BaseMythJsonListFormat[T] with MythJsonObjectFormat[List[T]] {
   def write(obj: List[T]): JsValue = ???
 
   def read(value: JsValue): List[T] = {
@@ -62,7 +63,7 @@ trait MythJsonListFormat[T] extends BaseMythJsonListFormat[T] with MythJsonObjec
   }
 }
 
-trait MythJsonObjectListFormat[T]
+private[http] trait MythJsonObjectListFormat[T]
   extends BaseMythJsonListFormat[T]
      with MythJsonObjectFormat[MythJsonObjectList[T]] {
   import RichJsonObject._
@@ -102,7 +103,7 @@ trait MythJsonObjectListFormat[T]
  * Exceptions include:
  *    StringList, StorageGroupDirList, ...
  */
-trait MythJsonPagedObjectListFormat[T]
+private[http] trait MythJsonPagedObjectListFormat[T]
   extends BaseMythJsonListFormat[T]
      with MythJsonObjectFormat[MythJsonPagedObjectList[T]] {
   import RichJsonObject._
@@ -126,7 +127,7 @@ trait MythJsonPagedObjectListFormat[T]
 }
 
 // TODO FIXME ineffecient, maps rebuilt on each operation
-trait EnumDescriptionFormat[T] extends JsonFormat[T] {
+private[http] trait EnumDescriptionFormat[T] extends JsonFormat[T] {
   def id2Description: Map[T, String]
   def description2Id: Map[String, T] = id2Description map (_.swap)
   def write(p: T): JsValue = JsString(id2Description(p))
@@ -137,7 +138,7 @@ trait EnumDescriptionFormat[T] extends JsonFormat[T] {
 }
 
 /* Inheriting from DefaultJsonProtocol can cause huge bytecode bloat */
-trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
+private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
 
   // NB StringList can be converted by obj.fields("StringList").convertTo[List[String]]
   // NB StorageGroupDirList has a single field StorageGroupDirs which is an array of StorageGroupDir items
@@ -148,7 +149,7 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
 
   import RichJsonObject._
 
-  val channelContext = new DynamicVariable[RichJsonObject](EmptyJsonObject)
+  private val channelContext = new DynamicVariable[RichJsonObject](EmptyJsonObject)
 
   implicit object RecSearchTypeJsonFormat extends EnumDescriptionFormat[RecSearchType] {
     val id2Description: Map[RecSearchType, String] = Map(
@@ -910,5 +911,3 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
   }
 
 }
-
-object MythJsonProtocol extends MythJsonProtocol
