@@ -2,18 +2,21 @@ package mythtv
 package connection
 package http
 
+import java.net.URLEncoder
+
 import services.Service
 import util.{ OptionalCount, OptionalCountSome }
 
 trait MythServiceProtocol {
   self: Service =>
   def buildPath(endpoint: String, params: Map[String, Any] = Map.empty): String = {
-    val b = new StringBuilder("/") ++= serviceName += '/' ++= endpoint
+    val builder = new StringBuilder("/") ++= serviceName += '/' ++= endpoint
     if (params.nonEmpty) {
-      // TODO URL escaping
-      params.iterator.map { case (k, v) => k + "=" + v }.addString(b, "?", "&", "")
+      params.iterator.map {
+        case (k, v) => k + "=" + URLEncoder.encode(v.toString, "UTF-8")
+      }.addString(builder, "?", "&", "")
     }
-    b.toString
+    builder.toString
   }
 
   def buildStartCountParams(startIndex: Int, count: OptionalCount[Int]): Map[String, Any] = {
