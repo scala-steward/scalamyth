@@ -80,8 +80,8 @@ class JsonChannelService(conn: BackendJSONConnection)
     list.items
   }
 
-  def getVideoMultiplex(mplexId: Int): VideoMultiplex = {
-    val params: Map[String, Any] = Map("MplexID" -> mplexId)
+  def getVideoMultiplex(mplexId: MultiplexId): VideoMultiplex = {
+    val params: Map[String, Any] = Map("MplexID" -> mplexId.id)
     val response = request("GetVideoMultiplex", params)
     val root = responseRoot(response, "VideoMultiplex")
     root.convertTo[VideoMultiplex]

@@ -1458,11 +1458,11 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def serializeRescheduleRecordings(command: String, args: Seq[Any]): String = args match {
-    case Seq(sub @ "MATCH", recordId: RecordRuleId, sourceId: ListingSourceId, mplexId: Int, reason: String) =>
+    case Seq(sub @ "MATCH", recordId: RecordRuleId, sourceId: ListingSourceId, mplexId: MultiplexId, reason: String) =>
       val args = List(sub, serialize(recordId), serialize(sourceId), serialize(mplexId), "-", reason)
       val elems = List(command, args mkString " ")
       elems mkString BACKEND_SEP
-    case Seq(sub @ "MATCH", recordId: RecordRuleId, sourceId: ListingSourceId, mplexId: Int,
+    case Seq(sub @ "MATCH", recordId: RecordRuleId, sourceId: ListingSourceId, mplexId: MultiplexId,
       maxStartTime: MythDateTime, reason: String) =>
       val args = List(sub, serialize(recordId), serialize(sourceId), serialize(mplexId), maxStartTime.toIsoFormat, reason)
       val elems = List(command, args mkString " ")
@@ -1477,8 +1477,8 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       val elems = List(command, args mkString " ")
       elems mkString BACKEND_SEP
     case _ => throwArgumentExceptionMultipleSig(command, """
-      | "MATCH", recordId: RecordRuleId, sourceId: ListingSourceId, mplexId: Int, reason: String
-      | "MATCH", recordId: RecordRuleId, sourceId: ListingSourceId, mplexId: Int, maxStartTime: MythDateTime, reason: String
+      | "MATCH", recordId: RecordRuleId, sourceId: ListingSourceId, mplexId: MultiplexId, reason: String
+      | "MATCH", recordId: RecordRuleId, sourceId: ListingSourceId, mplexId: MultiplexId, maxStartTime: MythDateTime, reason: String
       | "CHECK", recStatus: RecStatus, recordId: RecordRuleId, findId: Int, reason: String, title: String, subtitle: String, description: String, programId: String
       | "PLACE", reason: String""")
   }

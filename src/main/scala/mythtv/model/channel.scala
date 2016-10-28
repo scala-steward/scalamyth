@@ -40,7 +40,7 @@ trait Channel {
   def name: String
   def number: ChannelNumber
   def callsign: String
-  def sourceId: ListingSourceId  // TODO is this the right type? or do we need VideoSourceId?
+  def sourceId: ListingSourceId
 
   /*
   def xmltvId: String //TODO, expose this here? it is returned by QUERY_RECORDER/GET_CHANNEL_INFO in MythProtocol
@@ -67,7 +67,7 @@ trait ChannelDetails extends Channel {
   def visible: Boolean
   /* TODO does outputfilters field map anywhere? */
   def useOnAirGuide: Boolean  // TODO is this really nullable as database schema indicates?
-  def mplexId: Option[Int]    // TODO what is this?
+  def mplexId: Option[MultiplexId]
   def serviceId: Option[Int]  // TODO what is this?
   /* TODO does tmoffset map anywhere */
   def atscMajorChan: Option[Int]      // sometimes set to "0" even when data is avail (e.g. in return from GetRecorded...)
@@ -81,7 +81,6 @@ trait ChannelDetails extends Channel {
        some of this data may come from dtv_multiple or channelscan_dtv_multiplex table?
    */
 }
-
 
 final case class ListingSourceId(id: Int) extends AnyVal
 
@@ -98,9 +97,11 @@ trait ListingSource {
   def dvbNitId: Option[Int]
 }
 
+final case class MultiplexId(id: Int) extends AnyVal
+
 // from the dtv_multiplex table and the GetVideoMultiplex services command
 trait VideoMultiplex {
-  def mplexId: Int
+  def mplexId: MultiplexId
   def sourceId: ListingSourceId  // TODO can sourceId/transportId really be null?
   def transportId: Int
   def networkId: Option[Int]

@@ -523,7 +523,7 @@ private trait BackendAPILike {
     (result map { case r: Boolean => r }).get
   }
 
-  def rescheduleRecordingsMatch(recordId: RecordRuleId, sourceId: ListingSourceId, mplexId: Int,
+  def rescheduleRecordingsMatch(recordId: RecordRuleId, sourceId: ListingSourceId, mplexId: MultiplexId,
     maxStartTime: Option[MythDateTime], reason: String): Boolean = {
     val result =
       if (maxStartTime.isEmpty) sendCommand("RESCHEDULE_RECORDINGS", "MATCH", recordId, sourceId, mplexId, reason)

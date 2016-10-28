@@ -58,6 +58,6 @@ trait CardInput {
   def cardId: CaptureCardId
   def sourceId: ListingSourceId   // is this the right source Id?
   def name: String
-  def mplexId: Int
+  def mplexId: MultiplexId
   def liveTVorder: Int
 }

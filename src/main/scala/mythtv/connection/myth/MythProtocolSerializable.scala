@@ -74,6 +74,12 @@ object MythProtocolSerializable {
     override def serialize(in: ListingSourceId, builder: StringBuilder): StringBuilder = { builder.append(in.id); builder }
   }
 
+  implicit object MultiplexIdSerializer extends MythProtocolSerializable[MultiplexId] {
+    def deserialize(in: String): MultiplexId = MultiplexId(in.toInt)
+    def serialize(in: MultiplexId): String = in.id.toString
+    override def serialize(in: MultiplexId, builder: StringBuilder): StringBuilder = { builder.append(in.id); builder }
+  }
+
   implicit object RecordRuleIdSerializer extends MythProtocolSerializable[RecordRuleId] {
     def deserialize(in: String): RecordRuleId = RecordRuleId(in.toInt)
     def serialize(in: RecordRuleId): String = in.id.toString

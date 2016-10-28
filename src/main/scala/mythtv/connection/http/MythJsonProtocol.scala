@@ -509,7 +509,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         def format           = obj.stringField("Format")
         def visible          = obj.booleanField("Visible")
         def useOnAirGuide    = obj.booleanField("UseEIT")
-        def mplexId          = obj.intFieldOption("MplexId", 0)
+        def mplexId          = obj.intFieldOption("MplexId", 0) map MultiplexId
         def serviceId        = obj.intFieldOption("ServiceId", 0)
         def atscMajorChan    = obj.intFieldOption("ATSCMajorChan", 0)
         def atscMinorChan    = obj.intFieldOption("ATSCMinorChan", 0)
@@ -876,7 +876,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
     def read(value: JsValue): VideoMultiplex = {
       val obj = value.asJsObject
       new VideoMultiplex {
-        def mplexId          = obj.intField("MplexId")
+        def mplexId          = MultiplexId(obj.intField("MplexId"))
         def sourceId         = ListingSourceId(obj.intField("SourceId"))
         def transportId      = obj.intField("TransportId")
         def networkId        = obj.intFieldOption("NetworkId", 0)

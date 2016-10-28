@@ -127,7 +127,7 @@ trait MythProtocolAPI {
   def rescheduleRecordingsCheck(recStatus: RecStatus = RecStatus.Unknown, recordId: RecordRuleId = RecordRuleId(0), findId: Int = 0,
     title: String = "", subtitle: String = "", description: String = "", programId: String = "", reason: String = "Scala"): Boolean
   def rescheduleRecordingsMatch(recordId: RecordRuleId = RecordRuleId(0), sourceId: ListingSourceId = ListingSourceId(0),
-    mplexId: Int = 0, maxStartTime: Option[MythDateTime] = None, reason: String = "Scala"): Boolean
+    mplexId: MultiplexId = MultiplexId(0), maxStartTime: Option[MythDateTime] = None, reason: String = "Scala"): Boolean
   def rescheduleRecordingsPlace(reason: String = "Scala"): Boolean
   def scanVideos: Boolean
   def setBookmark(chanId: ChanId, startTime: MythDateTime, pos: VideoPosition): Boolean
