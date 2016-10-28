@@ -2,14 +2,14 @@ package mythtv
 package connection
 package http
 
-import java.time.{ Instant, LocalTime, Year, ZoneOffset }
+import java.time.{ Duration, Instant, LocalTime, Year, ZoneOffset }
 
 import scala.util.DynamicVariable
 
 import spray.json.{ DefaultJsonProtocol, RootJsonFormat, JsonFormat, deserializationError }
 import spray.json.{ JsArray, JsObject, JsString, JsValue }
 
-import util.{ ByteCount, DecimalByteCount, MythDateTime }
+import util.{ ByteCount, DecimalByteCount, MythDateTime, MythFileHash }
 import model.EnumTypes._
 import model._
 
@@ -820,6 +820,50 @@ trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         def programs     = channelGuide
       }
     }
+  }
+
+  implicit object VideoJsonFormat extends MythJsonObjectFormat[Video] {
+    def objectFieldName = "VideoMetadataInfo"
+
+    def write(v: Video): JsValue = ???
+
+    def read(value: JsValue): Video = {
+      val obj = value.asJsObject
+      new Video {
+        def id              = VideoId(obj.intField("Id"))
+        def title           = obj.stringField("Title")
+        def subtitle        = obj.stringField("SubTitle")
+        def director        = obj.stringField("Director")
+        def year            = ???  // TODO no Year field, pluck from releasedate?
+        def tagline         = obj.stringFieldOption("Tagline", "")
+        def description     = obj.stringField("Description")
+        def inetRef         = obj.stringField("Inetref")
+        def homePage        = obj.stringFieldOption("HomePage", "")
+        def studio          = obj.stringFieldOption("Studio", "")
+        def season          = obj.intFieldOption("Season", 0)
+        def episode         = obj.intFieldOption("Episode", 0)
+        def length          = obj.intFieldOption("Length", 0) map (x => Duration.ofMinutes(x))
+        def playCount       = obj.intField("PlayCount")
+        def hash            = new MythFileHash(obj.stringField("Hash"))
+        def visible         = obj.booleanField("Visible")
+        def fileName        = obj.stringField("FileName")
+        def contentType     = obj.stringField("ContentType")
+        def hostName        = obj.stringField("HostName")
+        def addDate         = obj.dateTimeFieldOption("AddDate") map (_.toInstant)
+        def watched         = obj.booleanField("Watched")
+        def userRating      = obj.doubleField("UserRating")
+        def rating          = obj.stringField("Certification")
+        def collectionRef   = obj.intField("Collectionref")
+        // TODO release data may not always be in strict ISO format, see VideoId(12)
+        def releaseDate     = obj.dateTimeField("ReleaseDate").toLocalDateTime().toLocalDate
+      }
+    }
+  }
+
+  implicit object VideoListJsonFormat extends MythJsonPagedObjectListFormat[Video] {
+    def objectFieldName = "VideoMetadataInfoList"
+    def listFieldName = "VideoMetadataInfos"
+    def convertElement(value: JsValue): Video = value.convertTo[Video]
   }
 
   implicit object VideoMultiplexJsonFormat extends MythJsonObjectFormat[VideoMultiplex] {

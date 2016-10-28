@@ -5,7 +5,7 @@ package http
 import spray.json.DefaultJsonProtocol
 
 import model._
-import services.{ CaptureService, ChannelService, ContentService, DvrService, GuideService, MythService }
+import services.{ CaptureService, ChannelService, ContentService, DvrService, GuideService, MythService, VideoService }
 import util.{ MythDateTime, OptionalCount, OptionalCountSome, MythFileHash }
 
 import services.DataBytes // FIXME temporary placeholder
@@ -275,4 +275,32 @@ class JsonContentService(conn: BackendJSONConnection)
   def getPreviewImage(chanId: ChanId, startTime: MythDateTime): DataBytes = ???
   def getRecording(chanId: ChanId, startTime: MythDateTime): DataBytes = ???
   def getVideo(id: Int): DataBytes = ???
+}
+
+class JsonVideoService(conn: BackendJSONConnection)
+  extends BackendServiceProtocol
+     with MythJsonProtocol
+     with VideoService {
+  def getVideo(videoId: VideoId): Video = {
+    val params: Map[String, Any] = Map("Id" -> videoId.id)
+    val response = conn.request(buildPath("GetVideo", params))
+    val root = response.json.asJsObject.fields("VideoMetadataInfo")
+    root.convertTo[Video]
+  }
+
+  def getVideoByFileName(fileName: String): Video = {
+    val params: Map[String, Any] = Map("FileName" -> fileName)
+    val response = conn.request(buildPath("GetVideoByFileName", params))
+    val root = response.json.asJsObject.fields("VideoMetadataInfo")
+    root.convertTo[Video]
+  }
+
+  def getVideoList(startIndex: Int, count: OptionalCount[Int], descending: Boolean): List[Video] = {
+    var params = buildStartCountParams(startIndex, count)
+    if (descending) params += "Descending" -> descending
+    val response = conn.request(buildPath("GetVideoList", params))
+    val root = response.json.asJsObject.fields("VideoMetadataInfoList")
+    val list = root.convertTo[MythJsonPagedObjectList[Video]]
+    list.items
+  }
 }

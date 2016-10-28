@@ -4,7 +4,7 @@ package model
 import java.time.{ Duration, Instant, LocalDateTime, LocalDate, LocalTime, Year, ZoneOffset }
 
 import EnumTypes._
-import util.{ ByteCount, MythDateTime }
+import util.{ ByteCount, MythDateTime, MythFileHash }
 
 /* We define the Ordering objects in companion objects to the case classes
    because nested objects are currently prohibited inside value classes. */
@@ -385,13 +385,13 @@ trait Video {
   def tagline: Option[String]
   def description: String
   def inetRef: String
-  def homePage: String
+  def homePage: Option[String]
   def studio: Option[String]
-  def season: Int
-  def episode: Int
+  def season: Option[Int]
+  def episode: Option[Int]
   def length: Option[Duration]  // duration of video in minutes (may be zero == unknown)
   def playCount: Int
-  def hash: String
+  def hash: MythFileHash
   def visible: Boolean
   def fileName: String
   def contentType: String  // enum? MOVIE, TELEVISION, ADULT, MUSICVIDEO, HOMEVIDEO
@@ -403,6 +403,12 @@ trait Video {
   def collectionRef: Int
   def releaseDate: LocalDate
   // TODO various artworks   These are common to many elements, no?  What should a "HasArtwork" (or may have artwork, really...) trait be called?
+
+  def combinedTitle: String = combinedTitle(": ")
+  def combinedTitle(sep: String): String =
+    if (subtitle.nonEmpty) title + sep + subtitle
+    else title
+  override def toString: String = s"$id $combinedTitle"
 }
 
 trait RecordRule {    // TODO seems like this contains most of the elements of ProgramGuideEntry or Recordable or some such...
