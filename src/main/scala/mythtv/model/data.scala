@@ -408,7 +408,7 @@ trait Video {
   def combinedTitle(sep: String): String =
     if (subtitle.nonEmpty) title + sep + subtitle
     else title
-  override def toString: String = s"$id $combinedTitle"
+  override def toString: String = s"<Video $id $combinedTitle>"
 }
 
 trait RecordRule {    // TODO seems like this contains most of the elements of ProgramGuideEntry or Recordable or some such...
