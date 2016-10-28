@@ -31,7 +31,7 @@ trait ChannelService extends BackendService {
   def serviceName: String = "Channel"
 
   def getChannelInfo(chanId: ChanId): Channel
-  def getChannelInfoList: List[Channel]
+  def getChannelInfoList(sourceId: ListingSourceId): List[Channel]
 
   def getVideoSource(sourceId: ListingSourceId): ListingSource
   def getVideoSourceList: List[ListingSource]

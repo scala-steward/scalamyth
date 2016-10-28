@@ -58,8 +58,9 @@ class JsonChannelService(conn: BackendJSONConnection)
     root.convertTo[ChannelDetails]
   }
 
-  def getChannelInfoList: List[Channel] = {
-    val response = request("GetChannelInfoList")
+  def getChannelInfoList(sourceId: ListingSourceId): List[Channel] = {
+    val params: Map[String, Any] = Map("SourceID" -> sourceId.id)
+    val response = request("GetChannelInfoList", params)
     val root = responseRoot(response, "ChannelInfoList")
     val list = root.convertTo[MythJsonPagedObjectList[ChannelDetails]]
     list.items
