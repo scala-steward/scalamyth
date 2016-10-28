@@ -137,7 +137,12 @@ class JsonDvrService(conn: BackendJSONConnection)
     root.convertTo[MythJsonPagedObjectList[Program]]
   }
 
-  def getConflictList(startIndex: Int, count: OptionalCount[Int]): PagedList[Program] = ???
+  def getConflictList(startIndex: Int, count: OptionalCount[Int]): PagedList[Program] = {
+    var params = buildStartCountParams(startIndex, count)
+    val response = request("GetConflictList", params)
+    val root = responseRoot(response, "ProgramList")
+    root.convertTo[MythJsonPagedObjectList[Program]]
+  }
 
   def getEncoderList: List[RemoteEncoderState] = {
     val response = request("GetEncoderList")
