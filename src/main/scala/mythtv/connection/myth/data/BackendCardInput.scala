@@ -3,7 +3,7 @@ package connection
 package myth
 package data
 
-import model.{ CaptureCardId, CardInput, ListingSourceId, MultiplexId }
+import model.{ CaptureCardId, CardInput, InputId, ListingSourceId, MultiplexId }
 
 private[myth] class BackendCardInput(data: Seq[String], fieldOrder: IndexedSeq[String])
     extends GenericBackendObject(data, fieldOrder) with CardInput {
@@ -12,7 +12,7 @@ private[myth] class BackendCardInput(data: Seq[String], fieldOrder: IndexedSeq[S
 
   /* Convenience accessors with proper type */
 
-  lazy val cardInputId: Int = fields("cardInputId").toInt
+  lazy val cardInputId: InputId = InputId(fields("cardInputId").toInt)
   lazy val cardId: CaptureCardId = CaptureCardId(fields("cardId").toInt)
   lazy val sourceId: ListingSourceId = ListingSourceId(fields("sourceId").toInt)
   def name: String = fields("name")

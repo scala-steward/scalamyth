@@ -53,10 +53,12 @@ trait RemoteEncoderState extends RemoteEncoder {
   def currentRecording: Option[Recording]
 }
 
+final case class InputId(id: Int) extends AnyVal
+
 trait CardInput {
-  def cardInputId: Int
+  def cardInputId: InputId
   def cardId: CaptureCardId
-  def sourceId: ListingSourceId   // is this the right source Id?
+  def sourceId: ListingSourceId
   def name: String
   def mplexId: MultiplexId
   def liveTVorder: Int

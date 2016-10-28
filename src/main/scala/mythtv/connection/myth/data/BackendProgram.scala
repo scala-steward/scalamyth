@@ -43,7 +43,7 @@ private[myth] class BackendProgram(data: Seq[String], fieldOrder: IndexedSeq[Str
   def hostname: String = fields("hostname")
   lazy val sourceId: ListingSourceId = ListingSourceId(fields("sourceId").toInt)
   lazy val cardId: CaptureCardId = CaptureCardId(fields("cardId").toInt)
-  lazy val inputId: Int = fields("inputId").toInt
+  lazy val inputId: InputId = InputId(fields("inputId").toInt)
   lazy val recPriority: Int = fields("recPriority").toInt
   lazy val recStatus: RecStatus = RecStatus.applyOrUnknown(fields("recStatus").toInt)
   lazy val recordId: RecordRuleId = RecordRuleId(fields("recordId").toInt)

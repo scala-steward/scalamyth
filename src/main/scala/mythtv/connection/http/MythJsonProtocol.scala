@@ -333,7 +333,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
             def hostname                = obj.stringField("HostName")
             def sourceId                = ???
             def cardId                  = CaptureCardId(rec.intField("EncoderId"))
-            def inputId                 = ???
+            def inputId                 = InputId(channel.intFieldOrElse("InputId", 0))
             def recPriority             = rec.intField("Priority")
             def recStatus               = RecStatus.applyOrUnknown(rec.intField("Status"))
             def recordId                = RecordRuleId(rec.intField("RecordId"))
@@ -388,7 +388,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
             def hostname                = obj.stringField("HostName")
             def sourceId                = ???
             def cardId                  = CaptureCardId(rec.intField("EncoderId"))
-            def inputId                 = ???
+            def inputId                 = InputId(channel.intFieldOrElse("InputId", 0))
             def recPriority             = rec.intField("Priority")
             def recStatus               = RecStatus.applyOrUnknown(rec.intField("Status"))
             def recordId                = RecordRuleId(rec.intField("RecordId"))
@@ -412,7 +412,6 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         // Recordable/Recording fields missing
         // findId
         // sourceId
-        // inputId
         // recpriority2
         // parentId
         // outputFilters
@@ -620,7 +619,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         def parentId        = obj.intFieldOption("ParentId", 0) map RecordRuleId
         def transcoder      = obj.intFieldOption("Transcoder", 0)
         def playGroup       = obj.stringField("PlayGroup")
-        def preferredInput  = obj.intFieldOption("PreferredInput", 0)
+        def preferredInput  = obj.intFieldOption("PreferredInput", 0) map InputId
         def nextRecord      = obj.dateTimeFieldOption("NextRecording")
         def lastRecord      = obj.dateTimeFieldOption("LastRecorded")
         def lastDelete      = obj.dateTimeFieldOption("LastDeleted")

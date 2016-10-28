@@ -49,7 +49,7 @@ trait RecordRule {
   def parentId: Option[RecordRuleId]
   def transcoder: Option[Int]   // TODO what type is this? (ugh, see what I do here in mythjango...)
   def playGroup: String
-  def preferredInput: Option[Int]       // TODO what type is this? CardInputId from the cardinput table (NOT CaptureCardId)
+  def preferredInput: Option[InputId]
   def nextRecord: Option[MythDateTime]
   def lastRecord: Option[MythDateTime]
   def lastDelete: Option[MythDateTime]

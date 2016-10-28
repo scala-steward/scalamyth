@@ -61,7 +61,7 @@ trait Recordable extends Program {
   def hostname: String           // TODO why is this in Recordable vs Recording? Services API only has data here for recordings
   def sourceId: ListingSourceId
   def cardId: CaptureCardId
-  def inputId: Int
+  def inputId: InputId
   def recPriority: Int
   def recStatus: RecStatus
   def recordId: RecordRuleId
