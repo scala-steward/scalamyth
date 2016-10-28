@@ -10,20 +10,21 @@ import spray.json.{ DefaultJsonProtocol, RootJsonFormat, JsonFormat, deserializa
 import spray.json.{ JsArray, JsObject, JsString, JsValue }
 
 import util.{ ByteCount, DecimalByteCount, MythDateTime, MythFileHash }
+import services.PagedList
 import model.EnumTypes._
 import model._
 
 /* ----------------------------------------------------------------- */
 
 // TODO Pull out all but `items` into a separate trait and share with guide result?
-trait MythJsonObjectList[T] {
+trait MythJsonObjectList[+T] {
   def items: List[T]
   def asOf: MythDateTime
   def mythVersion: String
   def mythProtocolVersion: String
 }
 
-trait MythJsonPagedObjectList[T] extends MythJsonObjectList[T] {
+abstract class MythJsonPagedObjectList[+T] extends PagedList[T] with MythJsonObjectList[T] {
   def count: Int
   def totalAvailable: Int
   def startIndex: Int

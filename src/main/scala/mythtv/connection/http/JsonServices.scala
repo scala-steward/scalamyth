@@ -7,6 +7,7 @@ import spray.json.DefaultJsonProtocol
 import model._
 import services.{ Service, CaptureService, ChannelService, ContentService, DvrService,
   GuideService, MythService, VideoService }
+import services.PagedList
 import util.{ MythDateTime, OptionalCount, OptionalCountSome, MythFileHash }
 
 import services.DataBytes // FIXME temporary placeholder
@@ -58,12 +59,11 @@ class JsonChannelService(conn: BackendJSONConnection)
     root.convertTo[ChannelDetails]
   }
 
-  def getChannelInfoList(sourceId: ListingSourceId): List[Channel] = {
+  def getChannelInfoList(sourceId: ListingSourceId): PagedList[Channel] = {
     val params: Map[String, Any] = Map("SourceID" -> sourceId.id)
     val response = request("GetChannelInfoList", params)
     val root = responseRoot(response, "ChannelInfoList")
-    val list = root.convertTo[MythJsonPagedObjectList[ChannelDetails]]
-    list.items
+    root.convertTo[MythJsonPagedObjectList[ChannelDetails]]
   }
 
   def getVideoSource(sourceId: ListingSourceId): ListingSource = {
@@ -88,12 +88,11 @@ class JsonChannelService(conn: BackendJSONConnection)
   }
 
   def getVideoMultiplexList(sourceId: ListingSourceId, startIndex: Int, count: OptionalCount[Int]
-  ): List[VideoMultiplex] = {
+  ): PagedList[VideoMultiplex] = {
     val params = buildStartCountParams(startIndex, count) + ("SourceID" -> sourceId.id)
     val response = request("GetVideoMultiplexList", params)
     val root = responseRoot(response, "VideoMultiplexList")
-    val list = root.convertTo[MythJsonPagedObjectList[VideoMultiplex]]
-    list.items
+    root.convertTo[MythJsonPagedObjectList[VideoMultiplex]]
   }
 
   def getXmltvIdList(sourceId: ListingSourceId): List[String] = {
@@ -115,33 +114,30 @@ class JsonDvrService(conn: BackendJSONConnection)
     root.convertTo[Program]
   }
 
-  def getRecordedList(startIndex: Int, count: OptionalCount[Int], descending: Boolean): List[Program] = {
+  def getRecordedList(startIndex: Int, count: OptionalCount[Int], descending: Boolean): PagedList[Program] = {
     var params = buildStartCountParams(startIndex, count)
     if (descending) params += "Descending" -> descending
     val response = request("GetRecordedList", params)
     val root = responseRoot(response, "ProgramList")
-    val list = root.convertTo[MythJsonPagedObjectList[Program]]
-    list.items
+    root.convertTo[MythJsonPagedObjectList[Program]]
   }
 
-  def getExpiringList(startIndex: Int, count: OptionalCount[Int]): List[Program] = {
+  def getExpiringList(startIndex: Int, count: OptionalCount[Int]): PagedList[Program] = {
     val params = buildStartCountParams(startIndex, count)
     val response = request("GetExpiringList", params)
     val root = responseRoot(response, "ProgramList")
-    val list = root.convertTo[MythJsonPagedObjectList[Program]]
-    list.items
+    root.convertTo[MythJsonPagedObjectList[Program]]
   }
 
-  def getUpcomingList(startIndex: Int, count: OptionalCount[Int], showAll: Boolean): List[Program] = {
+  def getUpcomingList(startIndex: Int, count: OptionalCount[Int], showAll: Boolean): PagedList[Program] = {
     var params = buildStartCountParams(startIndex, count)
     if (showAll) params += "ShowAll" -> showAll
     val response = request("GetUpcomingList", params)
     val root = responseRoot(response, "ProgramList")
-    val list = root.convertTo[MythJsonPagedObjectList[Program]]
-    list.items
+    root.convertTo[MythJsonPagedObjectList[Program]]
   }
 
-  def getConflictList(startIndex: Int, count: OptionalCount[Int]): List[Program] = ???
+  def getConflictList(startIndex: Int, count: OptionalCount[Int]): PagedList[Program] = ???
 
   def getEncoderList: List[RemoteEncoderState] = {
     val response = request("GetEncoderList")
@@ -149,12 +145,11 @@ class JsonDvrService(conn: BackendJSONConnection)
     root.convertTo[List[RemoteEncoderState]]
   }
 
-  def getRecordScheduleList(startIndex: Int, count: OptionalCount[Int]): List[RecordRule] = {
+  def getRecordScheduleList(startIndex: Int, count: OptionalCount[Int]): PagedList[RecordRule] = {
     val params = buildStartCountParams(startIndex, count)
     val response = request("GetRecordScheduleList", params)
     val root = responseRoot(response, "RecRuleList")
-    val list = root.convertTo[MythJsonPagedObjectList[RecordRule]]
-    list.items
+    root.convertTo[MythJsonPagedObjectList[RecordRule]]
   }
 
   def getRecordSchedule(recordId: RecordRuleId): RecordRule = {
@@ -307,12 +302,11 @@ class JsonVideoService(conn: BackendJSONConnection)
     root.convertTo[Video]
   }
 
-  def getVideoList(startIndex: Int, count: OptionalCount[Int], descending: Boolean): List[Video] = {
+  def getVideoList(startIndex: Int, count: OptionalCount[Int], descending: Boolean): PagedList[Video] = {
     var params = buildStartCountParams(startIndex, count)
     if (descending) params += "Descending" -> descending
     val response = request("GetVideoList", params)
     val root = responseRoot(response, "VideoMetadataInfoList")
-    val list = root.convertTo[MythJsonPagedObjectList[Video]]
-    list.items
+    root.convertTo[MythJsonPagedObjectList[Video]]
   }
 }

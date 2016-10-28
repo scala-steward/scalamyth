@@ -31,7 +31,7 @@ trait ChannelService extends BackendService {
   def serviceName: String = "Channel"
 
   def getChannelInfo(chanId: ChanId): Channel
-  def getChannelInfoList(sourceId: ListingSourceId): List[Channel]
+  def getChannelInfoList(sourceId: ListingSourceId): PagedList[Channel]
 
   def getVideoSource(sourceId: ListingSourceId): ListingSource
   def getVideoSourceList: List[ListingSource]
@@ -41,7 +41,7 @@ trait ChannelService extends BackendService {
     sourceId: ListingSourceId,
     startIndex: Int = 0,
     count: OptionalCount[Int] = OptionalCount.all
-  ): List[VideoMultiplex]
+  ): PagedList[VideoMultiplex]
 
   def getXmltvIdList(sourceId: ListingSourceId): List[String]
 
@@ -82,30 +82,30 @@ trait DvrService extends BackendService {
     startIndex: Int = 0,
     count: OptionalCount[Int] = OptionalCount.all,
     descending: Boolean = false
-  ): List[Program]
+  ): PagedList[Program]
 
   def getExpiringList(
     startIndex: Int = 0,
     count: OptionalCount[Int] = OptionalCount.all
-  ): List[Program]
+  ): PagedList[Program]
 
   def getUpcomingList(
     startIndex: Int = 0,
     count: OptionalCount[Int] = OptionalCount.all,
     showAll: Boolean = false
-  ): List[Program]
+  ): PagedList[Program]
 
   def getConflictList(
     startIndex: Int = 0,
     count: OptionalCount[Int] = OptionalCount.all
-  ): List[Program]
+  ): PagedList[Program]
 
   def getEncoderList: List[RemoteEncoderState]
 
   def getRecordScheduleList(
     startIndex: Int = 0,
     count: OptionalCount[Int] = OptionalCount.all
-  ): List[RecordRule]
+  ): PagedList[RecordRule]
 
   def getRecordSchedule(recordId: RecordRuleId): RecordRule
 
@@ -125,7 +125,7 @@ trait VideoService extends BackendService {
     startIndex: Int = 0,
     count: OptionalCount[Int] = OptionalCount.all,
     descending: Boolean = false
-  ): List[Video]
+  ): PagedList[Video]
 }
 
 trait CaptureService extends BackendService {
