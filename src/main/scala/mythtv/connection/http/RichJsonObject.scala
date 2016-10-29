@@ -33,6 +33,7 @@ private trait RichJsonObject extends Any {
 
   def doubleField(fieldName: String): Double
   def doubleFieldOption(fieldName: String): Option[Double]
+  def doubleFieldOption(fieldName: String, default: Double): Option[Double]
   def doubleFieldOrElse(fieldName: String, default: => Double): Double
 
   def intField(fieldName: String): Int
@@ -76,6 +77,7 @@ private object EmptyJsonObject extends RichJsonObject {
 
   def doubleField(fieldName: String) = throw new NoSuchElementException(fieldName)
   def doubleFieldOption(fieldName: String) = None
+  def doubleFieldOption(fieldName: String, default: Double) = None
   def doubleFieldOrElse(fieldName: String, default: => Double) = default
 
   def intField(fieldName: String) = throw new NoSuchElementException(fieldName)
@@ -144,6 +146,10 @@ private object RichJsonObject {
     def doubleField(fieldName: String): Double = stringField(fieldName).toDouble
     def doubleFieldOption(fieldName: String): Option[Double] = stringFieldOption(fieldName) map (_.toDouble)
     def doubleFieldOrElse(fieldName: String, default: => Double): Double = doubleFieldOption(fieldName).getOrElse(default)
+    def doubleFieldOption(fieldName: String, default: Double): Option[Double] = doubleFieldOption(fieldName) match {
+      case Some(`default`) => None
+      case x => x
+    }
 
     def intField(fieldName: String): Int = stringField(fieldName).toInt
     def intFieldOption(fieldName: String): Option[Int] = stringFieldOption(fieldName) map (_.toInt)
