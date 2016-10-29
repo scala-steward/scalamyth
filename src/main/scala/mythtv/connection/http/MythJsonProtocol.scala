@@ -9,7 +9,7 @@ import scala.util.DynamicVariable
 import spray.json.{ DefaultJsonProtocol, RootJsonFormat, JsonFormat, deserializationError, jsonWriter }
 import spray.json.{ JsArray, JsObject, JsString, JsValue }
 
-import util.{ ByteCount, DecimalByteCount, MythDateTime, MythFileHash }
+import util.{ DecimalByteCount, MythDateTime, MythFileHash }
 import services.PagedList
 import model.EnumTypes._
 import model._
