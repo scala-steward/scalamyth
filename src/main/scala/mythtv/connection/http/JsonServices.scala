@@ -111,7 +111,11 @@ class JsonDvrService(conn: BackendJSONConnection)
      field for the same program in GetRecordedList seems to be correct. For an example, see the recording
      Martha Bakes: Bake it Dark, where flags are 0x2ff0f004 vs 0x1004
 
-     We see the same discrepancy in the MythProtocol API queryRecorings() vs queryRecording() */
+     We see the same discrepancy in the MythProtocol API queryRecorings() vs queryRecording()
+
+     The root cause for this discrepancy seems to be that in ProgramInfo::LoadProgramFromRecorded,
+     the programflags field is not initialized, and the ProgramInfo variable is allocated on the stack
+     at the call site. Compare this to the implementation of LoadFromRecorded */
   def getRecorded(chanId: ChanId, startTime: MythDateTime): Recording = {
     val params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
     val response = request("GetRecorded", params)
