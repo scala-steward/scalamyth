@@ -1680,8 +1680,8 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     val marks = items.iterator drop 1 grouped 2 withPartial false map deserialize[RecordedMarkup]
     val segments = marks grouped 2 map {
       case Seq(start: RecordedMarkup, end: RecordedMarkup) =>
-        assert(start.tag == Markup.MARK_COMM_START)
-        assert(end.tag == Markup.MARK_COMM_END)
+        assert(start.tag == Markup.CommStart)
+        assert(end.tag == Markup.CommEnd)
         BackendVideoSegment(start.position, end.position)
     }
     Some(segments.toList)
@@ -1696,8 +1696,8 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     val marks = items.iterator drop 1 grouped 2 withPartial false map deserialize[RecordedMarkup]
     val segments = marks grouped 2 map {
       case Seq(start: RecordedMarkup, end: RecordedMarkup) =>
-        assert(start.tag == Markup.MARK_CUT_START)
-        assert(end.tag == Markup.MARK_CUT_END)
+        assert(start.tag == Markup.CutStart)
+        assert(end.tag == Markup.CutEnd)
         BackendVideoSegment(start.position, end.position)
     }
     Some(segments.toList)

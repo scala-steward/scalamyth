@@ -14,6 +14,8 @@ import services.PagedList
 import model.EnumTypes._
 import model._
 
+// TODO use applyOrUnknown on enum types in here
+
 /* ----------------------------------------------------------------- */
 
 // TODO Pull out all but `items` into a separate trait and share with guide result?
@@ -181,20 +183,20 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
 
   implicit object DupCheckInJsonFormat extends EnumDescriptionFormat[DupCheckIn] {
     val id2Description: Map[DupCheckIn, String] = Map(
-      DupCheckIn.DupsInRecorded    -> "Current Recordings",
-      DupCheckIn.DupsInOldRecorded -> "Previous Recordings",
-      DupCheckIn.DupsInAll         -> "All Recordings",
-      DupCheckIn.DupsNewEpisodes   -> "New Episodes Only"
+      DupCheckIn.Recorded    -> "Current Recordings",
+      DupCheckIn.OldRecorded -> "Previous Recordings",
+      DupCheckIn.All         -> "All Recordings",
+      DupCheckIn.NewEpisodes -> "New Episodes Only"
     )
   }
 
   implicit object DupCheckMethodJsonFormat extends EnumDescriptionFormat[DupCheckMethod] {
     val id2Description: Map[DupCheckMethod, String] = Map(
-      DupCheckMethod.DupCheckNone        -> "None",
-      DupCheckMethod.DupCheckSubtitle    -> "Subtitle",
-      DupCheckMethod.DupCheckDescription -> "Description",
-      DupCheckMethod.DupCheckSubDesc     -> "Subtitle and Description",
-      DupCheckMethod.DupCheckSubThenDesc -> "Subtitle then Description"
+      DupCheckMethod.None             -> "None",
+      DupCheckMethod.Subtitle         -> "Subtitle",
+      DupCheckMethod.Description      -> "Description",
+      DupCheckMethod.SubtitleDesc     -> "Subtitle and Description",
+      DupCheckMethod.SubtitleThenDesc -> "Subtitle then Description"
     )
   }
 

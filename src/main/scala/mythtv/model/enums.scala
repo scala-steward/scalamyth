@@ -7,35 +7,38 @@ import util.{ BitmaskEnum, LooseEnum }
 
 object Markup extends LooseEnum {
   type Markup = Value
-  val MARK_ALL           = Value(-100)
-  val MARK_UNSET         = Value(-10)
-  val MARK_TMP_CUT_END   = Value(-5)
-  val MARK_TMP_CUT_START = Value(-4)
-  val MARK_UPDATED_CUT   = Value(-3)
-  val MARK_PLACEHOLDER   = Value(-2)
-  val MARK_CUT_END       = Value(0)
-  val MARK_CUT_START     = Value(1)
-  val MARK_BOOKMARK      = Value(2)
-  val MARK_BLANK_FRAME   = Value(3)
-  val MARK_COMM_START    = Value(4)
-  val MARK_COMM_END      = Value(5)
-  val MARK_GOP_START     = Value(6)
-  val MARK_KEYFRAME      = Value(7)
-  val MARK_SCENE_CHANGE  = Value(8)
-  val MARK_GOP_BYFRAME   = Value(9)
-  val MARK_ASPECT_1_1    = Value(10)
-  val MARK_ASPECT_4_3    = Value(11)
-  val MARK_ASPECT_16_9   = Value(12)
-  val MARK_ASPECT_2_21_1 = Value(13)
-  val MARK_ASPECT_CUSTOM = Value(14)
-  val MARK_VIDEO_WIDTHold= Value(15)
-  val MARK_VIDEO_WIDTH   = Value(30)
-  val MARK_VIDEO_HEIGHT  = Value(31)
-  val MARK_VIDEO_RATE    = Value(32)
-  val MARK_DURATION_MS   = Value(33)
-  val MARK_TOTAL_FRAMES  = Value(34)
+  val All           = Value(-100)
+  val Unset         = Value(-10)
+  val TmpCutEnd     = Value(-5)
+  val TmpCutStart   = Value(-4)
+  val UpdatedCut    = Value(-3)
+  val Placeholder   = Value(-2)
+  val CutEnd        = Value(0)
+  val CutStart      = Value(1)
+  val Bookmark      = Value(2)
+  val BlankFrame    = Value(3)
+  val CommStart     = Value(4)
+  val CommEnd       = Value(5)
+  val GopStart      = Value(6)
+  val KeyFrame      = Value(7)
+  val SceneChange   = Value(8)
+  val GopByFrame    = Value(9)
+  @deprecated("", "")
+  val Aspect1x1     = Value(10)
+  val Aspect4x3     = Value(11)
+  val Aspect16x9    = Value(12)
+  val Aspect221x1   = Value(13)
+  val AspectCustom  = Value(14)
+  @deprecated("", "")
+  val VideoWidthOld = Value(15)
+  val VideoWidth    = Value(30)
+  val VideoHeight   = Value(31)
+  val VideoRate     = Value(32)
+  val DurationMs    = Value(33)
+  val TotalFrame    = Value(34)
 }
 
+// TODO add new RecType names, deprecate old names
 object RecType extends LooseEnum {
   type RecType = Value
   val NotRecording     = Value(0)
@@ -127,19 +130,19 @@ object SubtitleType extends BitmaskEnum[Int] {
 
 object DupCheckIn extends BitmaskEnum[Int] {
   type DupCheckIn = Base
-  val DupsInRecorded    = Value(0x01)
-  val DupsInOldRecorded = Value(0x02)
-  val DupsInAll         =  Mask(0x0f)
-  val DupsNewEpisodes   = Value(0x10)  // this should always be combined with DupsInAll ??
+  val Recorded      = Value(0x01)
+  val OldRecorded   = Value(0x02)
+  val All           =  Mask(0x0f)
+  val NewEpisodes   = Value(0x10)  // this should always be combined with DupsInAll ??
 }
 
 object DupCheckMethod extends BitmaskEnum[Int] {
   type DupCheckMethod = Base
-  val DupCheckNone        = Value(0x01)
-  val DupCheckSubtitle    = Value(0x02)
-  val DupCheckDescription = Value(0x04)
-  val DupCheckSubDesc     =  Mask(0x06)
-  val DupCheckSubThenDesc = Value(0x08) // subtitle, then description
+  val None             = Value(0x01)
+  val Subtitle         = Value(0x02)
+  val Description      = Value(0x04)
+  val SubtitleDesc     =  Mask(0x06)
+  val SubtitleThenDesc = Value(0x08) // subtitle, then description
 }
 
 object JobStatus extends LooseEnum {
