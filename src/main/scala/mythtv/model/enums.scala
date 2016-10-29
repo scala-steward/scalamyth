@@ -128,6 +128,41 @@ object SubtitleType extends BitmaskEnum[Int] {
   val Signed   = Value(0x08)
 }
 
+object ProgramFlags extends BitmaskEnum[Int] {
+  type ProgramFlags = Base
+  val None           =  Mask(0x00000000)
+  val CommFlag       = Value(0x00000001)
+  val CutList        = Value(0x00000002)
+  val AutoExpire     = Value(0x00000004)
+  val Editing        = Value(0x00000008)
+  val Bookmark       = Value(0x00000010)
+  val ReallyEditing  = Value(0x00000020)
+  val CommProcessing = Value(0x00000040)
+  val DeletePending  = Value(0x00000080)
+  val Transcoded     = Value(0x00000100)
+  val Watched        = Value(0x00000200)
+  val Preserved      = Value(0x00000400)
+  val ChanCommFree   = Value(0x00000800)
+  val Repeat         = Value(0x00001000)
+  val Duplicate      = Value(0x00002000)
+  val Reactivate     = Value(0x00004000)
+  val IgnoreBookmark = Value(0x00008000)
+  val ProgramType    =  Mask(0x000f0000)
+  val InUseRecording = Value(0x00100000)
+  val InUsePlaying   = Value(0x00200000)
+  val InUseOther     = Value(0x00400000)
+}
+
+object ProgramType extends LooseEnum {
+  type ProgramType = Value
+  val Recording      = Value(0)
+  val VideoFile      = Value(1)
+  val Dvd            = Value(2)
+  val StreamingHtml  = Value(3)
+  val StreamingRtsp  = Value(4)
+  val Bluray         = Value(5)
+}
+
 object DupCheckIn extends BitmaskEnum[Int] {
   type DupCheckIn = Base
   val Recorded      = Value(0x01)

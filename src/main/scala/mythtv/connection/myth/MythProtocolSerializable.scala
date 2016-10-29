@@ -137,6 +137,11 @@ object MythProtocolSerializable {
     def serialize(in: SubtitleType): String = in.id.toString
   }
 
+  implicit object ProgramFlagsSerializer extends MythProtocolSerializable[ProgramFlags] {
+    def deserialize(in: String): ProgramFlags = ProgramFlags(in.toInt)
+    def serialize(in: ProgramFlags): String = in.id.toString
+  }
+
   implicit object RecTypeSerializer extends MythProtocolSerializable[RecType] {
     def deserialize(in: String): RecType = RecType.applyOrUnknown(in.toInt)
     def serialize(in: RecType): String = in.id.toString

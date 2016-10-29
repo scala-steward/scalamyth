@@ -35,11 +35,14 @@ trait Program {
   def year: Option[Year]           // NB called 'airdate' in program table
   def partNumber: Option[Int]
   def partTotal: Option[Int]
+  def programFlags: ProgramFlags
 
   def stereo: Boolean    = audioProps contains AudioProperties.Stereo
   def subtitled: Boolean = subtitleType != SubtitleType.Unknown
   def hdtv: Boolean      = videoProps contains VideoProperties.Hdtv  // TODO might need to check Hd1080 and Hd720 also
   def closeCaptioned: Boolean = ???  // Do we use audioProps or subtitleType (or both?)
+
+  def isRepeat: Boolean = programFlags contains ProgramFlags.Repeat
 }
 
 // Used, e.g. by Myth protocol QUERY_RECORDER/GET_NEXT_PROGRAM_INFO
@@ -80,7 +83,6 @@ trait Recordable extends Program {
   def chanNum: ChannelNumber       // TODO only in backend program, services recording Channel
   def callsign: String             // TODO only in backend program, services recording Channel
   def chanName: String             // TODO only in backend program, services recording Channel
-  def programFlags: Int            // TODO what is? move to recordable?, is it HDTV, etc. bitmask?
   def outputFilters: String        // TODO what is? move to recordable?
 }
 
@@ -92,6 +94,20 @@ trait Recording extends Recordable {
   def season: Int                  // TODO only for Recording?, not in program table
   def episode: Int                 // TODO only for Recording?, not in program table
   def inetRef: String              // TODO not in program table
+
+  // TODO get this working w/out calling .id
+  def programType: ProgramType = ProgramType.applyOrUnknown((ProgramFlags.ProgramType.id & programFlags.id) >> 16)
+
+  def isInUsePlaying: Boolean = programFlags contains ProgramFlags.InUsePlaying
+  def isCommercialFree: Boolean = programFlags contains ProgramFlags.ChanCommFree
+  def hasCutList: Boolean = programFlags contains ProgramFlags.CutList
+  def hasBookmark: Boolean = programFlags contains ProgramFlags.Bookmark
+  def isWatched: Boolean = programFlags contains ProgramFlags.Watched
+  def isAutoExpirable: Boolean = programFlags contains ProgramFlags.AutoExpire
+  def isPreserved: Boolean = programFlags contains ProgramFlags.Preserved
+  def isDuplicate: Boolean = programFlags contains ProgramFlags.Duplicate
+  def isReactivated: Boolean = programFlags contains ProgramFlags.Reactivate
+  def isDeletePending: Boolean = programFlags contains ProgramFlags.DeletePending
 }
 
 trait PreviousRecording {

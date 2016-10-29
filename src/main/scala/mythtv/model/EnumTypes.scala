@@ -13,6 +13,8 @@ object EnumTypes {
   type ListingSourceType = model.ListingSourceType.Value
   type Markup = model.Markup.Value
   type PictureAdjustType = model.PictureAdjustType.Value
+  type ProgramFlags = model.ProgramFlags.Base
+  type ProgramType = model.ProgramType.Value
   type RecSearchType = model.RecSearchType.Value
   type RecStatus = model.RecStatus.Value
   type RecType = model.RecType.Value

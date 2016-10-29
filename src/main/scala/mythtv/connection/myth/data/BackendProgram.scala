@@ -52,7 +52,7 @@ private[myth] class BackendProgram(data: Seq[String], fieldOrder: IndexedSeq[Str
   def dupMethod: DupCheckMethod = DupCheckMethod(fields("dupMethod").toInt)
   def recStartTS: MythDateTime = timestampField("recStartTS")
   def recEndTS: MythDateTime = timestampField("recEndTS")
-  def programFlags: Int = fields("programFlags").toInt  // TODO is this an enum? python bindings use string??
+  def programFlags: ProgramFlags = ProgramFlags(fields("programFlags").toInt)
   def recGroup: String = fields("recGroup")
   def outputFilters: String = fields("outputFilters")  // TODO what type is this really?
   def seriesId: String = fields("seriesId")

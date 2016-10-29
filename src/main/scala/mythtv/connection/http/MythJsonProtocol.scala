@@ -270,6 +270,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         def year                    = obj.intFieldOption("Year") map Year.of  // TODO year field does not exist
         def partNumber              = None
         def partTotal               = None
+        def programFlags            = ProgramFlags(obj.intField("ProgramFlags"))
 
         def findId                  = 0 // ???
         def hostname                = obj.stringField("HostName")
@@ -293,7 +294,6 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         def chanNum                 = ChannelNumber(channel.stringFieldOrElse("ChanNum", ""))
         def callsign                = channel.stringFieldOrElse("CallSign", "")
         def chanName                = channel.stringFieldOrElse("ChannelName", "")
-        def programFlags            = obj.intField("ProgramFlags")
         def outputFilters           = "" //???
 
         def filename                = obj.stringField("FileName")
@@ -342,6 +342,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         def year                    = obj.intFieldOption("Year") map Year.of  // TODO year field does not exist
         def partNumber              = None
         def partTotal               = None
+        def programFlags            = ProgramFlags(obj.intField("ProgramFlags"))
 
         def findId                  = ???
         def hostname                = obj.stringField("HostName")
@@ -365,7 +366,6 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         def chanNum                 = ChannelNumber(channel.stringFieldOrElse("ChanNum", ""))
         def callsign                = channel.stringFieldOrElse("CallSign", "")
         def chanName                = channel.stringFieldOrElse("ChannelName", "")
-        def programFlags            = obj.intField("ProgramFlags")
         def outputFilters           = ???
       }
     }
@@ -476,6 +476,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         def year                    = obj.intFieldOption("Year") map Year.of
         def partNumber              = None
         def partTotal               = None
+        def programFlags            = ProgramFlags(obj.intField("ProgramFlags"))
       }
 
       /*
