@@ -229,8 +229,8 @@ object MythProtocolSerializable {
 }
 
 trait BackendTypeSerializer[T] {
-  def serializeOther(in: T): String
-  def serializeOther(in: T, builder: StringBuilder): StringBuilder
+  def serialize(in: T): String
+  def serialize(in: T, builder: StringBuilder): StringBuilder
 }
 
 // Idea here is a generic de-/serializer for backend objects that can be
@@ -261,14 +261,14 @@ trait GenericBackendObjectSerializer[T, F <: GenericBackendObjectFactory[T], S <
     case g: GenericBackendObject =>
       val factory = newFactory
       factory.FIELD_ORDER map (g(_)) mkString MythProtocol.BACKEND_SEP
-    case _ => otherSerializer.serializeOther(in)
+    case _ => otherSerializer.serialize(in)
   }
 
   override def serialize(in: T, builder: StringBuilder): StringBuilder = in match {
     case g: GenericBackendObject =>
       val factory = newFactory
       (factory.FIELD_ORDER map (g(_))).addString(builder, MythProtocol.BACKEND_SEP)
-    case _ => otherSerializer.serializeOther(in, builder)
+    case _ => otherSerializer.serialize(in, builder)
   }
 }
 

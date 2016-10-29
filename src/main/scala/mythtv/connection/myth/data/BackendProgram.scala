@@ -74,7 +74,7 @@ private[myth] class BackendProgram(data: Seq[String], fieldOrder: IndexedSeq[Str
 }
 
 private[myth] trait BackendProgramFactory extends GenericBackendObjectFactory[BackendProgram]
-private[myth] trait ProgramOtherSerializer extends MythProtocolSerializer with BackendTypeSerializer[Recording]
+private[myth] trait ProgramOtherSerializer extends BackendTypeSerializer[Recording]
 
 private[myth] object BackendProgram extends BackendProgramFactory with ProgramOtherSerializer {
   final val FIELD_ORDER = IndexedSeq(
@@ -92,54 +92,56 @@ private[myth] object BackendProgram extends BackendProgramFactory with ProgramOt
 
   def apply(data: Seq[String]): BackendProgram = new BackendProgram(data, FIELD_ORDER)
 
-  def serializeOther(in: Recording): String = serializeOther(in, new StringBuilder).toString
-  def serializeOther(in: Recording, builder: StringBuilder): StringBuilder = {
-    serialize(in.title, builder)                   ++= MythProtocol.BACKEND_SEP
-    serialize(in.subtitle, builder)                ++= MythProtocol.BACKEND_SEP
-    serialize(in.description, builder)             ++= MythProtocol.BACKEND_SEP
-    serialize(in.season, builder)                  ++= MythProtocol.BACKEND_SEP
-    serialize(in.episode, builder)                 ++= MythProtocol.BACKEND_SEP
-    serialize(in.syndicatedEpisodeNumber, builder) ++= MythProtocol.BACKEND_SEP
-    serialize(in.category, builder)                ++= MythProtocol.BACKEND_SEP
-    serialize(in.chanId, builder)                  ++= MythProtocol.BACKEND_SEP
-    serialize(in.chanNum, builder)                 ++= MythProtocol.BACKEND_SEP
-    serialize(in.callsign, builder)                ++= MythProtocol.BACKEND_SEP
-    serialize(in.chanName, builder)                ++= MythProtocol.BACKEND_SEP
-    serialize(in.filename, builder)                ++= MythProtocol.BACKEND_SEP
-    serialize(in.filesize.bytes, builder)          ++= MythProtocol.BACKEND_SEP
-    serialize(in.startTime, builder)               ++= MythProtocol.BACKEND_SEP
-    serialize(in.endTime, builder)                 ++= MythProtocol.BACKEND_SEP
-    serialize(in.findId, builder)                  ++= MythProtocol.BACKEND_SEP
-    serialize(in.hostname, builder)                ++= MythProtocol.BACKEND_SEP
-    serialize(in.sourceId, builder)                ++= MythProtocol.BACKEND_SEP
-    serialize(in.cardId, builder)                  ++= MythProtocol.BACKEND_SEP
-    serialize(in.inputId, builder)                 ++= MythProtocol.BACKEND_SEP
-    serialize(in.recPriority, builder)             ++= MythProtocol.BACKEND_SEP
-    serialize(in.recStatus, builder)               ++= MythProtocol.BACKEND_SEP
-    serialize(in.recordId, builder)                ++= MythProtocol.BACKEND_SEP
-    serialize(in.recType, builder)                 ++= MythProtocol.BACKEND_SEP
-    serialize(in.dupIn, builder)                   ++= MythProtocol.BACKEND_SEP
-    serialize(in.dupMethod, builder)               ++= MythProtocol.BACKEND_SEP
-    serialize(in.recStartTS, builder)              ++= MythProtocol.BACKEND_SEP
-    serialize(in.recEndTS, builder)                ++= MythProtocol.BACKEND_SEP
-    serialize(in.programFlags, builder)            ++= MythProtocol.BACKEND_SEP
-    serialize(in.recGroup, builder)                ++= MythProtocol.BACKEND_SEP
-    serialize(in.outputFilters, builder)           ++= MythProtocol.BACKEND_SEP
-    serialize(in.seriesId, builder)                ++= MythProtocol.BACKEND_SEP
-    serialize(in.programId, builder)               ++= MythProtocol.BACKEND_SEP
-    serialize(in.inetRef, builder)                 ++= MythProtocol.BACKEND_SEP
-    serialize(in.lastModified, builder)            ++= MythProtocol.BACKEND_SEP
-    serialize(in.stars, builder)                   ++= MythProtocol.BACKEND_SEP
-    serialize(in.originalAirDate, builder)         ++= MythProtocol.BACKEND_SEP
-    serialize(in.playGroup, builder)               ++= MythProtocol.BACKEND_SEP
-    serialize(in.recPriority2, builder)            ++= MythProtocol.BACKEND_SEP
-    serialize(in.parentId, builder)                ++= MythProtocol.BACKEND_SEP
-    serialize(in.storageGroup, builder)            ++= MythProtocol.BACKEND_SEP
-    serialize(in.audioProps, builder)              ++= MythProtocol.BACKEND_SEP
-    serialize(in.videoProps, builder)              ++= MythProtocol.BACKEND_SEP
-    serialize(in.subtitleType, builder)            ++= MythProtocol.BACKEND_SEP
-    serialize(in.year, builder)                    ++= MythProtocol.BACKEND_SEP
-    serialize(in.partNumber, builder)              ++= MythProtocol.BACKEND_SEP
-    serialize(in.partTotal, builder)
+  def serialize(in: Recording): String = serialize(in, new StringBuilder).toString
+  def serialize(in: Recording, sb: StringBuilder): StringBuilder = {
+    (new BackendSerializationBuilder(sb)
+      += in.title
+      += in.subtitle
+      += in.description
+      += in.season
+      += in.episode
+      += in.syndicatedEpisodeNumber
+      += in.category
+      += in.chanId
+      += in.chanNum
+      += in.callsign
+      += in.chanName
+      += in.filename
+      += in.filesize.bytes
+      += in.startTime
+      += in.endTime
+      += in.findId
+      += in.hostname
+      += in.sourceId
+      += in.cardId
+      += in.inputId
+      += in.recPriority
+      += in.recStatus
+      += in.recordId
+      += in.recType
+      += in.dupIn
+      += in.dupMethod
+      += in.recStartTS
+      += in.recEndTS
+      += in.programFlags
+      += in.recGroup
+      += in.outputFilters
+      += in.seriesId
+      += in.programId
+      += in.inetRef
+      += in.lastModified
+      += in.stars
+      += in.originalAirDate
+      += in.playGroup
+      += in.recPriority2
+      += in.parentId
+      += in.storageGroup
+      += in.audioProps
+      += in.videoProps
+      += in.subtitleType
+      += in.year
+      += in.partNumber
+      += in.partTotal
+    ).result
   }
 }
