@@ -148,7 +148,7 @@ private object RichJsonObject {
     def intField(fieldName: String): Int = stringField(fieldName).toInt
     def intFieldOption(fieldName: String): Option[Int] = stringFieldOption(fieldName) map (_.toInt)
     def intFieldOrElse(fieldName: String, default: => Int): Int = intFieldOption(fieldName).getOrElse(default)
-    def intFieldOption(fieldName: String, default: Int) = intFieldOption(fieldName) match {
+    def intFieldOption(fieldName: String, default: Int): Option[Int] = intFieldOption(fieldName) match {
       case Some(`default`) => None
       case x => x
     }
@@ -157,12 +157,12 @@ private object RichJsonObject {
     def longFieldOption(fieldName: String): Option[Long] = stringFieldOption(fieldName) map (_.toLong)
     def longFieldOrElse(fieldName: String, default: => Long): Long = longFieldOption(fieldName).getOrElse(default)
 
-    def timeField(fieldName: String) = LocalTime.parse(stringField(fieldName))
-    def timeFieldOption(fieldName: String) =
+    def timeField(fieldName: String): LocalTime = LocalTime.parse(stringField(fieldName))
+    def timeFieldOption(fieldName: String): Option[LocalTime] =
       try stringFieldOption(fieldName) map LocalTime.parse
       catch { case e: DateTimeParseException => None }
-    def timeFieldOrElse(fieldName: String, default: => LocalTime) = timeFieldOption(fieldName).getOrElse(default)
-    def timeFieldOption(fieldName: String, default: LocalTime) = timeFieldOption(fieldName) match {
+    def timeFieldOrElse(fieldName: String, default: => LocalTime): LocalTime = timeFieldOption(fieldName).getOrElse(default)
+    def timeFieldOption(fieldName: String, default: LocalTime): Option[LocalTime] = timeFieldOption(fieldName) match {
       case Some(`default`) => None
       case x => x
     }
