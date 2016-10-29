@@ -2,32 +2,40 @@ package mythtv
 package connection
 package myth
 
-import java.time.Instant
+import java.time.{ Instant, LocalDate, Year }
+
+import scala.util.Try
 
 import data._
 import util._
 import model._
-import model.EnumTypes.RecStatus
+import model.EnumTypes._
 
 // Type class for serializable objects in the MythProtocol stream
 trait MythProtocolSerializable[T] {
   def deserialize(in: String): T
   def deserialize(in: Seq[String]): T = throw new UnsupportedOperationException
   def serialize(in: T): String
-  def serialize(in: T, builder: StringBuilder): StringBuilder = { builder.append(serialize(in)); builder }
+  def serialize(in: T, builder: StringBuilder): StringBuilder = builder.append(serialize(in))
 }
 
 object MythProtocolSerializable {
+  implicit object StringSerializer extends MythProtocolSerializable[String] {
+    def deserialize(in: String): String = in
+    def serialize(in: String): String = in
+    override def serialize(in: String, builder: StringBuilder): StringBuilder = builder.append(in)
+  }
+
   implicit object IntSerializer extends MythProtocolSerializable[Int] {
     def deserialize(in: String): Int = in.toInt
     def serialize(in: Int): String = in.toString
-    override def serialize(in: Int, builder: StringBuilder): StringBuilder = { builder.append(in); builder }
+    override def serialize(in: Int, builder: StringBuilder): StringBuilder = builder.append(in)
   }
 
   implicit object LongSerializer extends MythProtocolSerializable[Long] {
     def deserialize(in: String): Long = in.toLong
     def serialize(in: Long): String = in.toString
-    override def serialize(in: Long, builder: StringBuilder): StringBuilder = { builder.append(in); builder }
+    override def serialize(in: Long, builder: StringBuilder): StringBuilder = builder.append(in)
   }
 
   implicit object DoubleSerializer extends MythProtocolSerializable[Double] {
@@ -53,54 +61,110 @@ object MythProtocolSerializable {
   implicit object CaptureCardIdSerializer extends MythProtocolSerializable[CaptureCardId] {
     def deserialize(in: String): CaptureCardId = CaptureCardId(in.toInt)
     def serialize(in: CaptureCardId): String = in.id.toString
-    override def serialize(in: CaptureCardId, builder: StringBuilder): StringBuilder = { builder.append(in.id); builder }
+    override def serialize(in: CaptureCardId, builder: StringBuilder): StringBuilder = builder.append(in.id)
   }
 
   implicit object ChanIdSerializer extends MythProtocolSerializable[ChanId] {
     def deserialize(in: String): ChanId = ChanId(in.toInt)
     def serialize(in: ChanId): String = in.id.toString
-    override def serialize(in: ChanId, builder: StringBuilder): StringBuilder = { builder.append(in.id); builder }
+    override def serialize(in: ChanId, builder: StringBuilder): StringBuilder = builder.append(in.id)
   }
 
   implicit object ChannelNumberSerializer extends MythProtocolSerializable[ChannelNumber] {
     def deserialize(in: String): ChannelNumber = ChannelNumber(in)
     def serialize(in: ChannelNumber): String = in.num
-    override def serialize(in: ChannelNumber, builder: StringBuilder): StringBuilder = { builder.append(in.num); builder }
+    override def serialize(in: ChannelNumber, builder: StringBuilder): StringBuilder = builder.append(in.num)
+  }
+
+  implicit object InputIdSerializer extends MythProtocolSerializable[InputId] {
+    def deserialize(in: String): InputId = InputId(in.toInt)
+    def serialize(in: InputId): String = in.id.toString
+    override def serialize(in: InputId, builder: StringBuilder): StringBuilder = builder.append(in.id)
   }
 
   implicit object ListingSourceIdSerializer extends MythProtocolSerializable[ListingSourceId] {
     def deserialize(in: String): ListingSourceId = ListingSourceId(in.toInt)
     def serialize(in: ListingSourceId): String = in.id.toString
-    override def serialize(in: ListingSourceId, builder: StringBuilder): StringBuilder = { builder.append(in.id); builder }
+    override def serialize(in: ListingSourceId, builder: StringBuilder): StringBuilder = builder.append(in.id)
   }
 
   implicit object MultiplexIdSerializer extends MythProtocolSerializable[MultiplexId] {
     def deserialize(in: String): MultiplexId = MultiplexId(in.toInt)
     def serialize(in: MultiplexId): String = in.id.toString
-    override def serialize(in: MultiplexId, builder: StringBuilder): StringBuilder = { builder.append(in.id); builder }
+    override def serialize(in: MultiplexId, builder: StringBuilder): StringBuilder = builder.append(in.id)
   }
 
   implicit object RecordRuleIdSerializer extends MythProtocolSerializable[RecordRuleId] {
     def deserialize(in: String): RecordRuleId = RecordRuleId(in.toInt)
     def serialize(in: RecordRuleId): String = in.id.toString
-    override def serialize(in: RecordRuleId, builder: StringBuilder): StringBuilder = { builder.append(in.id); builder }
+    override def serialize(in: RecordRuleId, builder: StringBuilder): StringBuilder = builder.append(in.id)
   }
 
   implicit object RecStatusSerializer extends MythProtocolSerializable[RecStatus] {
     def deserialize(in: String): RecStatus = RecStatus.applyOrUnknown(in.toInt)
     def serialize(in: RecStatus): String = in.id.toString
-    override def serialize(in: RecStatus, builder: StringBuilder): StringBuilder = { builder.append(in.id); builder }
+    override def serialize(in: RecStatus, builder: StringBuilder): StringBuilder = builder.append(in.id)
   }
 
   implicit object VideoPositionSerializer extends MythProtocolSerializable[VideoPosition] {
     def deserialize(in: String): VideoPosition = VideoPosition(in.toLong)
     def serialize(in: VideoPosition): String = in.pos.toString
-    override def serialize(in: VideoPosition, builder: StringBuilder): StringBuilder = { builder.append(in.pos); builder }
+    override def serialize(in: VideoPosition, builder: StringBuilder): StringBuilder = builder.append(in.pos)
+  }
+
+  implicit object DupInSerializer extends MythProtocolSerializable[DupCheckIn] {
+    def deserialize(in: String): DupCheckIn = DupCheckIn.apply(in.toInt)
+    def serialize(in: DupCheckIn): String = in.id.toString
+  }
+
+  implicit object DupCheckMethodSerializer extends MythProtocolSerializable[DupCheckMethod] {
+    def deserialize(in: String): DupCheckMethod = DupCheckMethod.apply(in.toInt)
+    def serialize(in: DupCheckMethod): String = in.id.toString
+  }
+
+  implicit object AudioPropertiesSerializer extends MythProtocolSerializable[AudioProperties] {
+    def deserialize(in: String): AudioProperties = AudioProperties.apply(in.toInt)
+    def serialize(in: AudioProperties): String = in.id.toString
+  }
+
+  implicit object VideoPropertiesSerializer extends MythProtocolSerializable[VideoProperties] {
+    def deserialize(in: String): VideoProperties = VideoProperties.apply(in.toInt)
+    def serialize(in: VideoProperties): String = in.id.toString
+  }
+
+  implicit object SubtitleTypeSerializer extends MythProtocolSerializable[SubtitleType] {
+    def deserialize(in: String): SubtitleType = SubtitleType.apply(in.toInt)
+    def serialize(in: SubtitleType): String = in.id.toString
+  }
+
+  implicit object RecTypeSerializer extends MythProtocolSerializable[RecType] {
+    def deserialize(in: String): RecType = RecType.applyOrUnknown(in.toInt)
+    def serialize(in: RecType): String = in.id.toString
   }
 
   implicit object InstantSerializer extends MythProtocolSerializable[Instant] {
     def deserialize(in: String): Instant = Instant.parse(in)
     def serialize(in: Instant): String = in.toString
+  }
+
+  implicit object LocalDateOptionSerializer extends MythProtocolSerializable[Option[LocalDate]] {
+    def deserialize(in: String): Option[LocalDate] = Try(LocalDate.parse(in)).toOption
+    def serialize(in: Option[LocalDate]): String = if (in.isEmpty) ??? else in.get.toString
+  }
+
+  implicit object YearOptionSerializer extends MythProtocolSerializable[Option[Year]] {
+    def deserialize(in: String): Option[Year] = { Try(in.toInt) filter (_ != 0) }.toOption map Year.of
+    def serialize(in: Option[Year]): String = if (in.isEmpty) "0" else in.get.toString
+  }
+
+  implicit object IntOptionSerializer extends MythProtocolSerializable[Option[Int]] {
+    def deserialize(in: String): Option[Int] = { Try(in.toInt) filter (_ != 0) }.toOption
+    def serialize(in: Option[Int]): String = if (in.isEmpty) "0" else in.get.toString
+  }
+
+  implicit object DoubleOptionSerializer extends MythProtocolSerializable[Option[Double]] {
+    def deserialize(in: String): Option[Double] = if (in == "0") None else Try(in.toDouble).toOption
+    def serialize(in: Option[Double]): String = if (in.isEmpty) "0" else in.get.toString
   }
 
   implicit object MythDateTimeSerializer extends MythProtocolSerializable[MythDateTime] {
@@ -119,8 +183,7 @@ object MythProtocolSerializable {
       }
     }
     def serialize(in: MythDateTime): String = in.toTimestamp.toString
-    override def serialize(in: MythDateTime, builder: StringBuilder): StringBuilder =
-      { builder.append(in.toTimestamp); builder }
+    override def serialize(in: MythDateTime, builder: StringBuilder): StringBuilder = builder.append(in.toTimestamp)
   }
 
   implicit object MythDateTimeStringSerializer extends MythProtocolSerializable[MythDateTimeString] {
@@ -165,12 +228,18 @@ object MythProtocolSerializable {
   }
 }
 
+trait BackendTypeSerializer[T] {
+  def serializeOther(in: T): String
+  def serializeOther(in: T, builder: StringBuilder): StringBuilder
+}
+
 // Idea here is a generic de-/serializer for backend objects that can be
 //  - constructed from a Seq[String] and a FIELD_ORDER
 //  - deconstructed using FIELD_ORDER and the apply-based fields accessor
-trait GenericBackendObjectSerializer[T, F <: GenericBackendObjectFactory[T]]
+trait GenericBackendObjectSerializer[T, F <: GenericBackendObjectFactory[T], S <: BackendTypeSerializer[T]]
     extends MythProtocolSerializable[T] {
   def newFactory: F
+  def otherSerializer: S
 
   // TODO pass FIELD_ORDER into factory apply/constructor...
 
@@ -192,33 +261,43 @@ trait GenericBackendObjectSerializer[T, F <: GenericBackendObjectFactory[T]]
     case g: GenericBackendObject =>
       val factory = newFactory
       factory.FIELD_ORDER map (g(_)) mkString MythProtocol.BACKEND_SEP
-    case _ => ???
+    case _ => otherSerializer.serializeOther(in)
   }
 
   override def serialize(in: T, builder: StringBuilder): StringBuilder = in match {
     case g: GenericBackendObject =>
       val factory = newFactory
       (factory.FIELD_ORDER map (g(_))).addString(builder, MythProtocol.BACKEND_SEP)
-    case _ => ???
+    case _ => otherSerializer.serializeOther(in, builder)
   }
 }
 
-object ProgramInfoSerializerGeneric extends GenericBackendObjectSerializer[Recording, BackendProgramFactory] {
+object ProgramInfoSerializerGeneric
+  extends GenericBackendObjectSerializer[Recording, BackendProgramFactory, ProgramOtherSerializer] {
   def newFactory = BackendProgram
+  def otherSerializer = BackendProgram
 }
 
-object FreeSpaceSerializerGeneric extends GenericBackendObjectSerializer[FreeSpace, BackendFreeSpaceFactory] {
+object FreeSpaceSerializerGeneric
+  extends GenericBackendObjectSerializer[FreeSpace, BackendFreeSpaceFactory, FreeSpaceOtherSerializer] {
   def newFactory = BackendFreeSpace
+  def otherSerializer = ???
 }
 
-object CardInputSerializerGeneric extends GenericBackendObjectSerializer[CardInput, BackendCardInputFactory] {
+object CardInputSerializerGeneric
+  extends GenericBackendObjectSerializer[CardInput, BackendCardInputFactory, CardInputOtherSerializer] {
   def newFactory = BackendCardInput
+  def otherSerializer = ???
 }
 
-object ChannelSerializerGeneric extends GenericBackendObjectSerializer[Channel, BackendChannelFactory] {
+object ChannelSerializerGeneric
+  extends GenericBackendObjectSerializer[Channel, BackendChannelFactory, ChannelOtherSerializer] {
   def newFactory = BackendChannel
+  def otherSerializer = ???
 }
 
-object UpcomingProgramSerializerGeneric extends GenericBackendObjectSerializer[UpcomingProgram, BackendUpcomingProgramFactory] {
+object UpcomingProgramSerializerGeneric
+  extends GenericBackendObjectSerializer[UpcomingProgram, BackendUpcomingProgramFactory, UpcomingProgramOtherSerializer] {
   def newFactory = BackendUpcomingProgram
+  def otherSerializer = ???
 }

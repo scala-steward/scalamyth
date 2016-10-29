@@ -21,6 +21,7 @@ private[myth] class BackendCardInput(data: Seq[String], fieldOrder: IndexedSeq[S
 }
 
 private[myth] trait BackendCardInputFactory extends GenericBackendObjectFactory[BackendCardInput]
+private[myth] trait CardInputOtherSerializer extends BackendTypeSerializer[CardInput]
 
 private[myth] object BackendCardInput extends BackendCardInputFactory {
   final val FIELD_ORDER = IndexedSeq (

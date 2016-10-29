@@ -24,6 +24,7 @@ private[myth] class BackendFreeSpace(data: Seq[String], fieldOrder: IndexedSeq[S
 }
 
 private[myth] trait BackendFreeSpaceFactory extends GenericBackendObjectFactory[BackendFreeSpace]
+private[myth] trait FreeSpaceOtherSerializer extends BackendTypeSerializer[FreeSpace]
 
 private[myth] object BackendFreeSpace extends BackendFreeSpaceFactory {
   final val FIELD_ORDER = IndexedSeq(

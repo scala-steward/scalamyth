@@ -27,6 +27,7 @@ private[myth] class BackendUpcomingProgram(data: Seq[String], fieldOrder: Indexe
 }
 
 private[myth] trait BackendUpcomingProgramFactory extends GenericBackendObjectFactory[BackendUpcomingProgram]
+private[myth] trait UpcomingProgramOtherSerializer extends BackendTypeSerializer[UpcomingProgram]
 
 private[myth] object BackendUpcomingProgram extends BackendUpcomingProgramFactory {
   final val FIELD_ORDER = IndexedSeq(

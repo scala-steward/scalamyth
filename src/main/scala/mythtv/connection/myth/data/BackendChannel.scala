@@ -21,6 +21,7 @@ private[myth] class BackendChannel(data: Seq[String], fieldOrder: IndexedSeq[Str
 }
 
 private[myth] trait BackendChannelFactory extends GenericBackendObjectFactory[BackendChannel]
+private[myth] trait ChannelOtherSerializer extends BackendTypeSerializer[Channel]
 
 private[myth] object BackendChannel extends BackendChannelFactory {
   final val FIELD_ORDER = IndexedSeq (
