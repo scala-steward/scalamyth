@@ -1,10 +1,9 @@
 lazy val commonSettings = Seq(
-  scalaVersion := "2.11.8",
+  scalaVersion := "2.12.0-RC2",
   scalacOptions ++= Seq(
     "-unchecked",
     "-deprecation",
-    "-Xlint",
-    "-target:jvm-1.8"
+    "-Xlint"
   )
 )
 
@@ -18,7 +17,9 @@ lazy val root = (project in file(".")).
 
 logBuffered in Test := false
 
-libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.0.6"
+//libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.0.6"
+// 1.0.6 not published for RC2? or 2.12.0 ??
+libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
 
 libraryDependencies += "io.spray" %%  "spray-json" % "1.3.2"
 
