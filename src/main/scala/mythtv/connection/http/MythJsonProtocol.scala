@@ -313,14 +313,14 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
             def title                   = obj.stringField("Title")
             def subtitle                = obj.stringField("SubTitle")
             def description             = obj.stringField("Description")
-            def syndicatedEpisodeNumber = ???
+            def syndicatedEpisodeNumber = "" //???
             def category                = obj.stringField("Category")
             def chanId                  = ChanId(channel.intFieldOrElse("ChanId", 0))
             def startTime               = obj.dateTimeField("StartTime")
             def endTime                 = obj.dateTimeField("EndTime")
             def seriesId                = obj.stringField("SeriesId")
             def programId               = obj.stringField("ProgramId")
-            def stars                   = obj.doubleFieldOption("Stars")
+            def stars                   = obj.doubleFieldOption("Stars", 0)
             def originalAirDate         = obj.dateFieldOption("Airdate")
             def audioProps              = AudioProperties(obj.intField("AudioProps"))
             def videoProps              = VideoProperties(obj.intField("VideoProps"))
@@ -329,7 +329,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
             def partNumber              = None
             def partTotal               = None
 
-            def findId                  = ???
+            def findId                  = 0 // ???
             def hostname                = obj.stringField("HostName")
             def sourceId                = ListingSourceId(channel.intFieldOrElse("SourceId", 0))
             def cardId                  = CaptureCardId(rec.intField("EncoderId"))
@@ -345,14 +345,14 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
             def recGroup                = rec.stringField("RecGroup")
             def storageGroup            = rec.stringField("StorageGroup")
             def playGroup               = rec.stringField("PlayGroup")
-            def recPriority2            = ???
-            def parentId                = ???
+            def recPriority2            = 0 //???
+            def parentId                = 0 //???
             def lastModified            = obj.dateTimeField("LastModified")
             def chanNum                 = ChannelNumber(channel.stringFieldOrElse("ChanNum", ""))
             def callsign                = channel.stringFieldOrElse("CallSign", "")
             def chanName                = channel.stringFieldOrElse("ChannelName", "")
             def programFlags            = obj.intField("ProgramFlags")
-            def outputFilters           = ???
+            def outputFilters           = "" //???
 
             def filename                = obj.stringField("FileName")
             def filesize                = DecimalByteCount(obj.longField("FileSize"))
@@ -375,7 +375,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
             def endTime                 = obj.dateTimeField("EndTime")
             def seriesId                = obj.stringField("SeriesId")
             def programId               = obj.stringField("ProgramId")
-            def stars                   = obj.doubleFieldOption("Stars")
+            def stars                   = obj.doubleFieldOption("Stars", 0)
             def originalAirDate         = obj.dateFieldOption("Airdate")
             def audioProps              = AudioProperties(obj.intField("AudioProps"))
             def videoProps              = VideoProperties(obj.intField("VideoProps"))
@@ -428,7 +428,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         def endTime                 = obj.dateTimeField("EndTime")
         def seriesId                = obj.stringField("SeriesId")
         def programId               = obj.stringField("ProgramId")
-        def stars                   = obj.doubleFieldOption("Stars")
+        def stars                   = obj.doubleFieldOption("Stars", 0)
         def originalAirDate         = obj.dateFieldOption("Airdate")
         def audioProps              = AudioProperties(obj.intField("AudioProps"))
         def videoProps              = VideoProperties(obj.intField("VideoProps"))
