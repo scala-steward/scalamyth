@@ -6,7 +6,7 @@ import java.time.{ Duration, Instant, LocalTime, Year, ZoneOffset }
 
 import scala.util.DynamicVariable
 
-import spray.json.{ DefaultJsonProtocol, RootJsonFormat, JsonFormat, deserializationError }
+import spray.json.{ DefaultJsonProtocol, RootJsonFormat, JsonFormat, deserializationError, jsonWriter }
 import spray.json.{ JsArray, JsObject, JsString, JsValue }
 
 import util.{ ByteCount, DecimalByteCount, MythDateTime, MythFileHash }
@@ -208,7 +208,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
   implicit object ZoneOffsetJsonFormat extends MythJsonObjectFormat[ZoneOffset] {
     def objectFieldName = "UTCOffset"
 
-    def write(x: ZoneOffset): JsValue = ???
+    def write(z: ZoneOffset): JsValue = JsString(z.getTotalSeconds.toString)
 
     def read(value: JsValue): ZoneOffset = {
       val secs = value match {
@@ -220,7 +220,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
   }
 
   implicit object InstantJsonFormat extends JsonFormat[Instant] {
-    def write(x: Instant): JsValue = ???
+    def write(x: Instant): JsValue = JsString(x.toString)
 
     def read(value: JsValue): Instant = {
       val dtString = value match {
@@ -541,7 +541,26 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
   implicit object ChannelDetailsJsonFormat extends MythJsonObjectFormat[ChannelDetails] {
     def objectFieldName = "ChannelInfo"  // or "Channel"
 
-    def write(c: ChannelDetails): JsValue = ???
+    def write(c: ChannelDetails): JsValue = JsObject(Map(
+      "ChanId"           -> JsString(c.chanId.id.toString),
+      "ChannelName"      -> JsString(c.name),
+      "ChanNum"          -> JsString(c.number.num),
+      "CallSign"         -> JsString(c.callsign),
+      "SourceId"         -> JsString(c.sourceId.toString),
+      "FrequencyId"      -> JsString(c.freqId.getOrElse("")),
+      "IconURL"          -> JsString(c.iconPath),
+      "FineTune"         -> JsString(c.fineTune.getOrElse(0).toString),
+      "XMLTVID"          -> JsString(c.xmltvId),
+      "Format"           -> JsString(c.format),
+      "Visible"          -> JsString(c.visible.toString),
+      "UseEIT"           -> JsString(c.useOnAirGuide.toString),
+      "MplexId"          -> JsString(c.mplexId.map(_.id).getOrElse(0).toString),
+      "ServiceId"        -> JsString(c.serviceId.getOrElse(0).toString),
+      "ATSCMajorChan"    -> JsString(c.atscMajorChan.getOrElse(0).toString),
+      "ATSCMinorChan"    -> JsString(c.atscMinorChan.getOrElse(0).toString),
+      "DefaultAuthority" -> JsString(c.defaultAuthority.getOrElse(""))
+    ))
+
     def read(value: JsValue): ChannelDetails = {
       val obj = value.asJsObject
       new ChannelDetails {
@@ -575,7 +594,54 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
   implicit object RecordRuleJsonFormat extends MythJsonObjectFormat[RecordRule] {
     def objectFieldName = "RecRule"
 
-    def write(p: RecordRule): JsValue = ???
+    def write(r: RecordRule): JsValue = JsObject(Map(
+      "Id"                -> JsString(r.id.id.toString),
+      "Type"              -> jsonWriter[RecType].write(r.recType),
+      "ChanId"            -> JsString(r.chanId.map(_.id).getOrElse(0).toString),
+      "StartTime"         -> JsString(r.startTime.toString),
+      "EndTime"           -> JsString(r.endTime.toString),
+      "Title"             -> JsString(r.title),
+      "SubTitle"          -> JsString(r.subtitle),
+      "Description"       -> JsString(r.description),
+      "Season"            -> JsString(r.season.getOrElse(0).toString),
+      "Episode"           -> JsString(r.episode.getOrElse(0).toString),
+      "Category"          -> JsString(r.category),
+      "RecProfile"        -> JsString(r.recProfile),
+      "RecPriority"       -> JsString(r.recPriority.toString),
+      "AutoExpire"        -> JsString(r.autoExpire.toString),
+      "MaxEpisodes"       -> JsString(r.maxEpisodes.toString),
+      "MaxNewest"         -> JsString(r.maxNewest.toString),
+      "StartOffset"       -> JsString(r.startOffset.toString),
+      "EndOffset"         -> JsString(r.endOffset.toString),
+      "RecGroup"          -> JsString(r.recGroup),
+      "DupMethod"         -> jsonWriter[DupCheckMethod].write(r.dupMethod),
+      "DupIn"             -> jsonWriter[DupCheckIn].write(r.dupIn),
+      "CallSign"          -> JsString(r.callsign),
+      "SeriesId"          -> JsString(r.seriesId.getOrElse("")),
+      "ProgramId"         -> JsString(r.programId.getOrElse("")),
+      "Inetref"           -> JsString(r.inetRef.getOrElse("")),
+      "SearchType"        -> jsonWriter[RecSearchType].write(r.searchType),
+      "AutoTranscode"     -> JsString(r.autoTranscode.toString),
+      "Autocommflag"      -> JsString(r.autoCommFlag.toString),
+      "AutoUserJob1"      -> JsString(r.autoUserJob1.toString),
+      "AutoUserJob2"      -> JsString(r.autoUserJob2.toString),
+      "AutoUserJob3"      -> JsString(r.autoUserJob3.toString),
+      "AutoUserJob4"      -> JsString(r.autoUserJob4.toString),
+      "AutoMetaLookup"    -> JsString(r.autoMetadata.toString),
+      "FindDay"           -> JsString(r.findDay.toString),
+      "FindTime"          -> JsString(r.findTime.getOrElse(LocalTime.MIN).toString),
+      "Inactive"          -> JsString(r.inactive.toString),
+      "ParentId"          -> JsString(r.parentId.map(_.id).getOrElse(0).toString),
+      "Transcoder"        -> JsString(r.transcoder.getOrElse(0).toString),
+      "PlayGroup"         -> JsString(r.playGroup),
+      "PreferredInput"    -> JsString(r.preferredInput.map(_.id).getOrElse(0).toString),
+      "NextRecording"     -> JsString(r.nextRecord.map(_.toString).getOrElse("")),
+      "LastRecorded"      -> JsString(r.lastRecord.map(_.toString).getOrElse("")),
+      "LastDeleted"       -> JsString(r.lastDelete.map(_.toString).getOrElse("")),
+      "StorageGroup"      -> JsString(r.storageGroup),
+      "AverageDelay"      -> JsString(r.averageDelay.toString),
+      "Filter"            -> JsString(r.filter.getOrElse(0).toString)
+    ))
 
     def read(value: JsValue): RecordRule = {
       /*
@@ -688,7 +754,16 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
   implicit object RemoteEncoderStateJsonFormat extends MythJsonObjectFormat[RemoteEncoderState] {
     def objectFieldName = "Encoder" // TODO is this right? do we ever see this?
 
-    def write(p: RemoteEncoderState): JsValue = ???
+    def write(e: RemoteEncoderState): JsValue = JsObject(Map(
+      "Id"             -> JsString(e.cardId.toString),
+      "HostName"       -> JsString(e.host),
+      "Local"          -> JsString(e.local.toString),
+      "Connected"      -> JsString(e.connected.toString),
+      "LowOnFreeSpace" -> JsString(e.lowFreeSpace.toString),
+      "State"          -> JsString(e.state.id.toString),
+      "SleepStatus"    -> JsString(e.sleepStatus.id.toString)
+        // TODO embedded Recording object
+    ))
 
     def read(value: JsValue): RemoteEncoderState = {
       val obj = value.asJsObject
@@ -717,7 +792,33 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
   implicit object CaptureCardJsonFormat extends MythJsonObjectFormat[CaptureCard] {
     def objectFieldName = "CaptureCard"
 
-    def write(c: CaptureCard): JsValue = ???
+    def write(c: CaptureCard): JsValue = JsObject(Map(
+      "CardId"             -> JsString(c.cardId.id.toString),
+      "VideoDevice"        -> JsString(c.videoDevice.getOrElse("")),
+      "AudioDevice"        -> JsString(c.audioDevice.getOrElse("")),
+      "VBIDevice"          -> JsString(c.vbiDevice.getOrElse("")),
+      "CardType"           -> JsString(c.cardType.getOrElse("")),
+      "AudioRateLimit"     -> JsString(c.audioRateLimit.getOrElse(0).toString),
+      "HostName"           -> JsString(c.hostName),
+      "DVBSWFilter"        -> JsString(c.dvbSwFilter.getOrElse(0).toString),
+      "DVBSatType"         -> JsString(c.dvbSatType.getOrElse(0).toString),
+      "DVBWaitForSeqStart" -> JsString(c.dvbWaitForSeqStart.toString),
+      "SkipBTAudio"        -> JsString(c.skipBtAudio.toString),
+      "DVBOnDemand"        -> JsString(c.dvbOnDemand.toString),
+      "DVBDiSEqCType"      -> JsString(c.dvbDiseqcType.getOrElse(0).toString),
+      "FirewireSpeed"      -> JsString(c.firewireSpeed.getOrElse(0).toString),
+      "FirewireModel"      -> JsString(c.firewireModel.getOrElse("")),
+      "FirewireConnection" -> JsString(c.firewireConnection.getOrElse(0).toString),
+      "SignalTimeout"      -> JsString(c.signalTimeout.toString),
+      "ChannelTimeout"     -> JsString(c.channelTimeout.toString),
+      "DVBTuningDelay"     -> JsString(c.dvbTuningDelay.toString),
+      "Contrast"           -> JsString(c.contrast.toString),
+      "Brightness"         -> JsString(c.brightness.toString),
+      "Colour"             -> JsString(c.colour.toString),
+      "Hue"                -> JsString(c.hue.toString),
+      "DiSEqCId"           -> JsString(c.diseqcId.getOrElse(0).toString),
+      "DVBEITScan"         -> JsString(c.dvbEitScan.toString)
+    ))
 
     def read(value: JsValue): CaptureCard = {
       val obj = value.asJsObject
@@ -760,7 +861,18 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
   implicit object ListingSourceJsonFormat extends MythJsonObjectFormat[ListingSource] {
     def objectFieldName = "VideoSource"
 
-    def write(s: ListingSource): JsValue = ???
+    def write(s: ListingSource): JsValue = JsObject(Map(
+      "Id"         -> JsString(s.sourceId.id.toString),
+      "SourceName" -> JsString(s.name),
+      "Grabber"    -> JsString(s.grabber.getOrElse("")),
+      "FreqTable"  -> JsString(s.freqTable),
+      "LineupId"   -> JsString(s.lineupId.getOrElse("")),
+      "UserId"     -> JsString(s.userId.getOrElse("")),
+      "Password"   -> JsString(s.password.getOrElse("")),
+      "UseEIT"     -> JsString(s.useEit.toString),
+      "ConfigPath" -> JsString(s.configPath.getOrElse("")),
+      "NITId"      -> JsString(s.dvbNitId.getOrElse(-1).toString)
+    ))
 
     def read(value: JsValue): ListingSource = {
       val obj = value.asJsObject
@@ -788,7 +900,10 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
   implicit object SettingsJsonFormat extends MythJsonObjectFormat[Settings] {
     def objectFieldName = "SettingList"
 
-    def write(s: Settings): JsValue = ???
+    def write(s: Settings): JsValue = JsObject(Map(
+      "HostName" -> JsString(s.hostName),
+      "Settings" -> JsObject(s.settings.mapValues(JsString(_)))
+    ))
 
     def read(value: JsValue): Settings = {
       val obj = value.asJsObject
@@ -810,7 +925,11 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
   implicit object TimeZoneInfoJsonFormat extends MythJsonObjectFormat[TimeZoneInfo] {
     def objectFieldName = "TimeZoneInfo"
 
-    def write(z: TimeZoneInfo): JsValue = ???
+    def write(z: TimeZoneInfo): JsValue = JsObject(Map(
+      "TimeZoneID"      -> JsString(z.tzName),
+      "UTCOffset"       -> jsonWriter[ZoneOffset].write(z.offset),
+      "CurrentDateTime" -> jsonWriter[Instant].write(z.currentTime)
+    ))
 
     def read(value: JsValue): TimeZoneInfo = {
       val obj = value.asJsObject
@@ -875,7 +994,32 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
   implicit object VideoJsonFormat extends MythJsonObjectFormat[Video] {
     def objectFieldName = "VideoMetadataInfo"
 
-    def write(v: Video): JsValue = ???
+    def write(v: Video): JsValue = JsObject(Map(
+      "Id"               -> JsString(v.id.id.toString),
+      "Title"            -> JsString(v.title),
+      "SubTitle"         -> JsString(v.subtitle),
+      "Director"         -> JsString(v.director),
+      "Tagline"          -> JsString(v.tagline.getOrElse("")),
+      "Description"      -> JsString(v.description),
+      "Inetref"          -> JsString(v.inetRef),
+      "HomePage"         -> JsString(v.homePage.getOrElse("")),
+      "Studio"           -> JsString(v.studio.getOrElse("")),
+      "Season"           -> JsString(v.season.getOrElse(0).toString),
+      "Episode"          -> JsString(v.episode.getOrElse(0).toString),
+      "Length"           -> JsString(v.length.map(_.toMinutes).getOrElse(0).toString),
+      "PlayCount"        -> JsString(v.playCount.toString),
+      "Hash"             -> JsString(v.hash.toString),
+      "Visible"          -> JsString(v.visible.toString),
+      "FileName"         -> JsString(v.fileName),
+      "ContentType"      -> JsString(v.contentType),
+      "HostName"         -> JsString(v.hostName),
+      "AddDate"          -> JsString(v.addDate.map(_.toString).getOrElse("")),
+      "Watched"          -> JsString(v.watched.toString),
+      "UserRating"       -> JsString(v.userRating.toString),
+      "Certification"    -> JsString(v.rating),
+      "Collectionref"    -> JsString(v.collectionRef.toString),
+      "ReleaseDate"      -> JsString(v.releaseDate.toString)
+    ))
 
     def read(value: JsValue): Video = {
       val obj = value.asJsObject
@@ -919,7 +1063,32 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
   implicit object VideoMultiplexJsonFormat extends MythJsonObjectFormat[VideoMultiplex] {
     def objectFieldName = "VideoMultiplex"
 
-    def write(m: VideoMultiplex): JsValue = ???
+    def write(m: VideoMultiplex): JsValue = JsObject(Map(
+      "MplexId"          -> JsString(m.mplexId.id.toString),
+      "SourceId"         -> JsString(m.sourceId.id.toString),
+      "TransportId"      -> JsString(m.transportId.toString),
+      "NetworkId"        -> JsString(m.networkId.getOrElse(0).toString),
+      "Frequency"        -> JsString(m.frequency.toString),
+      "Inversion"        -> JsString(m.inversion.toString),
+      "SymbolRate"       -> JsString(m.symbolRate.toString),
+      "FEC"              -> JsString(m.fec),
+      "Polarity"         -> JsString(m.polarity.toString),
+      "Modulation"       -> JsString(m.modulation),
+      "Bandwidth"        -> JsString(m.bandwidth.toString),
+      "LPCodeRate"       -> JsString(m.lpCodeRate),
+      "TransmissionMode" -> JsString(m.transmissionMode.toString),
+      "GuardInterval"    -> JsString(m.guardInterval),
+      "Visible"          -> JsString(m.visible.toString),
+      "Constellation"    -> JsString(m.constellation),
+      "Hierarchy"        -> JsString(m.hierarchy),
+      "HPCodeRate"       -> JsString(m.hpCodeRate),
+      "ModulationSystem" -> JsString(m.modulationSystem),
+      "RollOff"          -> JsString(m.rolloff),
+      "SIStandard"       -> JsString(m.siStandard),
+      "ServiceVersion"   -> JsString(m.serviceVersion.toString),
+      "UpdateTimeStamp"  -> jsonWriter[Instant].write(m.updateTimestamp),
+      "DefaultAuthority" -> JsString(m.defaultAuthority.getOrElse(""))
+    ))
 
     def read(value: JsValue): VideoMultiplex = {
       val obj = value.asJsObject
