@@ -19,9 +19,9 @@ private[myth] class BackendUpcomingProgram(data: Seq[String], fieldOrder: Indexe
   def subtitle: String = fields("subtitle")
   def description: String = fields("description")
   def category: String = fields("category")
-  lazy val chanId: ChanId = ChanId(fields("chanId").toInt)
-  lazy val startTime: MythDateTime = isoDateTimeField("startTime")
-  lazy val endTime: MythDateTime = isoDateTimeField("endTime")
+  def chanId: ChanId = ChanId(fields("chanId").toInt)
+  def startTime: MythDateTime = isoDateTimeField("startTime")
+  def endTime: MythDateTime = isoDateTimeField("endTime")
   def seriesId: String = fields("seriesId")
   def programId: String = fields("programId")
 }

@@ -12,12 +12,12 @@ private[myth] class BackendCardInput(data: Seq[String], fieldOrder: IndexedSeq[S
 
   /* Convenience accessors with proper type */
 
-  lazy val cardInputId: InputId = InputId(fields("cardInputId").toInt)
-  lazy val cardId: CaptureCardId = CaptureCardId(fields("cardId").toInt)
-  lazy val sourceId: ListingSourceId = ListingSourceId(fields("sourceId").toInt)
+  def cardInputId: InputId = InputId(fields("cardInputId").toInt)
+  def cardId: CaptureCardId = CaptureCardId(fields("cardId").toInt)
+  def sourceId: ListingSourceId = ListingSourceId(fields("sourceId").toInt)
   def name: String = fields("name")
-  lazy val mplexId: MultiplexId = MultiplexId(fields("mplexId").toInt)
-  lazy val liveTVorder: Int = fields("liveTVorder").toInt
+  def mplexId: MultiplexId = MultiplexId(fields("mplexId").toInt)
+  def liveTVorder: Int = fields("liveTVorder").toInt
 }
 
 private[myth] trait BackendCardInputFactory extends GenericBackendObjectFactory[BackendCardInput]

@@ -12,11 +12,11 @@ private[myth] class BackendChannel(data: Seq[String], fieldOrder: IndexedSeq[Str
 
   /* Convenience accessors with proper type */
 
-  lazy val chanId: ChanId = ChanId(fields("chanId").toInt)
+  def chanId: ChanId = ChanId(fields("chanId").toInt)
   def name: String = fields("name")
   def number: ChannelNumber = ChannelNumber(fields("number"))
   def callsign: String = fields("callsign")
-  lazy val sourceId: ListingSourceId = ListingSourceId(fields("sourceId").toInt)
+  def sourceId: ListingSourceId = ListingSourceId(fields("sourceId").toInt)
   def xmltvId: String = fields("xmltvId")
 }
 
