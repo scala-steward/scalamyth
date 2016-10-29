@@ -231,6 +231,144 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
     }
   }
 
+  implicit object RecordingJsonFormat extends MythJsonObjectFormat[Recording] {
+    def objectFieldName = "Program"
+
+    def write(p: Recording): JsValue = ???
+
+    def read(value: JsValue): Recording = {
+      val obj = value.asJsObject
+
+      val channel: RichJsonObject =  // inner object
+        if (obj.fields contains "Channel") obj.fields("Channel").asJsObject
+        else channelContext.value
+
+      val rec: RichJsonObject =      // inner object
+        if (obj.fields contains "Recording") obj.fields("Recording").asJsObject
+        else EmptyJsonObject
+
+      new Recording {
+        override def toString: String = s"<JsonRecording $chanId, $startTime: $title>"
+
+        def title                   = obj.stringField("Title")
+        def subtitle                = obj.stringField("SubTitle")
+        def description             = obj.stringField("Description")
+        def syndicatedEpisodeNumber = "" //???
+        def category                = obj.stringField("Category")
+        def chanId                  = ChanId(channel.intFieldOrElse("ChanId", 0))
+        def startTime               = obj.dateTimeField("StartTime")
+        def endTime                 = obj.dateTimeField("EndTime")
+        def seriesId                = obj.stringField("SeriesId")
+        def programId               = obj.stringField("ProgramId")
+        def stars                   = obj.doubleFieldOption("Stars", 0)
+        def originalAirDate         = obj.dateFieldOption("Airdate")
+        def audioProps              = AudioProperties(obj.intField("AudioProps"))
+        def videoProps              = VideoProperties(obj.intField("VideoProps"))
+        def subtitleType            = SubtitleType(obj.intField("SubProps"))
+        def year                    = obj.intFieldOption("Year") map Year.of  // TODO year field does not exist
+        def partNumber              = None
+        def partTotal               = None
+
+        def findId                  = 0 // ???
+        def hostname                = obj.stringField("HostName")
+        def sourceId                = ListingSourceId(channel.intFieldOrElse("SourceId", 0))
+        def cardId                  = CaptureCardId(rec.intField("EncoderId"))
+        def inputId                 = InputId(channel.intFieldOrElse("InputId", 0))
+        def recPriority             = rec.intField("Priority")
+        def recStatus               = RecStatus.applyOrUnknown(rec.intField("Status"))
+        def recordId                = RecordRuleId(rec.intField("RecordId"))
+        def recType                 = RecType.applyOrUnknown(rec.intField("RecType"))
+        def dupIn                   = DupCheckIn(rec.intField("DupInType"))
+        def dupMethod               = DupCheckMethod(rec.intField("DupMethod"))
+        def recStartTS              = rec.dateTimeField("StartTs")
+        def recEndTS                = rec.dateTimeField("EndTs")
+        def recGroup                = rec.stringField("RecGroup")
+        def storageGroup            = rec.stringField("StorageGroup")
+        def playGroup               = rec.stringField("PlayGroup")
+        def recPriority2            = 0 //???
+        def parentId                = 0 //???
+        def lastModified            = obj.dateTimeField("LastModified")
+        def chanNum                 = ChannelNumber(channel.stringFieldOrElse("ChanNum", ""))
+        def callsign                = channel.stringFieldOrElse("CallSign", "")
+        def chanName                = channel.stringFieldOrElse("ChannelName", "")
+        def programFlags            = obj.intField("ProgramFlags")
+        def outputFilters           = "" //???
+
+        def filename                = obj.stringField("FileName")
+        def filesize                = DecimalByteCount(obj.longField("FileSize"))
+        def season                  = obj.intFieldOrElse("Season", 0)
+        def episode                 = obj.intFieldOrElse("Episode", 0)
+        def inetRef                 = obj.stringField("Inetref")
+      }
+    }
+  }
+
+  implicit object RecordableJsonFormat extends MythJsonObjectFormat[Recordable] {
+    def objectFieldName = "Program"
+
+    def write(p: Recordable): JsValue = ???
+
+    def read(value: JsValue): Recordable = {
+      val obj = value.asJsObject
+
+      val channel: RichJsonObject =  // inner object
+        if (obj.fields contains "Channel") obj.fields("Channel").asJsObject
+        else channelContext.value
+
+      val rec: RichJsonObject =      // inner object
+        if (obj.fields contains "Recording") obj.fields("Recording").asJsObject
+        else EmptyJsonObject
+
+      new Recordable {
+        override def toString: String = s"<JsonRecordable $chanId, $startTime: $title>"
+
+        def title                   = obj.stringField("Title")
+        def subtitle                = obj.stringField("SubTitle")
+        def description             = obj.stringField("Description")
+        def syndicatedEpisodeNumber = ???
+        def category                = obj.stringField("Category")
+        def chanId                  = ChanId(channel.intFieldOrElse("ChanId", 0))
+        def startTime               = obj.dateTimeField("StartTime")
+        def endTime                 = obj.dateTimeField("EndTime")
+        def seriesId                = obj.stringField("SeriesId")
+        def programId               = obj.stringField("ProgramId")
+        def stars                   = obj.doubleFieldOption("Stars", 0)
+        def originalAirDate         = obj.dateFieldOption("Airdate")
+        def audioProps              = AudioProperties(obj.intField("AudioProps"))
+        def videoProps              = VideoProperties(obj.intField("VideoProps"))
+        def subtitleType            = SubtitleType(obj.intField("SubProps"))
+        def year                    = obj.intFieldOption("Year") map Year.of  // TODO year field does not exist
+        def partNumber              = None
+        def partTotal               = None
+
+        def findId                  = ???
+        def hostname                = obj.stringField("HostName")
+        def sourceId                = ListingSourceId(channel.intFieldOrElse("SourceId", 0))
+        def cardId                  = CaptureCardId(rec.intField("EncoderId"))
+        def inputId                 = InputId(channel.intFieldOrElse("InputId", 0))
+        def recPriority             = rec.intField("Priority")
+        def recStatus               = RecStatus.applyOrUnknown(rec.intField("Status"))
+        def recordId                = RecordRuleId(rec.intField("RecordId"))
+        def recType                 = RecType.applyOrUnknown(rec.intField("RecType"))
+        def dupIn                   = DupCheckIn(rec.intField("DupInType"))
+        def dupMethod               = DupCheckMethod(rec.intField("DupMethod"))
+        def recStartTS              = rec.dateTimeField("StartTs")
+        def recEndTS                = rec.dateTimeField("EndTs")
+        def recGroup                = rec.stringField("RecGroup")
+        def storageGroup            = rec.stringField("StorageGroup")
+        def playGroup               = rec.stringField("PlayGroup")
+        def recPriority2            = ???
+        def parentId                = ???
+        def lastModified            = obj.dateTimeField("LastModified")
+        def chanNum                 = ChannelNumber(channel.stringFieldOrElse("ChanNum", ""))
+        def callsign                = channel.stringFieldOrElse("CallSign", "")
+        def chanName                = channel.stringFieldOrElse("ChannelName", "")
+        def programFlags            = obj.intField("ProgramFlags")
+        def outputFilters           = ???
+      }
+    }
+  }
+
   implicit object ProgramJsonFormat extends MythJsonObjectFormat[Program] {
     def objectFieldName = "Program"
 
@@ -306,109 +444,9 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
 
       // Return a Recording if there is a non-empty recording start time AND a non-empty filename
       if (rec.stringFieldOption("StartTs", "").nonEmpty) {
-        if (obj.stringFieldOption("FileName", "").nonEmpty) {
-          new Recording {
-            override def toString: String = s"<JsonRecording $chanId, $startTime: $title>"
-
-            def title                   = obj.stringField("Title")
-            def subtitle                = obj.stringField("SubTitle")
-            def description             = obj.stringField("Description")
-            def syndicatedEpisodeNumber = "" //???
-            def category                = obj.stringField("Category")
-            def chanId                  = ChanId(channel.intFieldOrElse("ChanId", 0))
-            def startTime               = obj.dateTimeField("StartTime")
-            def endTime                 = obj.dateTimeField("EndTime")
-            def seriesId                = obj.stringField("SeriesId")
-            def programId               = obj.stringField("ProgramId")
-            def stars                   = obj.doubleFieldOption("Stars", 0)
-            def originalAirDate         = obj.dateFieldOption("Airdate")
-            def audioProps              = AudioProperties(obj.intField("AudioProps"))
-            def videoProps              = VideoProperties(obj.intField("VideoProps"))
-            def subtitleType            = SubtitleType(obj.intField("SubProps"))
-            def year                    = obj.intFieldOption("Year") map Year.of  // TODO year field does not exist
-            def partNumber              = None
-            def partTotal               = None
-
-            def findId                  = 0 // ???
-            def hostname                = obj.stringField("HostName")
-            def sourceId                = ListingSourceId(channel.intFieldOrElse("SourceId", 0))
-            def cardId                  = CaptureCardId(rec.intField("EncoderId"))
-            def inputId                 = InputId(channel.intFieldOrElse("InputId", 0))
-            def recPriority             = rec.intField("Priority")
-            def recStatus               = RecStatus.applyOrUnknown(rec.intField("Status"))
-            def recordId                = RecordRuleId(rec.intField("RecordId"))
-            def recType                 = RecType.applyOrUnknown(rec.intField("RecType"))
-            def dupIn                   = DupCheckIn(rec.intField("DupInType"))
-            def dupMethod               = DupCheckMethod(rec.intField("DupMethod"))
-            def recStartTS              = rec.dateTimeField("StartTs")
-            def recEndTS                = rec.dateTimeField("EndTs")
-            def recGroup                = rec.stringField("RecGroup")
-            def storageGroup            = rec.stringField("StorageGroup")
-            def playGroup               = rec.stringField("PlayGroup")
-            def recPriority2            = 0 //???
-            def parentId                = 0 //???
-            def lastModified            = obj.dateTimeField("LastModified")
-            def chanNum                 = ChannelNumber(channel.stringFieldOrElse("ChanNum", ""))
-            def callsign                = channel.stringFieldOrElse("CallSign", "")
-            def chanName                = channel.stringFieldOrElse("ChannelName", "")
-            def programFlags            = obj.intField("ProgramFlags")
-            def outputFilters           = "" //???
-
-            def filename                = obj.stringField("FileName")
-            def filesize                = DecimalByteCount(obj.longField("FileSize"))
-            def season                  = obj.intFieldOrElse("Season", 0)
-            def episode                 = obj.intFieldOrElse("Episode", 0)
-            def inetRef                 = obj.stringField("Inetref")
-          }
-        }
         // Generate a Recordable if we have a recording StartTS but not FileName
-        else new Recordable {
-            override def toString: String = s"<JsonRecordable $chanId, $startTime: $title>"
-
-            def title                   = obj.stringField("Title")
-            def subtitle                = obj.stringField("SubTitle")
-            def description             = obj.stringField("Description")
-            def syndicatedEpisodeNumber = ???
-            def category                = obj.stringField("Category")
-            def chanId                  = ChanId(channel.intFieldOrElse("ChanId", 0))
-            def startTime               = obj.dateTimeField("StartTime")
-            def endTime                 = obj.dateTimeField("EndTime")
-            def seriesId                = obj.stringField("SeriesId")
-            def programId               = obj.stringField("ProgramId")
-            def stars                   = obj.doubleFieldOption("Stars", 0)
-            def originalAirDate         = obj.dateFieldOption("Airdate")
-            def audioProps              = AudioProperties(obj.intField("AudioProps"))
-            def videoProps              = VideoProperties(obj.intField("VideoProps"))
-            def subtitleType            = SubtitleType(obj.intField("SubProps"))
-            def year                    = obj.intFieldOption("Year") map Year.of  // TODO year field does not exist
-            def partNumber              = None
-            def partTotal               = None
-
-            def findId                  = ???
-            def hostname                = obj.stringField("HostName")
-            def sourceId                = ListingSourceId(channel.intFieldOrElse("SourceId", 0))
-            def cardId                  = CaptureCardId(rec.intField("EncoderId"))
-            def inputId                 = InputId(channel.intFieldOrElse("InputId", 0))
-            def recPriority             = rec.intField("Priority")
-            def recStatus               = RecStatus.applyOrUnknown(rec.intField("Status"))
-            def recordId                = RecordRuleId(rec.intField("RecordId"))
-            def recType                 = RecType.applyOrUnknown(rec.intField("RecType"))
-            def dupIn                   = DupCheckIn(rec.intField("DupInType"))
-            def dupMethod               = DupCheckMethod(rec.intField("DupMethod"))
-            def recStartTS              = rec.dateTimeField("StartTs")
-            def recEndTS                = rec.dateTimeField("EndTs")
-            def recGroup                = rec.stringField("RecGroup")
-            def storageGroup            = rec.stringField("StorageGroup")
-            def playGroup               = rec.stringField("PlayGroup")
-            def recPriority2            = ???
-            def parentId                = ???
-            def lastModified            = obj.dateTimeField("LastModified")
-            def chanNum                 = ChannelNumber(channel.stringFieldOrElse("ChanNum", ""))
-            def callsign                = channel.stringFieldOrElse("CallSign", "")
-            def chanName                = channel.stringFieldOrElse("ChannelName", "")
-            def programFlags            = obj.intField("ProgramFlags")
-            def outputFilters           = ???
-        }
+        if (obj.stringFieldOption("FileName", "").nonEmpty) RecordingJsonFormat.read(value)
+        else                                                RecordableJsonFormat.read(value)
         // Recordable/Recording fields missing
         // findId
         // recpriority2
@@ -479,6 +517,18 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
     def objectFieldName = "ProgramList"
     def listFieldName = "Programs"
     def convertElement(value: JsValue): Program = value.convertTo[Program]
+  }
+
+  implicit object PagedRecordableListJsonFormat extends MythJsonPagedObjectListFormat[Recordable] {
+    def objectFieldName = "ProgramList"
+    def listFieldName = "Programs"
+    def convertElement(value: JsValue): Recordable = value.convertTo[Recordable]
+  }
+
+  implicit object PagedRecordingListJsonFormat extends MythJsonPagedObjectListFormat[Recording] {
+    def objectFieldName = "ProgramList"
+    def listFieldName = "Programs"
+    def convertElement(value: JsValue): Recording = value.convertTo[Recording]
   }
 
   // used for reading Guide

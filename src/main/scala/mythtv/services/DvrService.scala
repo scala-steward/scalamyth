@@ -1,35 +1,35 @@
 package mythtv
 package services
 
-import model.{ ChanId, Program, RecordRule, RecordRuleId, RemoteEncoderState, TitleInfo }
+import model.{ ChanId, Recordable, Recording, RecordRule, RecordRuleId, RemoteEncoderState, TitleInfo }
 import util.{ MythDateTime, OptionalCount }
 
 trait DvrService extends BackendService {
   def serviceName: String = "Dvr"
 
-  def getRecorded(chanId: ChanId, startTime: MythDateTime): Program
+  def getRecorded(chanId: ChanId, startTime: MythDateTime): Recording
 
   def getRecordedList(
     startIndex: Int = 0,
     count: OptionalCount[Int] = OptionalCount.all,
     descending: Boolean = false
-  ): PagedList[Program]
+  ): PagedList[Recording]
 
   def getExpiringList(
     startIndex: Int = 0,
     count: OptionalCount[Int] = OptionalCount.all
-  ): PagedList[Program]
+  ): PagedList[Recording]
 
   def getUpcomingList(
     startIndex: Int = 0,
     count: OptionalCount[Int] = OptionalCount.all,
     showAll: Boolean = false
-  ): PagedList[Program]
+  ): PagedList[Recordable]
 
   def getConflictList(
     startIndex: Int = 0,
     count: OptionalCount[Int] = OptionalCount.all
-  ): PagedList[Program]
+  ): PagedList[Recordable]
 
   def getEncoderList: List[RemoteEncoderState]
 

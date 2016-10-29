@@ -107,41 +107,41 @@ class JsonDvrService(conn: BackendJSONConnection)
   extends JsonService(conn)
      with DvrService {
   // TODO catch when we get bogus data back and don't return an object?
-  def getRecorded(chanId: ChanId, startTime: MythDateTime): Program = {
+  def getRecorded(chanId: ChanId, startTime: MythDateTime): Recording = {
     val params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
     val response = request("GetRecorded", params)
     val root = responseRoot(response, "Program")
-    root.convertTo[Program]
+    root.convertTo[Recording]
   }
 
-  def getRecordedList(startIndex: Int, count: OptionalCount[Int], descending: Boolean): PagedList[Program] = {
+  def getRecordedList(startIndex: Int, count: OptionalCount[Int], descending: Boolean): PagedList[Recording] = {
     var params = buildStartCountParams(startIndex, count)
     if (descending) params += "Descending" -> descending
     val response = request("GetRecordedList", params)
     val root = responseRoot(response, "ProgramList")
-    root.convertTo[MythJsonPagedObjectList[Program]]
+    root.convertTo[MythJsonPagedObjectList[Recording]]
   }
 
-  def getExpiringList(startIndex: Int, count: OptionalCount[Int]): PagedList[Program] = {
+  def getExpiringList(startIndex: Int, count: OptionalCount[Int]): PagedList[Recording] = {
     val params = buildStartCountParams(startIndex, count)
     val response = request("GetExpiringList", params)
     val root = responseRoot(response, "ProgramList")
-    root.convertTo[MythJsonPagedObjectList[Program]]
+    root.convertTo[MythJsonPagedObjectList[Recording]]
   }
 
-  def getUpcomingList(startIndex: Int, count: OptionalCount[Int], showAll: Boolean): PagedList[Program] = {
+  def getUpcomingList(startIndex: Int, count: OptionalCount[Int], showAll: Boolean): PagedList[Recordable] = {
     var params = buildStartCountParams(startIndex, count)
     if (showAll) params += "ShowAll" -> showAll
     val response = request("GetUpcomingList", params)
     val root = responseRoot(response, "ProgramList")
-    root.convertTo[MythJsonPagedObjectList[Program]]
+    root.convertTo[MythJsonPagedObjectList[Recordable]]
   }
 
-  def getConflictList(startIndex: Int, count: OptionalCount[Int]): PagedList[Program] = {
+  def getConflictList(startIndex: Int, count: OptionalCount[Int]): PagedList[Recordable] = {
     var params = buildStartCountParams(startIndex, count)
     val response = request("GetConflictList", params)
     val root = responseRoot(response, "ProgramList")
-    root.convertTo[MythJsonPagedObjectList[Program]]
+    root.convertTo[MythJsonPagedObjectList[Recordable]]
   }
 
   def getEncoderList: List[RemoteEncoderState] = {
