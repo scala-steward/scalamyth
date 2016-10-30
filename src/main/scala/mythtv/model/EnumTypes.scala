@@ -6,6 +6,7 @@ object EnumTypes {
   type CategoryType = model.CategoryType.Value
   type ChannelBrowseDirection = model.ChannelBrowseDirection.Value
   type ChannelChangeDirection = model.ChannelChangeDirection.Value
+  type ChannelCommDetectMethod = model.ChannelCommDetectMethod.Value
   type DupCheckIn = model.DupCheckIn.Base
   type DupCheckMethod = model.DupCheckMethod.Base
   type JobFlags = model.JobFlags.Base

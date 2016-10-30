@@ -3,6 +3,8 @@ package model
 
 import java.time.Instant
 
+import EnumTypes.ChannelCommDetectMethod
+
 final case class ChanId(id: Int) extends AnyVal
 
 object ChanId {
@@ -57,7 +59,7 @@ trait Channel {
 
 trait ChannelDetails extends Channel {
   def freqId: Option[String]
-  def iconPath: String  // TODO is this a URL or file path (or could be either!)
+  def iconPath: String        // TODO is this a URL or file path (or could be either!)
   def fineTune: Option[Int]   // TODO what is this?
   /* TODO does videofilters field map anywhere? */
   def xmltvId: String
@@ -74,12 +76,14 @@ trait ChannelDetails extends Channel {
   def atscMinorChan: Option[Int]      //     "       "  "   "
   /* TODO last_record? */
   def defaultAuthority: Option[String]  // TODO what is this?
-  /* TODO does db commmethod map to commfree ? */
+  def commMethod: ChannelCommDetectMethod
   /* iptvid? */
-  /* Results not in DB: ??
-       ChanFilters, CommFree, Frequency, FrequencyTable, Modulation, NetworkId, SIStandard, TransportId
-       some of this data may come from dtv_multiple or channelscan_dtv_multiplex table?
+  /* Results not in DB?
+       Frequency, FrequencyTable, Modulation, NetworkId, SIStandard, TransportId
+       This data may all come from dtv_multiplex table?
    */
+
+  def isCommercialFree: Boolean = commMethod == ChannelCommDetectMethod.CommFree
 }
 
 final case class ListingSourceId(id: Int) extends AnyVal

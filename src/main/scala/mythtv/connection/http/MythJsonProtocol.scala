@@ -560,7 +560,8 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
       "ServiceId"        -> JsString(c.serviceId.getOrElse(0).toString),
       "ATSCMajorChan"    -> JsString(c.atscMajorChan.getOrElse(0).toString),
       "ATSCMinorChan"    -> JsString(c.atscMinorChan.getOrElse(0).toString),
-      "DefaultAuthority" -> JsString(c.defaultAuthority.getOrElse(""))
+      "DefaultAuthority" -> JsString(c.defaultAuthority.getOrElse("")),
+      "CommFree"         -> JsString(if (c.isCommercialFree) "1" else "0'")
     ))
 
     def read(value: JsValue): ChannelDetails = {
@@ -584,6 +585,8 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         def atscMajorChan    = obj.intFieldOption("ATSCMajorChan", 0)
         def atscMinorChan    = obj.intFieldOption("ATSCMinorChan", 0)
         def defaultAuthority = obj.stringFieldOption("DefaultAuth", "")
+        def commMethod       = if (obj.intFieldOrElse("CommFree", 0) != 0) ChannelCommDetectMethod.CommFree
+                               else ChannelCommDetectMethod.Uninitialized
       }
     }
   }
