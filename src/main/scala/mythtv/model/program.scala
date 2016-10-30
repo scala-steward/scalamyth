@@ -62,7 +62,7 @@ trait UpcomingProgram {
 
 trait Recordable extends Program {
   def findId: Int
-  def hostname: String           // TODO why is this in Recordable vs Recording? Services API only has data here for recordings
+  def hostname: String
   def sourceId: ListingSourceId
   def cardId: CaptureCardId
   def inputId: InputId
@@ -77,14 +77,14 @@ trait Recordable extends Program {
   def recGroup: String
   def storageGroup: String
   def playGroup: String
-  def recPriority2: Int
+  def lastModified: MythDateTime
+  def chanNum: ChannelNumber
+  def callsign: String
+  def chanName: String
+  def outputFilters: String
 
-  def parentId: Int                // TODO what is? move to recordable?
-  def lastModified: MythDateTime   // TODO what is? move to recordable?
-  def chanNum: ChannelNumber       // TODO only in backend program, services recording Channel
-  def callsign: String             // TODO only in backend program, services recording Channel
-  def chanName: String             // TODO only in backend program, services recording Channel
-  def outputFilters: String        // TODO what is? move to recordable?
+  def recPriority2: Int            // TODO only surfaced by MythProtocol? Is it useful to be here?
+  def parentId: Int                // TODO what is this? the parent RecordRuleId?
 }
 
 trait Recording extends Recordable {

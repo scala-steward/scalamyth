@@ -311,7 +311,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         def chanNum                 = ChannelNumber(channel.stringFieldOrElse("ChanNum", ""))
         def callsign                = channel.stringFieldOrElse("CallSign", "")
         def chanName                = channel.stringFieldOrElse("ChannelName", "")
-        def outputFilters           = "" //???
+        def outputFilters           = channel.stringFieldOrElse("ChanFilters", "")
 
         def filename                = obj.stringField("FileName")
         def filesize                = DecimalByteCount(obj.longField("FileSize"))
@@ -409,7 +409,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         def chanNum                 = ChannelNumber(channel.stringFieldOrElse("ChanNum", ""))
         def callsign                = channel.stringFieldOrElse("CallSign", "")
         def chanName                = channel.stringFieldOrElse("ChannelName", "")
-        def outputFilters           = ???
+        def outputFilters           = channel.stringFieldOrElse("ChanFilters", "")
       }
     }
   }
@@ -477,7 +477,6 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         // findId
         // recpriority2
         // parentId
-        // outputFilters
       }
       else new Program {
         override def toString: String = s"<JsonProgram $chanId, $startTime: $title>"
@@ -578,6 +577,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         def xmltvId          = obj.stringField("XMLTVID")
         def format           = obj.stringField("Format")
         def visible          = obj.booleanField("Visible")
+        def outputFilters    = obj.stringFieldOption("ChanFilters", "")
         def useOnAirGuide    = obj.booleanField("UseEIT")
         def mplexId          = obj.intFieldOption("MplexId", 0) map MultiplexId
         def serviceId        = obj.intFieldOption("ServiceId", 0)

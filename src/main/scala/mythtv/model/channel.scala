@@ -65,7 +65,7 @@ trait ChannelDetails extends Channel {
   // also contrast, brightness, colour, hue
   def format: String   // sometimes set to "" even when database entry disagrees (e.g. in return from GetRecorded...)
   def visible: Boolean
-  /* TODO does outputfilters field map anywhere? */
+  def outputFilters: Option[String]
   def useOnAirGuide: Boolean  // TODO is this really nullable as database schema indicates?
   def mplexId: Option[MultiplexId]
   def serviceId: Option[Int]  // TODO what is this?
