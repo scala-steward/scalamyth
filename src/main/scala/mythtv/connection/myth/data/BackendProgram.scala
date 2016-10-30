@@ -55,7 +55,7 @@ private[myth] class BackendProgram(data: Seq[String], fieldOrder: IndexedSeq[Str
   def recEndTS: MythDateTime = timestampField("recEndTS")
   def programFlags: ProgramFlags = ProgramFlags(fields("programFlags").toInt)
   def recGroup: String = fields("recGroup")
-  def outputFilters: String = fields("outputFilters")  // TODO what type is this really?
+  def outputFilters: String = fields("outputFilters")
   def seriesId: String = fields("seriesId")
   def programId: String = fields("programId")
   def inetRef: String = fields("inetRef")
@@ -79,8 +79,6 @@ private[myth] trait ProgramOtherSerializer extends BackendTypeSerializer[Recordi
 
 private[myth] object BackendProgram extends BackendProgramFactory with ProgramOtherSerializer {
   final val FIELD_ORDER = IndexedSeq(
-    // TODO should this be a tuple or array or other such constant?
-    //      Looks like a Vector wrapped around an array in bytecode
     "title",      "subtitle",        "description",  "season",       "episode",    "syndicatedEpisodeNumber",
     "category",   "chanId",          "chanNum",      "callsign",     "chanName",   "filename",
     "filesize",   "startTime",       "endTime",      "findId",       "hostname",   "sourceId",
