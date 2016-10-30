@@ -37,6 +37,8 @@ trait Video {
   def releaseDate: LocalDate
   // TODO various artworks   These are common to many elements, no?  What should a "HasArtwork" (or may have artwork, really...) trait be called?
 
+  def artworkInfo: List[ArtworkInfo]  // TODO probably belongs in a different, HasArtworkInfo (?) trait
+
   def combinedTitle: String = combinedTitle(": ")
   def combinedTitle(sep: String): String =
     if (subtitle.nonEmpty) title + sep + subtitle

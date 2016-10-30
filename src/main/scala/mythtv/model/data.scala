@@ -41,6 +41,13 @@ trait Settings {
   override def toString: String = s"<Settings for $hostName (${settings.size})>"
 }
 
+trait ArtworkInfo {
+  def url: String
+  def fileName: String
+  def storageGroup: String
+  def artworkType: String
+}
+
 trait TimeZoneInfo {
   def tzName: String
   def offset: ZoneOffset

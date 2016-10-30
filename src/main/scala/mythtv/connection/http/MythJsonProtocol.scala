@@ -14,7 +14,7 @@ import services.PagedList
 import model.EnumTypes._
 import model._
 
-// TODO use applyOrUnknown on enum types in here
+// TODO artwork info on recordings?
 
 /* ----------------------------------------------------------------- */
 
@@ -944,6 +944,34 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
     }
   }
 
+  implicit object ArtworkInfoJsonFormat extends MythJsonObjectFormat[ArtworkInfo] {
+    def objectFieldName = "ArtworkInfo"
+
+    def write(a: ArtworkInfo): JsValue = JsObject(Map(
+      "URL"          -> JsString(a.url),
+      "FileName"     -> JsString(a.fileName),
+      "StorageGroup" -> JsString(a.storageGroup),
+      "Type"         -> JsString(a.artworkType)
+    ))
+
+    def read(value: JsValue): ArtworkInfo = {
+      val obj = value.asJsObject
+      new ArtworkInfo {
+        def url          = obj.stringField("URL")
+        def fileName     = obj.stringField("FileName")
+        def storageGroup = obj.stringField("StorageGroup")
+        def artworkType  = obj.stringField("Type")
+      }
+    }
+  }
+
+  implicit object ArtworkInfoListJsonFormat extends MythJsonListFormat[ArtworkInfo] {
+    def objectFieldName = "Artwork"
+    def listFieldName = "ArtworkInfos"
+    def convertElement(value: JsValue): ArtworkInfo = value.convertTo[ArtworkInfo]
+    def elementToJson(elem: ArtworkInfo): JsValue = jsonWriter[ArtworkInfo].write(elem)
+  }
+
   implicit object ChannelGuideJsonFormat extends MythJsonObjectFormat[(Channel, Seq[Program])] {
     def objectFieldName = "ChannelInfo"
 
@@ -1050,9 +1078,11 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         def watched         = obj.booleanField("Watched")
         def userRating      = obj.doubleField("UserRating")
         def rating          = obj.stringField("Certification")
-        def collectionRef   = obj.intField("Collectionref")
-        // TODO release data may not always be in strict ISO format, see VideoId(12)
+        def collectionRef   = obj.intField("Collectionref")  // TODO -1 used as default placeholder?
+        // TODO release data may not always be in strict ISO format, see VideoId(1) or VideoId(12)
         def releaseDate     = obj.dateTimeField("ReleaseDate").toLocalDateTime().toLocalDate
+
+        def artworkInfo     = obj.fields("Artwork").convertTo[List[ArtworkInfo]]
       }
     }
   }
