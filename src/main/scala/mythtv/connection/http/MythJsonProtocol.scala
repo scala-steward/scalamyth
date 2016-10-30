@@ -555,6 +555,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
       "XMLTVID"          -> JsString(c.xmltvId),
       "Format"           -> JsString(c.format),
       "Visible"          -> JsString(c.visible.toString),
+      "ChanFilters"      -> JsString(c.outputFilters.getOrElse("")),
       "UseEIT"           -> JsString(c.useOnAirGuide.toString),
       "MplexId"          -> JsString(c.mplexId.map(_.id).getOrElse(0).toString),
       "ServiceId"        -> JsString(c.serviceId.getOrElse(0).toString),
