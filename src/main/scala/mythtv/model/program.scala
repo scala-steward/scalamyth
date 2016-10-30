@@ -22,6 +22,7 @@ trait Program {
   def description: String
   def syndicatedEpisodeNumber: String
   def category: String
+  def categoryType: Option[CategoryType]   // only really seems to be populated in program guide stuff
   def chanId: ChanId
   def startTime: MythDateTime
   def endTime: MythDateTime

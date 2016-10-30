@@ -128,6 +128,15 @@ object SubtitleType extends BitmaskEnum[Int] {
   val Signed   = Value(0x08)
 }
 
+object CategoryType extends LooseEnum {
+  type CategoryType = Value
+  val None     = Value(0)
+  val Movie    = Value(1, "movie")
+  val Series   = Value(2, "series")
+  val Sports   = Value(3, "sports")
+  val TvShow   = Value(4, "tvshow")
+}
+
 object ProgramFlags extends BitmaskEnum[Int] {
   type ProgramFlags = Base
   val None           =  Mask(0x00000000)

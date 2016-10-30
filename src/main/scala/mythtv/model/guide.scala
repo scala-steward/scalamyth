@@ -30,7 +30,7 @@ trait ProgramGuideEntry extends Program {
   */
 
   def titlePronounce: String  // TODO what is this?
-  def categoryType: String
+//  def categoryType: String
   def previouslyShown: Boolean
   def showType: String
   def colorCode: String

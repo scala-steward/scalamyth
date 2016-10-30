@@ -31,6 +31,7 @@ private[myth] class BackendProgram(data: Seq[String], fieldOrder: IndexedSeq[Str
   def episode: Int = fields("episode").toInt
   def syndicatedEpisodeNumber: String = fields("syndicatedEpisodeNumber")
   def category: String = fields("category")
+  def categoryType: Option[CategoryType] = None        // not included in myth protocol serialization
   def chanId: ChanId = ChanId(fields("chanId").toInt)
   def chanNum: ChannelNumber = ChannelNumber(fields("chanNum"))
   def callsign: String = fields("callsign")

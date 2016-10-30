@@ -3,6 +3,7 @@ package model
 
 object EnumTypes {
   type AudioProperties = model.AudioProperties.Base
+  type CategoryType = model.CategoryType.Value
   type ChannelBrowseDirection = model.ChannelBrowseDirection.Value
   type ChannelChangeDirection = model.ChannelChangeDirection.Value
   type DupCheckIn = model.DupCheckIn.Base

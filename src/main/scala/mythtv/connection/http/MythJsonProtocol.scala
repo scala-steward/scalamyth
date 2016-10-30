@@ -273,6 +273,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         def description             = obj.stringField("Description")
         def syndicatedEpisodeNumber = "" //???
         def category                = obj.stringField("Category")
+        def categoryType            = obj.stringFieldOption("CatType", "") map CategoryType.withName
         def chanId                  = ChanId(channel.intFieldOrElse("ChanId", 0))
         def startTime               = obj.dateTimeField("StartTime")
         def endTime                 = obj.dateTimeField("EndTime")
@@ -370,6 +371,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         def description             = obj.stringField("Description")
         def syndicatedEpisodeNumber = ???
         def category                = obj.stringField("Category")
+        def categoryType            = obj.stringFieldOption("CatType", "") map CategoryType.withName
         def chanId                  = ChanId(channel.intFieldOrElse("ChanId", 0))
         def startTime               = obj.dateTimeField("StartTime")
         def endTime                 = obj.dateTimeField("EndTime")
@@ -419,11 +421,11 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
       // TODO nested Channel object
       // TODO nested Recording object
       // TODO nested Artwork object
-      // TODO CatType field?
       "Title"        -> JsString(p.title),
       "SubTitle"     -> JsString(p.subtitle),
       "Description"  -> JsString(p.description),
       "Category"     -> JsString(p.category),
+      "CatType"      -> JsString(p.categoryType.map(_.toString).getOrElse("")),
       "StartTime"    -> JsString(p.startTime.toString),
       "EndTime"      -> JsString(p.endTime.toString),
       "SeriesId"     -> JsString(p.seriesId),
@@ -485,6 +487,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         def description             = obj.stringField("Description")
         def syndicatedEpisodeNumber = ???
         def category                = obj.stringField("Category")
+        def categoryType            = obj.stringFieldOption("CatType", "") map CategoryType.withName
         def chanId                  = ChanId(channel.intFieldOrElse("ChanId", 0))
         def startTime               = obj.dateTimeField("StartTime")
         def endTime                 = obj.dateTimeField("EndTime")
