@@ -43,6 +43,7 @@ private[http] trait BaseMythJsonListFormat[T] {
   def listFieldName: String
 
   def convertElement(value: JsValue): T
+  def elementToJson(elem: T): JsValue
 
   def readItems(obj: JsObject): List[T] = {
     if (!(obj.fields contains listFieldName))
@@ -57,7 +58,9 @@ private[http] trait BaseMythJsonListFormat[T] {
 }
 
 private[http] trait MythJsonListFormat[T] extends BaseMythJsonListFormat[T] with MythJsonObjectFormat[List[T]] {
-  def write(obj: List[T]): JsValue = ???
+  def write(list: List[T]): JsValue = JsObject(Map(
+    listFieldName -> JsArray(list.map(elementToJson).toVector)
+  ))
 
   def read(value: JsValue): List[T] = {
     val obj = value.asJsObject
@@ -205,6 +208,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
     def objectFieldName = ""
     def listFieldName = "StringList"
     def convertElement(value: JsValue) = value.convertTo[String]
+    def elementToJson(elem: String): JsValue = jsonWriter[String].write(elem)
   }
 
   implicit object ZoneOffsetJsonFormat extends MythJsonObjectFormat[ZoneOffset] {
@@ -236,7 +240,19 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
   implicit object RecordingJsonFormat extends MythJsonObjectFormat[Recording] {
     def objectFieldName = "Program"
 
-    def write(p: Recording): JsValue = ???
+    def write(r: Recording): JsValue = {
+      val rmap: Map[String, JsValue] = RecordableJsonFormat.write(r) match {
+        case JsObject(fields) => fields
+        case _ => Map.empty  // TODO should probably throw an exception here
+      }
+      JsObject(rmap ++ Map(
+        "FileName" -> JsString(r.filename),
+        "FileSize" -> JsString(r.filesize.bytes.toString),
+        "Season"   -> JsString(r.season.toString),
+        "Episode"  -> JsString(r.episode.toString),
+        "Inetref"  -> JsString(r.inetRef)
+      ))
+    }
 
     def read(value: JsValue): Recording = {
       val obj = value.asJsObject
@@ -308,7 +324,32 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
   implicit object RecordableJsonFormat extends MythJsonObjectFormat[Recordable] {
     def objectFieldName = "Program"
 
-    def write(p: Recordable): JsValue = ???
+    def write(r: Recordable): JsValue = {
+      val pmap: Map[String, JsValue] = ProgramJsonFormat.write(r) match {
+        case JsObject(fields) => fields
+        case _ => Map.empty  // TODO should probably throw an exception here
+      }
+      JsObject(pmap ++ Map(
+        // TODO inner Channel object overrides: SourceId, InputId, ChanNum, CallSign, ChannelName
+        "HostName"     -> JsString(r.hostname),
+        "LastModified" -> JsString(r.lastModified.toString),
+        "Recording"    -> JsObject(Map(
+          "EncoderId"    -> JsString(r.cardId.id.toString),
+          "Priority"     -> JsString(r.recPriority.toString),
+          "Status"       -> JsString(r.recStatus.id.toString),
+          "RecordId"     -> JsString(r.recordId.id.toString),
+          "RecType"      -> JsString(r.recType.id.toString),
+          "DupInType"    -> JsString(r.dupIn.id.toString),
+          "DupMethod"    -> JsString(r.dupMethod.id.toString),
+          "StartTs"      -> JsString(r.recStartTS.toString),
+          "EndTs"        -> JsString(r.recEndTS.toString),
+          "RecGroup"     -> JsString(r.recGroup),
+          "PlayGroup"    -> JsString(r.playGroup),
+          "StorageGroup" -> JsString(r.storageGroup),
+          "Profile"      -> JsString("Default")  // TODO not in Recordable/Recording
+        ))
+      ))
+    }
 
     def read(value: JsValue): Recordable = {
       val obj = value.asJsObject
@@ -374,40 +415,37 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
   implicit object ProgramJsonFormat extends MythJsonObjectFormat[Program] {
     def objectFieldName = "Program"
 
-    def write(p: Program): JsValue = ???
+    def write(p: Program): JsValue = JsObject(Map(
+      // TODO nested Channel object
+      // TODO nested Recording object
+      // TODO nested Artwork object
+      // TODO CatType field?
+      "Title"        -> JsString(p.title),
+      "SubTitle"     -> JsString(p.subtitle),
+      "Description"  -> JsString(p.description),
+      "Category"     -> JsString(p.category),
+      "StartTime"    -> JsString(p.startTime.toString),
+      "EndTime"      -> JsString(p.endTime.toString),
+      "SeriesId"     -> JsString(p.seriesId),
+      "ProgramId"    -> JsString(p.programId),
+      "Stars"        -> JsString(p.stars.getOrElse(0).toString),
+      "Airdate"      -> JsString(p.originalAirDate.map(_.toString).getOrElse("")),
+      "AudioProps"   -> JsString(p.audioProps.id.toString),
+      "VideoProps"   -> JsString(p.videoProps.id.toString),
+      "SubProps"     -> JsString(p.subtitleType.id.toString),
+      "ProgramFlags" -> JsString(p.programFlags.id.toString),
+      "Repeat"       -> JsString(p.isRepeat.toString),
+      "FileSize"     -> JsString("0"),   // does not exist in Program
+      "FileName"     -> JsString(""),    // does not exist in Program
+      "HostName"     -> JsString(""),    // does not exist in Program
+      "LastModified" -> JsString(""),    // does not exist in Program
+      "Inetref"      -> JsString(""),    // does not exist in Program
+      "Season"       -> JsString("0"),   // does not exist in Program
+      "Episode"      -> JsString("0")    // does not exist in Program
+    ))
 
     def read(value: JsValue): Program = {
       val obj = value.asJsObject
-
-      /* Channel =
-       "ATSCMajorChan":  "0",
-       "ATSCMinorChan":  "0",
-       "CallSign":       "KPBS-HD",
-       "ChanFilters":    "",
-       "ChanId":         "1151",
-       "ChanNum":        "15-1",
-       "ChannelName":    "KPBSDT (KPBS-DT)",
-       "CommFree":       "0",
-       "DefaultAuth":    "",
-       "FineTune":       "0",
-       "Format":         "",
-       "Frequency":      "0",
-       "FrequencyId":    "",
-       "FrequencyTable": "",
-       "IconURL":        "/Guide/GetChannelIcon?ChanId=1151",
-       "InputId":        "0",
-       "Modulation":     "",
-       "MplexId":        "0",
-       "NetworkId":      "0",
-       "Programs":       [],
-       "SIStandard":     "",
-       "ServiceId":      "0",
-       "SourceId":       "0",
-       "TransportId":    "0",
-       "UseEIT":         "false",
-       "Visible":        "true",
-       "XMLTVID":        ""
-       */
 
       // We probably don't care too much about this other than
       // snagging the chanId; maybe callsign, channum, channame
@@ -424,22 +462,6 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
             "ArtworkInfos": []
          */
       }
-
-      /* Recording=
-       "DupInType":    "15",
-       "DupMethod":    "6",
-       "EncoderId":    "0",
-       "EndTs":        "2016-09-26T13:00:00Z",
-       "PlayGroup":    "Default",
-       "Priority":     "0",
-       "Profile":      "Default",
-       "RecGroup":     "Cooking",
-       "RecType":      "0",
-       "RecordId":     "562",
-       "StartTs":      "2016-09-26T12:30:00Z",
-       "Status":       "-3",
-       "StorageGroup": "Default"
-       */
 
       // TODO Year field does not exist separately, but it the "Airdate" field may sometimes only
       //      contain a year, in which case originalAirDate should be None....
@@ -473,45 +495,16 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         def audioProps              = AudioProperties(obj.intField("AudioProps"))
         def videoProps              = VideoProperties(obj.intField("VideoProps"))
         def subtitleType            = SubtitleType(obj.intField("SubProps"))
-        def year                    = obj.intFieldOption("Year") map Year.of
+        def year                    = obj.intFieldOption("Year") map Year.of    // TODO year field does not exist
         def partNumber              = None
         def partTotal               = None
         def programFlags            = ProgramFlags(obj.intField("ProgramFlags"))
       }
 
-      /*
-       * Other fields: (data)
-       * Everything seems to be encoded as a string!
-       *
-        "Airdate":      "2015-10-29",
-        "AudioProps":   "1",
-        "CatType":      "",
-        "Category":     "Cooking",
-        "Description":  "Sticky toffee pudding ...",
-        "EndTime":      "2016-09-26T13:00:00Z",
-        "Episode":      "5",
-        "FileName":     "1151_20160926123000.mpg",
-        "FileSize":     "3130823784",
-        "HostName":     "myth1",
-        "Inetref":      "270411",
-        "LastModified": "2016-09-26T13:00:00Z",
-        "ProgramFlags": "804319236",
-        "ProgramId":    "EP013602850055",
-        "Repeat":       "true",
-        "Season":       "5",
-        "SeriesId":     "EP01360285",
-        "Stars":        "0",
-        "StartTime":    "2016-09-26T12:30:00Z",
-        "SubProps":     "1",
-        "SubTitle":     "Bake It Dark",
-        "Title":        "Martha Bakes",
-        "VideoProps":   "18"
-
-       missing:
+      /* missing:
          syndicatedEpisodeNumber   (but we do have "Season" and "Episode")
          partNumber
-         partTotal
-       */
+         partTotal */
     }
 
   }
@@ -520,18 +513,21 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
     def objectFieldName = "ProgramList"
     def listFieldName = "Programs"
     def convertElement(value: JsValue): Program = value.convertTo[Program]
+    def elementToJson(elem: Program): JsValue = jsonWriter[Program].write(elem)
   }
 
   implicit object PagedRecordableListJsonFormat extends MythJsonPagedObjectListFormat[Recordable] {
     def objectFieldName = "ProgramList"
     def listFieldName = "Programs"
     def convertElement(value: JsValue): Recordable = value.convertTo[Recordable]
+    def elementToJson(elem: Recordable): JsValue = jsonWriter[Recordable].write(elem)
   }
 
   implicit object PagedRecordingListJsonFormat extends MythJsonPagedObjectListFormat[Recording] {
     def objectFieldName = "ProgramList"
     def listFieldName = "Programs"
     def convertElement(value: JsValue): Recording = value.convertTo[Recording]
+    def elementToJson(elem: Recording): JsValue = jsonWriter[Recording].write(elem)
   }
 
   // used for reading Guide
@@ -539,6 +535,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
     def objectFieldName = "ChannelInfo"
     def listFieldName = "Programs"
     def convertElement(value: JsValue): Program = value.convertTo[Program]
+    def elementToJson(elem: Program): JsValue = jsonWriter[Program].write(elem)
   }
 
   implicit object ChannelDetailsJsonFormat extends MythJsonObjectFormat[ChannelDetails] {
@@ -592,6 +589,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
     def objectFieldName = "ChannelInfoList"
     def listFieldName = "ChannelInfos"
     def convertElement(value: JsValue): ChannelDetails = value.convertTo[ChannelDetails]
+    def elementToJson(elem: ChannelDetails): JsValue = jsonWriter[ChannelDetails].write(elem)
   }
 
   implicit object RecordRuleJsonFormat extends MythJsonObjectFormat[RecordRule] {
@@ -752,6 +750,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
     def objectFieldName = "RecRuleList"
     def listFieldName = "RecRules"
     def convertElement(value: JsValue): RecordRule = value.convertTo[RecordRule]
+    def elementToJson(elem: RecordRule): JsValue = jsonWriter[RecordRule].write(elem)
   }
 
   implicit object RemoteEncoderStateJsonFormat extends MythJsonObjectFormat[RemoteEncoderState] {
@@ -790,6 +789,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
     def objectFieldName = "EncoderList"
     def listFieldName = "Encoders"
     def convertElement(value: JsValue): RemoteEncoderState = value.convertTo[RemoteEncoderState]
+    def elementToJson(elem: RemoteEncoderState): JsValue = jsonWriter[RemoteEncoderState].write(elem)
   }
 
   implicit object CaptureCardJsonFormat extends MythJsonObjectFormat[CaptureCard] {
@@ -859,6 +859,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
     def objectFieldName = "CaptureCardList"
     def listFieldName = "CaptureCards"
     def convertElement(value: JsValue): CaptureCard = value.convertTo[CaptureCard]
+    def elementToJson(elem: CaptureCard): JsValue = jsonWriter[CaptureCard].write(elem)
   }
 
   implicit object ListingSourceJsonFormat extends MythJsonObjectFormat[ListingSource] {
@@ -898,6 +899,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
     def objectFieldName = "VideoSourceList"
     def listFieldName = "VideoSources"
     def convertElement(value: JsValue): ListingSource = value.convertTo[ListingSource]
+    def elementToJson(elem: ListingSource): JsValue = jsonWriter[ListingSource].write(elem)
   }
 
   implicit object SettingsJsonFormat extends MythJsonObjectFormat[Settings] {
@@ -997,6 +999,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
     def listFieldName = "Channels"
 
     def convertElement(value: JsValue) = value.convertTo[(Channel, Seq[Program])]
+    def elementToJson(elem: (Channel, Seq[Program])): JsValue = jsonWriter[(Channel, Seq[Program])].write(elem)
   }
 
   implicit object GuideJsonFormat extends MythJsonObjectFormat[Guide[Channel, Program]] {
@@ -1062,7 +1065,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         def year            = ???  // TODO no Year field, pluck from releasedate?
         def tagline         = obj.stringFieldOption("Tagline", "")
         def description     = obj.stringField("Description")
-        def inetRef         = obj.stringField("Inetref")
+        def inetRef         = obj.stringField("Inetref")  // TODO "00000000" used as null placeholder
         def homePage        = obj.stringFieldOption("HomePage", "")
         def studio          = obj.stringFieldOption("Studio", "")
         def season          = obj.intFieldOption("Season", 0)
@@ -1091,6 +1094,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
     def objectFieldName = "VideoMetadataInfoList"
     def listFieldName = "VideoMetadataInfos"
     def convertElement(value: JsValue): Video = value.convertTo[Video]
+    def elementToJson(elem: Video): JsValue = jsonWriter[Video].write(elem)
   }
 
   implicit object VideoMultiplexJsonFormat extends MythJsonObjectFormat[VideoMultiplex] {
@@ -1158,6 +1162,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
     def objectFieldName = "VideoMultiplexList"
     def listFieldName = "VideoMultiplexes"
     def convertElement(value: JsValue): VideoMultiplex = value.convertTo[VideoMultiplex]
+    def elementToJson(elem: VideoMultiplex): JsValue = jsonWriter[VideoMultiplex].write(elem)
   }
 
 }
