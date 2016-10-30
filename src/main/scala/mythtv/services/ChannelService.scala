@@ -1,14 +1,14 @@
 package mythtv
 package services
 
-import model.{ ChanId, Channel, ListingSource, ListingSourceId, MultiplexId, VideoMultiplex }
+import model.{ ChanId, ChannelDetails, ListingSource, ListingSourceId, MultiplexId, VideoMultiplex }
 import util.OptionalCount
 
 trait ChannelService extends BackendService {
   def serviceName: String = "Channel"
 
-  def getChannelInfo(chanId: ChanId): Channel
-  def getChannelInfoList(sourceId: ListingSourceId): PagedList[Channel]
+  def getChannelInfo(chanId: ChanId): ChannelDetails
+  def getChannelInfoList(sourceId: ListingSourceId): PagedList[ChannelDetails]
 
   def getVideoSource(sourceId: ListingSourceId): ListingSource
   def getVideoSourceList: List[ListingSource]

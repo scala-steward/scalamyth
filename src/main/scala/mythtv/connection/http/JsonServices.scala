@@ -52,14 +52,14 @@ class JsonCaptureService(conn: BackendJSONConnection)
 class JsonChannelService(conn: BackendJSONConnection)
   extends JsonService(conn)
      with ChannelService {
-  def getChannelInfo(chanId: ChanId): Channel = {
+  def getChannelInfo(chanId: ChanId): ChannelDetails = {
     val params: Map[String, Any] = Map("ChanID" -> chanId.id)
     val response = request("GetChannelInfo", params)
     val root = responseRoot(response, "ChannelInfo")
     root.convertTo[ChannelDetails]
   }
 
-  def getChannelInfoList(sourceId: ListingSourceId): PagedList[Channel] = {
+  def getChannelInfoList(sourceId: ListingSourceId): PagedList[ChannelDetails] = {
     val params: Map[String, Any] = Map("SourceID" -> sourceId.id)
     val response = request("GetChannelInfoList", params)
     val root = responseRoot(response, "ChannelInfoList")
