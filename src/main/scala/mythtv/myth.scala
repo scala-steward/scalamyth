@@ -3,7 +3,7 @@ package mythtv
 import java.time.{ Duration, Instant }
 
 import model._
-import util.{ ByteCount, MythDateTime }
+import util.{ ByteCount, MythDateTime, MythFileHash }
 
 
 trait BackendOperations {
@@ -38,9 +38,9 @@ trait BackendOperations {
 
   /*
    * Storage group file operations
-   def fileHash(fileName: String: storageGroup: String): String // TODO host optional param?
-   def fileExists(fileName: String, storageGroup: String): Boolean
    */
+  def fileHash(fileName: String, storageGroup: String, hostName: String = ""): MythFileHash
+//  def fileExists(fileName: String, storageGroup: String): Boolean
 
   def reschedule(recordId: Option[RecordRuleId] = None, wait: Boolean = false): Unit
 

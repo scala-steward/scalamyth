@@ -4,7 +4,7 @@ import java.time.Duration
 
 import model._
 import connection.myth.{ BackendAPIConnection, EventConnection, EventLock }
-import util.{ ByteCount, ExpectedCountIterator, MythDateTime }
+import util.{ ByteCount, ExpectedCountIterator, MythDateTime, MythFileHash }
 
 class MythBackend(val host: String) extends Backend with BackendOperations {
   private[this] val conn = BackendAPIConnection(host)
@@ -86,6 +86,11 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
   def freeSpaceSummary: (ByteCount, ByteCount) = conn.queryFreeSpaceSummary
   def freeSpace: List[FreeSpace] = conn.queryFreeSpace
   def freeSpaceCombined: List[FreeSpace] = conn.queryFreeSpaceList
+
+  def fileHash(fileName: String, storageGroup: String, hostName: String): MythFileHash =
+    conn.queryFileHash(fileName, storageGroup, hostName)
+
+//  def fileExists(fileName: String, storageGroup: String): Boolean
 
   def uptime: Duration = conn.queryUptime
   def loadAverages: (Double, Double, Double) = conn.queryLoad
