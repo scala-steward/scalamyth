@@ -12,10 +12,10 @@ import util.{ MythDateTime, OptionalCount, OptionalCountSome, MythFileHash }
 
 import services.DataBytes // FIXME temporary placeholder
 
-abstract class JsonService(conn: BackendJsonConnection)
+abstract class JsonService(conn: JsonConnection)
   extends Service
-     with BackendServiceProtocol
-     with BackendJsonProtocol {
+     with MythServiceProtocol
+     with CommonJsonProtocol {
 
   def request(endpoint: String, params: Map[String, Any] = Map.empty): JsonResponse =
     conn.request(buildPath(endpoint, params))
@@ -27,9 +27,19 @@ abstract class JsonService(conn: BackendJsonConnection)
     response.json.asJsObject.fields(fieldName)
 }
 
+abstract class JsonBackendService(conn: BackendJsonConnection)
+  extends JsonService(conn)
+     with BackendServiceProtocol
+     with BackendJsonProtocol
+
+abstract class JsonFrontendService(conn: JsonConnection)  // TODO change to FrontendJsonConnection?
+  extends JsonService(conn)
+     with FrontendServiceProtocol
+     with FrontendJsonProtocol
+
 
 class JsonCaptureService(conn: BackendJsonConnection)
-  extends JsonService(conn)
+  extends JsonBackendService(conn)
      with CaptureService {
   def getCaptureCard(cardId: CaptureCardId): CaptureCard = {
     val params: Map[String, Any] = Map("CardId" -> cardId.id)
@@ -49,7 +59,7 @@ class JsonCaptureService(conn: BackendJsonConnection)
 }
 
 class JsonChannelService(conn: BackendJsonConnection)
-  extends JsonService(conn)
+  extends JsonBackendService(conn)
      with ChannelService {
   def getChannelInfo(chanId: ChanId): ChannelDetails = {
     val params: Map[String, Any] = Map("ChanID" -> chanId.id)
@@ -103,7 +113,7 @@ class JsonChannelService(conn: BackendJsonConnection)
 }
 
 class JsonDvrService(conn: BackendJsonConnection)
-  extends JsonService(conn)
+  extends JsonBackendService(conn)
      with DvrService {
   // TODO catch when we get bogus data back and don't return an object?
   /* NB the 'ProgramFlags' field that we get back from GetRecorded seems to be wacky, whereas the same
@@ -189,7 +199,7 @@ class JsonDvrService(conn: BackendJsonConnection)
 }
 
 class JsonGuideService(conn: BackendJsonConnection)
-  extends JsonService(conn)
+  extends JsonBackendService(conn)
      with GuideService {
   def getProgramGuide(
     startTime: MythDateTime,
@@ -230,7 +240,7 @@ class JsonGuideService(conn: BackendJsonConnection)
 }
 
 class JsonMythService(conn: BackendJsonConnection)
-  extends JsonService(conn)
+  extends JsonBackendService(conn)
      with MythService {
   def getHostName: String = {
     import DefaultJsonProtocol.StringJsonFormat
@@ -269,7 +279,7 @@ class JsonMythService(conn: BackendJsonConnection)
 }
 
 class JsonContentService(conn: BackendJsonConnection)
-  extends JsonService(conn)
+  extends JsonBackendService(conn)
      with ContentService {
   def getFileList(storageGroup: String): List[String] = {
     val params: Map[String, Any] = Map("StorageGroup" -> storageGroup)
@@ -299,7 +309,7 @@ class JsonContentService(conn: BackendJsonConnection)
 }
 
 class JsonVideoService(conn: BackendJsonConnection)
-  extends JsonService(conn)
+  extends JsonBackendService(conn)
      with VideoService {
   def getVideo(videoId: VideoId): Video = {
     val params: Map[String, Any] = Map("Id" -> videoId.id)
