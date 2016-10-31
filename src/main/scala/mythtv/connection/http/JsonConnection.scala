@@ -7,17 +7,17 @@ import java.net.HttpURLConnection
 
 import spray.json.{ JsonParser, JsValue }
 
-case class JSONResponse(statusCode: Int, headers: HttpHeaders, json: JsValue) extends HttpResponse
+case class JsonResponse(statusCode: Int, headers: HttpHeaders, json: JsValue) extends HttpResponse
 
-trait JSONConnection extends AbstractHttpConnection {
+trait JsonConnection extends AbstractHttpConnection {
   override def setupConnection(conn: HttpURLConnection): Unit = {
     conn.setRequestProperty("Accept", "application/json")
   }
 
-  override def request(path: String): JSONResponse = super.request(path) match {
+  override def request(path: String): JsonResponse = super.request(path) match {
     case StreamHttpResponse(status, headers, stream) =>
       val json = parseJson(stream)
-      JSONResponse(status, headers, json)
+      JsonResponse(status, headers, json)
   }
 
   private def parseJson(stream: InputStream): JsValue = {
@@ -34,9 +34,9 @@ trait JSONConnection extends AbstractHttpConnection {
   }
 }
 
-class BackendJSONConnection(protocol: String, host: String, port: Int)
+class BackendJsonConnection(protocol: String, host: String, port: Int)
     extends BackendServiceConnection(protocol, host, port)
-    with JSONConnection {
+    with JsonConnection {
   def this(host: String, port: Int) = this(BackendServiceConnection.DefaultProtocol, host, port)
   def this(host: String) = this(BackendServiceConnection.DefaultProtocol, host, BackendServiceConnection.DefaultPort)
 }

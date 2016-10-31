@@ -12,24 +12,24 @@ import util.{ MythDateTime, OptionalCount, OptionalCountSome, MythFileHash }
 
 import services.DataBytes // FIXME temporary placeholder
 
-abstract class JsonService(conn: BackendJSONConnection)
+abstract class JsonService(conn: BackendJsonConnection)
   extends BackendServiceProtocol
      with MythJsonProtocol {
 
   self: Service =>
 
-  def request(endpoint: String, params: Map[String, Any] = Map.empty): JSONResponse =
+  def request(endpoint: String, params: Map[String, Any] = Map.empty): JsonResponse =
     conn.request(buildPath(endpoint, params))
 
-  def responseRoot(response: JSONResponse) =
+  def responseRoot(response: JsonResponse) =
     response.json.asJsObject
 
-  def responseRoot(response: JSONResponse, fieldName: String) =
+  def responseRoot(response: JsonResponse, fieldName: String) =
     response.json.asJsObject.fields(fieldName)
 }
 
 
-class JsonCaptureService(conn: BackendJSONConnection)
+class JsonCaptureService(conn: BackendJsonConnection)
   extends JsonService(conn)
      with CaptureService {
   def getCaptureCard(cardId: CaptureCardId): CaptureCard = {
@@ -49,7 +49,7 @@ class JsonCaptureService(conn: BackendJSONConnection)
   }
 }
 
-class JsonChannelService(conn: BackendJSONConnection)
+class JsonChannelService(conn: BackendJsonConnection)
   extends JsonService(conn)
      with ChannelService {
   def getChannelInfo(chanId: ChanId): ChannelDetails = {
@@ -103,7 +103,7 @@ class JsonChannelService(conn: BackendJSONConnection)
   }
 }
 
-class JsonDvrService(conn: BackendJSONConnection)
+class JsonDvrService(conn: BackendJsonConnection)
   extends JsonService(conn)
      with DvrService {
   // TODO catch when we get bogus data back and don't return an object?
@@ -189,7 +189,7 @@ class JsonDvrService(conn: BackendJSONConnection)
 
 }
 
-class JsonGuideService(conn: BackendJSONConnection)
+class JsonGuideService(conn: BackendJsonConnection)
   extends JsonService(conn)
      with GuideService {
   def getProgramGuide(
@@ -230,7 +230,7 @@ class JsonGuideService(conn: BackendJSONConnection)
   def getChannelIcon(chanId: ChanId) = ???
 }
 
-class JsonMythService(conn: BackendJSONConnection)
+class JsonMythService(conn: BackendJsonConnection)
   extends JsonService(conn)
      with MythService {
   def getHostName: String = {
@@ -269,7 +269,7 @@ class JsonMythService(conn: BackendJSONConnection)
   }
 }
 
-class JsonContentService(conn: BackendJSONConnection)
+class JsonContentService(conn: BackendJsonConnection)
   extends JsonService(conn)
      with ContentService {
   def getFileList(storageGroup: String): List[String] = {
@@ -299,7 +299,7 @@ class JsonContentService(conn: BackendJSONConnection)
   def getVideo(id: Int): DataBytes = ???
 }
 
-class JsonVideoService(conn: BackendJSONConnection)
+class JsonVideoService(conn: BackendJsonConnection)
   extends JsonService(conn)
      with VideoService {
   def getVideo(videoId: VideoId): Video = {
