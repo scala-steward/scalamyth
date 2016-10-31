@@ -1089,7 +1089,7 @@ private[http] trait MythJsonProtocol extends /*DefaultJsonProtocol*/ {
         def userRating      = obj.doubleField("UserRating")
         def rating          = obj.stringField("Certification")
         def collectionRef   = obj.intField("Collectionref")  // TODO -1 used as default placeholder?
-        // TODO release data may not always be in strict ISO format, see VideoId(1) or VideoId(12)
+        // TODO release date may not always be in strict ISO format, see VideoId(1) or VideoId(12)
         def releaseDate     = obj.dateTimeField("ReleaseDate").toLocalDateTime().toLocalDate
 
         def artworkInfo     = obj.fields("Artwork").convertTo[List[ArtworkInfo]]

@@ -34,7 +34,7 @@ object ChannelNumber {
   implicit def ordering: Ordering[ChannelNumber] = ChannelNumberOrdering
 }
 
-/* TODO these five items are included in the channel info we get from the MythProtocol
+/* These five items are included in the channel info we get from the MythProtocol
    command QUERY_RECORDER/GET_CHANNEL_INFO (+xmltvId) ; but there are many more fields
    in the database and returned from services API */
 trait Channel {
@@ -42,7 +42,7 @@ trait Channel {
   def name: String
   def number: ChannelNumber
   def callsign: String
-  def sourceId: ListingSourceId
+  def sourceId: ListingSourceId  // TODO not included in base results for guide data from services?
 
   /*
   def xmltvId: String //TODO, expose this here? it is returned by QUERY_RECORDER/GET_CHANNEL_INFO in MythProtocol
@@ -79,8 +79,9 @@ trait ChannelDetails extends Channel {
   def commMethod: ChannelCommDetectMethod
   /* iptvid? */
   /* Results not in DB?
-       Frequency, FrequencyTable, Modulation, NetworkId, SIStandard, TransportId
-       This data may all come from dtv_multiplex table?
+       videosource: FrequencyTable
+       dtv_multiplex: Frequency, Modulation, NetworkId, SIStandard, TransportId
+         (latter set sometimes collectively called "TuningParams"
    */
 
   def isCommercialFree: Boolean = commMethod == ChannelCommDetectMethod.CommFree
