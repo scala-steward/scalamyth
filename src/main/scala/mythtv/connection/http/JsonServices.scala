@@ -13,10 +13,9 @@ import util.{ MythDateTime, OptionalCount, OptionalCountSome, MythFileHash }
 import services.DataBytes // FIXME temporary placeholder
 
 abstract class JsonService(conn: BackendJsonConnection)
-  extends BackendServiceProtocol
+  extends Service
+     with BackendServiceProtocol
      with MythJsonProtocol {
-
-  self: Service =>
 
   def request(endpoint: String, params: Map[String, Any] = Map.empty): JsonResponse =
     conn.request(buildPath(endpoint, params))
