@@ -53,6 +53,19 @@ trait CommonJsonProtocol {
     def elementToJson(elem: String): JsValue = jsonWriter[String].write(elem)
   }
 
+  implicit object StringMapJsonFormat extends JsonFormat[Map[String, String]] {
+    def write(m: Map[String, String]): JsValue =
+      JsObject(m mapValues (JsString(_)))
+
+    def read(value: JsValue): Map[String, String] = {
+      val obj = value.asJsObject
+      obj.fields mapValues {
+        case JsString(s) => s
+        case x => x.toString
+      }
+    }
+  }
+
   implicit object InstantJsonFormat extends JsonFormat[Instant] {
     def write(x: Instant): JsValue = JsString(x.toString)
 

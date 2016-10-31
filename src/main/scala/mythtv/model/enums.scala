@@ -302,16 +302,29 @@ object SleepStatus extends LooseEnum {
   val Undefined     = Value(0x8)
 }
 
-object TvState extends LooseEnum {
+/* We explicitly specify the names for the values here because the reflection
+   based default implementation fails once we start subclassing. Additionally,
+   we use the withName() method to translate state strings to values, so the
+   names specified here must match those in MythTV's StateToString */
+private[model] abstract class AbstractTvStateEnum extends LooseEnum {
+  val Error               = Value(-1, "Error")
+  val None                = Value( 0, "None")
+  val WatchingLiveTv      = Value( 1, "WatchingLiveTV")
+  val WatchingPreRecorded = Value( 2, "WatchingPreRecorded")
+  val WatchingVideo       = Value( 3, "WatchingVideo")
+  val WatchingDvd         = Value( 4, "WatchingDVD")
+  val WatchingBd          = Value( 5, "WatchingBD")
+  val WatchingRecording   = Value( 6, "WatchingRecording")
+  val RecordingOnly       = Value( 7, "RecordingOnly")
+  val ChangingState       = Value( 8, "ChangingState")
+}
+
+object TvState extends AbstractTvStateEnum {
   type TvState = Value
-  val Error               = Value(-1)
-  val None                = Value(0)
-  val WatchingLiveTv      = Value(1)
-  val WatchingPreRecorded = Value(2)
-  val WatchingVideo       = Value(3)
-  val WatchingDvd         = Value(4)
-  val WatchingBd          = Value(5)
-  val WatchingRecording   = Value(6)
-  val RecordingOnly       = Value(7)
-  val ChangingState       = Value(8)
+}
+
+object FrontendState extends AbstractTvStateEnum {
+  type FrontendState = Value
+  val Idle    = Value("idle")
+  val Standby = Value("standby")
 }

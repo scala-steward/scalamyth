@@ -5,38 +5,17 @@ package http
 import spray.json.DefaultJsonProtocol
 
 import model._
-import services.{ Service, CaptureService, ChannelService, ContentService, DvrService,
+import services.{ CaptureService, ChannelService, ContentService, DvrService,
   GuideService, MythService, VideoService }
 import services.PagedList
 import util.{ MythDateTime, OptionalCount, OptionalCountSome, MythFileHash }
 
 import services.DataBytes // FIXME temporary placeholder
 
-abstract class JsonService(conn: JsonConnection)
-  extends Service
-     with MythServiceProtocol
-     with CommonJsonProtocol {
-
-  def request(endpoint: String, params: Map[String, Any] = Map.empty): JsonResponse =
-    conn.request(buildPath(endpoint, params))
-
-  def responseRoot(response: JsonResponse) =
-    response.json.asJsObject
-
-  def responseRoot(response: JsonResponse, fieldName: String) =
-    response.json.asJsObject.fields(fieldName)
-}
-
 abstract class JsonBackendService(conn: BackendJsonConnection)
   extends JsonService(conn)
      with BackendServiceProtocol
      with BackendJsonProtocol
-
-abstract class JsonFrontendService(conn: JsonConnection)  // TODO change to FrontendJsonConnection?
-  extends JsonService(conn)
-     with FrontendServiceProtocol
-     with FrontendJsonProtocol
-
 
 class JsonCaptureService(conn: BackendJsonConnection)
   extends JsonBackendService(conn)
@@ -110,6 +89,36 @@ class JsonChannelService(conn: BackendJsonConnection)
     val root = responseRoot(response)
     root.convertTo[List[String]]
   }
+}
+
+class JsonContentService(conn: BackendJsonConnection)
+  extends JsonBackendService(conn)
+     with ContentService {
+  def getFileList(storageGroup: String): List[String] = {
+    val params: Map[String, Any] = Map("StorageGroup" -> storageGroup)
+    val response = request("GetFileList", params)
+    val root = responseRoot(response)
+    root.convertTo[List[String]]
+  }
+
+  // TODO handle error conditions, such as file not existing...
+  def getHash(storageGroup: String, fileName: String): MythFileHash = {
+    import DefaultJsonProtocol.StringJsonFormat
+    val params: Map[String, Any] = Map("StorageGroup" -> storageGroup, "FileName" -> fileName)
+    val response = request("GetHash", params)
+    val root = responseRoot(response, "String")
+    new MythFileHash(root.convertTo[String])
+  }
+
+  def getAlbumArt(id: Int): DataBytes = ???
+  def getFile(storageGroup: String, fileName: String): DataBytes = ???
+  def getImageFile(storageGroup: String, fileName: String): DataBytes = ???
+  def getLiveStream(id: String): LiveStreamInfo = ???
+  def getLiveStreamList: List[LiveStreamInfo] = ???
+  def getMusic(id: String): DataBytes = ???
+  def getPreviewImage(chanId: ChanId, startTime: MythDateTime): DataBytes = ???
+  def getRecording(chanId: ChanId, startTime: MythDateTime): DataBytes = ???
+  def getVideo(id: Int): DataBytes = ???
 }
 
 class JsonDvrService(conn: BackendJsonConnection)
@@ -276,36 +285,6 @@ class JsonMythService(conn: BackendJsonConnection)
     val root = responseRoot(response, "TimeZoneInfo")
     root.convertTo[TimeZoneInfo]
   }
-}
-
-class JsonContentService(conn: BackendJsonConnection)
-  extends JsonBackendService(conn)
-     with ContentService {
-  def getFileList(storageGroup: String): List[String] = {
-    val params: Map[String, Any] = Map("StorageGroup" -> storageGroup)
-    val response = request("GetFileList", params)
-    val root = responseRoot(response)
-    root.convertTo[List[String]]
-  }
-
-  // TODO handle error conditions, such as file not existing...
-  def getHash(storageGroup: String, fileName: String): MythFileHash = {
-    import DefaultJsonProtocol.StringJsonFormat
-    val params: Map[String, Any] = Map("StorageGroup" -> storageGroup, "FileName" -> fileName)
-    val response = request("GetHash", params)
-    val root = responseRoot(response, "String")
-    new MythFileHash(root.convertTo[String])
-  }
-
-  def getAlbumArt(id: Int): DataBytes = ???
-  def getFile(storageGroup: String, fileName: String): DataBytes = ???
-  def getImageFile(storageGroup: String, fileName: String): DataBytes = ???
-  def getLiveStream(id: String): LiveStreamInfo = ???
-  def getLiveStreamList: List[LiveStreamInfo] = ???
-  def getMusic(id: String): DataBytes = ???
-  def getPreviewImage(chanId: ChanId, startTime: MythDateTime): DataBytes = ???
-  def getRecording(chanId: ChanId, startTime: MythDateTime): DataBytes = ???
-  def getVideo(id: Int): DataBytes = ???
 }
 
 class JsonVideoService(conn: BackendJsonConnection)

@@ -2,87 +2,44 @@ package mythtv
 package connection
 package http
 
-import spray.json.JsonFormat
+import spray.json.{ JsonFormat, jsonWriter }
 import spray.json.{ JsObject, JsString, JsValue }
 
+import model.{ FrontendActionMap, FrontendState, FrontendStatus }
 
-case class ActionMap(actions: Map[String, String])
+trait FrontendJsonProtocol extends CommonJsonProtocol {
 
-// ActionList is a Map[String, String] from actionName -> description
-//  (see SettingsJsonProtocol for another example of a Map[String, String])
-
-trait FrontendJsonProtocol {
-
-  implicit object ActionMapJsonFormat extends JsonFormat[ActionMap] {
-    def write(a: ActionMap): JsValue = JsObject(Map(
-      "ActionList" -> JsObject(a.actions.mapValues(JsString(_)))
+  // ActionList is a Map[String, String] from actionName -> description
+  implicit object FrontendActionMapJsonFormat extends JsonFormat[FrontendActionMap] {
+    def write(a: FrontendActionMap): JsValue = JsObject(Map(
+      "ActionList" -> jsonWriter[Map[String, String]].write(a.actions)
     ))
 
-    def read(value: JsValue): ActionMap = {
+    def read(value: JsValue): FrontendActionMap = {
       val obj = value.asJsObject
-      val fields = obj.fields("ActionList").asJsObject.fields
-      ActionMap(fields mapValues {
-        case JsString(s) => s
-        case x => x.toString
-      })
+      FrontendActionMap(obj.fields("ActionList").convertTo[Map[String, String]])
     }
   }
 
-  /*
-   Result of GetStatus:
+  implicit object FrontendStatusJsonFormat extends JsonFormat[FrontendStatus] {
+    def write(s: FrontendStatus): JsValue = ???
 
-   {
-     "FrontendStatus": {
-       "AudioTracks": {},
-       "ChapterTimes": [],
-       "State": {
-         "currentlocation": "playbackbox",
-         "menutheme": "mediacentermenu",
-         "state": "idle"
-       },
-       "SubtitleTracks": {}
-     }
-   }
+    def read(value: JsValue): FrontendStatus = {
+      val obj = value.asJsObject
+      val states = obj.fields("State").convertTo[Map[String, String]]
+      val audios = obj.fields("AudioTracks").convertTo[Map[String, String]]
+      val subtitles = obj.fields("SubtitleTracks").convertTo[Map[String, String]]
+      val stateVal = FrontendState.withName(states("state"))
+      //val chapters = obj.fields("ChapterTimes").???
 
-   Result of GetContextList:
-
-   {
-    "StringList": [
-        "TV Frontend",
-        "Game",
-        "Global",
-        "Music",
-        "News",
-        "TV Playback",
-        "Video",
-        "Gallery",
-        "Weather",
-        "JumpPoints",
-        "Main Menu",
-        "TV Editing",
-        "Teletext Menu",
-        "Browser"
-    ]
-   }
-
-   Result of GetActionList:
-
-{
-    "FrontendActionList": {
-        "ActionList": {
-            "0": "0",
-            "1": "1",
-            "2": "2",
-            "3": "3",
-            "3DNONE": "No 3D",
-            "3DSIDEBYSIDE": "3D Side by Side",
-            "3DSIDEBYSIDEDISCARD": "Discard 3D Side by Side",
-            "ZoneMinder Console": "ZoneMinder Console",
-            "ZoneMinder Events": "ZoneMinder Events",
-            "ZoneMinder Live View": "ZoneMinder Live View"
-        }
+      new FrontendStatus {
+        def state = stateVal
+        def stateMap = states
+        def audioTracks = audios
+        def subtitleTracks = subtitles
+        def chapterTimes = ???
+      }
     }
-}
+  }
 
-   */
 }

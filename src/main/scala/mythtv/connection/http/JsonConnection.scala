@@ -35,8 +35,15 @@ trait JsonConnection extends AbstractHttpConnection {
 }
 
 class BackendJsonConnection(protocol: String, host: String, port: Int)
-    extends BackendServiceConnection(protocol, host, port)
-    with JsonConnection {
+  extends BackendServiceConnection(protocol, host, port)
+     with JsonConnection {
   def this(host: String, port: Int) = this(BackendServiceConnection.DefaultProtocol, host, port)
   def this(host: String) = this(BackendServiceConnection.DefaultProtocol, host, BackendServiceConnection.DefaultPort)
+}
+
+class FrontendJsonConnection(protocol: String, host: String, port: Int)
+  extends FrontendServiceConnection(protocol, host, port)
+     with JsonConnection {
+  def this(host: String, port: Int) = this(FrontendServiceConnection.DefaultProtocol, host, port)
+  def this(host: String) = this(FrontendServiceConnection.DefaultProtocol, host, FrontendServiceConnection.DefaultPort)
 }

@@ -9,6 +9,7 @@ object EnumTypes {
   type ChannelCommDetectMethod = model.ChannelCommDetectMethod.Value
   type DupCheckIn = model.DupCheckIn.Base
   type DupCheckMethod = model.DupCheckMethod.Base
+  type FrontendState = model.FrontendState.Value
   type JobFlags = model.JobFlags.Base
   type JobStatus = model.JobStatus.Value
   type JobType = model.JobType.Value

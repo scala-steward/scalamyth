@@ -18,7 +18,7 @@ trait MythFrontendService extends FrontendService {
 
   // query methods
 
-  def getActionList: List[FrontendAction]   // the data here is really more like a map (action is a k/v tuple)
+  def getActionList(context: String = ""): FrontendActionMap
   def getContextList: List[String]
   def getStatus: FrontendStatus
 
