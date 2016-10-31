@@ -155,13 +155,3 @@ trait BackendServiceProtocol extends MythServiceProtocol {
              They are related by common CaptureCardId.
    */
 }
-
-trait FrontendServiceProtocol extends MythServiceProtocol {
-  self: Service =>
-  /*
-   * Frontend/
-   *   GetActionList         GET ==> { FrontendActionList }    ()
-   *   GetContextList        GET ==> { StringList }            ()
-   *   GetStatus             GET ==> { FrontendStatus }        ()
-   */
-}
