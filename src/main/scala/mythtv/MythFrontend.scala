@@ -4,6 +4,7 @@ import java.time.{ Duration, Instant }
 
 import connection.myth.FrontendConnection
 import model._
+import util.{ ByteCount, BinaryByteCount }
 
 // TODO inherit from FrontendConnection?  would mean those public methods are exposed here...
 //      Liskov substitution principle applies to this decision?
@@ -29,10 +30,10 @@ class MythFrontend(val host: String) extends Frontend with FrontendOperations {
     (res split "\\s+" map (_.toDouble)).toList
   }
 
-  // memory type -> bytes available [what units?]  TODO use ByteCount?
-  def memoryStats: Map[String, Long] = {
+  // memory type -> bytes available
+  def memoryStats: Map[String, ByteCount] = {
     val res = conn.sendCommand("query memstats").getOrElse("")
-    val data = res split "\\s+" map (_.toLong)
+    val data = res split "\\s+" map (v => BinaryByteCount(v.toLong * 1024L * 1024L))
     val keys = Array("totalmem", "freemem", "totalswap", "freeswap")
     (keys zip data).toMap
   }

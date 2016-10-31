@@ -62,7 +62,7 @@ trait FrontendOperations {
 
   def uptime: Duration
   def loadAverages: List[Double]
-  def memoryStats: Map[String, Long]  // memory type -> bytes available
+  def memoryStats: Map[String, ByteCount]  // memory type -> bytes available
   def currentTime: Instant
 
   // remote control methods
