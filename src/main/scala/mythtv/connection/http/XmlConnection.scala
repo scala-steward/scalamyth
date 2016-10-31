@@ -8,9 +8,7 @@ import scala.xml.XML
 
 case class XmlResponse(statusCode: Int, headers: HttpHeaders, root: xml.Elem) extends HttpResponse
 
-/*abstract*/ class XmlConnection(protocol: String, host: String, port: Int)
-    extends AbstractHttpConnection(protocol, host, port) {
-
+trait XmlConnection extends AbstractHttpConnection {
   override def setupConnection(conn: HttpURLConnection): Unit = {
     conn.setRequestProperty("Accept", "text/xml, application/xml")
   }
@@ -21,4 +19,9 @@ case class XmlResponse(statusCode: Int, headers: HttpHeaders, root: xml.Elem) ex
   }
 }
 
-abstract class BackendXmlConnection(host: String, port: Int) extends XmlConnection("http", host, port)
+class BackendXmlConnection(protocol: String, host: String, port: Int)
+  extends BackendServiceConnection(protocol, host, port)
+    with XmlConnection {
+  def this(host: String, port: Int) = this(BackendServiceConnection.DefaultProtocol, host, port)
+  def this(host: String) = this(BackendServiceConnection.DefaultProtocol, host, BackendServiceConnection.DefaultPort)
+}
