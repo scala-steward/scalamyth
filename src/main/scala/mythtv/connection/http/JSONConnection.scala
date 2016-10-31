@@ -9,9 +9,7 @@ import spray.json.{ JsonParser, JsValue }
 
 case class JSONResponse(statusCode: Int, headers: HttpHeaders, json: JsValue) extends HttpResponse
 
-/* abstract */ class JSONConnection(protocol: String, host: String, port: Int)
-    extends AbstractHttpConnection(protocol, host, port) {
-
+trait JSONConnection extends AbstractHttpConnection {
   override def setupConnection(conn: HttpURLConnection): Unit = {
     conn.setRequestProperty("Accept", "application/json")
   }
@@ -36,4 +34,9 @@ case class JSONResponse(statusCode: Int, headers: HttpHeaders, json: JsValue) ex
   }
 }
 
-/*abstract*/ class BackendJSONConnection(host: String, port: Int) extends JSONConnection("http", host, port)
+class BackendJSONConnection(protocol: String, host: String, port: Int)
+    extends BackendServiceConnection(protocol, host, port)
+    with JSONConnection {
+  def this(host: String, port: Int) = this(BackendServiceConnection.DefaultProtocol, host, port)
+  def this(host: String) = this(BackendServiceConnection.DefaultProtocol, host, BackendServiceConnection.DefaultPort)
+}
