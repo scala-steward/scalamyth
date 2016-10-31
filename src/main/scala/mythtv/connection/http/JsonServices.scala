@@ -15,7 +15,7 @@ import services.DataBytes // FIXME temporary placeholder
 abstract class JsonService(conn: BackendJsonConnection)
   extends Service
      with BackendServiceProtocol
-     with MythJsonProtocol {
+     with BackendJsonProtocol {
 
   def request(endpoint: String, params: Map[String, Any] = Map.empty): JsonResponse =
     conn.request(buildPath(endpoint, params))

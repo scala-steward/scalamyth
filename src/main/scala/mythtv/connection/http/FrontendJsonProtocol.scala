@@ -2,8 +2,8 @@ package mythtv
 package connection
 package http
 
-import spray.json.{ DefaultJsonProtocol, RootJsonFormat, JsonFormat, deserializationError, jsonWriter }
-import spray.json.{ JsArray, JsObject, JsString, JsValue }
+import spray.json.JsonFormat
+import spray.json.{ JsObject, JsString, JsValue }
 
 
 case class ActionMap(actions: Map[String, String])
@@ -11,7 +11,7 @@ case class ActionMap(actions: Map[String, String])
 // ActionList is a Map[String, String] from actionName -> description
 //  (see SettingsJsonProtocol for another example of a Map[String, String])
 
-trait MythFrontendJsonProtocol {
+trait FrontendJsonProtocol {
 
   implicit object ActionMapJsonFormat extends JsonFormat[ActionMap] {
     def write(a: ActionMap): JsValue = JsObject(Map(
