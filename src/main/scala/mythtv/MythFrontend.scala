@@ -42,8 +42,8 @@ class MythFrontend(val host: String) extends Frontend with FrontendOperations {
     Instant.parse(res)
   }
 
-  lazy val jump = Jumper      // TODO is it good practice to expose these lazy vals directly to the API?
-  lazy val key = KeySender
+  def jump = Jumper
+  def key = KeySender
 
   object Jumper extends PartialFunction[JumpPoint, Boolean] {
     lazy val points: Map[String, String] = retrieveJumpPoints
