@@ -847,18 +847,15 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
 
     def write(s: Settings): JsValue = JsObject(Map(
       "HostName" -> JsString(s.hostName),
-      "Settings" -> JsObject(s.settings.mapValues(JsString(_)))
+      "Settings" -> jsonWriter[Map[String, String]].write(s.settings)
     ))
 
     def read(value: JsValue): Settings = {
       val obj = value.asJsObject
-      val fields = obj.fields("Settings").asJsObject.fields
+      val settings = obj.fields("Settings").asJsObject
       val settingsMap: Map[String, String] =
-        if (fields.contains("") && fields.size == 1) Map.empty
-        else fields mapValues {
-          case JsString(s) => s
-          case x => x.toString
-        }
+        if (settings.fields.contains("") && settings.fields.size == 1) Map.empty
+        else settings.convertTo[Map[String, String]]
 
       new Settings {
         def hostName = obj.stringField("HostName")
