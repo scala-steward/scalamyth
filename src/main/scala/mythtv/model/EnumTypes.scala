@@ -15,6 +15,9 @@ object EnumTypes {
   type JobType = model.JobType.Value
   type ListingSourceType = model.ListingSourceType.Value
   type Markup = model.Markup.Value
+  type NotificationPriority = model.NotificationPriority.Value
+  type NotificationType = model.NotificationType.Value
+  type NotificationVisibility = model.NotificationVisibility.Base
   type PictureAdjustType = model.PictureAdjustType.Value
   type ProgramFlags = model.ProgramFlags.Base
   type ProgramType = model.ProgramType.Value

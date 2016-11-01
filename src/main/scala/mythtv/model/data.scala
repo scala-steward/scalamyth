@@ -84,6 +84,8 @@ trait FrontendStatus {
   def audioTracks: Map[String, String]     // Action name -> descripton
   def subtitleTracks: Map[String, String]  //     "             "
   def chapterTimes: List[_]                //     ???
+
+  override def toString: String = s"<FrontendStatus $state>"
 }
 
 // TODO from services

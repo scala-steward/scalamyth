@@ -12,11 +12,13 @@ trait FrontendServiceProtocol extends MythServiceProtocol {
    *   GetContextList        GET ==> { StringList }            ()
    *   GetStatus             GET ==> { FrontendStatus }        ()
    *
-   *   SendMessage
-   *   SendNotification
+   *   SendMessage           POST ==> Boolean                  (Message)[Timeout]
+   *        Timeout only applies during playback? Unit is seconds, valid range (0, 1000) exclusive
+   *   SendNotification      POST ==> Boolean                  (Message)[lots of optional params]
+   *
    *   SendAction
    *
-   *   PlayRecording
-   *   PlayVideo
+   *   PlayRecording         POST ==> Boolean                  (ChanId, StartTime)
+   *   PlayVideo             POST ==> Boolean                  (Id)[UseBookmark]
    */
 }
