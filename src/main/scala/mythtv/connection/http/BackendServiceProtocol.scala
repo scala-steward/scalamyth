@@ -12,9 +12,8 @@ trait MythServiceProtocol {
   def buildPath(endpoint: String, params: Map[String, Any] = Map.empty): String = {
     val builder = new StringBuilder("/") ++= serviceName += '/' ++= endpoint
     if (params.nonEmpty) {
-      params.iterator.map {
-        case (k, v) => k + "=" + URLEncoder.encode(v.toString, "UTF-8")
-      }.addString(builder, "?", "&", "")
+      builder += '?'
+      AbstractHttpConnection.encodeParameters(params, builder)
     }
     builder.toString
   }

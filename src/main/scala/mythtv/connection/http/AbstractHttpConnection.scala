@@ -3,7 +3,7 @@ package connection
 package http
 
 import java.io.InputStream
-import java.net.{ HttpURLConnection, URL }
+import java.net.{ HttpURLConnection, URL, URLEncoder }
 
 import scala.collection.JavaConverters._
 
@@ -27,5 +27,13 @@ abstract class AbstractHttpConnection(val protocol: String, val host: String, va
         val stream = conn.getInputStream
         StreamHttpResponse(conn.getResponseCode, conn.getHeaderFields.asScala.toMap, stream)
     }
+  }
+
+object AbstractHttpConnection {
+  def encodeParameters(params: Map[String, Any], builder: StringBuilder): StringBuilder = {
+    if (params.isEmpty) builder
+    else params.iterator.map {
+      case (k, v) => k + "=" + URLEncoder.encode(v.toString, "UTF-8")
+    }.addString(builder, "&")
   }
 }
