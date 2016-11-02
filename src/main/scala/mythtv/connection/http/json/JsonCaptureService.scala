@@ -1,6 +1,7 @@
 package mythtv
 package connection
 package http
+package json
 
 import services.CaptureService
 import model.{ CaptureCard, CaptureCardId, CardInput, InputId }

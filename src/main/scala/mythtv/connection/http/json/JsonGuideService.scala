@@ -1,6 +1,7 @@
 package mythtv
 package connection
 package http
+package json
 
 import services.GuideService
 import model.{ ChanId, Channel, Guide, Program }

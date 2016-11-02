@@ -1,6 +1,7 @@
 package mythtv
 package connection
 package http
+package json
 
 import util.OptionalCount
 import services.{ VideoService, PagedList }

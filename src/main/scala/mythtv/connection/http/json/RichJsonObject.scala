@@ -1,6 +1,7 @@
 package mythtv
 package connection
 package http
+package json
 
 import java.time.{ LocalDate, LocalTime }
 import java.time.format.DateTimeParseException

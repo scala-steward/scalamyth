@@ -1,6 +1,7 @@
 package mythtv
 package connection
 package http
+package json
 
 import java.io.{ BufferedReader, InputStream, InputStreamReader, StringWriter }
 import java.net.HttpURLConnection

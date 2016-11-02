@@ -1,6 +1,7 @@
 package mythtv
 package connection
 package http
+package json
 
 import java.time.{ Duration, Instant, LocalTime, Year, ZoneOffset }
 
@@ -112,12 +113,7 @@ private[http] trait EnumDescriptionFormat[T] extends JsonFormat[T] {
 /* Inheriting from DefaultJsonProtocol can cause huge bytecode bloat */
 private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
 
-  // NB StringList can be converted by obj.fields("StringList").convertTo[List[String]]
   // NB StorageGroupDirList has a single field StorageGroupDirs which is an array of StorageGroupDir items
-
-  // TODO [Root]JsonFormat are traits; build our own subclass trait
-  // hierarchy so that the final objects are simple and made of
-  // re-usable parts
 
   import RichJsonObject._
 

@@ -1,12 +1,13 @@
 package mythtv
 package connection
 package http
+package xml
 
 import java.net.HttpURLConnection
 
 import scala.xml.XML
 
-case class XmlResponse(statusCode: Int, headers: HttpHeaders, root: xml.Elem) extends HttpResponse
+case class XmlResponse(statusCode: Int, headers: HttpHeaders, root: scala.xml.Elem) extends HttpResponse
 
 trait XmlConnection extends AbstractHttpConnection {
   override def setupConnection(conn: HttpURLConnection): Unit = {
