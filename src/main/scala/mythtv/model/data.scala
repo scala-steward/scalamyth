@@ -88,6 +88,12 @@ trait FrontendStatus {
   override def toString: String = s"<FrontendStatus $state>"
 }
 
+trait TitleInfo {
+  def title: String
+  def inetRef: String
+
+  override def toString: String = s"<TitleInfo $title, $inetRef>"
+}
+
 // TODO from services
 trait LiveStreamInfo
-trait TitleInfo

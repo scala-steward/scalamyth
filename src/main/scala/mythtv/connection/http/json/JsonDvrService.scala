@@ -92,7 +92,11 @@ class JsonDvrService(conn: BackendJsonConnection)
     root.convertTo[List[String]]
   }
 
-  def getTitleInfoList: List[TitleInfo] = ???
+  def getTitleInfoList: List[TitleInfo] = {
+    val response = request("GetTitleInfoList")
+    val root = responseRoot(response, "TitleInfoList")
+    root.convertTo[List[TitleInfo]]
+  }
 
   /* POST methods */
 

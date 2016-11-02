@@ -689,6 +689,30 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     def elementToJson(elem: RecordRule): JsValue = jsonWriter[RecordRule].write(elem)
   }
 
+  implicit object TitleInfoJsonFormat extends MythJsonObjectFormat[TitleInfo] {
+    def objectFieldName = "TitleInfo"
+
+    def write(t: TitleInfo): JsValue = JsObject(Map(
+      "Title"   -> JsString(t.title),
+      "Inetref" -> JsString(t.inetRef)
+    ))
+
+    def read(value: JsValue): TitleInfo = {
+      val obj = value.asJsObject
+      new TitleInfo {
+        def title   = obj.stringField("Title")
+        def inetRef = obj.stringField("Inetref")
+      }
+    }
+  }
+
+  implicit object TitleInfoListJsonFormat extends MythJsonListFormat[TitleInfo] {
+    def objectFieldName = "TitleInfoList"
+    def listFieldName = "TitleInfos"
+    def convertElement(value: JsValue): TitleInfo = value.convertTo[TitleInfo]
+    def elementToJson(elem: TitleInfo): JsValue = jsonWriter[TitleInfo].write(elem)
+  }
+
   implicit object RemoteEncoderStateJsonFormat extends MythJsonObjectFormat[RemoteEncoderState] {
     def objectFieldName = "Encoder" // TODO is this right? do we ever see this?
 
@@ -727,6 +751,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     def convertElement(value: JsValue): RemoteEncoderState = value.convertTo[RemoteEncoderState]
     def elementToJson(elem: RemoteEncoderState): JsValue = jsonWriter[RemoteEncoderState].write(elem)
   }
+
 
   implicit object CaptureCardJsonFormat extends MythJsonObjectFormat[CaptureCard] {
     def objectFieldName = "CaptureCard"
