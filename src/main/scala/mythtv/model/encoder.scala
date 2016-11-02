@@ -61,5 +61,5 @@ trait CardInput {
   def sourceId: ListingSourceId
   def name: String
   def mplexId: MultiplexId
-  def liveTVorder: Int
+  def liveTvOrder: Int
 }

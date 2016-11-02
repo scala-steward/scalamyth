@@ -6,6 +6,7 @@ package json
 import util.OptionalCount
 import services.{ VideoService, PagedList }
 import model.{ Video, VideoId }
+import RichJsonObject._
 
 class JsonVideoService(conn: BackendJsonConnection)
   extends JsonBackendService(conn)
@@ -37,10 +38,28 @@ class JsonVideoService(conn: BackendJsonConnection)
 
   /* mutating POST methods */
 
-  def addVideo(fileName: String, hostName: String): Boolean = ???
+  def addVideo(fileName: String, hostName: String): Boolean = {
+    val params: Map[String, Any] = Map(
+      "FileName" -> fileName,
+      "HostName" -> hostName
+    )
+    val response = post("AddVideo", params)
+    val root = responseRoot(response)
+    root.booleanField("bool")   // TODO test
+  }
 
-  def removeVideoFromDb(videoId: VideoId): Boolean = ???
+  def removeVideoFromDb(videoId: VideoId): Boolean = {
+    val params: Map[String, Any] = Map("Id" -> videoId.id)
+    val response = post("RemoveVideoFromDB", params)
+    val root = responseRoot(response)
+    root.booleanField("bool")   // TODO test
+  }
 
   /* Added to API on 6 Apr 2016 */
-  def updateVideoWatchedStatus(videoId: VideoId, watched: Boolean): Boolean = ???
+  def updateVideoWatchedStatus(videoId: VideoId, watched: Boolean): Boolean = {
+    val params: Map[String, Any] = Map("Id" -> videoId.id, "Watched" -> watched)
+    val response = post("UpdateVideoWatchedStatus", params)
+    val root = responseRoot(response)
+    root.booleanField("bool")   // TODO test
+  }
 }

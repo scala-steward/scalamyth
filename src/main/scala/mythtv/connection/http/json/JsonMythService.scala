@@ -7,6 +7,7 @@ import spray.json.DefaultJsonProtocol
 
 import services.MythService
 import model.{ Settings, StorageGroupDir, TimeZoneInfo }
+import RichJsonObject._
 
 class JsonMythService(conn: BackendJsonConnection)
   extends JsonBackendService(conn)
@@ -51,13 +52,49 @@ class JsonMythService(conn: BackendJsonConnection)
 
   /* mutating POST methods */
 
-  def addStorageGroupDir(storageGroup: String, dirName: String, hostName: String): Boolean = ???
+  def addStorageGroupDir(storageGroup: String, dirName: String, hostName: String): Boolean = {
+    val params: Map[String, Any] = Map(
+      "GroupName" -> storageGroup,
+      "DirName"   -> dirName,
+      "HostName"  -> hostName
+    )
+    val response = post("AddStorageGroupDir", params)
+    val root = responseRoot(response)
+    root.booleanField("bool")   // TODO test
+  }
 
-  def removeStorageGroupDir(storageGroup: String, dirName: String, hostName: String): Boolean = ???
+  def removeStorageGroupDir(storageGroup: String, dirName: String, hostName: String): Boolean = {
+    val params: Map[String, Any] = Map(
+      "GroupName" -> storageGroup,
+      "DirName"   -> dirName,
+      "HostName"  -> hostName
+    )
+    val response = post("RemoveStorageGroupDir", params)
+    val root = responseRoot(response)
+    root.booleanField("bool")   // TODO test
+  }
 
-  def putSetting(hostName: String, key: String, value: String): Boolean = ???
+  def putSetting(hostName: String, key: String, value: String): Boolean = {
+    val params: Map[String, Any] = Map(
+      "HostName" -> hostName,
+      "Key"      -> key,
+      "Value"    -> value
+    )
+    val response = post("PutSetting", params)
+    val root = responseRoot(response)
+    root.booleanField("bool")   // TODO test
+  }
 
-  def changePassword(userName: String, oldPassword: String, newPassword: String): Boolean = ???
+  def changePassword(userName: String, oldPassword: String, newPassword: String): Boolean = {
+    val params: Map[String, Any] = Map(
+      "UserName"    -> userName,
+      "OldPassword" -> oldPassword,
+      "NewPassword" -> newPassword
+    )
+    val response = post("ChangePassword", params)
+    val root = responseRoot(response)
+    root.booleanField("bool")   // TODO test
+  }
 
   def testDbSettings(hostName: String, userName: String, password: String, dbName: String, dbPort: Int): Boolean = ???
 

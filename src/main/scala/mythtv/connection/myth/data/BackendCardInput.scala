@@ -17,7 +17,7 @@ private[myth] class BackendCardInput(data: Seq[String], fieldOrder: IndexedSeq[S
   def sourceId: ListingSourceId = ListingSourceId(fields("sourceId").toInt)
   def name: String = fields("name")
   def mplexId: MultiplexId = MultiplexId(fields("mplexId").toInt)
-  def liveTVorder: Int = fields("liveTVorder").toInt
+  def liveTvOrder: Int = fields("liveTVorder").toInt
 }
 
 private[myth] trait BackendCardInputFactory extends GenericBackendObjectFactory[BackendCardInput]
