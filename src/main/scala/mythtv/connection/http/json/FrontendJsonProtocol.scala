@@ -4,7 +4,7 @@ package http
 package json
 
 import spray.json.{ JsonFormat, jsonWriter }
-import spray.json.{ JsObject, JsString, JsValue }
+import spray.json.{ JsObject, JsValue }
 
 import model.{ FrontendActionMap, FrontendState, FrontendStatus }
 
@@ -23,7 +23,12 @@ trait FrontendJsonProtocol extends CommonJsonProtocol {
   }
 
   implicit object FrontendStatusJsonFormat extends JsonFormat[FrontendStatus] {
-    def write(s: FrontendStatus): JsValue = ???
+    def write(s: FrontendStatus): JsValue = JsObject(Map(
+      "State"          -> jsonWriter[Map[String, String]].write(s.stateMap),
+      "AudioTracks"    -> jsonWriter[Map[String, String]].write(s.audioTracks),
+      "SubtitleTracks" -> jsonWriter[Map[String, String]].write(s.subtitleTracks)
+        // TODO ChapterTimes
+    ))
 
     def read(value: JsValue): FrontendStatus = {
       val obj = value.asJsObject
