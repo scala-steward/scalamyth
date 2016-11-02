@@ -713,6 +713,29 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     def elementToJson(elem: TitleInfo): JsValue = jsonWriter[TitleInfo].write(elem)
   }
 
+  implicit object StorageGroupJsonFormat extends MythJsonObjectFormat[StorageGroup] {
+    def objectFieldName = "StorageGroupDir"
+
+    def write(sg: StorageGroup): JsValue = ???
+
+    def read(value: JsValue): StorageGroup = {
+      val obj = value.asJsObject
+      new StorageGroup {
+        def id        = StorageGroupId(obj.intField("Id"))
+        def groupName = obj.stringField("GroupName")
+        def hostName  = obj.stringField("HostName")
+        def dirName   = obj.stringField("DirName")
+      }
+    }
+  }
+
+  implicit object StorageGroupListJsonFormat extends MythJsonListFormat[StorageGroup] {
+    def objectFieldName = "StorageGroupDirList"
+    def listFieldName = "StorageGroupDirs"
+    def convertElement(value: JsValue): StorageGroup = value.convertTo[StorageGroup]
+    def elementToJson(elem: StorageGroup): JsValue = jsonWriter[StorageGroup].write(elem)
+  }
+
   implicit object RemoteEncoderStateJsonFormat extends MythJsonObjectFormat[RemoteEncoderState] {
     def objectFieldName = "Encoder" // TODO is this right? do we ever see this?
 

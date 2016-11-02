@@ -3,8 +3,6 @@ package model
 
 import util.ByteCount
 
-final case class StorageGroupId(id: Int) extends AnyVal
-
 trait FreeSpace {
   def host: String
   def path: String
@@ -17,6 +15,13 @@ trait FreeSpace {
   def freeSpace: ByteCount
 }
 
-// TODO storage group stuff ...
+final case class StorageGroupId(id: Int) extends AnyVal
 
-trait StorageGroupDir  // TODO move
+trait StorageGroup {
+  def id: StorageGroupId
+  def groupName: String
+  def hostName: String
+  def dirName: String
+
+  override def toString: String = s"<StorageGroup $id $groupName@$hostName: $dirName>"
+}

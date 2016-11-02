@@ -1,7 +1,7 @@
 package mythtv
 package services
 
-import model.{ Settings, StorageGroupDir, TimeZoneInfo }
+import model.{ Settings, StorageGroup, TimeZoneInfo }
 
 trait MythService extends BackendService {
   def serviceName: String = "Myth"
@@ -15,7 +15,7 @@ trait MythService extends BackendService {
   def getSetting(hostName: String, key: String = ""): Settings
 
   def getTimeZone: TimeZoneInfo
-  def getStorageGroupDirs(hostName: String = "", groupName: String = ""): List[StorageGroupDir]
+  def getStorageGroupDirs(hostName: String = "", groupName: String = ""): List[StorageGroup]
 
   // getLogs(....)
 

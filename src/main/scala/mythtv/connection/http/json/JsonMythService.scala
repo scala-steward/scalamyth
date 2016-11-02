@@ -6,7 +6,7 @@ package json
 import spray.json.DefaultJsonProtocol
 
 import services.MythService
-import model.{ Settings, StorageGroupDir, TimeZoneInfo }
+import model.{ Settings, StorageGroup, TimeZoneInfo }
 import RichJsonObject._
 
 class JsonMythService(conn: BackendJsonConnection)
@@ -39,7 +39,14 @@ class JsonMythService(conn: BackendJsonConnection)
     root.convertTo[Settings]
   }
 
-  def getStorageGroupDirs(hostName: String, groupName: String): List[StorageGroupDir] = ???
+  def getStorageGroupDirs(hostName: String, groupName: String): List[StorageGroup] = {
+    var params: Map[String, Any] = Map.empty
+    if (hostName.nonEmpty) params += "HostName" -> hostName
+    if (groupName.nonEmpty) params += "GroupName" -> groupName
+    val response = request("GetStorageGroupDirs", params)
+    val root = responseRoot(response, "StorageGroupDirList")
+    root.convertTo[List[StorageGroup]]
+  }
 
   def getTimeZone: TimeZoneInfo = {
     val response = request("GetTimeZone")
