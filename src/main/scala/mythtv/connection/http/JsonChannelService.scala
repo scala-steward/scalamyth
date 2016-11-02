@@ -5,6 +5,7 @@ package http
 import model._
 import util.OptionalCount
 import services.{ ChannelService, PagedList }
+import RichJsonObject._
 
 class JsonChannelService(conn: BackendJsonConnection)
   extends JsonBackendService(conn)
@@ -58,4 +59,117 @@ class JsonChannelService(conn: BackendJsonConnection)
     val root = responseRoot(response)
     root.convertTo[List[String]]
   }
+
+  /* mutating POST methods */
+
+  def addDbChannel(channel: ChannelDetails): Boolean = {
+    val params: Map[String, Any] = Map(
+      "MplexID"          -> channel.mplexId.map(_.id).getOrElse(0),
+      "SourceID"         -> channel.sourceId.id,
+      "ChannelID"        -> channel.chanId.id,
+      "CallSign"         -> channel.callsign,
+      "ChannelName"      -> channel.name,
+      "ChannelNumber"    -> channel.number.num,
+      "ServiceID"        -> channel.serviceId.getOrElse(0),
+      "ATSCMajorChannel" -> channel.atscMajorChan.getOrElse(0),
+      "ATSCMinorChannel" -> channel.atscMinorChan.getOrElse(0),
+      "UseEIT"           -> channel.useOnAirGuide,
+      "visible"          -> channel.visible,
+      "FrequencyID"      -> channel.freqId.getOrElse(""),
+      "Icon"             -> channel.iconPath,
+      "Format"           -> channel.format,
+      "XMLTVID"          -> channel.xmltvId,
+      "DefaultAuthority" -> channel.defaultAuthority.getOrElse("")
+    )
+    val response = post("AddDBChannel", params)
+    val root = responseRoot(response)
+    root.booleanField("bool")
+  }
+
+  def removeDbChannel(chanId: ChanId): Boolean = {
+    val params: Map[String, Any] = Map("ChannelId" -> chanId.id)
+    val response = post("RemoveDBChannel", params)
+    val root = responseRoot(response)
+    root.booleanField("bool")
+  }
+
+  def updateDbChannel(channel: ChannelDetails): Boolean = {
+    val params: Map[String, Any] = Map(
+      "MplexID"          -> channel.mplexId.map(_.id).getOrElse(0),
+      "SourceID"         -> channel.sourceId.id,
+      "ChannelID"        -> channel.chanId.id,
+      "CallSign"         -> channel.callsign,
+      "ChannelName"      -> channel.name,
+      "ChannelNumber"    -> channel.number.num,
+      "ServiceID"        -> channel.serviceId.getOrElse(0),
+      "ATSCMajorChannel" -> channel.atscMajorChan.getOrElse(0),
+      "ATSCMinorChannel" -> channel.atscMinorChan.getOrElse(0),
+      "UseEIT"           -> channel.useOnAirGuide,
+      "visible"          -> channel.visible,
+      "FrequencyID"      -> channel.freqId.getOrElse(""),
+      "Icon"             -> channel.iconPath,
+      "Format"           -> channel.format,
+      "XMLTVID"          -> channel.xmltvId,
+      "DefaultAuthority" -> channel.defaultAuthority.getOrElse("")
+    )
+    val response = post("UpdateDBChannel", params)
+    val root = responseRoot(response)
+    root.booleanField("bool")
+  }
+
+
+  def addVideoSource(source: ListingSource): ListingSourceId = {
+    val params: Map[String, Any] = Map(
+      "SourceName" -> source.name,
+      "Grabber"    -> source.grabber.getOrElse(""),
+      "UserId"     -> source.userId.getOrElse(""),
+      "FreqTable"  -> source.freqTable,
+      "LineupId"   -> source.lineupId.getOrElse(""),
+      "Password"   -> source.password.getOrElse(""),
+      "UseEIT"     -> source.useEit,
+      "ConfigPath" -> source.configPath.getOrElse(""),
+      "NITId"      -> source.dvbNitId.getOrElse(-1)
+      )
+    val response = post("AddVideoSource", params)
+    ListingSourceId(0)  // TODO
+  }
+
+  def removeVideoSource(sourceId: ListingSourceId): Boolean = {
+    val params: Map[String, Any] = Map("SourceID" -> sourceId.id)
+    val response = post("RemoveVideoSource", params)
+    val root = responseRoot(response)
+    root.booleanField("bool")
+  }
+
+  def updateVideoSource(source: ListingSource): Boolean = {
+    val params: Map[String, Any] = Map(
+      "SourceID"   -> source.sourceId.id,
+      "SourceName" -> source.name,
+      "Grabber"    -> source.grabber.getOrElse(""),
+      "UserId"     -> source.userId.getOrElse(""),
+      "FreqTable"  -> source.freqTable,
+      "LineupId"   -> source.lineupId.getOrElse(""),
+      "Password"   -> source.password.getOrElse(""),
+      "UseEIT"     -> source.useEit,
+      "ConfigPath" -> source.configPath.getOrElse(""),
+      "NITId"      -> source.dvbNitId.getOrElse(-1)
+      )
+    val response = post("UpdateVideoSource", params)
+    val root = responseRoot(response)
+    root.booleanField("bool")
+  }
+
+  //def getDDLineupList(...): ???
+
+  def fetchChannelsFromSource(
+    sourceId: ListingSourceId,
+    cardId: CaptureCardId,
+    waitForFinish: Boolean
+  ): Int = {
+    var params: Map[String, Any] = Map("SourceId" -> sourceId.id, "CardId" -> cardId.id)
+    if (waitForFinish) params += "WaitForFinish" -> waitForFinish
+    val response = post("FetchChannelsFromSource", params)
+    0   // TODO
+  }
+
 }

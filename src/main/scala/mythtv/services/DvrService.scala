@@ -45,4 +45,21 @@ trait DvrService extends BackendService {
   def getTitleList: List[String]
 
   def getTitleInfoList: List[TitleInfo]
+
+  /* mutating POST methods */
+
+  def removeRecorded(chanId: ChanId, startTime: MythDateTime): Boolean
+
+  def addRecordSchedule(rule: RecordRule): RecordRuleId
+
+  def updateRecordSchedule(rule: RecordRule): Boolean
+
+  def removeRecordSchedule(recordId: RecordRuleId): Boolean
+
+  def disableRecordSchedule(recordId: RecordRuleId): Boolean
+
+  def enableRecordSchedule(recordId: RecordRuleId): Boolean
+
+  /* Added to API on 6 Apr 2016 */
+  def updateRecordedWatchedStatus(chanId: ChanId, startTime: MythDateTime, watched: Boolean): Boolean
 }

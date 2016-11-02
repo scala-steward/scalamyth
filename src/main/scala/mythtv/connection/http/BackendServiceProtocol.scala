@@ -83,12 +83,12 @@ trait BackendServiceProtocol extends MythServiceProtocol {
    *   GetRecGroupList       GET ==> { StringList }            ()
    *   GetTitleList          GET ==> { StringList }            ()
    *   GetTitleInfoList      GET ==> { TitleInfoList }         ()
-   *   AddRecordSchedule
-   *   UpdateRecordSchedule
-   *   RemoveRecordSchedule
-   *   EnableRecordSchedule
-   *   DisableRecordSchedule
-   *   UpdateRecordedWatchedStatus
+   *   AddRecordSchedule            POST
+   *   UpdateRecordSchedule         POST
+   *   RemoveRecordSchedule         POST                       (RecordId)
+   *   EnableRecordSchedule         POST                       (RecordId)
+   *   DisableRecordSchedule        POST                       (RecordId)
+   *   UpdateRecordedWatchedStatus  POST                       (ChanId, StartTime, Watched)
    * Video/
    *   GetVideo              GET ==> { VideoMetadataInfo }     (Id)
    *   GetVideoByFileName    GET ==> { VideoMetadataInfo }     (FileName)

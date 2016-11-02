@@ -14,4 +14,15 @@ trait VideoService extends BackendService {
     count: OptionalCount[Int] = OptionalCount.all,
     descending: Boolean = false
   ): PagedList[Video]
+
+  //def getBluray(path: String): BlurayInfo
+
+  /* mutating POST methods */
+
+  def addVideo(fileName: String, hostName: String): Boolean
+
+  def removeVideoFromDb(videoId: VideoId): Boolean
+
+  /* Added to API on 6 Apr 2016 */
+  def updateVideoWatchedStatus(videoId: VideoId, watched: Boolean): Boolean
 }

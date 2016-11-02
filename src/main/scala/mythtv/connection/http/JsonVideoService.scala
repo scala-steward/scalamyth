@@ -30,4 +30,16 @@ class JsonVideoService(conn: BackendJsonConnection)
     val root = responseRoot(response, "VideoMetadataInfoList")
     root.convertTo[MythJsonPagedObjectList[Video]]
   }
+
+
+  //def getBluray(path: String): BlurayInfo
+
+  /* mutating POST methods */
+
+  def addVideo(fileName: String, hostName: String): Boolean = ???
+
+  def removeVideoFromDb(videoId: VideoId): Boolean = ???
+
+  /* Added to API on 6 Apr 2016 */
+  def updateVideoWatchedStatus(videoId: VideoId, watched: Boolean): Boolean = ???
 }

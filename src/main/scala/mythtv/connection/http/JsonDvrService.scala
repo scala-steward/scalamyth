@@ -2,6 +2,8 @@ package mythtv
 package connection
 package http
 
+import java.time.LocalTime
+
 import model._
 import util.{ MythDateTime, OptionalCount }
 import services.{ DvrService, PagedList }
@@ -90,5 +92,147 @@ class JsonDvrService(conn: BackendJsonConnection)
   }
 
   def getTitleInfoList: List[TitleInfo] = ???
+
+  /* POST methods */
+
+  def removeRecorded(chanId: ChanId, startTime: MythDateTime): Boolean = {
+    val params: Map[String, Any] = Map(
+      "ChanId" -> chanId.id,
+      "StartTime" -> startTime.toIsoFormat
+    )
+    val response = post("RemoveRecorded", params)
+    val root = responseRoot(response)
+    root.booleanField("bool")
+  }
+
+  def addRecordSchedule(rule: RecordRule): RecordRuleId = {
+    val params: Map[String, Any] = Map(
+      "Title"          -> rule.title,
+      "Subtitle"       -> rule.subtitle,
+      "Description"    -> rule.description,
+      "Category"       -> rule.category,
+      "StartTime"      -> rule.startTime.toIsoFormat,
+      "EndTime"        -> rule.endTime.toIsoFormat,
+      "SeriesId"       -> rule.seriesId.getOrElse(""),
+      "ProgramId"      -> rule.programId.getOrElse(""),
+      "ChanId"         -> rule.chanId.map(_.id).getOrElse(0),
+      "Station"        -> rule.callsign,
+      "FindDay"        -> rule.findDay,
+      "FindTime"       -> rule.findTime.getOrElse(LocalTime.MIN),
+      "ParentId"       -> rule.parentId.map(_.id).getOrElse(0),
+      "Inactive"       -> rule.inactive,
+      "Season"         -> rule.season.getOrElse(0),
+      "Episode"        -> rule.episode.getOrElse(0),
+      "Inetref"        -> rule.inetRef.getOrElse(""),
+      "Type"           -> rule.recType,    // TODO which string conversion is needed here for the API?
+      "SearchType"     -> rule.searchType, // TODO which string conversion is needed here for the API?
+      "RecPriority"    -> rule.recPriority,
+      "PreferredInput" -> rule.preferredInput.map(_.id).getOrElse(0),
+      "StartOffset"    -> rule.startOffset,
+      "EndOffset"      -> rule.endOffset,
+      "DupMethod"      -> rule.dupMethod, // TODO which string conversion is needed here for the API?
+      "DupIn"          -> rule.dupIn,     // TODO which string conversion is needed here for the API?
+      "Filter"         -> rule.filter.getOrElse(0),
+      "RecProfile"     -> rule.recProfile,
+      "RecGroup"       -> rule.recGroup,
+      "StorageGroup"   -> rule.storageGroup,
+      "PlayGroup"      -> rule.playGroup,
+      "AutoExpire"     -> rule.autoExpire,
+      "MaxEpisodes"    -> rule.maxEpisodes,
+      "MaxNewest"      -> rule.maxNewest,
+      "AutoCommflag"   -> rule.autoCommFlag,
+      "AutoTranscode"  -> rule.autoTranscode,
+      "AutoMetaLookup" -> rule.autoMetadata,
+      "AutoUserJob1"   -> rule.autoUserJob1,
+      "AutoUserJob2"   -> rule.autoUserJob2,
+      "AutoUserJob3"   -> rule.autoUserJob3,
+      "AutoUserJob4"   -> rule.autoUserJob4,
+      "Transcoder"     -> rule.transcoder.getOrElse(0)
+    )
+    val response = post("UpdateRecordSchedule", params)
+    val root = responseRoot(response)
+    RecordRuleId(0) // TODO FIXME
+  }
+
+  def updateRecordSchedule(rule: RecordRule): Boolean = {
+    val params: Map[String, Any] = Map(
+      "RecordId"       -> rule.id,
+      "Title"          -> rule.title,
+      "Subtitle"       -> rule.subtitle,
+      "Description"    -> rule.description,
+      "Category"       -> rule.category,
+      "StartTime"      -> rule.startTime.toIsoFormat,
+      "EndTime"        -> rule.endTime.toIsoFormat,
+      "SeriesId"       -> rule.seriesId.getOrElse(""),
+      "ProgramId"      -> rule.programId.getOrElse(""),
+      "ChanId"         -> rule.chanId.map(_.id).getOrElse(0),
+      "Station"        -> rule.callsign,
+      "FindDay"        -> rule.findDay,
+      "FindTime"       -> rule.findTime.getOrElse(LocalTime.MIN),
+      "Inactive"       -> rule.inactive,
+      "Season"         -> rule.season.getOrElse(0),
+      "Episode"        -> rule.episode.getOrElse(0),
+      "Inetref"        -> rule.inetRef.getOrElse(""),
+      "Type"           -> rule.recType,    // TODO which string conversion is needed here for the API?
+      "SearchType"     -> rule.searchType, // TODO which string conversion is needed here for the API?
+      "RecPriority"    -> rule.recPriority,
+      "PreferredInput" -> rule.preferredInput.map(_.id).getOrElse(0),
+      "StartOffset"    -> rule.startOffset,
+      "EndOffset"      -> rule.endOffset,
+      "DupMethod"      -> rule.dupMethod, // TODO which string conversion is needed here for the API?
+      "DupIn"          -> rule.dupIn,     // TODO which string conversion is needed here for the API?
+      "Filter"         -> rule.filter.getOrElse(0),
+      "RecProfile"     -> rule.recProfile,
+      "RecGroup"       -> rule.recGroup,
+      "StorageGroup"   -> rule.storageGroup,
+      "PlayGroup"      -> rule.playGroup,
+      "AutoExpire"     -> rule.autoExpire,
+      "MaxEpisodes"    -> rule.maxEpisodes,
+      "MaxNewest"      -> rule.maxNewest,
+      "AutoCommflag"   -> rule.autoCommFlag,
+      "AutoTranscode"  -> rule.autoTranscode,
+      "AutoMetaLookup" -> rule.autoMetadata,
+      "AutoUserJob1"   -> rule.autoUserJob1,
+      "AutoUserJob2"   -> rule.autoUserJob2,
+      "AutoUserJob3"   -> rule.autoUserJob3,
+      "AutoUserJob4"   -> rule.autoUserJob4,
+      "Transcoder"     -> rule.transcoder.getOrElse(0)
+    )
+    val response = post("UpdateRecordSchedule", params)
+    val root = responseRoot(response)
+    root.booleanField("bool")
+  }
+
+  def removeRecordSchedule(recordId: RecordRuleId): Boolean = {
+    val params: Map[String, Any] = Map("RecordId" -> recordId.id)
+    val response = post("RemoveRecordSchedule", params)
+    val root = responseRoot(response)
+    root.booleanField("bool")
+  }
+
+  def disableRecordSchedule(recordId: RecordRuleId): Boolean = {
+    val params: Map[String, Any] = Map("RecordId" -> recordId.id)
+    val response = post("DisableRecordSchedule", params)
+    val root = responseRoot(response)
+    root.booleanField("bool")
+  }
+
+  def enableRecordSchedule(recordId: RecordRuleId): Boolean = {
+    val params: Map[String, Any] = Map("RecordId" -> recordId.id)
+    val response = post("EnableRecordSchedule", params)
+    val root = responseRoot(response)
+    root.booleanField("bool")
+  }
+
+  def updateRecordedWatchedStatus(chanId: ChanId, startTime: MythDateTime, watched: Boolean): Boolean = {
+    val params: Map[String, Any] = Map(
+      "ChanId" -> chanId.id,
+      "StartTime" -> startTime.toIsoFormat,
+      "Watched" -> watched
+    )
+    val response = post("UpdateRecordedWatchedStatus", params)
+    val root = responseRoot(response)
+    root.booleanField("bool")
+  }
 
 }
