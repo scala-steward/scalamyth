@@ -37,7 +37,7 @@ abstract class AbstractHttpConnection(val protocol: String, val host: String, va
       case conn: HttpURLConnection =>
         setupConnection(conn)
 
-        conn.setDoOutput(true);
+        conn.setDoOutput(true)
         conn.setRequestMethod("POST")
         conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
 
