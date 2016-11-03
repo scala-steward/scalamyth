@@ -5,9 +5,10 @@ package json
 
 import spray.json.DefaultJsonProtocol
 
-import model.{ ChanId, LiveStreamInfo, VideoId }
+import model.{ ChanId, LiveStreamId, LiveStream, VideoId }
 import services.{ ContentService, ArtworkInfo }
 import util.{ MythFileHash, MythDateTime }
+import RichJsonObject._
 
 import services.DataBytes // FIXME temporary placeholder
 
@@ -30,10 +31,23 @@ class JsonContentService(conn: BackendJsonConnection)
     new MythFileHash(root.convertTo[String])
   }
 
+  def getLiveStream(id: LiveStreamId): LiveStream = {
+    val params: Map[String, Any] = Map("Id" -> id.id)
+    val response = request("GetLiveStream", params)
+    val root = responseRoot(response, "LiveStreamInfo")
+    root.convertTo[LiveStream]
+  }
+
+  def getLiveStreamList(fileName: String): List[LiveStream] = {
+    val params: Map[String, Any] = Map("FileName" -> fileName)
+    val response = request("GetLiveStreamList", params)
+    val root = responseRoot(response, "LiveStreamInfoList")
+    root.convertTo[List[LiveStream]]
+  }
+
   def getFile(storageGroup: String, fileName: String): DataBytes = ???
   def getImageFile(storageGroup: String, fileName: String, width: Int, height: Int): DataBytes = ???
-  def getLiveStream(id: Int): LiveStreamInfo = ???
-  def getLiveStreamList(fileName: String): List[LiveStreamInfo] = ???
+
   def getMusic(id: Int): DataBytes = ???
   def getRecording(chanId: ChanId, startTime: MythDateTime): DataBytes = ???
   def getVideo(id: VideoId): DataBytes = ???
@@ -56,15 +70,65 @@ class JsonContentService(conn: BackendJsonConnection)
   def downloadFile(url: String, storageGroup: String): Boolean = ???
 
   def addLiveStream(storageGroup: String, fileName: String, hostName: String, maxSegments: Int,
-    width: Int, height: Int, bitrate: Int, audioBitrate: Int, sampleRate: Int): LiveStreamInfo = ???
+    width: Int, height: Int, bitrate: Int, audioBitrate: Int, sampleRate: Int): LiveStream = {
+    var params: Map[String, Any] = Map(
+      "StorageGroup" -> storageGroup,
+      "FileName"     -> fileName
+    )
+    if (hostName.nonEmpty) params += "HostName"     -> hostName
+    if (maxSegments != 0)  params += "MaxSegments"  -> maxSegments
+    if (width != 0)        params += "Width"        -> width
+    if (height != 0)       params += "Height"       -> height
+    if (bitrate != 0)      params += "Bitrate"      -> bitrate
+    if (audioBitrate != 0) params += "AudioBitrate" -> audioBitrate
+    if (sampleRate != 0)   params += "SampleRate"   -> sampleRate
+    val response = post("AddLiveStream", params)
+    val root = responseRoot(response, "LiveStreamInfo")
+    root.convertTo[LiveStream]
+  }
 
   def addRecordingLiveStream(chanId: ChanId, startTime: MythDateTime, maxSegments: Int,
-    width: Int, height: Int, bitrate: Int, audioBitrate: Int, sampleRate: Int): LiveStreamInfo = ???
+    width: Int, height: Int, bitrate: Int, audioBitrate: Int, sampleRate: Int): LiveStream = {
+    var params: Map[String, Any] = Map(
+      "ChanId"       -> chanId.id,
+      "StartTime"    -> startTime.toIsoFormat
+    )
+    if (maxSegments != 0)  params += "MaxSegments"  -> maxSegments
+    if (width != 0)        params += "Width"        -> width
+    if (height != 0)       params += "Height"       -> height
+    if (bitrate != 0)      params += "Bitrate"      -> bitrate
+    if (audioBitrate != 0) params += "AudioBitrate" -> audioBitrate
+    if (sampleRate != 0)   params += "SampleRate"   -> sampleRate
+    val response = post("AddRecordingLiveStream", params)
+    val root = responseRoot(response, "LiveStreamInfo")
+    root.convertTo[LiveStream]
+  }
 
   def addVideoLiveStream(videoId: VideoId, maxSegments: Int,
-    width: Int, height: Int, bitrate: Int, audioBitrate: Int, sampleRate: Int): LiveStreamInfo = ???
+    width: Int, height: Int, bitrate: Int, audioBitrate: Int, sampleRate: Int): LiveStream = {
+    var params: Map[String, Any] = Map("Id" -> videoId.id)
+    if (maxSegments != 0)  params += "MaxSegments"  -> maxSegments
+    if (width != 0)        params += "Width"        -> width
+    if (height != 0)       params += "Height"       -> height
+    if (bitrate != 0)      params += "Bitrate"      -> bitrate
+    if (audioBitrate != 0) params += "AudioBitrate" -> audioBitrate
+    if (sampleRate != 0)   params += "SampleRate"   -> sampleRate
+    val response = post("AddVideoLiveStream", params)
+    val root = responseRoot(response, "LiveStreamInfo")
+    root.convertTo[LiveStream]
+  }
 
-  def stopLiveStream(id: Int): LiveStreamInfo = ???
+  def stopLiveStream(id: LiveStreamId): LiveStream = {
+    val params: Map[String, Any] = Map("Id" -> id.id)
+    val response = post("StopLiveStream", params)
+    val root = responseRoot(response, "LiveStreamInfo")
+    root.convertTo[LiveStream]
+  }
 
-  def removeLiveStream(id: Int): Boolean = ???
+  def removeLiveStream(id: LiveStreamId): Boolean = {
+    val params: Map[String, Any] = Map("Id" -> id.id)
+    val response = post("RemoveLiveStream", params)
+    val root = responseRoot(response)
+    root.booleanField("bool")   // TODO test
+  }
 }

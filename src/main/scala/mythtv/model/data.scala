@@ -94,6 +94,3 @@ trait TitleInfo {
 
   override def toString: String = s"<TitleInfo $title, $inetRef>"
 }
-
-// TODO from services
-trait LiveStreamInfo

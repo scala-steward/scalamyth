@@ -1146,4 +1146,46 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     def elementToJson(elem: VideoMultiplex): JsValue = jsonWriter[VideoMultiplex].write(elem)
   }
 
+  implicit object ListStreamJsonFormat extends MythJsonObjectFormat[LiveStream] {
+    def objectFieldName = "LiveStreamInfo"
+
+    def write(s: LiveStream): JsValue = ???
+
+    def read(value: JsValue): LiveStream = {
+      val obj = value.asJsObject
+      new LiveStream {
+        def id               = LiveStreamId(obj.intField("Id"))
+        def width            = obj.intField("Width")
+        def height           = obj.intField("Height")
+        def bitrate          = obj.intField("Bitrate")
+        def audioBitrate     = obj.intField("AudioBitrate")
+        def segmentSize      = obj.intField("SegmentSize")
+        def maxSegments      = obj.intField("MaxSegments")
+        def startSegment     = obj.intField("StartSegment")
+        def currentSegment   = obj.intField("CurrentSegment")
+        def segmentCount     = obj.intField("SegmentCount")
+        def percentComplete  = obj.intField("PercentComplete")
+        def created          = obj.dateTimeField("Created").toInstant
+        def lastModified     = obj.dateTimeField("LastModified").toInstant
+        def relativeUrl      = obj.stringField("RelativeURL")
+        def fullUrl          = obj.stringField("FullURL")
+        def statusText       = obj.stringField("StatusStr")
+        def statusCode       = obj.intField("StatusInt")
+        def statusMessage    = obj.stringField("StatusMessage")
+        def sourceFile       = obj.stringField("SourceFile")
+        def sourceHost       = obj.stringField("SourceHost")
+        def sourceWidth      = obj.intField("SourceWidth")
+        def sourceHeight     = obj.intField("SourceHeight")
+        def audioOnlyBitrate = obj.intField("AudioOnlyBitrate")
+      }
+    }
+  }
+
+  implicit object LiveStreamJsonListFormat extends MythJsonListFormat[LiveStream] {
+    def objectFieldName = "LiveStreamInfoList"
+    def listFieldName = "LiveStreamInfos"
+    def convertElement(value: JsValue): LiveStream = value.convertTo[LiveStream]
+    def elementToJson(elem: LiveStream): JsValue = jsonWriter[LiveStream].write(elem)
+  }
+
 }

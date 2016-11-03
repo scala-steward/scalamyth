@@ -1,7 +1,7 @@
 package mythtv
 package services
 
-import model.{ ChanId, LiveStreamInfo, VideoId }
+import model.{ ChanId, LiveStreamId, LiveStream, VideoId }
 import util.{ MythDateTime, MythFileHash }
 
 trait ArtworkInfo // TODO temporary placeholder
@@ -13,8 +13,10 @@ trait ContentService extends BackendService {
   def getFileList(storageGroup: String): List[String]
   def getHash(storageGroup: String, fileName: String): MythFileHash
   def getImageFile(storageGroup: String, fileName: String, width: Int, height: Int): DataBytes  // optional width, height
-  def getLiveStream(id: Int): LiveStreamInfo
-  def getLiveStreamList(fileName: String): List[LiveStreamInfo]
+
+  def getLiveStream(id: LiveStreamId): LiveStream
+  def getLiveStreamList(fileName: String): List[LiveStream]
+
   def getMusic(id: Int): DataBytes
   def getRecording(chanId: ChanId, startTime: MythDateTime): DataBytes
   def getVideo(id: VideoId): DataBytes
@@ -36,16 +38,40 @@ trait ContentService extends BackendService {
 
   def downloadFile(url: String, storageGroup: String): Boolean
 
-  def addLiveStream(storageGroup: String, fileName: String, hostName: String, maxSegments: Int,
-    width: Int, height: Int, bitrate: Int, audioBitrate: Int, sampleRate: Int): LiveStreamInfo
+  def addLiveStream(
+    storageGroup: String,
+    fileName: String,
+    hostName: String = "",
+    maxSegments: Int = LiveStream.DefaultMaxSegments,
+    width: Int = LiveStream.DefaultWidth,
+    height: Int = LiveStream.DefaultHeight,
+    bitrate: Int = LiveStream.DefaultBitrate,
+    audioBitrate: Int = LiveStream.DefaultAudioBitrate,
+    sampleRate: Int = LiveStream.DefaultSampleRate
+  ): LiveStream
 
-  def addRecordingLiveStream(chanId: ChanId, startTime: MythDateTime, maxSegments: Int,
-    width: Int, height: Int, bitrate: Int, audioBitrate: Int, sampleRate: Int): LiveStreamInfo
+  def addRecordingLiveStream(
+    chanId: ChanId,
+    startTime: MythDateTime,
+    maxSegments: Int = LiveStream.DefaultMaxSegments,
+    width: Int = LiveStream.DefaultWidth,
+    height: Int = LiveStream.DefaultHeight,
+    bitrate: Int = LiveStream.DefaultBitrate,
+    audioBitrate: Int = LiveStream.DefaultAudioBitrate,
+    sampleRate: Int = LiveStream.DefaultSampleRate
+  ): LiveStream
 
-  def addVideoLiveStream(videoId: VideoId, maxSegments: Int,
-    width: Int, height: Int, bitrate: Int, audioBitrate: Int, sampleRate: Int): LiveStreamInfo
+  def addVideoLiveStream(
+    videoId: VideoId,
+    maxSegments: Int = LiveStream.DefaultMaxSegments,
+    width: Int = LiveStream.DefaultWidth,
+    height: Int = LiveStream.DefaultHeight,
+    bitrate: Int = LiveStream.DefaultBitrate,
+    audioBitrate: Int = LiveStream.DefaultAudioBitrate,
+    sampleRate: Int = LiveStream.DefaultSampleRate
+  ): LiveStream
 
-  def stopLiveStream(id: Int): LiveStreamInfo
+  def stopLiveStream(id: LiveStreamId): LiveStream
 
-  def removeLiveStream(id: Int): Boolean
+  def removeLiveStream(id: LiveStreamId): Boolean
 }
