@@ -123,9 +123,17 @@ class JsonMythService(conn: BackendJsonConnection)
     root.booleanField("bool")   // TODO test
   }
 
-  def profileSubmit(): Boolean = ???
+  def profileSubmit(): Boolean = {
+    val response = post("ProfileSubmit")
+    val root = responseRoot(response)
+    root.booleanField("bool")   // TODO test
+  }
 
-  def profileDelete(): Boolean = ???
+  def profileDelete(): Boolean = {
+    val response = post("ProfileDelete")
+    val root = responseRoot(response)
+    root.booleanField("bool")   // TODO test
+  }
 
 // TODO are the three below GET methods?
 
