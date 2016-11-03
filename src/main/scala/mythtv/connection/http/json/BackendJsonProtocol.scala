@@ -1149,7 +1149,31 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
   implicit object ListStreamJsonFormat extends MythJsonObjectFormat[LiveStream] {
     def objectFieldName = "LiveStreamInfo"
 
-    def write(s: LiveStream): JsValue = ???
+    def write(s: LiveStream): JsValue = JsObject(Map(
+      "Id"               -> JsString(s.id.id.toString),
+      "Width"            -> JsString(s.width.toString),
+      "Height"           -> JsString(s.height.toString),
+      "Bitrate"          -> JsString(s.bitrate.toString),
+      "AudioBitrate"     -> JsString(s.audioBitrate.toString),
+      "SegmentSize"      -> JsString(s.segmentSize.toString),
+      "MaxSegments"      -> JsString(s.maxSegments.toString),
+      "StartSegment"     -> JsString(s.startSegment.toString),
+      "CurrentSegment"   -> JsString(s.currentSegment.toString),
+      "SegmentCount"     -> JsString(s.segmentCount.toString),
+      "PercentComplete"  -> JsString(s.percentComplete.toString),
+      "Created"          -> JsString(s.created.toString),
+      "LastModified"     -> JsString(s.lastModified.toString),
+      "RelativeURL"      -> JsString(s.relativeUrl),
+      "FullURL"          -> JsString(s.fullUrl),
+      "StatusStr"        -> JsString(s.statusText),
+      "StatusInt"        -> JsString(s.statusCode.toString),
+      "StatusMessage"    -> JsString(s.statusMessage),
+      "SourceFile"       -> JsString(s.sourceFile),
+      "SourceHost"       -> JsString(s.sourceHost),
+      "SourceWidth"      -> JsString(s.sourceWidth.toString),
+      "SourceHeight"     -> JsString(s.sourceHeight.toString),
+      "AudioOnlyBitrate" -> JsString(s.audioOnlyBitrate.toString)
+    ))
 
     def read(value: JsValue): LiveStream = {
       val obj = value.asJsObject
