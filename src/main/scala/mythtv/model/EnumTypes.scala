@@ -14,6 +14,7 @@ object EnumTypes {
   type JobStatus = model.JobStatus.Value
   type JobType = model.JobType.Value
   type ListingSourceType = model.ListingSourceType.Value
+  type LiveStreamStatus = model.LiveStreamStatus.Value
   type Markup = model.Markup.Value
   type NotificationPriority = model.NotificationPriority.Value
   type NotificationType = model.NotificationType.Value

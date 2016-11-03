@@ -1166,7 +1166,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       "RelativeURL"      -> JsString(s.relativeUrl),
       "FullURL"          -> JsString(s.fullUrl),
       "StatusStr"        -> JsString(s.statusText),
-      "StatusInt"        -> JsString(s.statusCode.toString),
+      "StatusInt"        -> JsString(s.status.id.toString),
       "StatusMessage"    -> JsString(s.statusMessage),
       "SourceFile"       -> JsString(s.sourceFile),
       "SourceHost"       -> JsString(s.sourceHost),
@@ -1193,8 +1193,8 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def lastModified     = obj.dateTimeField("LastModified").toInstant
         def relativeUrl      = obj.stringField("RelativeURL")
         def fullUrl          = obj.stringField("FullURL")
+        def status           = LiveStreamStatus.applyOrUnknown(obj.intField("StatusInt"))
         def statusText       = obj.stringField("StatusStr")
-        def statusCode       = obj.intField("StatusInt")
         def statusMessage    = obj.stringField("StatusMessage")
         def sourceFile       = obj.stringField("SourceFile")
         def sourceHost       = obj.stringField("SourceHost")

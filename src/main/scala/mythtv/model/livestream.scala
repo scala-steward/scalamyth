@@ -3,6 +3,8 @@ package model
 
 import java.time.Instant
 
+import model.EnumTypes.LiveStreamStatus
+
 final case class LiveStreamId(id: Int) extends AnyVal
 
 trait LiveStream {
@@ -21,8 +23,8 @@ trait LiveStream {
   def lastModified: Instant
   def relativeUrl: String
   def fullUrl: String
+  def status: LiveStreamStatus
   def statusText: String
-  def statusCode: Int
   def statusMessage: String
   def sourceFile: String
   def sourceHost: String

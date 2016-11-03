@@ -361,3 +361,15 @@ object NotificationVisibility extends BitmaskEnum[Int] {
   val Music      = Value(0x10)
   val Recordings = Value(0x20)
 }
+
+object LiveStreamStatus extends LooseEnum {
+  type LiveStreamStatus = Value
+  val Undefined  = Value(-1)
+  val Queued     = Value(0)
+  val Starting   = Value(1)
+  val Running    = Value(2)
+  val Completed  = Value(3)
+  val Errored    = Value(4)
+  val Stopping   = Value(5)
+  val Stopped    = Value(6)
+}
