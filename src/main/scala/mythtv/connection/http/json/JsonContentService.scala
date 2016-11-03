@@ -154,6 +154,6 @@ class JsonContentService(conn: BackendJsonConnection)
     val params: Map[String, Any] = Map("Id" -> id.id)
     val response = post("RemoveLiveStream", params)
     val root = responseRoot(response)
-    root.booleanField("bool")   // TODO test
+    root.booleanField("bool")
   }
 }

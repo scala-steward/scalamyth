@@ -78,7 +78,7 @@ class JsonMythService(conn: BackendJsonConnection)
     )
     val response = post("RemoveStorageGroupDir", params)
     val root = responseRoot(response)
-    root.booleanField("bool")   // TODO test
+    root.booleanField("bool")
   }
 
   def putSetting(hostName: String, key: String, value: String): Boolean = {
@@ -112,7 +112,7 @@ class JsonMythService(conn: BackendJsonConnection)
   def backupDatabase(): Boolean = {
     val response = post("BackupDatabase")
     val root = responseRoot(response)
-    root.booleanField("bool")   // TODO test
+    root.booleanField("bool")
   }
 
   def checkDatabase(repair: Boolean): Boolean = {
@@ -120,7 +120,7 @@ class JsonMythService(conn: BackendJsonConnection)
     if (repair) params += "Repair" -> repair
     val response = post("CheckDatabase", params)
     val root = responseRoot(response)
-    root.booleanField("bool")   // TODO test
+    root.booleanField("bool")
   }
 
   def profileSubmit(): Boolean = {

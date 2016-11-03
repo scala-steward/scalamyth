@@ -26,6 +26,9 @@ trait MythService extends BackendService {
 
   def removeStorageGroupDir(storageGroup: String, dirName: String, hostName: String): Boolean
 
+  def removeStorageGroupDir(dir: StorageGroupDir): Boolean =
+    removeStorageGroupDir(dir.groupName, dir.dirName, dir.hostName)
+
   def putSetting(hostName: String, key: String, value: String): Boolean
 
   def changePassword(userName: String, oldPassword: String, newPassword: String): Boolean
@@ -36,8 +39,10 @@ trait MythService extends BackendService {
 
   //def sendNotification(....): Boolean
 
+  // This causes a database backup to be performed synchronously, so may not return for some time.
   def backupDatabase(): Boolean
 
+  // This causes a database check to be performed synchronously, so may not return for some time.
   def checkDatabase(repair: Boolean = false): Boolean
 
 

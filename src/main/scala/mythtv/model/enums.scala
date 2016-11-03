@@ -3,8 +3,6 @@ package model
 
 import util.{ BitmaskEnum, LooseEnum }
 
-/* TODO create some sort of equivalent of Java's EnumSet for storing bit flag enums */
-
 object Markup extends LooseEnum {
   type Markup = Value
   val All           = Value(-100)
