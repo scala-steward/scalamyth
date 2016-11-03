@@ -1,10 +1,8 @@
 package mythtv
 package services
 
-import model.{ ChanId, LiveStreamId, LiveStream, VideoId }
+import model.{ ArtworkInfo, ChanId, LiveStreamId, LiveStream, VideoId }
 import util.{ MythDateTime, MythFileHash }
-
-trait ArtworkInfo // TODO temporary placeholder
 
 trait ContentService extends BackendService {
   def serviceName: String = "Content"

@@ -5,8 +5,8 @@ package json
 
 import spray.json.DefaultJsonProtocol
 
-import model.{ ChanId, LiveStreamId, LiveStream, VideoId }
-import services.{ ContentService, ArtworkInfo }
+import services.ContentService
+import model.{ ArtworkInfo, ChanId, LiveStreamId, LiveStream, VideoId }
 import util.{ MythFileHash, MythDateTime }
 import RichJsonObject._
 
@@ -56,9 +56,25 @@ class JsonContentService(conn: BackendJsonConnection)
 
   def getRecordingArtwork(artType: String, inetRef: String, season: Int, width: Int, height: Int): DataBytes = ???
 
-  def getRecordingArtworkList(chanId: ChanId, startTime: MythDateTime): List[ArtworkInfo] = ???
+  def getRecordingArtworkList(chanId: ChanId, startTime: MythDateTime): List[ArtworkInfo] = {
+    val params: Map[String, Any] = Map(
+      "ChanId" -> chanId.id,
+      "StartTime" -> startTime.toIsoFormat
+    )
+    val response = request("GetRecordingArtworkList", params)
+    val root = responseRoot(response, "ArtworkInfoList")
+    root.convertTo[List[ArtworkInfo]]  // TODO test
+  }
 
-  def getProgramArtworkList(inetRef: String, season: Int): List[ArtworkInfo] = ???
+  def getProgramArtworkList(inetRef: String, season: Int): List[ArtworkInfo] = {
+    val params: Map[String, Any] = Map(
+      "Inetref" -> inetRef,
+      "Season" -> season
+    )
+    val response = request("GetProgramArtworkList", params)
+    val root = responseRoot(response, "ArtworkInfoList")
+    root.convertTo[List[ArtworkInfo]]  // TODO test
+  }
 
   def getVideoArtwork(artType: String, videoId: Int, width: Int, height: Int): DataBytes = ???
 
