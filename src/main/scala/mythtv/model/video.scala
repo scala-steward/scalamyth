@@ -45,3 +45,26 @@ trait Video {
     else title
   override def toString: String = s"<Video $id $combinedTitle>"
 }
+
+trait BlurayInfo {
+  def path: String
+  def title: String
+  def altTitle: String
+  def discLang: String
+  def discNumber: Int
+  def totalDiscNumber: Int
+  def titleCount: Int
+  def thumbCount: Int
+  def thumbPath: String
+  def topMenuSupported: Boolean
+  def firstPlaySupported: Boolean
+  def numHdmvTitles: Int
+  def numBdJTitles: Int
+  def numUnsupportedTitles: Int
+  def aacsDetected: Boolean
+  def libaacsDetected: Boolean
+  def aacsHandled: Boolean
+  def bdplusDetected: Boolean
+  def libbdplusDetected: Boolean
+  def bdplusHandled: Boolean
+}

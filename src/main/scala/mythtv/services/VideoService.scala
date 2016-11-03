@@ -1,7 +1,7 @@
 package mythtv
 package services
 
-import model.{ VideoId, Video }
+import model.{ BlurayInfo, VideoId, Video }
 import util.OptionalCount
 
 trait VideoService extends BackendService {
@@ -15,7 +15,7 @@ trait VideoService extends BackendService {
     descending: Boolean = false
   ): PagedList[Video]
 
-  //def getBluray(path: String): BlurayInfo
+  def getBluray(path: String): BlurayInfo
 
   /* mutating POST methods */
 

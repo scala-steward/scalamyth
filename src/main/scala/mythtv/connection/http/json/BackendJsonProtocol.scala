@@ -1188,4 +1188,56 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     def elementToJson(elem: LiveStream): JsValue = jsonWriter[LiveStream].write(elem)
   }
 
+  implicit object BlurayInfoJsonFormat extends MythJsonObjectFormat[BlurayInfo] {
+    def objectFieldName = "BlurayInfo"
+
+    def write(bd: BlurayInfo): JsValue = JsObject(Map(
+      "Path"                 -> JsString(bd.path),
+      "Title"                -> JsString(bd.title),
+      "AltTitle"             -> JsString(bd.altTitle),
+      "DiscLang"             -> JsString(bd.discLang),
+      "DiscNum"              -> JsString(bd.discNumber.toString),
+      "TotalDiscNum"         -> JsString(bd.totalDiscNumber.toString),
+      "TitleCount"           -> JsString(bd.titleCount.toString),
+      "ThumbCount"           -> JsString(bd.thumbCount.toString),
+      "TopMenuSupported"     -> JsString(bd.topMenuSupported.toString),
+      "FirstPlaySupported"   -> JsString(bd.firstPlaySupported.toString),
+      "NumHDMVTitles"        -> JsString(bd.numHdmvTitles.toString),
+      "NumBDJTitles"         -> JsString(bd.numBdJTitles.toString),
+      "NumUnsupportedTitles" -> JsString(bd.numUnsupportedTitles.toString),
+      "AACSDetected"         -> JsString(bd.aacsDetected.toString),
+      "LibAACSDetected"      -> JsString(bd.libaacsDetected.toString),
+      "AACSHandled"          -> JsString(bd.aacsHandled.toString),
+      "BDPlusDetected"       -> JsString(bd.bdplusDetected.toString),
+      "LibBDPlusDetected"    -> JsString(bd.libbdplusDetected.toString),
+      "BDPlusHandled"        -> JsString(bd.bdplusHandled.toString)
+    ))
+
+    def read(value: JsValue): BlurayInfo = {
+      val obj = value.asJsObject
+      new BlurayInfo {
+        def path                 = obj.stringField("Path")
+        def title                = obj.stringField("Title")
+        def altTitle             = obj.stringField("AltTitle")
+        def discLang             = obj.stringField("DiscLang")
+        def discNumber           = obj.intField("DiscNum")
+        def totalDiscNumber      = obj.intField("TotalDiscNum")
+        def titleCount           = obj.intField("TitleCount")
+        def thumbCount           = obj.intField("ThumbCount")
+        def thumbPath            = obj.stringField("ThumbPath")
+        def topMenuSupported     = obj.booleanField("TopMenuSupported")
+        def firstPlaySupported   = obj.booleanField("FirstPlaySupported")
+        def numHdmvTitles        = obj.intField("NumHDMVTitles")
+        def numBdJTitles         = obj.intField("NumBDJTitles")
+        def numUnsupportedTitles = obj.intField("NumUnsupportedTitles")
+        def aacsDetected         = obj.booleanField("AACSDetected")
+        def libaacsDetected      = obj.booleanField("LibAACSDetected")
+        def aacsHandled          = obj.booleanField("AACSHandled")
+        def bdplusDetected       = obj.booleanField("BDPlusDetected")
+        def libbdplusDetected    = obj.booleanField("LibBDPlusDetected")
+        def bdplusHandled        = obj.booleanField("BDPlusHandled")
+      }
+    }
+  }
+
 }

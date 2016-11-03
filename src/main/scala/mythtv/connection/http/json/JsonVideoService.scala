@@ -5,7 +5,7 @@ package json
 
 import util.OptionalCount
 import services.{ VideoService, PagedList }
-import model.{ Video, VideoId }
+import model.{ BlurayInfo, Video, VideoId }
 import RichJsonObject._
 
 class JsonVideoService(conn: BackendJsonConnection)
@@ -33,8 +33,12 @@ class JsonVideoService(conn: BackendJsonConnection)
     root.convertTo[MythJsonPagedObjectList[Video]]
   }
 
-
-  //def getBluray(path: String): BlurayInfo
+  def getBluray(path: String): BlurayInfo = {
+    val params: Map[String, Any] = Map("Path" -> path)
+    val response = request("GetBluray", params)
+    val root = responseRoot(response, "BlurayInfo")
+    root.convertTo[BlurayInfo]
+  }
 
   /* mutating POST methods */
 
