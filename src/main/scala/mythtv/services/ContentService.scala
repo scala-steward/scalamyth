@@ -13,7 +13,7 @@ trait ContentService extends BackendService {
   def getImageFile(storageGroup: String, fileName: String, width: Int, height: Int): DataBytes  // optional width, height
 
   def getLiveStream(id: LiveStreamId): LiveStream
-  def getLiveStreamList(fileName: String): List[LiveStream]
+  def getLiveStreamList(fileName: String = ""): List[LiveStream]
 
   def getMusic(id: Int): DataBytes
   def getRecording(chanId: ChanId, startTime: MythDateTime): DataBytes

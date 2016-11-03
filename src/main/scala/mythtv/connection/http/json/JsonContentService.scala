@@ -39,7 +39,8 @@ class JsonContentService(conn: BackendJsonConnection)
   }
 
   def getLiveStreamList(fileName: String): List[LiveStream] = {
-    val params: Map[String, Any] = Map("FileName" -> fileName)
+    var params: Map[String, Any] = Map.empty
+    if (fileName.nonEmpty) params += "FileName" -> fileName
     val response = request("GetLiveStreamList", params)
     val root = responseRoot(response, "LiveStreamInfoList")
     root.convertTo[List[LiveStream]]
