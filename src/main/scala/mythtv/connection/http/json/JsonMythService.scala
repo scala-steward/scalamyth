@@ -109,10 +109,19 @@ class JsonMythService(conn: BackendJsonConnection)
 
   //def sendNotification(....): Boolean = ???
 
-  def backupDatabase(): Boolean = ???
+  def backupDatabase(): Boolean = {
+    val response = post("BackupDatabase")
+    val root = responseRoot(response)
+    root.booleanField("bool")   // TODO test
+  }
 
-  def checkDatabase(repair: Boolean = false): Boolean = ???
-
+  def checkDatabase(repair: Boolean): Boolean = {
+    var params: Map[String, Any] = Map.empty
+    if (repair) params += "Repair" -> repair
+    val response = post("CheckDatabase", params)
+    val root = responseRoot(response)
+    root.booleanField("bool")   // TODO test
+  }
 
   def profileSubmit(): Boolean = ???
 
