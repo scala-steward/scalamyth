@@ -713,14 +713,14 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     def elementToJson(elem: TitleInfo): JsValue = jsonWriter[TitleInfo].write(elem)
   }
 
-  implicit object StorageGroupJsonFormat extends MythJsonObjectFormat[StorageGroup] {
+  implicit object StorageGroupJsonFormat extends MythJsonObjectFormat[StorageGroupDir] {
     def objectFieldName = "StorageGroupDir"
 
-    def write(sg: StorageGroup): JsValue = ???
+    def write(sg: StorageGroupDir): JsValue = ???
 
-    def read(value: JsValue): StorageGroup = {
+    def read(value: JsValue): StorageGroupDir = {
       val obj = value.asJsObject
-      new StorageGroup {
+      new StorageGroupDir {
         def id        = StorageGroupId(obj.intField("Id"))
         def groupName = obj.stringField("GroupName")
         def hostName  = obj.stringField("HostName")
@@ -729,11 +729,11 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
-  implicit object StorageGroupListJsonFormat extends MythJsonListFormat[StorageGroup] {
+  implicit object StorageGroupListJsonFormat extends MythJsonListFormat[StorageGroupDir] {
     def objectFieldName = "StorageGroupDirList"
     def listFieldName = "StorageGroupDirs"
-    def convertElement(value: JsValue): StorageGroup = value.convertTo[StorageGroup]
-    def elementToJson(elem: StorageGroup): JsValue = jsonWriter[StorageGroup].write(elem)
+    def convertElement(value: JsValue): StorageGroupDir = value.convertTo[StorageGroupDir]
+    def elementToJson(elem: StorageGroupDir): JsValue = jsonWriter[StorageGroupDir].write(elem)
   }
 
   implicit object RemoteEncoderStateJsonFormat extends MythJsonObjectFormat[RemoteEncoderState] {

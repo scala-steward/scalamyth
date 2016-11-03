@@ -17,11 +17,11 @@ trait FreeSpace {
 
 final case class StorageGroupId(id: Int) extends AnyVal
 
-trait StorageGroup {
+trait StorageGroupDir {
   def id: StorageGroupId
   def groupName: String
   def hostName: String
   def dirName: String
 
-  override def toString: String = s"<StorageGroup $id $groupName@$hostName: $dirName>"
+  override def toString: String = s"<StorageGroupDir $id $groupName@$hostName: $dirName>"
 }
