@@ -83,7 +83,15 @@ class JsonContentService(conn: BackendJsonConnection)
   def getPreviewImage(chanId: ChanId, startTime: MythDateTime, width: Int, height: Int, secsIn: Int): DataBytes = ???
 
 
-  def downloadFile(url: String, storageGroup: String): Boolean = ???
+  def downloadFile(url: String, storageGroup: String): Boolean = {
+    val params: Map[String, Any] = Map(
+      "URL" -> url,
+      "StorageGroup" -> storageGroup
+    )
+    val response = post("DownloadFile", params)
+    val root = responseRoot(response)
+    root.booleanField("bool")   // TODO test
+  }
 
   def addLiveStream(storageGroup: String, fileName: String, hostName: String, maxSegments: Int,
     width: Int, height: Int, bitrate: Int, audioBitrate: Int, sampleRate: Int): LiveStream = {
