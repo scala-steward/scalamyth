@@ -1,5 +1,5 @@
 lazy val commonSettings = Seq(
-  scalaVersion := "2.12.0-RC2",
+  scalaVersion := "2.12.0",
   scalacOptions ++= Seq(
     "-unchecked",
     "-deprecation",
@@ -17,9 +17,7 @@ lazy val root = (project in file(".")).
 
 logBuffered in Test := false
 
-//libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.0.6"
-// 1.0.6 not published for RC2? or 2.12.0 ??
-libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
+libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.0.6"
 
 libraryDependencies += "io.spray" %%  "spray-json" % "1.3.2"
 
