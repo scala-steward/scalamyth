@@ -2,8 +2,6 @@ package mythtv
 package connection
 package http
 
-import java.net.URLEncoder
-
 import services.Service
 import util.{ OptionalCount, OptionalCountSome }
 

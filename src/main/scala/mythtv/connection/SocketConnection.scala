@@ -14,7 +14,6 @@ trait SocketConnection extends NetworkConnection {
   def withTimeout[T](timeOut: Int)(thunk: => T): T
 }
 
-// TODO is 'host' a hostname or IP address (or either?)
 abstract class AbstractSocketConnection[A](val host: String, val port: Int, timeoutSecs: Int)
     extends SocketConnection {
   private[this] val timeoutVar = new DynamicVariable[Int](timeoutSecs)

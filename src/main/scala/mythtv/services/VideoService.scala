@@ -17,6 +17,11 @@ trait VideoService extends BackendService {
 
   def getBluray(path: String): BlurayInfo
 
+  /* TODO
+  def lookupVideo(title: String, subtitle: String, inetRef: String, season: Int, episode: Int,
+    grabberType: String, allowGeneric: Boolean): List[VideoLookup]
+   */
+
   /* mutating POST methods */
 
   def addVideo(fileName: String, hostName: String): Boolean

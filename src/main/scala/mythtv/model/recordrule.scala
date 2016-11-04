@@ -26,8 +26,8 @@ trait RecordRule {
   def autoExpire: Boolean
   def maxEpisodes: Int
   def maxNewest: Boolean
-  def startOffset: Int   // TODO what is units? minutes?
-  def endOffset: Int     // TODO what is units? minutes?
+  def startOffset: Int   // units: minutes
+  def endOffset: Int     // units: minutes
   def recGroup: String
   def dupMethod: DupCheckMethod
   def dupIn: DupCheckIn

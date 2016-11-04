@@ -319,8 +319,8 @@ private trait BackendAPILike {
   def queryRecorderCheckChannelPrefix(cardId: CaptureCardId, channumPrefix: ChannelNumber):
       (Boolean, Option[CaptureCardId], Boolean, String) = {
     val result = sendCommand("QUERY_RECORDER", cardId, "CHECK_CHANNEL_PREFIX", channumPrefix)
-    (result map { case QueryRecorderCheckChannelPrefix(matched, cardId, extraCharUseful, spacer) =>
-      (matched, cardId, extraCharUseful, spacer) }).get
+    (result map { case QueryRecorderCheckChannelPrefix(matched, card, extraCharUseful, spacer) =>
+      (matched, card, extraCharUseful, spacer) }).get
   }
   // TODO return type more specific?
   def queryRecorderFillDurationMap(cardId: CaptureCardId, start: VideoPosition, end: VideoPosition): Map[VideoPosition, Long] = {

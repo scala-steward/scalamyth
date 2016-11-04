@@ -45,5 +45,5 @@ class JsonGuideService(conn: BackendJsonConnection)
     root.convertTo[Program]
   }
 
-  def getChannelIcon(chanId: ChanId) = ???
+  def getChannelIcon(chanId: ChanId, width: Int, height: Int) = ???
 }

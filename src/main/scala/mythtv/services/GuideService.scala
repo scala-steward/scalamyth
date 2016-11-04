@@ -17,5 +17,5 @@ trait GuideService extends BackendService {
 
   def getProgramDetails(chanId: ChanId, startTime: MythDateTime): Program
 
-  def getChannelIcon(chanId: ChanId): DataBytes  // TODO optional width and height
+  def getChannelIcon(chanId: ChanId, width: Int = 0, height: Int = 0): DataBytes
 }

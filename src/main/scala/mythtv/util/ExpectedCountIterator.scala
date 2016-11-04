@@ -3,7 +3,6 @@ package util
 
 import scala.collection.AbstractIterator
 
-// TODO override hasDefiniteSize ? how about length ?
 class ExpectedCountIterator[+A](val expectedCount: Int, underlying: Iterator[A])
     extends AbstractIterator[A] {
   private[this] var remainingCount: Int = expectedCount

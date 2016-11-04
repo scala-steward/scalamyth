@@ -9,8 +9,8 @@ trait MythService extends BackendService {
   //def getConnectionInfo(pin: String): ConnectionInfo
 
   def getHostName: String
-  def getHosts: List[String]
 
+  def getHosts: List[String]
   def getKeys: List[String]
   def getSetting(hostName: String, key: String = ""): Settings
 

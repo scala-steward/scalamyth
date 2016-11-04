@@ -1022,17 +1022,17 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
    */
 
   protected def throwArgumentException(command: String, message: String) =
-    throw new BackendCommandArgumentException(command, message)
+    throw BackendCommandArgumentException(command, message)
 
   protected def throwArgumentExceptionType(command: String, typeName: String) =
-    throw new BackendCommandArgumentException(command, s"a `$typeName` argument")
+    throw BackendCommandArgumentException(command, s"a `$typeName` argument")
 
   protected def throwArgumentExceptionSignature(command: String, signature: String) =
-    throw new BackendCommandArgumentException(command, "the following argument signature:\n "
+    throw BackendCommandArgumentException(command, "the following argument signature:\n "
       + signature.trim.stripMargin)
 
   protected def throwArgumentExceptionMultipleSig(command: String, signatures: String) =
-    throw new BackendCommandArgumentException(command, "one of the following argument signatures:"
+    throw BackendCommandArgumentException(command, "one of the following argument signatures:"
       + signatures.stripMargin)
 
 
