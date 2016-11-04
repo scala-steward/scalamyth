@@ -61,6 +61,14 @@ class JsonChannelService(conn: BackendJsonConnection)
     root.convertTo[List[String]]
   }
 
+  def getDDLineupList(userName: String, password: String, provider: String = ""): List[Lineup] = {
+    var params: Map[String, Any] = Map("UserId" -> userName, "Password" -> password)
+    if (provider.nonEmpty) params += "Source" -> provider
+    val response = post("GetDDLineupList", params)
+    val root = responseRoot(response, "LineupList")
+    root.convertTo[List[Lineup]]
+  }
+
   /* mutating POST methods */
 
   def addDbChannel(channel: ChannelDetails): Boolean = {
@@ -159,8 +167,6 @@ class JsonChannelService(conn: BackendJsonConnection)
     val root = responseRoot(response)
     root.booleanField("bool")
   }
-
-  //def getDDLineupList(...): ???
 
   def fetchChannelsFromSource(
     sourceId: ListingSourceId,

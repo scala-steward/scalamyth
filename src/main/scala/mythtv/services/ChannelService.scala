@@ -1,7 +1,8 @@
 package mythtv
 package services
 
-import model.{ CaptureCardId, ChanId, ChannelDetails, ListingSource, ListingSourceId, MultiplexId, VideoMultiplex }
+import model.{ CaptureCardId, ChanId, ChannelDetails, Lineup,
+  ListingSource, ListingSourceId, MultiplexId, VideoMultiplex }
 import util.OptionalCount
 
 trait ChannelService extends BackendService {
@@ -38,7 +39,7 @@ trait ChannelService extends BackendService {
   def updateVideoSource(source: ListingSource): Boolean
 
 
-  //def getDDLineupList(...): ???
+  def getDDLineupList(userName: String, password: String, provider: String = ""): List[Lineup]
 
   def fetchChannelsFromSource(sourceId: ListingSourceId, cardId: CaptureCardId, waitForFinish: Boolean): Int
 }

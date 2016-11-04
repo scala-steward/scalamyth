@@ -87,6 +87,18 @@ trait ChannelDetails extends Channel {
   def isCommercialFree: Boolean = commMethod == ChannelCommDetectMethod.CommFree
 }
 
+trait Lineup {
+  def lineupId: String
+  def name: String
+  def displayName: String
+  def lineupType: String
+  def postalCode: String
+  def device: String
+
+  override def toString: String = s"<Lineup $displayName>"
+}
+
+
 final case class ListingSourceId(id: Int) extends AnyVal
 
 trait ListingSource {
@@ -100,6 +112,8 @@ trait ListingSource {
   def useEit: Boolean
   def configPath: Option[String]
   def dvbNitId: Option[Int]
+
+  override def toString: String = s"<ListingSource $sourceId $name $lineupId>"
 }
 
 final case class MultiplexId(id: Int) extends AnyVal

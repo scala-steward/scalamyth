@@ -1212,6 +1212,38 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     def elementToJson(elem: LiveStream): JsValue = jsonWriter[LiveStream].write(elem)
   }
 
+  implicit object LineupJsonFormat extends MythJsonObjectFormat[Lineup] {
+    def objectFieldName = "Lineup"
+
+    def write(lu: Lineup): JsValue = JsObject(Map(
+      "LineupId"    -> JsString(lu.lineupId),
+      "Name"        -> JsString(lu.name),
+      "DisplayName" -> JsString(lu.displayName),
+      "Type"        -> JsString(lu.lineupType),
+      "Postal"      -> JsString(lu.postalCode),
+      "Device"      -> JsString(lu.device)
+    ))
+
+    def read(value: JsValue): Lineup = {
+      val obj = value.asJsObject
+      new Lineup {
+        def lineupId    = obj.stringField("LineupId")
+        def name        = obj.stringField("Name")
+        def displayName = obj.stringField("DisplayName")
+        def lineupType  = obj.stringField("Type")
+        def postalCode  = obj.stringField("Postal")
+        def device      = obj.stringField("Device")
+      }
+    }
+  }
+
+  implicit object LineupJsonListFormat extends MythJsonListFormat[Lineup] {
+    def objectFieldName = "LineupList"
+    def listFieldName = "Lineups"
+    def convertElement(value: JsValue): Lineup = value.convertTo[Lineup]
+    def elementToJson(elem: Lineup): JsValue = jsonWriter[Lineup].write(elem)
+  }
+
   implicit object BlurayInfoJsonFormat extends MythJsonObjectFormat[BlurayInfo] {
     def objectFieldName = "BlurayInfo"
 
