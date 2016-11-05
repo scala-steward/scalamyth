@@ -9,4 +9,8 @@ trait HttpResponse {
   def headers: HttpHeaders
 }
 
-case class HttpStreamResponse(statusCode: Int, headers: HttpHeaders, stream: InputStream) extends HttpResponse
+case class HttpStreamResponse(
+  statusCode: Int,
+  headers: HttpHeaders,
+  stream: InputStream
+) extends HttpResponse

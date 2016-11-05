@@ -8,5 +8,3 @@ trait Service {
 trait BackendService extends Service
 trait FrontendService extends Service
 
-trait DataBytes  // TODO placeholder
-

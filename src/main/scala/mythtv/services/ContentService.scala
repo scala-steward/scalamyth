@@ -3,6 +3,7 @@ package services
 
 import model.{ ArtworkInfo, ChanId, LiveStreamId, LiveStream, VideoId }
 import util.{ MythDateTime, MythFileHash }
+import connection.http.HttpStreamResponse
 
 trait ContentService extends BackendService {
   def serviceName: String = "Content"
@@ -14,20 +15,23 @@ trait ContentService extends BackendService {
   def getRecordingArtworkList(chanId: ChanId, startTime: MythDateTime): List[ArtworkInfo]
   def getProgramArtworkList(inetRef: String, season: Int): List[ArtworkInfo]
 
-  def getMusic(id: Int): DataBytes
-  def getRecording(chanId: ChanId, startTime: MythDateTime): DataBytes
-  def getVideo(id: VideoId): DataBytes
+  def getMusic(id: Int): HttpStreamResponse
 
-  def getFile(storageGroup: String, fileName: String): DataBytes
-  def getImageFile(storageGroup: String, fileName: String, width: Int, height: Int): DataBytes  // optional width, height
+  def getRecording(chanId: ChanId, startTime: MythDateTime): HttpStreamResponse
 
-  def getRecordingArtwork(artType: String, inetRef: String, season: Int, width: Int, height: Int): DataBytes
+  def getVideo(id: VideoId): HttpStreamResponse
 
-  def getVideoArtwork(artType: String, videoId: Int, width: Int, height: Int): DataBytes
+  def getFile(storageGroup: String, fileName: String): HttpStreamResponse
 
-  def getAlbumArt(id: Int, width: Int, height: Int): DataBytes
+  def getImageFile(storageGroup: String, fileName: String, width: Int = 0, height: Int = 0): HttpStreamResponse
 
-  def getPreviewImage(chanId: ChanId, startTime: MythDateTime, width: Int, height: Int, secsIn: Int): DataBytes
+  def getRecordingArtwork(artType: String, inetRef: String, season: Int, width: Int = 0, height: Int = 0): HttpStreamResponse
+
+  def getVideoArtwork(artType: String, videoId: VideoId, width: Int = 0, height: Int = 0): HttpStreamResponse
+
+  def getAlbumArt(id: Int, width: Int = 0, height: Int = 0): HttpStreamResponse
+
+  def getPreviewImage(chanId: ChanId, startTime: MythDateTime, width: Int = 0, height: Int = 0, secsIn: Int = -1): HttpStreamResponse
 
   def addLiveStream(
     storageGroup: String,

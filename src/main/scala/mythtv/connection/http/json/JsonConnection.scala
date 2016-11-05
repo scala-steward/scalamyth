@@ -28,6 +28,9 @@ trait JsonConnection extends AbstractHttpConnection {
         JsonResponse(status, headers, json)
     }
 
+  def requestStream(path: String): HttpStreamResponse =
+    super.request(path) match { case r: HttpStreamResponse => r }
+
   private def parseJson(stream: InputStream): JsValue = {
     val reader = new BufferedReader(new InputStreamReader(stream))
     val writer = new StringWriter()

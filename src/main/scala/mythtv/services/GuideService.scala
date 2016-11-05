@@ -3,6 +3,7 @@ package services
 
 import model.{ ChanId, Channel, Guide, Program }
 import util.{ OptionalCount, MythDateTime }
+import connection.http.HttpStreamResponse
 
 trait GuideService extends BackendService {
   def serviceName: String = "Guide"
@@ -17,5 +18,5 @@ trait GuideService extends BackendService {
 
   def getProgramDetails(chanId: ChanId, startTime: MythDateTime): Program
 
-  def getChannelIcon(chanId: ChanId, width: Int = 0, height: Int = 0): DataBytes
+  def getChannelIcon(chanId: ChanId, width: Int = 0, height: Int = 0): HttpStreamResponse
 }

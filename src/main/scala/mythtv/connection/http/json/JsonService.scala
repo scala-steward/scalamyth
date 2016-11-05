@@ -16,6 +16,9 @@ abstract class JsonService(conn: JsonConnection)
   def post(endpoint: String, params: Map[String, Any] = Map.empty): JsonResponse =
     conn.post(buildPath(endpoint), params)
 
+  def requestStream(endpoint: String, params: Map[String, Any] = Map.empty): HttpStreamResponse =
+    conn.requestStream(buildPath(endpoint, params))
+
   def responseRoot(response: JsonResponse) =
     response.json.asJsObject
 

@@ -10,8 +10,6 @@ import model.{ ArtworkInfo, ChanId, LiveStreamId, LiveStream, VideoId }
 import util.{ MythFileHash, MythDateTime }
 import RichJsonObject._
 
-import services.DataBytes // FIXME temporary placeholder
-
 class JsonContentService(conn: BackendJsonConnection)
   extends JsonBackendService(conn)
      with ContentService {
@@ -46,16 +44,67 @@ class JsonContentService(conn: BackendJsonConnection)
     root.convertTo[List[LiveStream]]
   }
 
-  def getFile(storageGroup: String, fileName: String): DataBytes = ???
-  def getImageFile(storageGroup: String, fileName: String, width: Int, height: Int): DataBytes = ???
+  def getFile(storageGroup: String, fileName: String): HttpStreamResponse = {
+    val params: Map[String, Any] = Map(
+      "StorageGroup" -> storageGroup,
+      "FileName"     -> fileName
+    )
+    requestStream("GetFile", params)
+  }
 
-  def getMusic(id: Int): DataBytes = ???
-  def getRecording(chanId: ChanId, startTime: MythDateTime): DataBytes = ???
-  def getVideo(id: VideoId): DataBytes = ???
+  def getImageFile(storageGroup: String, fileName: String, width: Int, height: Int): HttpStreamResponse = {
+    var params: Map[String, Any] = Map(
+      "StorageGroup" -> storageGroup,
+      "FileName"     -> fileName
+    )
+    if (width != 0)  params += "Width" -> width
+    if (height != 0) params += "Height" -> height
+    requestStream("GetImageFile", params)
+  }
 
-  // TODO more methods
+  def getMusic(id: Int): HttpStreamResponse = {
+    val params: Map[String, Any] = Map("Id" -> id)
+    requestStream("GetMusic", params)
+  }
 
-  def getRecordingArtwork(artType: String, inetRef: String, season: Int, width: Int, height: Int): DataBytes = ???
+  def getRecording(chanId: ChanId, startTime: MythDateTime): HttpStreamResponse = {
+    val params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
+    requestStream("GetRecording", params)
+  }
+
+  def getVideo(videoId: VideoId): HttpStreamResponse = {
+    val params: Map[String, Any] = Map("Id" -> videoId.id)
+    requestStream("GetVideo", params)
+  }
+
+  def getVideoArtwork(artType: String, videoId: VideoId, width: Int, height: Int): HttpStreamResponse = {
+    var params: Map[String, Any] = Map("Type" -> artType, "Id" -> videoId.id)
+    if (width != 0)  params += "Width" -> width
+    if (height != 0) params += "Height" -> height
+    requestStream("GetVideoArtwork", params)
+  }
+
+  def getAlbumArt(id: Int, width: Int, height: Int): HttpStreamResponse = {
+    var params: Map[String, Any] = Map("Id" -> id)
+    if (width != 0)  params += "Width" -> width
+    if (height != 0) params += "Height" -> height
+    requestStream("GetAlbumArt", params)
+  }
+
+  def getPreviewImage(chanId: ChanId, startTime: MythDateTime, width: Int, height: Int, secsIn: Int): HttpStreamResponse = {
+    var params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
+    if (width != 0)  params += "Width" -> width
+    if (height != 0) params += "Height" -> height
+    if (secsIn > 0)  params += "SecsIn" -> secsIn
+    requestStream("GetPreviewImage", params)
+  }
+
+  def getRecordingArtwork(artType: String, inetRef: String, season: Int, width: Int, height: Int): HttpStreamResponse = {
+    var params: Map[String, Any] = Map("Type" -> artType, "Inetref" -> inetRef, "Season" -> season)
+    if (width != 0)  params += "Width" -> width
+    if (height != 0) params += "Height" -> height
+    requestStream("GetRecordingArtwork", params)
+  }
 
   def getRecordingArtworkList(chanId: ChanId, startTime: MythDateTime): List[ArtworkInfo] = {
     val params: Map[String, Any] = Map(
@@ -76,13 +125,6 @@ class JsonContentService(conn: BackendJsonConnection)
     val root = responseRoot(response, "ArtworkInfoList")
     root.convertTo[List[ArtworkInfo]]  // TODO test
   }
-
-  def getVideoArtwork(artType: String, videoId: Int, width: Int, height: Int): DataBytes = ???
-
-  def getAlbumArt(id: Int, width: Int, height: Int): DataBytes = ???
-
-  def getPreviewImage(chanId: ChanId, startTime: MythDateTime, width: Int, height: Int, secsIn: Int): DataBytes = ???
-
 
   def downloadFile(url: String, storageGroup: String): Boolean = {
     val params: Map[String, Any] = Map(
