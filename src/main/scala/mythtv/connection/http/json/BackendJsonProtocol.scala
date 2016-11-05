@@ -955,12 +955,12 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     def elementToJson(elem: ArtworkInfo): JsValue = jsonWriter[ArtworkInfo].write(elem)
   }
 
-  implicit object ChannelGuideJsonFormat extends MythJsonObjectFormat[(Channel, Seq[Program])] {
+  implicit object ChannelGuideJsonFormat extends MythJsonObjectFormat[GuideTuple] {
     def objectFieldName = "ChannelInfo"
 
-    def write(x: (Channel, Seq[Program])): JsValue = ???
+    def write(tuple: GuideTuple): JsValue = ???
 
-    def read(value: JsValue): (Channel, Seq[Program]) = {
+    def read(value: JsValue): GuideTuple = {
       val obj = value.asJsObject
 
       val progs = channelContext.withValue(obj) { obj.convertTo[List[Program]] }
@@ -975,12 +975,11 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
-  implicit object ChannelGuideListJsonFormat extends MythJsonListFormat[(Channel, Seq[Program])] {
+  implicit object ChannelGuideListJsonFormat extends MythJsonListFormat[GuideTuple] {
     def objectFieldName = "ProgramGuide"
     def listFieldName = "Channels"
-
-    def convertElement(value: JsValue) = value.convertTo[(Channel, Seq[Program])]
-    def elementToJson(elem: (Channel, Seq[Program])): JsValue = jsonWriter[(Channel, Seq[Program])].write(elem)
+    def convertElement(value: JsValue) = value.convertTo[GuideTuple]
+    def elementToJson(elem: GuideTuple): JsValue = jsonWriter[GuideTuple].write(elem)
   }
 
   implicit object GuideJsonFormat extends MythJsonObjectFormat[Guide[Channel, Program]] {
@@ -992,7 +991,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       val obj = value.asJsObject
 
       // TODO FIXME avoid intermediate conversion to list
-      val channelGuideList = value.convertTo[List[(Channel, Seq[Program])]]
+      val channelGuideList = value.convertTo[List[GuideTuple]]
       val channelGuide = channelGuideList.toMap
 
       new Guide[Channel, Program] {
