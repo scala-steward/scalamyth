@@ -28,7 +28,8 @@ trait MythFrontendService extends FrontendService {
   // avenues as well.
   def playRecording(chanId: ChanId, startTime: MythDateTime): Boolean
 
-  def playVideo(id: VideoId, useBookmark: Boolean = false): Boolean  // TODO use 0/1 instead of true/false ???
+  // TODO FIXME upstream BUG? if UseBookmark=true, then dialog still pops up about bookmark
+  def playVideo(id: VideoId, useBookmark: Boolean = false): Boolean
 
   def sendAction(action: String): Boolean // TODO optional params for SCREENSHOT; this method is controversial?
 
