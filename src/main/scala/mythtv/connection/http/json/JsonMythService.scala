@@ -3,13 +3,15 @@ package connection
 package http
 package json
 
-import java.time.Duration
+import java.time.{ Duration, Instant }
 
 import spray.json.DefaultJsonProtocol
 
 import services.MythService
 import model.{ Settings, StorageGroupDir, TimeZoneInfo }
 import RichJsonObject._
+
+import services.LogMessage // TODO temporary
 
 class JsonMythService(conn: BackendJsonConnection)
   extends JsonBackendService(conn)
@@ -57,8 +59,37 @@ class JsonMythService(conn: BackendJsonConnection)
     root.convertTo[TimeZoneInfo]
   }
 
-
-  // getLogs(....)
+  def getLogs(
+    hostName: String,
+    application: String,
+    pid: Int,
+    tid: Int,
+    thread: String,
+    filename: String,
+    line: Int,
+    function: String,
+    fromTime: Instant,
+    toTime: Instant,
+    level: String,
+    msgContains: String
+  ): List[LogMessage] = {
+    var params: Map[String, Any] = Map.empty
+    if (hostName.nonEmpty)       params += "HostName" -> hostName
+    if (application.nonEmpty)    params += "Application" -> application
+    if (pid != 0)                params += "PID" -> pid
+    if (tid != 0)                params += "TID" -> tid
+    if (thread.nonEmpty)         params += "Thread" -> thread
+    if (filename.nonEmpty)       params += "Filename" -> filename
+    if (line != 0)               params += "Line" -> line
+    if (function.nonEmpty)       params += "Function" -> function
+    if (fromTime != Instant.MAX) params += "FromTime" -> fromTime
+    if (toTime != Instant.MIN)   params += "ToTime" -> toTime
+    if (level.nonEmpty)          params += "Level" -> level
+    if (msgContains.nonEmpty)    params += "MsgContains" -> msgContains
+    val response = request("GetLogs", params)
+    val root = responseRoot(response, "LogMessageList") // TODO ???
+    ???
+  }
 
   /* mutating POST methods */
 

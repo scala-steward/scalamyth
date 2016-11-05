@@ -1,9 +1,11 @@
 package mythtv
 package services
 
-import java.time.Duration
+import java.time.{ Duration, Instant }
 
 import model.{ Settings, StorageGroupDir, TimeZoneInfo }
+
+trait LogMessage // TODO temporary
 
 trait MythService extends BackendService {
   def serviceName: String = "Myth"
@@ -39,7 +41,29 @@ trait MythService extends BackendService {
 
   def getStorageGroupDirs(hostName: String = "", groupName: String = ""): List[StorageGroupDir]
 
-  // getLogs(....)
+  /**
+    * Retrieve log entries from the database.
+    *
+    * If logging to the database is not configured, then there will be no entries
+    * to return.
+    *
+    * All parameters are optional and allow for filtering the log messages to only
+    * those of interest.
+    */
+  def getLogs(
+    hostName: String = "",
+    application: String = "",
+    pid: Int = 0,
+    tid: Int = 0,
+    thread: String = "",
+    filename: String = "",
+    line: Int = 0,
+    function: String = "",
+    fromTime: Instant = Instant.MAX,
+    toTime: Instant = Instant.MIN,
+    level: String = "",
+    msgContains: String = ""
+  ): List[LogMessage]
 
   /* mutating POST methods */
 
