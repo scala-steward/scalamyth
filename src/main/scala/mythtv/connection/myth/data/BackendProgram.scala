@@ -29,7 +29,7 @@ private[myth] class BackendProgram(data: Seq[String], fieldOrder: IndexedSeq[Str
   def description: String = fields("description")
   def season: Int = fields("season").toInt
   def episode: Int = fields("episode").toInt
-  def syndicatedEpisodeNumber: String = fields("syndicatedEpisodeNumber")
+  def syndicatedEpisode: String = fields("syndicatedEpisode")
   def category: String = fields("category")
   def categoryType: Option[CategoryType] = None        // not included in myth protocol serialization
   def chanId: ChanId = ChanId(fields("chanId").toInt)
@@ -79,7 +79,7 @@ private[myth] trait ProgramOtherSerializer extends BackendTypeSerializer[Recordi
 
 private[myth] object BackendProgram extends BackendProgramFactory with ProgramOtherSerializer {
   final val FIELD_ORDER = IndexedSeq(
-    "title",      "subtitle",        "description",  "season",       "episode",    "syndicatedEpisodeNumber",
+    "title",      "subtitle",        "description",  "season",       "episode",    "syndicatedEpisode",
     "category",   "chanId",          "chanNum",      "callsign",     "chanName",   "filename",
     "filesize",   "startTime",       "endTime",      "findId",       "hostname",   "sourceId",
     "cardId",     "inputId",         "recPriority",  "recStatus",    "recordId",   "recType",
@@ -99,7 +99,7 @@ private[myth] object BackendProgram extends BackendProgramFactory with ProgramOt
       += in.description
       += in.season
       += in.episode
-      += in.syndicatedEpisodeNumber
+      += in.syndicatedEpisode
       += in.category
       += in.chanId
       += in.chanNum

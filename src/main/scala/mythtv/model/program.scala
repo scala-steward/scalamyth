@@ -20,7 +20,7 @@ trait Program {
   def title: String
   def subtitle: String
   def description: String
-  def syndicatedEpisodeNumber: String
+  def syndicatedEpisode: String
   def category: String
   def categoryType: Option[CategoryType]   // only really seems to be populated in program guide stuff
   def chanId: ChanId

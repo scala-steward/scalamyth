@@ -211,7 +211,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def title                   = obj.stringField("Title")
         def subtitle                = obj.stringField("SubTitle")
         def description             = obj.stringField("Description")
-        def syndicatedEpisodeNumber = "" //???
+        def syndicatedEpisode       = "" //???
         def category                = obj.stringField("Category")
         def categoryType            = obj.stringFieldOption("CatType", "") map CategoryType.withName
         def chanId                  = ChanId(channel.intFieldOrElse("ChanId", 0))
@@ -307,7 +307,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def title                   = obj.stringField("Title")
         def subtitle                = obj.stringField("SubTitle")
         def description             = obj.stringField("Description")
-        def syndicatedEpisodeNumber = ???
+        def syndicatedEpisode       = ???
         def category                = obj.stringField("Category")
         def categoryType            = obj.stringFieldOption("CatType", "") map CategoryType.withName
         def chanId                  = ChanId(channel.intFieldOrElse("ChanId", 0))
@@ -420,7 +420,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def title                   = obj.stringField("Title")
         def subtitle                = obj.stringField("SubTitle")
         def description             = obj.stringField("Description")
-        def syndicatedEpisodeNumber = ???
+        def syndicatedEpisode       = ???
         def category                = obj.stringField("Category")
         def categoryType            = obj.stringFieldOption("CatType", "") map CategoryType.withName
         def chanId                  = ChanId(channel.intFieldOrElse("ChanId", 0))
@@ -440,7 +440,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       }
 
       /* missing:
-         syndicatedEpisodeNumber   (but we do have "Season" and "Episode")
+         syndicatedEpisode   (but we do have "Season" and "Episode")
          partNumber
          partTotal */
     }
