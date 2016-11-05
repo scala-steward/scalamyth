@@ -84,6 +84,17 @@ trait JsonServiceProviders {
       new JsonVideoService(conn)
     }
   }
+
+  implicit object JsonMythFrontendServiceProvider extends ServiceProvider[MythFrontendService] {
+    def instance(host: String): MythFrontendService = {
+      val conn = new FrontendJsonConnection(host)
+      new JsonMythFrontendService(conn)
+    }
+    def instance(host: String, port: Int): MythFrontendService = {
+      val conn = new FrontendJsonConnection(host, port)
+      new JsonMythFrontendService(conn)
+    }
+  }
 }
 
 object JsonServiceProviders extends JsonServiceProviders
