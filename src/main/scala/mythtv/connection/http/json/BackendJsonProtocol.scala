@@ -7,7 +7,7 @@ import java.time.{ Duration, Instant, LocalTime, Year, ZoneOffset }
 
 import scala.util.DynamicVariable
 
-import spray.json.{ DefaultJsonProtocol, JsonFormat, jsonWriter }
+import spray.json.{ DefaultJsonProtocol, JsonFormat, RootJsonFormat, jsonWriter }
 import spray.json.{ JsArray, JsObject, JsString, JsValue }
 
 import util.{ DecimalByteCount, MythDateTime, MythFileHash }
@@ -38,7 +38,7 @@ private[http] abstract class MythJsonPagedObjectList[+T]
 
 private[http] trait MythJsonObjectListFormat[T]
   extends BaseMythJsonListFormat[T]
-     with MythJsonObjectFormat[MythJsonObjectList[T]] {
+     with RootJsonFormat[MythJsonObjectList[T]] {
   import RichJsonObject._
 
   def write(obj: MythJsonObjectList[T]): JsValue = ???
@@ -78,7 +78,7 @@ private[http] trait MythJsonObjectListFormat[T]
  */
 private[http] trait MythJsonPagedObjectListFormat[T]
   extends BaseMythJsonListFormat[T]
-     with MythJsonObjectFormat[MythJsonPagedObjectList[T]] {
+     with RootJsonFormat[MythJsonPagedObjectList[T]] {
   import RichJsonObject._
 
   def write(obj: MythJsonPagedObjectList[T]): JsValue = ???
@@ -166,9 +166,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     )
   }
 
-  implicit object RecordingJsonFormat extends MythJsonObjectFormat[Recording] {
-    def objectFieldName = "Program"
-
+  implicit object RecordingJsonFormat extends RootJsonFormat[Recording] {
     def write(r: Recording): JsValue = {
       val rmap: Map[String, JsValue] = RecordableJsonFormat.write(r) match {
         case JsObject(fields) => fields
@@ -251,9 +249,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
-  implicit object RecordableJsonFormat extends MythJsonObjectFormat[Recordable] {
-    def objectFieldName = "Program"
-
+  implicit object RecordableJsonFormat extends RootJsonFormat[Recordable] {
     def write(r: Recordable): JsValue = {
       val pmap: Map[String, JsValue] = ProgramJsonFormat.write(r) match {
         case JsObject(fields) => fields
@@ -343,9 +339,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
-  implicit object ProgramJsonFormat extends MythJsonObjectFormat[Program] {
-    def objectFieldName = "Program"
-
+  implicit object ProgramJsonFormat extends RootJsonFormat[Program] {
     def write(p: Program): JsValue = JsObject(Map(
       // TODO nested Channel object
       // TODO nested Recording object
@@ -441,21 +435,18 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
   }
 
   implicit object PagedProgramListJsonFormat extends MythJsonPagedObjectListFormat[Program] {
-    def objectFieldName = "ProgramList"
     def listFieldName = "Programs"
     def convertElement(value: JsValue): Program = value.convertTo[Program]
     def elementToJson(elem: Program): JsValue = jsonWriter[Program].write(elem)
   }
 
   implicit object PagedRecordableListJsonFormat extends MythJsonPagedObjectListFormat[Recordable] {
-    def objectFieldName = "ProgramList"
     def listFieldName = "Programs"
     def convertElement(value: JsValue): Recordable = value.convertTo[Recordable]
     def elementToJson(elem: Recordable): JsValue = jsonWriter[Recordable].write(elem)
   }
 
   implicit object PagedRecordingListJsonFormat extends MythJsonPagedObjectListFormat[Recording] {
-    def objectFieldName = "ProgramList"
     def listFieldName = "Programs"
     def convertElement(value: JsValue): Recording = value.convertTo[Recording]
     def elementToJson(elem: Recording): JsValue = jsonWriter[Recording].write(elem)
@@ -463,15 +454,12 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
 
   // used for reading Guide
   implicit object ProgramListJsonFormat extends MythJsonListFormat[Program] {
-    def objectFieldName = "ChannelInfo"
     def listFieldName = "Programs"
     def convertElement(value: JsValue): Program = value.convertTo[Program]
     def elementToJson(elem: Program): JsValue = jsonWriter[Program].write(elem)
   }
 
-  implicit object ChannelDetailsJsonFormat extends MythJsonObjectFormat[ChannelDetails] {
-    def objectFieldName = "ChannelInfo"  // or "Channel"
-
+  implicit object ChannelDetailsJsonFormat extends RootJsonFormat[ChannelDetails] {
     def write(c: ChannelDetails): JsValue = JsObject(Map(
       "ChanId"           -> JsString(c.chanId.id.toString),
       "ChannelName"      -> JsString(c.name),
@@ -522,15 +510,12 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
   }
 
   implicit object ChannelDetailsListJsonFormat extends MythJsonPagedObjectListFormat[ChannelDetails] {
-    def objectFieldName = "ChannelInfoList"
     def listFieldName = "ChannelInfos"
     def convertElement(value: JsValue): ChannelDetails = value.convertTo[ChannelDetails]
     def elementToJson(elem: ChannelDetails): JsValue = jsonWriter[ChannelDetails].write(elem)
   }
 
-  implicit object RecordRuleJsonFormat extends MythJsonObjectFormat[RecordRule] {
-    def objectFieldName = "RecRule"
-
+  implicit object RecordRuleJsonFormat extends RootJsonFormat[RecordRule] {
     def write(r: RecordRule): JsValue = JsObject(Map(
       "Id"                -> JsString(r.id.id.toString),
       "Type"              -> jsonWriter[RecType].write(r.recType),
@@ -683,15 +668,12 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
   }
 
   implicit object RecordRuleListJsonFormat extends MythJsonPagedObjectListFormat[RecordRule] {
-    def objectFieldName = "RecRuleList"
     def listFieldName = "RecRules"
     def convertElement(value: JsValue): RecordRule = value.convertTo[RecordRule]
     def elementToJson(elem: RecordRule): JsValue = jsonWriter[RecordRule].write(elem)
   }
 
-  implicit object TitleInfoJsonFormat extends MythJsonObjectFormat[TitleInfo] {
-    def objectFieldName = "TitleInfo"
-
+  implicit object TitleInfoJsonFormat extends RootJsonFormat[TitleInfo] {
     def write(t: TitleInfo): JsValue = JsObject(Map(
       "Title"   -> JsString(t.title),
       "Inetref" -> JsString(t.inetRef)
@@ -707,15 +689,12 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
   }
 
   implicit object TitleInfoListJsonFormat extends MythJsonListFormat[TitleInfo] {
-    def objectFieldName = "TitleInfoList"
     def listFieldName = "TitleInfos"
     def convertElement(value: JsValue): TitleInfo = value.convertTo[TitleInfo]
     def elementToJson(elem: TitleInfo): JsValue = jsonWriter[TitleInfo].write(elem)
   }
 
-  implicit object StorageGroupJsonFormat extends MythJsonObjectFormat[StorageGroupDir] {
-    def objectFieldName = "StorageGroupDir"
-
+  implicit object StorageGroupDirJsonFormat extends RootJsonFormat[StorageGroupDir] {
     def write(sg: StorageGroupDir): JsValue = ???
 
     def read(value: JsValue): StorageGroupDir = {
@@ -730,15 +709,12 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
   }
 
   implicit object StorageGroupListJsonFormat extends MythJsonListFormat[StorageGroupDir] {
-    def objectFieldName = "StorageGroupDirList"
     def listFieldName = "StorageGroupDirs"
     def convertElement(value: JsValue): StorageGroupDir = value.convertTo[StorageGroupDir]
     def elementToJson(elem: StorageGroupDir): JsValue = jsonWriter[StorageGroupDir].write(elem)
   }
 
-  implicit object RemoteEncoderStateJsonFormat extends MythJsonObjectFormat[RemoteEncoderState] {
-    def objectFieldName = "Encoder" // TODO is this right? do we ever see this?
-
+  implicit object RemoteEncoderStateJsonFormat extends RootJsonFormat[RemoteEncoderState] {
     def write(e: RemoteEncoderState): JsValue = JsObject(Map(
       "Id"             -> JsString(e.cardId.toString),
       "HostName"       -> JsString(e.host),
@@ -769,16 +745,12 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
 
   // Result format for Dvr/GetEncoderList
   implicit object EncoderListJsonFormat extends MythJsonListFormat[RemoteEncoderState] {
-    def objectFieldName = "EncoderList"
     def listFieldName = "Encoders"
     def convertElement(value: JsValue): RemoteEncoderState = value.convertTo[RemoteEncoderState]
     def elementToJson(elem: RemoteEncoderState): JsValue = jsonWriter[RemoteEncoderState].write(elem)
   }
 
-
-  implicit object CaptureCardJsonFormat extends MythJsonObjectFormat[CaptureCard] {
-    def objectFieldName = "CaptureCard"
-
+  implicit object CaptureCardJsonFormat extends RootJsonFormat[CaptureCard] {
     def write(c: CaptureCard): JsValue = JsObject(Map(
       "CardId"             -> JsString(c.cardId.id.toString),
       "VideoDevice"        -> JsString(c.videoDevice.getOrElse("")),
@@ -840,15 +812,12 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
   }
 
   implicit object CaptureCardListJsonFormat extends MythJsonListFormat[CaptureCard] {
-    def objectFieldName = "CaptureCardList"
     def listFieldName = "CaptureCards"
     def convertElement(value: JsValue): CaptureCard = value.convertTo[CaptureCard]
     def elementToJson(elem: CaptureCard): JsValue = jsonWriter[CaptureCard].write(elem)
   }
 
-  implicit object ListingSourceJsonFormat extends MythJsonObjectFormat[ListingSource] {
-    def objectFieldName = "VideoSource"
-
+  implicit object ListingSourceJsonFormat extends RootJsonFormat[ListingSource] {
     def write(s: ListingSource): JsValue = JsObject(Map(
       "Id"         -> JsString(s.sourceId.id.toString),
       "SourceName" -> JsString(s.name),
@@ -880,15 +849,12 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
   }
 
   implicit object ListingSourceListJsonFormat extends MythJsonObjectListFormat[ListingSource] {
-    def objectFieldName = "VideoSourceList"
     def listFieldName = "VideoSources"
     def convertElement(value: JsValue): ListingSource = value.convertTo[ListingSource]
     def elementToJson(elem: ListingSource): JsValue = jsonWriter[ListingSource].write(elem)
   }
 
-  implicit object SettingsJsonFormat extends MythJsonObjectFormat[Settings] {
-    def objectFieldName = "SettingList"
-
+  implicit object SettingsJsonFormat extends RootJsonFormat[Settings] {
     def write(s: Settings): JsValue = JsObject(Map(
       "HostName" -> JsString(s.hostName),
       "Settings" -> jsonWriter[Map[String, String]].write(s.settings)
@@ -908,9 +874,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
-  implicit object TimeZoneInfoJsonFormat extends MythJsonObjectFormat[TimeZoneInfo] {
-    def objectFieldName = "TimeZoneInfo"
-
+  implicit object TimeZoneInfoJsonFormat extends RootJsonFormat[TimeZoneInfo] {
     def write(z: TimeZoneInfo): JsValue = JsObject(Map(
       "TimeZoneID"      -> JsString(z.tzName),
       "UTCOffset"       -> jsonWriter[ZoneOffset].write(z.offset),
@@ -927,9 +891,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
-  implicit object ArtworkInfoJsonFormat extends MythJsonObjectFormat[ArtworkInfo] {
-    def objectFieldName = "ArtworkInfo"
-
+  implicit object ArtworkInfoJsonFormat extends RootJsonFormat[ArtworkInfo] {
     def write(a: ArtworkInfo): JsValue = JsObject(Map(
       "URL"          -> JsString(a.url),
       "FileName"     -> JsString(a.fileName),
@@ -949,15 +911,14 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
   }
 
   implicit object ArtworkInfoListJsonFormat extends MythJsonListFormat[ArtworkInfo] {
-    def objectFieldName = "Artwork"
     def listFieldName = "ArtworkInfos"
     def convertElement(value: JsValue): ArtworkInfo = value.convertTo[ArtworkInfo]
     def elementToJson(elem: ArtworkInfo): JsValue = jsonWriter[ArtworkInfo].write(elem)
   }
 
-  implicit object ChannelGuideJsonFormat extends MythJsonObjectFormat[GuideTuple] {
-    def objectFieldName = "ChannelInfo"
+  // TODO need to support abbreviated (non-detailed guide as well!)
 
+  implicit object ChannelGuideJsonFormat extends RootJsonFormat[GuideTuple] {
     def write(tuple: GuideTuple): JsValue = ???
 
     def read(value: JsValue): GuideTuple = {
@@ -976,15 +937,12 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
   }
 
   implicit object ChannelGuideListJsonFormat extends MythJsonListFormat[GuideTuple] {
-    def objectFieldName = "ProgramGuide"
     def listFieldName = "Channels"
     def convertElement(value: JsValue) = value.convertTo[GuideTuple]
     def elementToJson(elem: GuideTuple): JsValue = jsonWriter[GuideTuple].write(elem)
   }
 
-  implicit object GuideJsonFormat extends MythJsonObjectFormat[Guide[Channel, Program]] {
-    def objectFieldName = "ProgramGuide"
-
+  implicit object GuideJsonFormat extends RootJsonFormat[Guide[Channel, Program]] {
     def write(g: Guide[Channel, Program]): JsValue = ???
 
     def read(value: JsValue): Guide[Channel, Program] = {
@@ -1005,9 +963,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
-  implicit object VideoJsonFormat extends MythJsonObjectFormat[Video] {
-    def objectFieldName = "VideoMetadataInfo"
-
+  implicit object VideoJsonFormat extends RootJsonFormat[Video] {
     def write(v: Video): JsValue = JsObject(Map(
       "Id"               -> JsString(v.id.id.toString),
       "Title"            -> JsString(v.title),
@@ -1071,15 +1027,12 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
   }
 
   implicit object VideoListJsonFormat extends MythJsonPagedObjectListFormat[Video] {
-    def objectFieldName = "VideoMetadataInfoList"
     def listFieldName = "VideoMetadataInfos"
     def convertElement(value: JsValue): Video = value.convertTo[Video]
     def elementToJson(elem: Video): JsValue = jsonWriter[Video].write(elem)
   }
 
-  implicit object VideoMultiplexJsonFormat extends MythJsonObjectFormat[VideoMultiplex] {
-    def objectFieldName = "VideoMultiplex"
-
+  implicit object VideoMultiplexJsonFormat extends RootJsonFormat[VideoMultiplex] {
     def write(m: VideoMultiplex): JsValue = JsObject(Map(
       "MplexId"          -> JsString(m.mplexId.id.toString),
       "SourceId"         -> JsString(m.sourceId.id.toString),
@@ -1139,15 +1092,12 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
   }
 
   implicit object VideoMultiplexListJsonFormat extends MythJsonPagedObjectListFormat[VideoMultiplex] {
-    def objectFieldName = "VideoMultiplexList"
     def listFieldName = "VideoMultiplexes"
     def convertElement(value: JsValue): VideoMultiplex = value.convertTo[VideoMultiplex]
     def elementToJson(elem: VideoMultiplex): JsValue = jsonWriter[VideoMultiplex].write(elem)
   }
 
-  implicit object ListStreamJsonFormat extends MythJsonObjectFormat[LiveStream] {
-    def objectFieldName = "LiveStreamInfo"
-
+  implicit object LiveStreamJsonFormat extends RootJsonFormat[LiveStream] {
     def write(s: LiveStream): JsValue = JsObject(Map(
       "Id"               -> JsString(s.id.id.toString),
       "Width"            -> JsString(s.width.toString),
@@ -1205,15 +1155,12 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
   }
 
   implicit object LiveStreamJsonListFormat extends MythJsonListFormat[LiveStream] {
-    def objectFieldName = "LiveStreamInfoList"
     def listFieldName = "LiveStreamInfos"
     def convertElement(value: JsValue): LiveStream = value.convertTo[LiveStream]
     def elementToJson(elem: LiveStream): JsValue = jsonWriter[LiveStream].write(elem)
   }
 
-  implicit object LineupJsonFormat extends MythJsonObjectFormat[Lineup] {
-    def objectFieldName = "Lineup"
-
+  implicit object LineupJsonFormat extends RootJsonFormat[Lineup] {
     def write(lu: Lineup): JsValue = JsObject(Map(
       "LineupId"    -> JsString(lu.lineupId),
       "Name"        -> JsString(lu.name),
@@ -1237,15 +1184,12 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
   }
 
   implicit object LineupJsonListFormat extends MythJsonListFormat[Lineup] {
-    def objectFieldName = "LineupList"
     def listFieldName = "Lineups"
     def convertElement(value: JsValue): Lineup = value.convertTo[Lineup]
     def elementToJson(elem: Lineup): JsValue = jsonWriter[Lineup].write(elem)
   }
 
-  implicit object BlurayInfoJsonFormat extends MythJsonObjectFormat[BlurayInfo] {
-    def objectFieldName = "BlurayInfo"
-
+  implicit object BlurayInfoJsonFormat extends RootJsonFormat[BlurayInfo] {
     def write(bd: BlurayInfo): JsValue = JsObject(Map(
       "Path"                 -> JsString(bd.path),
       "Title"                -> JsString(bd.title),

@@ -8,10 +8,6 @@ import java.time.{ Instant, ZoneOffset }
 import spray.json.{ DefaultJsonProtocol, JsonFormat, RootJsonFormat, deserializationError, jsonWriter }
 import spray.json.{ JsArray, JsObject, JsString, JsValue }
 
-private[http] trait MythJsonObjectFormat[T] extends RootJsonFormat[T] {
-  def objectFieldName: String
-}
-
 private[http] trait BaseMythJsonListFormat[T] {
   def listFieldName: String
 
@@ -32,7 +28,7 @@ private[http] trait BaseMythJsonListFormat[T] {
 
 private[http] trait MythJsonListFormat[T]
   extends BaseMythJsonListFormat[T]
-     with MythJsonObjectFormat[List[T]] {
+     with RootJsonFormat[List[T]] {
 
   def write(list: List[T]): JsValue = JsObject(Map(
     listFieldName -> JsArray(list.map(elementToJson).toVector)
@@ -48,7 +44,6 @@ trait CommonJsonProtocol {
 
   implicit object StringListJsonFormat extends MythJsonListFormat[String] {
     import DefaultJsonProtocol.StringJsonFormat
-    def objectFieldName = ""
     def listFieldName = "StringList"
     def convertElement(value: JsValue) = value.convertTo[String]
     def elementToJson(elem: String): JsValue = jsonWriter[String].write(elem)
@@ -79,9 +74,7 @@ trait CommonJsonProtocol {
     }
   }
 
-  implicit object ZoneOffsetJsonFormat extends MythJsonObjectFormat[ZoneOffset] {
-    def objectFieldName = "UTCOffset"
-
+  implicit object ZoneOffsetJsonFormat extends JsonFormat[ZoneOffset] {
     def write(z: ZoneOffset): JsValue = JsString(z.getTotalSeconds.toString)
 
     def read(value: JsValue): ZoneOffset = {
@@ -92,6 +85,5 @@ trait CommonJsonProtocol {
       ZoneOffset.ofTotalSeconds(secs)
     }
   }
-
 
 }
