@@ -76,6 +76,14 @@ trait MythService extends BackendService {
 
   def putSetting(hostName: String, key: String, value: String): Boolean
 
+  /**
+    * Changes password stored at HTTP/Protected/Password, used for some services? URLs,
+    * specified by HTTP/Protected/Urls ? See libs/libmythupnp/httprequest.cpp for more info.
+    * @param userName
+    * @param oldPassword
+    * @param newPassword
+    * @return
+    */
   def changePassword(userName: String, oldPassword: String, newPassword: String): Boolean
 
   def testDbSettings(hostName: String, userName: String, password: String, dbName: String = "", dbPort: Int = 0): Boolean

@@ -123,7 +123,7 @@ class JsonMythService(conn: BackendJsonConnection)
     )
     val response = post("PutSetting", params)
     val root = responseRoot(response)
-    root.booleanField("bool")   // TODO test
+    root.booleanField("bool")
   }
 
   def changePassword(userName: String, oldPassword: String, newPassword: String): Boolean = {
