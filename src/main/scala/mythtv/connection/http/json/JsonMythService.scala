@@ -31,9 +31,10 @@ class JsonMythService(conn: BackendJsonConnection)
     root.convertTo[List[String]]
   }
 
-  def getSetting(hostName: String, key: String): Settings = {
-    var params: Map[String, Any] = Map("HostName" -> hostName)
-    if (key.nonEmpty) params += "Key" -> key
+  def getSettings(hostName: String, key: String): Settings = {
+    var params: Map[String, Any] = Map.empty
+    if (hostName.nonEmpty) params += "HostName" -> hostName
+    if (key.nonEmpty)      params += "Key" -> key
     val response = request("GetSetting", params)
     val root = responseRoot(response, "SettingList")
     root.convertTo[Settings]

@@ -12,7 +12,26 @@ trait MythService extends BackendService {
 
   def getHosts: List[String]
   def getKeys: List[String]
-  def getSetting(hostName: String, key: String = ""): Settings
+
+  /**
+    * Query a global MythTV setting.
+    *
+    * A global setting is stored in the database with NULL as the hostname.
+    *
+    * @param key the key name of the global setting to query
+    * @return the value of the setting, or None if not found
+    */
+  def getSetting(key: String): Option[String] = {
+    require(key.nonEmpty)
+    getSettings("", key).settings.get(key)
+  }
+
+  def getSetting(hostname: String, key: String): Option[String] = {
+    require(key.nonEmpty)
+    getSettings(hostname, key).settings.get(key)
+  }
+
+  def getSettings(hostName: String = "", key: String = ""): Settings
 
   def getTimeZone: TimeZoneInfo
 
