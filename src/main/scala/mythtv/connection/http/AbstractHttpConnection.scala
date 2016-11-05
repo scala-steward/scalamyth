@@ -41,7 +41,8 @@ abstract class AbstractHttpConnection(val protocol: String, val host: String, va
 
         val data = encodeParameters(params, new StringBuilder).toString
         println("Data to post: " + data)   // TODO buffer the output writer?
-        val writer = new OutputStreamWriter(conn.getOutputStream)
+        val out = conn.getOutputStream
+        val writer = new OutputStreamWriter(out)
         writer.write(data)
         writer.close()
 
