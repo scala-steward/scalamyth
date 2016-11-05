@@ -1,10 +1,39 @@
 package mythtv
 
 import java.time.{ Duration, Instant }
+import java.net.InetAddress
 
 import model._
 import util.{ ByteCount, MythDateTime, MythFileHash }
 
+trait NetworkHostInfo {
+  def hostName: String
+  def addresses: Iterable[InetAddress]
+
+  def host: String = {
+    if (addresses.nonEmpty) addresses.head.getHostAddress
+    else if (hostName.nonEmpty) hostName
+    else ""
+  }
+
+  override def toString: String = s"host=$hostName addr=$addresses"
+}
+
+trait BackendInfo extends NetworkHostInfo {
+  def mythProtocolPort: Int
+  def servicesPort: Int
+
+  override def toString: String =
+    s"<BackendInfo ${super.toString} ports=$mythProtocolPort/$servicesPort>"
+}
+
+trait FrontendInfo extends NetworkHostInfo {
+  def remoteControlPort: Int
+  def servicesPort: Int
+
+  override def toString: String =
+    s"<FrontendInfo ${super.toString} ports=$remoteControlPort/$servicesPort>"
+}
 
 trait BackendOperations {
   def recordings: Iterable[Recording]

@@ -7,6 +7,8 @@ import connection.myth.{ BackendAPIConnection, EventConnection, EventLock }
 import util.{ ByteCount, ExpectedCountIterator, MythDateTime, MythFileHash }
 
 class MythBackend(val host: String) extends Backend with BackendOperations {
+  def this(bi: BackendInfo) = this(bi.host)
+
   private[this] val conn = BackendAPIConnection(host)
   @volatile private[this] var eventConnMayBeNull: EventConnection = _
 
