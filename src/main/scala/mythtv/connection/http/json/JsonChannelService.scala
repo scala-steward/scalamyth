@@ -138,7 +138,7 @@ class JsonChannelService(conn: BackendJsonConnection)
       "UseEIT"     -> source.useEit,
       "ConfigPath" -> source.configPath.getOrElse(""),
       "NITId"      -> source.dvbNitId.getOrElse(-1)
-      )
+    )
     val response = post("AddVideoSource", params)
     ListingSourceId(0)  // TODO
   }
