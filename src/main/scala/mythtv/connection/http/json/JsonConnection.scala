@@ -16,14 +16,14 @@ trait JsonConnection extends AbstractHttpConnection {
   }
 
   override def request(path: String): JsonResponse = super.request(path) match {
-    case StreamHttpResponse(status, headers, stream) =>
+    case HttpStreamResponse(status, headers, stream) =>
       val json = parseJson(stream)
       JsonResponse(status, headers, json)
   }
 
   override def post(path: String, params: Map[String, Any]): JsonResponse =
     super.post(path, params) match {
-      case StreamHttpResponse(status, headers, stream) =>
+      case HttpStreamResponse(status, headers, stream) =>
         val json = parseJson(stream)
         JsonResponse(status, headers, json)
     }

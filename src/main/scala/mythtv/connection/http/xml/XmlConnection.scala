@@ -15,7 +15,7 @@ trait XmlConnection extends AbstractHttpConnection {
   }
 
   override def request(path: String): XmlResponse = super.request(path) match {
-    case StreamHttpResponse(status, headers, stream) =>
+    case HttpStreamResponse(status, headers, stream) =>
       XmlResponse(status, headers, XML.load(stream))
   }
 }

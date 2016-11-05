@@ -7,7 +7,7 @@ import java.net.{ HttpURLConnection, URL, URLEncoder }
 
 import scala.collection.JavaConverters._
 
-case class StreamHttpResponse(statusCode: Int, headers: HttpHeaders, stream: InputStream) extends HttpResponse
+case class HttpStreamResponse(statusCode: Int, headers: HttpHeaders, stream: InputStream) extends HttpResponse
 
 // TODO make a scala version of the header fields map, but do so lazily so not to incur cost
 //      overhead when we never look at headers...
@@ -27,7 +27,7 @@ abstract class AbstractHttpConnection(val protocol: String, val host: String, va
       case conn: HttpURLConnection =>
         setupConnection(conn)
         val stream = conn.getInputStream
-        StreamHttpResponse(conn.getResponseCode, conn.getHeaderFields.asScala.toMap, stream)
+        HttpStreamResponse(conn.getResponseCode, conn.getHeaderFields.asScala.toMap, stream)
     }
   }
 
@@ -49,7 +49,7 @@ abstract class AbstractHttpConnection(val protocol: String, val host: String, va
 
         // TODO check response code?
         val stream = conn.getInputStream
-        StreamHttpResponse(conn.getResponseCode, conn.getHeaderFields.asScala.toMap, stream)
+        HttpStreamResponse(conn.getResponseCode, conn.getHeaderFields.asScala.toMap, stream)
     }
   }
 }
