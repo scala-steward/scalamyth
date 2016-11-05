@@ -104,7 +104,18 @@ class JsonMythService(conn: BackendJsonConnection)
     root.booleanField("bool")   // TODO test
   }
 
-  def testDbSettings(hostName: String, userName: String, password: String, dbName: String, dbPort: Int): Boolean = ???
+  def testDbSettings(hostName: String, userName: String, password: String, dbName: String, dbPort: Int): Boolean = {
+    var params: Map[String, Any] = Map(
+      "HostName" -> hostName,
+      "UserName" -> userName,
+      "Password" -> password
+    )
+    if (dbName.nonEmpty) params += "DBName" -> dbName
+    if (dbPort != 0)     params += "dbPort" -> dbPort
+    val response = post("TestDBSettings", params)
+    val root = responseRoot(response)
+    root.booleanField("bool")
+  }
 
   def sendMessage(message: String, address: String, udpPort: Int, timeout: Int): Boolean = ???
 

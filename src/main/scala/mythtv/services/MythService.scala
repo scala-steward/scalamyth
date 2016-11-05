@@ -52,7 +52,7 @@ trait MythService extends BackendService {
 
   def changePassword(userName: String, oldPassword: String, newPassword: String): Boolean
 
-  def testDbSettings(hostName: String, userName: String, password: String, dbName: String, dbPort: Int): Boolean
+  def testDbSettings(hostName: String, userName: String, password: String, dbName: String = "", dbPort: Int = 0): Boolean
 
   def sendMessage(message: String, address: String, udpPort: Int, timeout: Int): Boolean
 
