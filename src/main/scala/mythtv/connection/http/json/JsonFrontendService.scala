@@ -42,6 +42,14 @@ class JsonMythFrontendService(conn: FrontendJsonConnection)
     root.convertTo[FrontendStatus]
   }
 
+  def getScreenshot(format: ScreenshotFormat, width: Int, height: Int): HttpStreamResponse = {
+    var params: Map[String, Any] = Map("format" -> format.formatString)
+    if (width != 0)      params += "width" -> width
+    if (height != 0)     params += "height" -> height
+    val path = buildPath("MythFE", "GetScreenShot", params)
+    conn.requestStream(path)
+  }
+
   // post methods
 
   def playRecording(chanId: ChanId, startTime: MythDateTime): Boolean = {

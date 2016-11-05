@@ -88,6 +88,12 @@ trait FrontendStatus {
   override def toString: String = s"<FrontendStatus $state>"
 }
 
+sealed trait ScreenshotFormat { def formatString: String }
+object ScreenshotFormat {
+  case object Jpg extends ScreenshotFormat { def formatString = "jpg" }
+  case object Png extends ScreenshotFormat { def formatString = "png" }
+}
+
 trait TitleInfo {
   def title: String
   def inetRef: String

@@ -7,8 +7,12 @@ import util.{ OptionalCount, OptionalCountSome }
 
 trait MythServiceProtocol {
   self: Service =>
-  def buildPath(endpoint: String, params: Map[String, Any] = Map.empty): String = {
-    val builder = new StringBuilder("/") ++= serviceName += '/' ++= endpoint
+
+  def buildPath(endpoint: String, params: Map[String, Any] = Map.empty): String =
+    buildPath(serviceName, endpoint, params)
+
+  def buildPath(service: String, endpoint: String, params: Map[String, Any]): String = {
+    val builder = new StringBuilder("/") ++= service += '/' ++= endpoint
     if (params.nonEmpty) {
       builder += '?'
       AbstractHttpConnection.encodeParameters(params, builder)

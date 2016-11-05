@@ -5,6 +5,7 @@ import java.time.Duration
 
 import model._
 import util.MythDateTime
+import connection.http.HttpStreamResponse
 import EnumTypes.{ NotificationPriority, NotificationType, NotificationVisibility }
 
 trait MythFrontendService extends FrontendService {
@@ -15,6 +16,8 @@ trait MythFrontendService extends FrontendService {
   def getActionList(context: String = ""): FrontendActionMap
   def getContextList: List[String]
   def getStatus: FrontendStatus
+
+  def getScreenshot(format: ScreenshotFormat = ScreenshotFormat.Png, width: Int = 0, height: Int = 0): HttpStreamResponse
 
   // action methods
 
