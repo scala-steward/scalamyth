@@ -3,6 +3,8 @@ package connection
 package http
 package json
 
+import java.time.Duration
+
 import spray.json.DefaultJsonProtocol
 
 import services.MythService
@@ -117,7 +119,15 @@ class JsonMythService(conn: BackendJsonConnection)
     root.booleanField("bool")
   }
 
-  def sendMessage(message: String, address: String, udpPort: Int, timeout: Int): Boolean = ???
+  def sendMessage(message: String, address: String, udpPort: Int, timeout: Duration): Boolean = {
+    var params: Map[String, Any] = Map("Message" -> message)
+    if (address.nonEmpty) params += "Address" -> address
+    if (udpPort != 0)     params += "udpPort" -> udpPort
+    if (!timeout.isZero)  params += "Timeout" -> timeout.getSeconds
+    val response = post("SendMessage", params)
+    val root = responseRoot(response)
+    root.booleanField("bool")
+  }
 
   //def sendNotification(....): Boolean = ???
 

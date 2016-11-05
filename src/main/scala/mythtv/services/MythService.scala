@@ -1,6 +1,8 @@
 package mythtv
 package services
 
+import java.time.Duration
+
 import model.{ Settings, StorageGroupDir, TimeZoneInfo }
 
 trait MythService extends BackendService {
@@ -54,7 +56,12 @@ trait MythService extends BackendService {
 
   def testDbSettings(hostName: String, userName: String, password: String, dbName: String = "", dbPort: Int = 0): Boolean
 
-  def sendMessage(message: String, address: String, udpPort: Int, timeout: Int): Boolean
+  // NB the 'address' parameter must be an IP address (not a hostname) if given
+  // NB broadcast address doesn't seem to be picked up by frontends? The packet is visible on bigbertha in wireshark.
+  //    It turns out the frontends were listening on 192.168.1.255 but not 255.255.255.255.  Wonder why? Investigate.
+  //    mythudplistener in libmythui ; uses ServerPool::DefaultBroadcast from libmythbase
+  //    The bug seems to be in the backend service; should use subnet broadcast address rather than global?
+  def sendMessage(message: String, address: String = "", udpPort: Int = 0, timeout: Duration = Duration.ZERO): Boolean
 
   //def sendNotification(....): Boolean
 
