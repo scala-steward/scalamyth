@@ -2,12 +2,10 @@ package mythtv
 package connection
 package http
 
-import java.io.{ InputStream, OutputStreamWriter }
+import java.io.OutputStreamWriter
 import java.net.{ HttpURLConnection, URL, URLEncoder }
 
 import scala.collection.JavaConverters._
-
-case class HttpStreamResponse(statusCode: Int, headers: HttpHeaders, stream: InputStream) extends HttpResponse
 
 // TODO make a scala version of the header fields map, but do so lazily so not to incur cost
 //      overhead when we never look at headers...
