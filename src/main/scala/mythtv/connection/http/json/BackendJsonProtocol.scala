@@ -27,7 +27,7 @@ private[http] trait MythJsonObjectList[+T] {
   def mythProtocolVersion: String
 }
 
-private[http] abstract class MythJsonPagedObjectList[+T]
+private[http] trait MythJsonPagedObjectList[+T]
   extends PagedList[T] with MythJsonObjectList[T] {
   def count: Int
   def totalAvailable: Int
