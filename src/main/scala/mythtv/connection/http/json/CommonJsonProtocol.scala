@@ -14,6 +14,9 @@ private[http] trait BaseMythJsonListFormat[T] {
   def convertElement(value: JsValue): T
   def elementToJson(elem: T): JsValue
 
+  def writeItems(list: List[T]): JsValue =
+    JsArray(list.map(elementToJson).toVector)
+
   def readItems(obj: JsObject): List[T] = {
     if (!(obj.fields contains listFieldName))
       deserializationError(s"expected to find field name $listFieldName")
@@ -30,9 +33,7 @@ private[http] trait MythJsonListFormat[T]
   extends BaseMythJsonListFormat[T]
      with RootJsonFormat[List[T]] {
 
-  def write(list: List[T]): JsValue = JsObject(Map(
-    listFieldName -> JsArray(list.map(elementToJson).toVector)
-  ))
+  def write(list: List[T]): JsValue = writeItems(list)
 
   def read(value: JsValue): List[T] = {
     val obj = value.asJsObject

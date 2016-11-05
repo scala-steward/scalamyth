@@ -41,7 +41,12 @@ private[http] trait MythJsonObjectListFormat[T]
      with RootJsonFormat[MythJsonObjectList[T]] {
   import RichJsonObject._
 
-  def write(obj: MythJsonObjectList[T]): JsValue = ???
+  def write(obj: MythJsonObjectList[T]): JsValue = JsObject(Map(
+    listFieldName -> writeItems(obj.items),
+    "AsOf"        -> JsString(obj.asOf.toIsoFormat),
+    "Version"     -> JsString(obj.mythVersion),
+    "ProtoVer"    -> JsString(obj.mythProtocolVersion)
+  ))
 
   def read(value: JsValue): MythJsonObjectList[T] = {
     val obj = value.asJsObject
@@ -81,7 +86,15 @@ private[http] trait MythJsonPagedObjectListFormat[T]
      with RootJsonFormat[MythJsonPagedObjectList[T]] {
   import RichJsonObject._
 
-  def write(obj: MythJsonPagedObjectList[T]): JsValue = ???
+  def write(obj: MythJsonPagedObjectList[T]): JsValue = JsObject(Map(
+    listFieldName    -> writeItems(obj.items),
+    "Count"          -> JsString(obj.count.toString),
+    "TotalAvailable" -> JsString(obj.totalAvailable.toString),
+    "StartIndex"     -> JsString(obj.startIndex.toString),
+    "AsOf"           -> JsString(obj.asOf.toIsoFormat),
+    "Version"        -> JsString(obj.mythVersion),
+    "ProtoVer"       -> JsString(obj.mythProtocolVersion)
+  ))
 
   def read(value: JsValue): MythJsonPagedObjectList[T] = {
     val obj = value.asJsObject
@@ -695,7 +708,12 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
   }
 
   implicit object StorageGroupDirJsonFormat extends RootJsonFormat[StorageGroupDir] {
-    def write(sg: StorageGroupDir): JsValue = ???
+    def write(sg: StorageGroupDir): JsValue = JsObject(Map(
+      "Id"        -> JsString(sg.id.id.toString),
+      "GroupName" -> JsString(sg.groupName),
+      "HostName"  -> JsString(sg.hostName),
+      "DirName"   -> JsString(sg.dirName)
+    ))
 
     def read(value: JsValue): StorageGroupDir = {
       val obj = value.asJsObject
@@ -919,7 +937,17 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
   // TODO need to support abbreviated (non-detailed guide as well!)
 
   implicit object ChannelGuideJsonFormat extends RootJsonFormat[GuideTuple] {
-    def write(tuple: GuideTuple): JsValue = ???
+    def write(tuple: GuideTuple): JsValue = {
+      val (chan, progs) = tuple
+      JsObject(Map(
+        "ChanId"      -> JsString(chan.chanId.id.toString),
+        "ChanNum"     -> JsString(chan.number.num),
+        "ChannelName" -> JsString(chan.name),
+        "CallSign"    -> JsString(chan.callsign),
+        "IconURL"     -> JsString(""),  // TODO not in Channel?
+        "Programs"    -> jsonWriter[List[Program]].write(progs.toList)
+      ))
+    }
 
     def read(value: JsValue): GuideTuple = {
       val obj = value.asJsObject
@@ -943,7 +971,19 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
   }
 
   implicit object GuideJsonFormat extends RootJsonFormat[Guide[Channel, Program]] {
-    def write(g: Guide[Channel, Program]): JsValue = ???
+    def write(g: Guide[Channel, Program]): JsValue = JsObject(Map(
+      "StartTime"     -> JsString(g.startTime.toIsoFormat),
+      "EndTime"       -> JsString(g.endTime.toIsoFormat),
+      "StartChanId"   -> JsString(g.startChanId.id.toString),
+      "EndChanId"     -> JsString(g.endChanId.id.toString),
+      "Count"         -> JsString(g.programCount.toString),
+      "Details"       -> JsString(""),   // TODO
+      "AsOf"          -> JsString(""),   // TODO
+      "Version"       -> JsString(""),   // TODO
+      "ProtoVer"      -> JsString(""),
+      "NumOfChannels" -> JsString(g.programs.size.toString),
+      "Channels"      -> jsonWriter[List[GuideTuple]].write(g.programs.toList)
+    ))
 
     def read(value: JsValue): Guide[Channel, Program] = {
       val obj = value.asJsObject
