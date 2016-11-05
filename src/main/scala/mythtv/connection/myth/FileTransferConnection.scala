@@ -2,7 +2,7 @@ package mythtv
 package connection
 package myth
 
-import java.net.InetAddress
+import util.NetworkUtil
 
 trait FileTransferConnection extends SocketConnection
 
@@ -15,7 +15,7 @@ private abstract class AbstractFileTransferConnection(host: String, port: Int, t
   self: MythProtocolAPI with AnnouncingConnection =>
 
   protected def announce(): Unit = {
-    val localHost = InetAddress.getLocalHost.getHostName
+    val localHost = NetworkUtil.myHostName
     val (ftID, size) = announceFileTransfer(localHost, fileName, storageGroup)
   }
 

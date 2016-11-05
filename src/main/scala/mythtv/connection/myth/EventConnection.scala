@@ -2,8 +2,9 @@ package mythtv
 package connection
 package myth
 
-import java.net.{ InetAddress, SocketException }
+import java.net.SocketException
 
+import util.NetworkUtil
 import EnumTypes.MythProtocolEventMode
 
 trait BackendEvent extends Any with BackendResponse {
@@ -163,7 +164,7 @@ private abstract class AbstractEventConnection(
   private[this] var eventLoopThread: Thread = _
 
   def announce(): Unit = {
-    val localHost = InetAddress.getLocalHost.getHostName // TODO
+    val localHost = NetworkUtil.myHostName
     val result = sendCommand("ANN", "Monitor", localHost, eventMode)
   }
 

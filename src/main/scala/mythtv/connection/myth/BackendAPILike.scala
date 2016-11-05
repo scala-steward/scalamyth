@@ -2,12 +2,11 @@ package mythtv
 package connection
 package myth
 
-import java.net.InetAddress
 import java.time.Duration
 
 import model._
 import model.EnumTypes._
-import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythFileHash }
+import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythFileHash, NetworkUtil }
 import EnumTypes.{ MythLogLevel, MythProtocolEventMode }
 import MythProtocol.QueryRecorderResult._
 
@@ -23,7 +22,7 @@ private trait BackendAPILike {
     import MythProtocol.AnnounceResult._
     val localHost =
       if (hostName != "") hostName
-      else InetAddress.getLocalHost.getHostName
+      else NetworkUtil.myHostName
     val result = sendCommand("ANN", mode, localHost, eventMode)
     (result map { case AnnounceAcknowledgement => true }).get
   }
