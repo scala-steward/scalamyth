@@ -7,17 +7,14 @@ import util.MythFileHash
 
 final case class VideoId(id: Int) extends AnyVal
 
-trait Video extends ProgramAndVideoBase {
+trait Video extends ProgramAndVideoBase with InternetMetadata {
   def id: VideoId
   def director: String
   // TODO more
   // TODO check these against database, they are from VideoMetadataInfo service
   def tagline: Option[String]
-  def inetRef: String
   def homePage: Option[String]
   def studio: Option[String]
-  def season: Option[Int]
-  def episode: Option[Int]
   def length: Option[Duration]  // duration of video in minutes (may be zero == unknown)
   def playCount: Int
   def hash: MythFileHash

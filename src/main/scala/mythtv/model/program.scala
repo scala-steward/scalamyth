@@ -13,6 +13,13 @@ trait ProgramAndVideoBase {   /// TODO need a better name for this trait.
   def year: Option[Year]      // NB called 'airdate' in program table
 }
 
+/* metadata acquired from the internet (e.g. TheTVDB.com or TheMovieDB.org (TMDb) or IMDb(?)) */
+trait InternetMetadata {
+  def inetRef: Option[String]
+  def season: Option[Int]
+  def episode: Option[Int]
+}
+
 trait Program extends ProgramAndVideoBase {
   def syndicatedEpisode: String
   def category: String
@@ -85,9 +92,9 @@ trait Recording extends Recordable {
   def filesize: ByteCount
 
   // metadata downloaded from the internet? not in program guide
-  def season: Int                  // TODO only for Recording?, not in program table
-  def episode: Int                 // TODO only for Recording?, not in program table
-  def inetRef: String              // TODO not in program table
+  def season: Int                  // TODO only for Recording?, not in program table. s/b Option[_]
+  def episode: Int                 // TODO only for Recording?, not in program table  s/b Option[_]
+  def inetRef: String              // TODO not in program table                       s/b Option[_]
 
   // TODO get this working w/out calling .id
   def programType: ProgramType = ProgramType.applyOrUnknown((ProgramFlags.ProgramType.id & programFlags.id) >> 16)

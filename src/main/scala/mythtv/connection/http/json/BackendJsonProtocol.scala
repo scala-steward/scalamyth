@@ -1015,7 +1015,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       "Director"         -> JsString(v.director),
       "Tagline"          -> JsString(v.tagline.getOrElse("")),
       "Description"      -> JsString(v.description),
-      "Inetref"          -> JsString(v.inetRef),
+      "Inetref"          -> JsString(v.inetRef.getOrElse("00000000")),
       "HomePage"         -> JsString(v.homePage.getOrElse("")),
       "Studio"           -> JsString(v.studio.getOrElse("")),
       "Season"           -> JsString(v.season.getOrElse(0).toString),
@@ -1045,7 +1045,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def year            = None
         def tagline         = obj.stringFieldOption("Tagline", "")
         def description     = obj.stringField("Description")
-        def inetRef         = obj.stringField("Inetref")  // TODO "00000000" used as null placeholder
+        def inetRef         = obj.stringFieldOption("Inetref", "00000000")
         def homePage        = obj.stringFieldOption("HomePage", "")
         def studio          = obj.stringFieldOption("Studio", "")
         def season          = obj.intFieldOption("Season", 0)
