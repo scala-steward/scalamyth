@@ -19,12 +19,16 @@ import model._
 
 /* ----------------------------------------------------------------- */
 
-// TODO Pull out all but `items` into a separate trait and share with guide result?
-private[http] trait MythJsonObjectList[+T] {
-  def items: List[T]
+// TODO Have guide result utilize this MythJsonObject trait?
+private[http] trait MythJsonObject[+T] {
+  def data: T
   def asOf: MythDateTime
   def mythVersion: String
   def mythProtocolVersion: String
+}
+
+private[http] trait MythJsonObjectList[+T] extends MythJsonObject[List[T]] {
+  final def items: List[T] = data
 }
 
 private[http] trait MythJsonPagedObjectList[+T]
@@ -42,7 +46,7 @@ private[http] trait MythJsonObjectListFormat[T]
   import RichJsonObject._
 
   def write(obj: MythJsonObjectList[T]): JsValue = JsObject(Map(
-    listFieldName -> writeItems(obj.items),
+    listFieldName -> writeItems(obj.data),
     "AsOf"        -> JsString(obj.asOf.toIsoFormat),
     "Version"     -> JsString(obj.mythVersion),
     "ProtoVer"    -> JsString(obj.mythProtocolVersion)
@@ -52,7 +56,7 @@ private[http] trait MythJsonObjectListFormat[T]
     val obj = value.asJsObject
     val itemList = readItems(obj)
     new MythJsonObjectList[T] {
-      def items = itemList
+      def data = itemList
       def asOf = obj.dateTimeField("AsOf")
       def mythVersion = obj.stringField("Version")
       def mythProtocolVersion = obj.stringField("ProtoVer")
@@ -87,7 +91,7 @@ private[http] trait MythJsonPagedObjectListFormat[T]
   import RichJsonObject._
 
   def write(obj: MythJsonPagedObjectList[T]): JsValue = JsObject(Map(
-    listFieldName    -> writeItems(obj.items),
+    listFieldName    -> writeItems(obj.data),
     "Count"          -> JsString(obj.count.toString),
     "TotalAvailable" -> JsString(obj.totalAvailable.toString),
     "StartIndex"     -> JsString(obj.startIndex.toString),
@@ -101,7 +105,7 @@ private[http] trait MythJsonPagedObjectListFormat[T]
     val itemList = readItems(obj)
 
     new MythJsonPagedObjectList[T] {
-      def items = itemList
+      def data = itemList
       def count = obj.intField("Count")
       def totalAvailable = obj.intField("TotalAvailable")
       def startIndex = obj.intField("StartIndex")

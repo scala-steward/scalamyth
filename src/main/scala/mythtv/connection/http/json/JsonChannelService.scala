@@ -36,7 +36,7 @@ class JsonChannelService(conn: BackendJsonConnection)
     val response = request("GetVideoSourceList")
     val root = responseRoot(response, "VideoSourceList")
     val list = root.convertTo[MythJsonObjectList[ListingSource]]
-    list.items
+    list.data
   }
 
   def getVideoMultiplex(mplexId: MultiplexId): VideoMultiplex = {
