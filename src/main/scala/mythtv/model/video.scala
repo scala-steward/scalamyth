@@ -7,16 +7,12 @@ import util.MythFileHash
 
 final case class VideoId(id: Int) extends AnyVal
 
-trait Video {
+trait Video extends ProgramAndVideoBase {
   def id: VideoId
-  def title: String
-  def subtitle: String
   def director: String
-  def year: Year
   // TODO more
   // TODO check these against database, they are from VideoMetadataInfo service
   def tagline: Option[String]
-  def description: String
   def inetRef: String
   def homePage: Option[String]
   def studio: Option[String]

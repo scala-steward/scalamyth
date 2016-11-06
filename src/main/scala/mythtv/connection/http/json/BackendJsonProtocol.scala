@@ -1042,7 +1042,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def title           = obj.stringField("Title")
         def subtitle        = obj.stringField("SubTitle")
         def director        = obj.stringField("Director")
-        def year            = ???  // TODO no Year field, pluck from releasedate?
+        def year            = None
         def tagline         = obj.stringFieldOption("Tagline", "")
         def description     = obj.stringField("Description")
         def inetRef         = obj.stringField("Inetref")  // TODO "00000000" used as null placeholder

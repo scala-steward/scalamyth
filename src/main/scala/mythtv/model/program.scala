@@ -10,16 +10,10 @@ trait ProgramAndVideoBase {   /// TODO need a better name for this trait.
   def title: String
   def subtitle: String
   def description: String
-  def year: Option[Year]      // NB not Option in Video
-  // TODO category ?
-  // TODO stars/rating?
+  def year: Option[Year]      // NB called 'airdate' in program table
 }
 
-// TODO some of these fields are optional or have default (meaningless values)
-trait Program {
-  def title: String
-  def subtitle: String
-  def description: String
+trait Program extends ProgramAndVideoBase {
   def syndicatedEpisode: String
   def category: String
   def categoryType: Option[CategoryType]   // only really seems to be populated in program guide stuff
@@ -33,7 +27,6 @@ trait Program {
   def audioProps: AudioProperties  // TODO do we only know this after recording?, in program table
   def videoProps: VideoProperties  // TODO do we only know this after recording?, in program table
   def subtitleType: SubtitleType   // TODO do we only know this after recording?, in program table
-  def year: Option[Year]           // NB called 'airdate' in program table
   def partNumber: Option[Int]
   def partTotal: Option[Int]
   def programFlags: ProgramFlags
