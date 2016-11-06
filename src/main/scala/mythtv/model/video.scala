@@ -22,12 +22,12 @@ trait Video extends ProgramAndVideoBase with InternetMetadata {
   def fileName: String
   def contentType: String  // enum? MOVIE, TELEVISION, ADULT, MUSICVIDEO, HOMEVIDEO
   def hostName: String
-  def addDate: Option[Instant]
+  def addedDate: Option[Instant]  // database stores timestamp; VideoService returns valid date portion only
   def watched: Boolean
   def userRating: Double   // TODO rename to stars and converge with Program? Scale is always implied!
   def rating: String       // This is MPPA or some such rating, correct?  Should this really be a Map? (RatingBody -> Rating)
-  def collectionRef: Int
-  def releaseDate: LocalDate
+  def collectionRef: Option[Int]
+  def releasedDate: Option[LocalDate]
   // TODO various artworks   These are common to many elements, no?  What should a "HasArtwork" (or may have artwork, really...) trait be called?
 
   def artworkInfo: List[ArtworkInfo]  // TODO probably belongs in a different, HasArtworkInfo (?) trait

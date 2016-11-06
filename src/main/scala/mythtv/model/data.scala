@@ -46,6 +46,10 @@ trait ArtworkInfo {
   def fileName: String
   def storageGroup: String
   def artworkType: String
+
+  override def toString: String =
+    if (url.nonEmpty) url
+    else s"$storageGroup:$fileName"
 }
 
 trait TimeZoneInfo {

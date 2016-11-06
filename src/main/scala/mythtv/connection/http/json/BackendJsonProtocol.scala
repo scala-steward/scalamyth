@@ -3,12 +3,12 @@ package connection
 package http
 package json
 
-import java.time.{ Duration, Instant, LocalTime, Year, ZoneOffset }
+import java.time.{ Duration, Instant, LocalTime, ZoneOffset }
 
 import scala.util.DynamicVariable
 
-import spray.json.{ DefaultJsonProtocol, JsonFormat, RootJsonFormat, jsonWriter }
-import spray.json.{ JsArray, JsObject, JsString, JsValue }
+import spray.json.{ JsonFormat, RootJsonFormat, jsonWriter }
+import spray.json.{ JsObject, JsString, JsValue }
 
 import util.{ DecimalByteCount, MythDateTime, MythFileHash }
 import services.PagedList
@@ -16,6 +16,8 @@ import model.EnumTypes._
 import model._
 
 // TODO artwork info on recordings?
+
+// TODO default values for model elements need to be centralized somewhere (e.g. Inetref="000000...")
 
 /* ----------------------------------------------------------------- */
 
@@ -116,7 +118,7 @@ private[http] trait MythJsonPagedObjectListFormat[T]
   }
 }
 
-// TODO FIXME ineffecient, maps rebuilt on each operation
+// FIXME ineffecient, maps rebuilt on each operation
 private[http] trait EnumDescriptionFormat[T] extends JsonFormat[T] {
   def id2Description: Map[T, String]
   def description2Id: Map[String, T] = id2Description map (_.swap)
@@ -215,7 +217,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def title                   = obj.stringField("Title")
         def subtitle                = obj.stringField("SubTitle")
         def description             = obj.stringField("Description")
-        def syndicatedEpisode       = "" //???
+        def syndicatedEpisode       = ""
         def category                = obj.stringField("Category")
         def categoryType            = obj.stringFieldOption("CatType", "") map CategoryType.withName
         def chanId                  = ChanId(channel.intFieldOrElse("ChanId", 0))
@@ -228,7 +230,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def audioProps              = AudioProperties(obj.intField("AudioProps"))
         def videoProps              = VideoProperties(obj.intField("VideoProps"))
         def subtitleType            = SubtitleType(obj.intField("SubProps"))
-        def year                    = obj.intFieldOption("Year") map Year.of  // TODO year field does not exist
+        def year                    = None
         def partNumber              = None
         def partTotal               = None
         def programFlags            = ProgramFlags(obj.intField("ProgramFlags"))
@@ -311,7 +313,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def title                   = obj.stringField("Title")
         def subtitle                = obj.stringField("SubTitle")
         def description             = obj.stringField("Description")
-        def syndicatedEpisode       = ???
+        def syndicatedEpisode       = ""
         def category                = obj.stringField("Category")
         def categoryType            = obj.stringFieldOption("CatType", "") map CategoryType.withName
         def chanId                  = ChanId(channel.intFieldOrElse("ChanId", 0))
@@ -324,12 +326,12 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def audioProps              = AudioProperties(obj.intField("AudioProps"))
         def videoProps              = VideoProperties(obj.intField("VideoProps"))
         def subtitleType            = SubtitleType(obj.intField("SubProps"))
-        def year                    = obj.intFieldOption("Year") map Year.of  // TODO year field does not exist
+        def year                    = None
         def partNumber              = None
         def partTotal               = None
         def programFlags            = ProgramFlags(obj.intField("ProgramFlags"))
 
-        def findId                  = ???
+        def findId                  = 0 //???
         def hostname                = obj.stringField("HostName")
         def sourceId                = ListingSourceId(channel.intFieldOrElse("SourceId", 0))
         def cardId                  = CaptureCardId(rec.intField("EncoderId"))
@@ -345,8 +347,8 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def recGroup                = rec.stringField("RecGroup")
         def storageGroup            = rec.stringField("StorageGroup")
         def playGroup               = rec.stringField("PlayGroup")
-        def recPriority2            = ???
-        def parentId                = ???
+        def recPriority2            = 0 //???
+        def parentId                = 0 //???
         def lastModified            = obj.dateTimeField("LastModified")
         def chanNum                 = ChannelNumber(channel.stringFieldOrElse("ChanNum", ""))
         def callsign                = channel.stringFieldOrElse("CallSign", "")
@@ -405,9 +407,6 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
          */
       }
 
-      // TODO Year field does not exist separately, but it the "Airdate" field may sometimes only
-      //      contain a year, in which case originalAirDate should be None....
-
       // Return a Recording if there is a non-empty recording start time AND a non-empty filename
       if (rec.stringFieldOption("StartTs", "").nonEmpty) {
         // Generate a Recordable if we have a recording StartTS but not FileName
@@ -424,7 +423,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def title                   = obj.stringField("Title")
         def subtitle                = obj.stringField("SubTitle")
         def description             = obj.stringField("Description")
-        def syndicatedEpisode       = ???
+        def syndicatedEpisode       = ""
         def category                = obj.stringField("Category")
         def categoryType            = obj.stringFieldOption("CatType", "") map CategoryType.withName
         def chanId                  = ChanId(channel.intFieldOrElse("ChanId", 0))
@@ -437,7 +436,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def audioProps              = AudioProperties(obj.intField("AudioProps"))
         def videoProps              = VideoProperties(obj.intField("VideoProps"))
         def subtitleType            = SubtitleType(obj.intField("SubProps"))
-        def year                    = obj.intFieldOption("Year") map Year.of    // TODO year field does not exist
+        def year                    = None
         def partNumber              = None
         def partTotal               = None
         def programFlags            = ProgramFlags(obj.intField("ProgramFlags"))
@@ -445,6 +444,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
 
       /* missing:
          syndicatedEpisode   (but we do have "Season" and "Episode")
+         year                (but we have originalAirDate)
          partNumber
          partTotal */
     }
@@ -753,7 +753,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       new RemoteEncoderState {
         def cardId           = CaptureCardId(obj.intField("Id"))
         def host             = obj.stringField("HostName")
-        def port             = ???  // TODO
+        def port             = 0   // TODO
 
         def local            = obj.booleanField("Local")
         def connected        = obj.booleanField("Connected")
@@ -992,7 +992,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     def read(value: JsValue): Guide[Channel, Program] = {
       val obj = value.asJsObject
 
-      // TODO FIXME avoid intermediate conversion to list
+      // FIXME avoid intermediate conversion to list
       val channelGuideList = value.convertTo[List[GuideTuple]]
       val channelGuide = channelGuideList.toMap
 
@@ -1027,12 +1027,12 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       "FileName"         -> JsString(v.fileName),
       "ContentType"      -> JsString(v.contentType),
       "HostName"         -> JsString(v.hostName),
-      "AddDate"          -> JsString(v.addDate.map(_.toString).getOrElse("")),
+      "AddDate"          -> JsString(v.addedDate.map(_.toString).getOrElse("")),
       "Watched"          -> JsString(v.watched.toString),
       "UserRating"       -> JsString(v.userRating.toString),
       "Certification"    -> JsString(v.rating),
-      "Collectionref"    -> JsString(v.collectionRef.toString),
-      "ReleaseDate"      -> JsString(v.releaseDate.toString)
+      "Collectionref"    -> JsString(v.collectionRef.getOrElse(-1).toString),
+      "ReleaseDate"      -> JsString(v.releasedDate.map(_.toString).getOrElse(""))
     ))
 
     def read(value: JsValue): Video = {
@@ -1057,13 +1057,12 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def fileName        = obj.stringField("FileName")
         def contentType     = obj.stringField("ContentType")
         def hostName        = obj.stringField("HostName")
-        def addDate         = obj.dateTimeFieldOption("AddDate") map (_.toInstant)
+        def addedDate       = obj.dateTimeFieldOption("AddDate") map (_.toInstant)
         def watched         = obj.booleanField("Watched")
         def userRating      = obj.doubleField("UserRating")
         def rating          = obj.stringField("Certification")
-        def collectionRef   = obj.intField("Collectionref")  // TODO -1 used as default placeholder?
-        // TODO release date may not always be in strict ISO format, see VideoId(1) or VideoId(12)
-        def releaseDate     = obj.dateTimeField("ReleaseDate").toLocalDateTime().toLocalDate
+        def collectionRef   = obj.intFieldOption("Collectionref", -1)
+        def releasedDate    = obj.dateTimeFieldOption("ReleaseDate").map(_.toLocalDateTime().toLocalDate)
 
         def artworkInfo     = obj.fields("Artwork").convertTo[List[ArtworkInfo]]
       }

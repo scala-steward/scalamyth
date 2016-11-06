@@ -49,14 +49,14 @@ class JsonVideoService(conn: BackendJsonConnection)
     )
     val response = post("AddVideo", params)
     val root = responseRoot(response)
-    root.booleanField("bool")   // TODO test
+    root.booleanField("bool")
   }
 
   def removeVideoFromDb(videoId: VideoId): Boolean = {
     val params: Map[String, Any] = Map("Id" -> videoId.id)
     val response = post("RemoveVideoFromDB", params)
     val root = responseRoot(response)
-    root.booleanField("bool")   // TODO test
+    root.booleanField("bool")
   }
 
   /* Added to API on 6 Apr 2016 */
