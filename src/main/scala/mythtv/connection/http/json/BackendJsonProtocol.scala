@@ -149,9 +149,9 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     )
   }
 
-  // TODO this one is tricker because the map has duplicate keys!
+  // TODO this one is tricker because the map may have duplicate keys!
   //   (see libs/libmyth/recordingtypes.cpp: toRawString(RecordingType)
-  // This also means there is a loss of precision between a record rule
+  // This also means there may be a loss of precision between a record rule
   // RecType and how it is described in the services API representation.
   // TODO this mapping changed between Myth versions (0.26 -> 0.27?)
   implicit object RecTypeJsonFormat extends EnumDescriptionFormat[RecType] {
@@ -585,56 +585,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     ))
 
     def read(value: JsValue): RecordRule = {
-      /*
-       "AutoCommflag": "false",
-       "AutoExpire": "true",
-       "AutoMetaLookup": "true",
-       "AutoTranscode": "false",
-       "AutoUserJob1": "false",
-       "AutoUserJob2": "false",
-       "AutoUserJob3": "false",
-       "AutoUserJob4": "false",
-       "AverageDelay": "0",
-       "CallSign": "KPBS-HD",
-       "Category": "House/garden",
-       "ChanId": "1151",
-       "Description": "Host Nan Sterman takes us ...",
-       "DupIn": "All Recordings",
-       "DupMethod": "Subtitle and Description",
-       "EndOffset": "0",
-       "EndTime": "2013-06-28T04:00:00Z",
-       "Episode": "0",
-       "Filter": "0",
-       "FindDay": "0",
-       "FindTime": "00:00:00",
-       "Id": "349",
-       "Inactive": "false",
-       "Inetref": "",
-       "LastDeleted": "2014-02-07T17:22:46Z",
-       "LastRecorded": "2016-10-23T12:30:00Z",
-       "MaxEpisodes": "0",
-       "MaxNewest": "false",
-       "NextRecording": "2016-10-30T12:30:00Z",
-       "ParentId": "0",
-       "PlayGroup": "Default",
-       "PreferredInput": "0",
-       "ProgramId": "EP007970840003",
-       "RecGroup": "Gardening",
-       "RecPriority": "0",
-       "RecProfile": "Default",
-       "SearchType": "None",
-       "Season": "0",
-       "SeriesId": "EP00797084",
-       "StartOffset": "0",
-       "StartTime": "2013-06-28T03:30:00Z",
-       "StorageGroup": "Default",
-       "SubTitle": "Waterwise and Wonderful",
-       "Title": "A Growing Passion",
-       "Transcoder": "0",
-       "Type": "Record All"
-       */
       val obj = value.asJsObject
-
       new RecordRule {
         def id              = RecordRuleId(obj.intField("Id"))
         def recType         = obj.fields("Type").convertTo[RecType]
@@ -986,7 +937,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       "Details"       -> JsString(""),   // TODO
       "AsOf"          -> JsString(""),   // TODO
       "Version"       -> JsString(""),   // TODO
-      "ProtoVer"      -> JsString(""),
+      "ProtoVer"      -> JsString(""),   // TODO
       "NumOfChannels" -> JsString(g.programs.size.toString),
       "Channels"      -> jsonWriter[List[GuideTuple]].write(g.programs.toList)
     ))

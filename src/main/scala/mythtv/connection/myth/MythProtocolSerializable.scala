@@ -173,7 +173,7 @@ object MythProtocolSerializable {
   }
 
   implicit object MythDateTimeSerializer extends MythProtocolSerializable[MythDateTime] {
-    // TODO FIXME eliminate this pyramid of doom. Also what exception to keep if they all fail?
+    // FIXME eliminate this pyramid of doom. Also what exception to keep if they all fail?
     def deserialize(in: String): MythDateTime = {
       try {
         MythDateTime.fromTimestamp(in.toLong)

@@ -19,7 +19,7 @@ class JsonGuideService(conn: BackendJsonConnection)
   ): Guide[Channel, Program] = {
     // There seems to be an off-by-one error on my 0.27 backend implementation of NumChannels
     // NumChannels=1 returns 1 channels, NumChannels={n|n>1} returns n-1 channels
-    // TODO FIXME BUG upstream: this is because it ignores channel visibility when computing start/end chanid
+    // FIXME BUG upstream: this is because it ignores channel visibility when computing start/end chanid
     var params: Map[String, Any] = Map("StartTime" -> startTime.toIsoFormat, "EndTime" -> endTime.toIsoFormat)
     if (startChanId.id != 0) params += "StartChanId" -> startChanId.id
     if (details) params += "Details" -> details

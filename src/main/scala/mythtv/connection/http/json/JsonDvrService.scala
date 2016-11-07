@@ -156,7 +156,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     )
     val response = post("UpdateRecordSchedule", params)
     val root = responseRoot(response)
-    RecordRuleId(0) // TODO FIXME
+    RecordRuleId(0) // FIXME
   }
 
   def updateRecordSchedule(rule: RecordRule): Boolean = {

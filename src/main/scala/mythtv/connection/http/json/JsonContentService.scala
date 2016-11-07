@@ -113,7 +113,7 @@ class JsonContentService(conn: BackendJsonConnection)
     )
     val response = request("GetRecordingArtworkList", params)
     val root = responseRoot(response, "ArtworkInfoList")
-    root.convertTo[List[ArtworkInfo]]  // TODO test
+    root.convertTo[List[ArtworkInfo]]
   }
 
   def getProgramArtworkList(inetRef: String, season: Int): List[ArtworkInfo] = {
@@ -123,7 +123,7 @@ class JsonContentService(conn: BackendJsonConnection)
     )
     val response = request("GetProgramArtworkList", params)
     val root = responseRoot(response, "ArtworkInfoList")
-    root.convertTo[List[ArtworkInfo]]  // TODO test
+    root.convertTo[List[ArtworkInfo]]
   }
 
   def downloadFile(url: String, storageGroup: String): Boolean = {
@@ -133,7 +133,7 @@ class JsonContentService(conn: BackendJsonConnection)
     )
     val response = post("DownloadFile", params)
     val root = responseRoot(response)
-    root.booleanField("bool")   // TODO test
+    root.booleanField("bool")
   }
 
   def addLiveStream(storageGroup: String, fileName: String, hostName: String, maxSegments: Int,

@@ -28,7 +28,7 @@ trait MythFrontendService extends FrontendService {
   // avenues as well.
   def playRecording(chanId: ChanId, startTime: MythDateTime): Boolean
 
-  // TODO FIXME upstream BUG? if UseBookmark=true, then dialog still pops up about bookmark
+  // FIXME upstream BUG? if UseBookmark=true, then dialog still pops up about bookmark
   def playVideo(id: VideoId, useBookmark: Boolean = false): Boolean
 
   def sendAction(action: Action, value: String = ""): Boolean

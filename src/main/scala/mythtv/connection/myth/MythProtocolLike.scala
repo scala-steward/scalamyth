@@ -15,7 +15,7 @@ private[myth] trait MythProtocolLike extends MythProtocolSerializer {
   type SerializeRequest = (String, Seq[Any]) => String
   type HandleResponse = (BackendRequest, BackendResponse) => Option[_]  // TODO what is result type?, maybe Either[_]
 
-  // TODO FIXME we lose the type of the option going through the message dispatch map
+  // FIXME we lose the type of the option going through the message dispatch map
   //            is there a way around this?
 
   def commands: Map[String, (SerializeRequest, HandleResponse)] = Map.empty
