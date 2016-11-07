@@ -17,6 +17,6 @@ trait Job {
   def flags: JobFlags
   def status: JobStatus
   def statusTime: LocalDateTime
-  def insertTime: LocalDateTime
+  def insertedTime: LocalDateTime
   def schedRunTime: LocalDateTime
 }

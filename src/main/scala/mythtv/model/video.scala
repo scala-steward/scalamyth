@@ -1,7 +1,7 @@
 package mythtv
 package model
 
-import java.time.{ Duration, Instant, LocalDate, Year }
+import java.time.{ Duration, Instant, LocalDate }
 
 import util.MythFileHash
 
