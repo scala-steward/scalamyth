@@ -129,14 +129,14 @@ class JsonDvrService(conn: BackendJsonConnection)
       "Season"         -> rule.season.getOrElse(0),
       "Episode"        -> rule.episode.getOrElse(0),
       "Inetref"        -> rule.inetRef.getOrElse(""),
-      "Type"           -> rule.recType,    // TODO which string conversion is needed here for the API?
-      "SearchType"     -> rule.searchType, // TODO which string conversion is needed here for the API?
+      "Type"           -> RecTypeJsonFormat.id2Description(rule.recType),
+      "SearchType"     -> RecSearchTypeJsonFormat.id2Description(rule.searchType),
       "RecPriority"    -> rule.recPriority,
       "PreferredInput" -> rule.preferredInput.map(_.id).getOrElse(0),
       "StartOffset"    -> rule.startOffset,
       "EndOffset"      -> rule.endOffset,
-      "DupMethod"      -> rule.dupMethod, // TODO which string conversion is needed here for the API?
-      "DupIn"          -> rule.dupIn,     // TODO which string conversion is needed here for the API?
+      "DupMethod"      -> DupCheckMethodJsonFormat.id2Description(rule.dupMethod),
+      "DupIn"          -> DupCheckInJsonFormat.id2Description(rule.dupIn),
       "Filter"         -> rule.filter.getOrElse(0),
       "RecProfile"     -> rule.recProfile,
       "RecGroup"       -> rule.recGroup,
@@ -178,14 +178,14 @@ class JsonDvrService(conn: BackendJsonConnection)
       "Season"         -> rule.season.getOrElse(0),
       "Episode"        -> rule.episode.getOrElse(0),
       "Inetref"        -> rule.inetRef.getOrElse(""),
-      "Type"           -> rule.recType,    // TODO which string conversion is needed here for the API?
-      "SearchType"     -> rule.searchType, // TODO which string conversion is needed here for the API?
+      "Type"           -> RecTypeJsonFormat.id2Description(rule.recType),
+      "SearchType"     -> RecSearchTypeJsonFormat.id2Description(rule.searchType),
       "RecPriority"    -> rule.recPriority,
       "PreferredInput" -> rule.preferredInput.map(_.id).getOrElse(0),
       "StartOffset"    -> rule.startOffset,
       "EndOffset"      -> rule.endOffset,
-      "DupMethod"      -> rule.dupMethod, // TODO which string conversion is needed here for the API?
-      "DupIn"          -> rule.dupIn,     // TODO which string conversion is needed here for the API?
+      "DupMethod"      -> DupCheckMethodJsonFormat.id2Description(rule.dupMethod),
+      "DupIn"          -> DupCheckInJsonFormat.id2Description(rule.dupIn),
       "Filter"         -> rule.filter.getOrElse(0),
       "RecProfile"     -> rule.recProfile,
       "RecGroup"       -> rule.recGroup,

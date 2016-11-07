@@ -162,7 +162,9 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       RecType.FindOneRecord  -> "Record One",
       RecType.TimeslotRecord -> "Record Daily",
       RecType.WeekslotRecord -> "Record Weekly",
-      RecType.OverrideRecord -> "Override Recording"
+      RecType.OverrideRecord -> "Override Recording",
+      RecType.DontRecord     -> "Do not Record",
+      RecType.TemplateRecord -> "Recording Template"
     )
   }
 
