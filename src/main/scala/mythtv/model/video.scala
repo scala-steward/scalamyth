@@ -39,6 +39,33 @@ trait Video extends ProgramAndVideoBase with InternetMetadata {
   override def toString: String = s"<Video $id $combinedTitle>"
 }
 
+trait ArtworkItem // TODO different that ArtworkInfo
+
+trait VideoLookup {
+  def title: String
+  def subtitle: String
+  def season: Int
+  def episode: Option[Int]
+  def year: Int
+  def tagline: String
+  def description: String
+  def certification: Option[String]
+  def inetRef: String
+  def collectionRef: String
+  def homePage: String
+  def releasedDate: Instant
+  def userRating: Option[Double]
+  def length: Option[Int]
+  def language: String
+  def countries: List[String]
+  def popularity: Option[Int]
+  def budget: Option[Int]
+  def revenue: Option[Int]
+  def imdb: Option[String]
+  def tmsRef: Option[String]
+  def artwork: List[ArtworkItem]
+}
+
 trait BlurayInfo {
   def path: String
   def title: String

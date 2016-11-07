@@ -5,7 +5,7 @@ package json
 
 import util.OptionalCount
 import services.{ VideoService, PagedList }
-import model.{ BlurayInfo, Video, VideoId }
+import model.{ BlurayInfo, Video, VideoId, VideoLookup }
 import RichJsonObject._
 
 class JsonVideoService(conn: BackendJsonConnection)
@@ -38,6 +38,22 @@ class JsonVideoService(conn: BackendJsonConnection)
     val response = request("GetBluray", params)
     val root = responseRoot(response, "BlurayInfo")
     root.convertTo[BlurayInfo]
+  }
+
+  def lookupVideo(title: String, subtitle: String, inetRef: String, season: Int, episode: Int,
+    grabberType: String, allowGeneric: Boolean): List[VideoLookup] = {
+    var params: Map[String, Any] = Map.empty
+    if (title.nonEmpty)    params += "Title" -> title
+    if (subtitle.nonEmpty) params += "Subtitle" -> subtitle
+    if (inetRef.nonEmpty)  params += "Inetref" -> inetRef
+    if (season != 0)       params += "Season" -> season
+    if (episode != 0)      params += "Episode" -> episode
+    if (grabberType.nonEmpty) params += "GrabberType" -> grabberType
+    if (allowGeneric)      params += "AllowGeneric" -> allowGeneric
+    val response = request("LookupVideo", params)
+    val root = responseRoot(response, "VideoLookupList")
+    val list = root.convertTo[MythJsonObjectList[VideoLookup]]
+    list.data
   }
 
   /* mutating POST methods */

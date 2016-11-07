@@ -1282,4 +1282,64 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
+  implicit object VideoLookupJsonFormat extends RootJsonFormat[VideoLookup] {
+    def write(v: VideoLookup): JsValue = JsObject(Map(
+      "Title"         -> JsString(v.title),
+      "SubTitle"      -> JsString(v.subtitle),
+      "Season"        -> JsString(v.season.toString),
+      "Episode"       -> JsString(v.episode.getOrElse(0).toString),
+      "Year"          -> JsString(v.year.toString),
+      "Tagline"       -> JsString(v.tagline),
+      "Description"   -> JsString(v.description),
+      "Certification" -> JsString(v.certification.getOrElse("")),
+      "Inetref"       -> JsString(v.inetRef),
+      "Collectionref" -> JsString(v.collectionRef),
+      "HomePage"      -> JsString(v.homePage),
+      "ReleaseDate"   -> JsString(v.releasedDate.toString),
+      "UserRating"    -> JsString(v.userRating.toString),
+      "Length"        -> JsString(v.length.toString),
+      "Language"      -> JsString(v.language),
+      "Countries"     -> ???,
+      "Popularity"    -> JsString(v.popularity.getOrElse(0).toString),
+      "Budget"        -> JsString(v.budget.getOrElse(0).toString),
+      "Revenue"       -> JsString(v.revenue.toString),
+      "IMDB"          -> JsString(v.imdb.getOrElse("")),
+      "TMSRef"        -> JsString(v.tmsRef.getOrElse(""))
+      // TODO artwork items
+    ))
+
+    def read(value: JsValue): VideoLookup = {
+      val obj = value.asJsObject
+      new VideoLookup {
+        def title          = obj.stringField("Title")
+        def subtitle       = obj.stringField("SubTitle")
+        def season         = obj.intField("Season")
+        def episode        = obj.intFieldOption("Episode")
+        def year           = obj.intField("Year")
+        def tagline        = obj.stringField("Tagline")
+        def description    = obj.stringField("Description")
+        def certification  = obj.stringFieldOption("Certification", "")
+        def inetRef        = obj.stringField("Inetref")
+        def collectionRef  = obj.stringField("Collectionref")
+        def homePage       = obj.stringField("HomePage")
+        def releasedDate   = obj.dateTimeField("ReleaseDate").toInstant
+        def userRating     = obj.doubleFieldOption("UserRating", 0)
+        def length         = obj.intFieldOption("Length")
+        def language       = obj.stringField("Language")
+        def countries      = ???  // TODO StringList; never seem to get data here?!?
+        def popularity     = obj.intFieldOption("Popularity", 0)
+        def budget         = obj.intFieldOption("Budget", 0)
+        def revenue        = obj.intFieldOption("Revenue", 0)
+        def imdb           = obj.stringFieldOption("IMDB", "")
+        def tmsRef         = obj.stringFieldOption("TMSRef", "")
+        def artwork        = ???
+      }
+    }
+  }
+
+  implicit object VideoLookupListJsonFormat extends MythJsonObjectListFormat[VideoLookup] {
+    def listFieldName = "VideoLookups"
+    def convertElement(value: JsValue): VideoLookup = value.convertTo[VideoLookup]
+    def elementToJson(elem: VideoLookup): JsValue = jsonWriter[VideoLookup].write(elem)
+  }
 }
