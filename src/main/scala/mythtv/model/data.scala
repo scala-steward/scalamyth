@@ -3,7 +3,7 @@ package model
 
 import java.time.{ Instant, ZoneOffset }
 
-import EnumTypes.{ FrontendState, Markup }
+import EnumTypes.Markup
 
 trait Backend extends BackendOperations
 trait Frontend extends FrontendOperations
@@ -78,24 +78,6 @@ trait RecordingLike extends ProgramLike {
 
 trait VideoLike extends PlayableMedia {
   // TODO
-}
-
-case class FrontendActionMap(actions: Map[String, String])
-
-trait FrontendStatus {
-  def state: FrontendState
-  def stateMap: Map[String, String]        // map of state item key -> value
-  def audioTracks: Map[String, String]     // Action name -> descripton
-  def subtitleTracks: Map[String, String]  //     "             "
-  def chapterTimes: List[_]                //     ???
-
-  override def toString: String = s"<FrontendStatus $state>"
-}
-
-sealed trait ScreenshotFormat { def formatString: String }
-object ScreenshotFormat {
-  case object Jpg extends ScreenshotFormat { def formatString = "jpg" }
-  case object Png extends ScreenshotFormat { def formatString = "png" }
 }
 
 trait TitleInfo {

@@ -68,7 +68,14 @@ class JsonMythFrontendService(conn: FrontendJsonConnection)
     root.booleanField("bool")
   }
 
-  def sendAction(action: String): Boolean = ???
+  // TODO support screenshot action by parsing WxH out of value string?
+  def sendAction(action: Action, value: String): Boolean = {
+    var params: Map[String, Any] = Map("Action" -> action)
+    if (value.nonEmpty) params += "Value" -> value
+    val response = post("SendAction", params)
+    val root = responseRoot(response)
+    root.booleanField("bool")
+  }
 
   def sendMessage(message: String, timeout: Duration): Boolean = {
     var params: Map[String, Any] = Map("Message" -> message)

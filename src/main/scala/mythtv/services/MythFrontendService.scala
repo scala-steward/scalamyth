@@ -31,7 +31,7 @@ trait MythFrontendService extends FrontendService {
   // TODO FIXME upstream BUG? if UseBookmark=true, then dialog still pops up about bookmark
   def playVideo(id: VideoId, useBookmark: Boolean = false): Boolean
 
-  def sendAction(action: String): Boolean // TODO optional params for SCREENSHOT; this method is controversial?
+  def sendAction(action: Action, value: String = ""): Boolean
 
   def sendMessage(message: String, timeout: Duration = Duration.ZERO): Boolean
 
