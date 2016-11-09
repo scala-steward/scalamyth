@@ -9,6 +9,7 @@ import model.EnumTypes._
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythFileHash, NetworkUtil }
 import EnumTypes.{ MythLogLevel, MythProtocolEventMode }
 import MythProtocol.QueryRecorderResult._
+import MythProtocol.QueryFileTransferResult._
 
 private trait BackendAPILike {
   self: MythProtocolLike =>
@@ -178,6 +179,46 @@ private trait BackendAPILike {
       if (storageGroup.isEmpty) sendCommand("QUERY_FILE_EXISTS", fileName)
       else sendCommand("QUERY_FILE_EXISTS", fileName, storageGroup)
     (result map { case (fullName: String, stats: FileStats) => (fullName, stats) }).get
+  }
+
+  def queryFileTransferDone(ftId: FileTransferId): Unit = {
+    val result = sendCommand("QUERY_FILETRANSFER", ftId, "DONE")
+    (result map { case QueryFileTransferAcknowledgement => true }).get
+  }
+
+  def queryFileTransferIsOpen(ftId: FileTransferId): Boolean = {
+    val result = sendCommand("QUERY_FILETRANSFER", ftId, "IS_OPEN")
+    (result map { case QueryFileTransferBoolean(bool) => bool }).get
+  }
+
+  def queryFileTransferReopen(ftId: FileTransferId, newFileName: String): Boolean = {
+    val result = sendCommand("QUERY_FILETRANSFER", ftId, "REOPEN")
+    (result map { case QueryFileTransferBoolean(bool) => bool }).get
+  }
+
+  def queryFileTransferRequestBlock(ftId: FileTransferId, blockSize: Int): Int = {
+    val result = sendCommand("QUERY_FILETRANSFER", ftId, "REQUEST_BLOCK", blockSize)
+    (result map { case QueryFileTransferBytesTransferred(count) => count }).get
+  }
+
+  def queryFileTransferRequestSize(ftId: FileTransferId): Long = {
+    val result = sendCommand("QUERY_FILETRANSFER", ftId, "REQUEST_SIZE")
+    (result map { case QueryFileTransferRequestSize(size, _) => size }).get
+  }
+
+  def queryFileTransferSeek(ftId: FileTransferId, pos: Long, whence: Int, currentPos: Long): Long = {
+    val result = sendCommand("QUERY_FILETRANSFER", ftId, "SEEK", pos, whence, currentPos)
+    (result map { case QueryFileTransferPosition(newPos) => newPos}).get
+  }
+
+  def queryFileTransferSetTimeout(ftId: FileTransferId, fast: Boolean): Unit = {
+    val result = sendCommand("QUERY_FILETRANSFER", ftId, "SET_TIMEOUT", fast)
+    (result map { case QueryFileTransferAcknowledgement => true }).get
+  }
+
+  def queryFileTransferWriteBlock(ftId: FileTransferId, blockSize: Int): Int = {
+    val result = sendCommand("QUERY_FILETRANSFER", ftId, "WRITE_BLOCK", blockSize)
+    (result map { case QueryFileTransferBytesTransferred(count) => count }).get
   }
 
   def queryFileHash(fileName: String, storageGroup: String, hostName: String): MythFileHash = {

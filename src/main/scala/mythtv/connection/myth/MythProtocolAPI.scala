@@ -50,6 +50,14 @@ trait MythProtocolAPI {
   def queryCutList(chanId: ChanId, startTime: MythDateTime): List[VideoSegment]
   def queryFileExists(fileName: String, storageGroup: String = ""): (String, FileStats)
   def queryFileHash(fileName: String, storageGroup: String, hostName: String = ""): MythFileHash
+  def queryFileTransferDone(ftId: FileTransferId): Unit
+  def queryFileTransferIsOpen(ftId: FileTransferId): Boolean
+  def queryFileTransferReopen(ftId: FileTransferId, newFileName: String): Boolean
+  def queryFileTransferRequestBlock(ftId: FileTransferId, blockSize: Int): Int
+  def queryFileTransferRequestSize(ftId: FileTransferId): Long
+  def queryFileTransferSeek(ftId: FileTransferId, pos: Long, whence: Int, currentPos: Long): Long
+  def queryFileTransferSetTimeout(ftId: FileTransferId, fast: Boolean): Unit
+  def queryFileTransferWriteBlock(ftId: FileTransferId, blockSize: Int): Int
   def queryFreeSpace: List[FreeSpace]
   def queryFreeSpaceList: List[FreeSpace]
   def queryFreeSpaceSummary: (ByteCount, ByteCount)
