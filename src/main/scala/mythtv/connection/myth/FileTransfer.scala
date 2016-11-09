@@ -4,7 +4,7 @@ package myth
 
 import EnumTypes.SeekWhence
 
-import model.ChanId
+import model.{ ChanId, Recording }
 import util.MythDateTime
 
 final case class FileTransferId(id: Int) extends AnyVal
@@ -90,23 +90,22 @@ class FileTransfer private[myth](controlChannel: MythFileTransferAPI, dataChanne
       val requestSize = length - bytesRead
       val allotedSize = controlChannel.requestBlock(requestSize)
 
-      if (allotedSize != requestSize) {
-        if (allotedSize < 0) {
-          // TODO failure; re-seek to current position and retry?
-          ???
+      if (allotedSize != requestSize) {}  // TODO do I want to take some action here?
+
+      if (allotedSize < 0) {
+        // TODO failure; re-seek to current position and retry (a maximum number of times?)
+      } else {
+        var bytesReadThisRequest: Int = 0
+
+        while (bytesReadThisRequest < allotedSize && canReadMore) {
+          val toRead = allotedSize - bytesReadThisRequest
+          val n = dataChannel.read(buf, off, toRead)
+          if (n <= 0) canReadMore = false
+          //println(s"Read $n bytes from data channel (desired $toRead)")
+          bytesReadThisRequest += n
         }
+        bytesRead += bytesReadThisRequest
       }
-
-      var bytesReadThisRequest: Int = 0
-
-      while (bytesReadThisRequest < allotedSize && canReadMore) {
-        val toRead = allotedSize - bytesReadThisRequest
-        val n = dataChannel.read(buf, off, toRead)
-        if (n <= 0) canReadMore = false
-        println(s"Read $n bytes from data channel (desired $toRead)")
-        bytesReadThisRequest += n
-      }
-      bytesRead += bytesReadThisRequest
     }
     position += bytesRead
     bytesRead
@@ -157,18 +156,19 @@ class RecordingFileTransfer private[myth](
   controlChannel: MythFileTransferAPI,
   dataChannel: FileTransferConnection,
   eventChannel: EventConnection,
-  chanId: ChanId,
-  recStartTs: MythDateTime
+  recording: Recording
 ) extends EventingFileTransfer(controlChannel, dataChannel, eventChannel) {
 
   override def listener: EventListener = updateListener
+
+  // TODO block read if the recording is still in progress but we hit EOF?
 
   private[this] lazy val updateListener = new EventListener {
     override def listenFor(event: BackendEvent): Boolean = event.isEventName("UPDATE_FILE_SIZE")
 
     override def handle(event: BackendEvent): Unit = event.parse match {
-      case Event.UpdateFileSizeEvent(chan, startTime, newSize) =>
-        if (chan == chanId && startTime == recStartTs)
+      case Event.UpdateFileSizeEvent(chanId, startTime, newSize) =>
+        if (chanId == recording.chanId && startTime == recording.startTime)
           size = newSize
       case _ => ()
     }
@@ -190,7 +190,7 @@ object RecordingFileTransfer {
     val eventChannel = EventConnection(controlChannel.host, controlChannel.port)
 
     val fto = MythFileTransferObject(controlChannel, dataChannel)
-    new RecordingFileTransfer(fto, dataChannel, eventChannel, chanId, recStartTs)
+    new RecordingFileTransfer(fto, dataChannel, eventChannel, rec)
   }
 }
 
