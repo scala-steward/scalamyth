@@ -33,7 +33,7 @@ private abstract class AbstractFileTransferConnection(
   private[this] var ftId: FileTransferId = FileTransferId(0)
   private[this] var filesize: Long = 0L
 
-  /*protected*/ def announce(): Unit = {
+  def announce(): Unit = {
     val localHost = NetworkUtil.myHostName
     val (ftID, size) = announceFileTransfer(localHost, fileName, storageGroup)
     this.ftId = ftID
@@ -101,10 +101,10 @@ private object FileTransferConnection75 extends FileTransferConnectionFactory {
 
 private class FileTransferConnection77(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String)
   extends AbstractFileTransferConnection(host, port, timeout, fileName, storageGroup)
-    with MythProtocol77
-    with MythProtocolAPI
-    with BackendAPILike
-    with AnnouncingConnection
+     with MythProtocol77
+     with MythProtocolAPI
+     with BackendAPILike
+     with AnnouncingConnection
 
 private object FileTransferConnection77 extends FileTransferConnectionFactory {
   def apply(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String): FileTransferConnection =

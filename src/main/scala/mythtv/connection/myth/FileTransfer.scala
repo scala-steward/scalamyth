@@ -41,7 +41,7 @@ class FileTransfer private[myth](controlChannel: MythFileTransferAPI, dataChanne
   // and optionally
   //   - event channel    (EventConnection)
 
-  // TODO support Java InputStream/OutputStream interfaces?
+  // TODO support full Java InputStream/OutputStream interfaces? + NIO: Readable/Seekwable/Writeable ByteChannel
 
   @volatile protected[myth] var size: Long = dataChannel.fileSize
   protected[myth] var position: Long = 0L
