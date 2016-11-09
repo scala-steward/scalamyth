@@ -6,30 +6,9 @@ import EnumTypes.SeekWhence
 
 final case class FileTransferId(id: Int) extends AnyVal
 
-/**
-  * The API in use over the control channel during Myth protocol file transfers
-  * using the QUERY_FILETRANSFER series of protocol commands.
-  */
-trait MythFileTransferAPI {
-  def done(): Unit
-  def isOpen: Boolean
-  def reopen(newFileName: String): Boolean
-  def requestBlock(blockSize: Int): Int
-  def requestSize: Long
-  def seek(pos: Long, whence: SeekWhence, currentPos: Long): Long
-  def setTimeout(fast: Boolean): Unit
-  def writeBlock(blockSize: Int): Int
-}
-
-class MythFileTransferObject(val ftId: FileTransferId, conn: MythProtocolAPI) extends MythFileTransferAPI {
-  def done(): Unit = conn.queryFileTransferDone(ftId)
-  def isOpen: Boolean = conn.queryFileTransferIsOpen(ftId)
-  def reopen(newFileName: String): Boolean = conn.queryFileTransferReopen(ftId, newFileName)
-  def requestBlock(blockSize: Int): Int = conn.queryFileTransferRequestBlock(ftId, blockSize)
-  def requestSize: Long = conn.queryFileTransferRequestSize(ftId)
-  def seek(pos: Long, whence: SeekWhence, currentPos: Long): Long = conn.queryFileTransferSeek(ftId, pos, whence, currentPos)
-  def setTimeout(fast: Boolean): Unit = conn.queryFileTransferSetTimeout(ftId, fast)
-  def writeBlock(blockSize: Int): Int = conn.queryFileTransferWriteBlock(ftId, blockSize)
+class MythFileTransferObject(ftID: FileTransferId, conn: MythProtocolAPI) extends MythFileTransferAPILike {
+  def ftId = ftID
+  protected def protoApi = conn
 }
 
 object MythFileTransferObject {
