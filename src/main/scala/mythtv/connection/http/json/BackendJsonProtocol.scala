@@ -1295,4 +1295,86 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     def convertElement(value: JsValue): VideoLookup = value.convertTo[VideoLookup]
     def elementToJson(elem: VideoLookup): JsValue = jsonWriter[VideoLookup].write(elem)
   }
+
+  implicit object MythTvVersionInfoJsonFormat extends JsonFormat[MythTvVersionInfo] {
+    def write(v: MythTvVersionInfo): JsValue = JsObject(Map(
+      "Version"  -> JsString(v.fullVersion),
+      "Branch"   -> JsString(v.branch),
+      "Protocol" -> JsString(v.protocol),
+      "Binary"   -> JsString(v.binary),
+      "Schema"   -> JsString(v.schema)
+    ))
+    def read(value: JsValue): MythTvVersionInfo = {
+      val obj = value.asJsObject
+      new MythTvVersionInfo {
+        def fullVersion = obj.stringField("Version")
+        def branch      = obj.stringField("Branch")
+        def protocol    = obj.stringField("Protocol")
+        def binary      = obj.stringField("Binary")
+        def schema      = obj.stringField("Schema")
+      }
+    }
+  }
+
+  implicit object DatabaseConnectionInfoJsonFormat extends JsonFormat[DatabaseConnectionInfo] {
+    def write(d: DatabaseConnectionInfo): JsValue = JsObject(Map(
+      "Host"          -> JsString(d.host),
+      "Port"          -> JsString(d.port.toString),
+      "Ping"          -> JsString(d.ping.toString),
+      "UserName"      -> JsString(d.userName),
+      "Password"      -> JsString(d.password),
+      "Name"          -> JsString(d.dbName),
+      "Type"          -> JsString(d.driver),
+      "LocalEnabled"  -> JsString(d.localEnabled.toString),
+      "LocalHostName" -> JsString(d.localHostName)
+    ))
+    def read(value: JsValue): DatabaseConnectionInfo = {
+      val obj = value.asJsObject
+      new DatabaseConnectionInfo {
+        def host          = obj.stringField("Host")
+        def port          = obj.intField("Port")
+        def ping          = obj.booleanField("Ping")
+        def userName      = obj.stringField("UserName")
+        def password      = obj.stringField("Password")
+        def dbName        = obj.stringField("Name")
+        def driver        = obj.stringField("Type")
+        def localEnabled  = obj.booleanField("LocalEnabled")
+        def localHostName = obj.stringField("LocalHostName")
+      }
+    }
+  }
+
+  implicit object WakeOnLanInfoJsonFormat extends JsonFormat[WakeOnLanInfo] {
+    def write(w: WakeOnLanInfo): JsValue = JsObject(Map(
+      "Enabled"   -> JsString(w.enabled.toString),
+      "Reconnect" -> JsString(w.reconnect.toString),
+      "Retry"     -> JsString(w.retry.toString),
+      "Command"   -> JsString(w.command)
+    ))
+    def read(value: JsValue): WakeOnLanInfo = {
+      val obj = value.asJsObject
+      new WakeOnLanInfo {
+        def enabled   = obj.booleanField("Enabled")
+        def reconnect = obj.intField("Reconnect")
+        def retry     = obj.intField("Retry")
+        def command   = obj.stringField("Command")
+      }
+    }
+  }
+
+  implicit object ConnectionInfoJsonFormat extends RootJsonFormat[ConnectionInfo] {
+    def write(c: ConnectionInfo): JsValue = JsObject(Map(
+      "Version" -> jsonWriter[MythTvVersionInfo].write(c.version),
+      "Databse" -> jsonWriter[DatabaseConnectionInfo].write(c.database),
+      "WOL"     -> jsonWriter[WakeOnLanInfo].write(c.wakeOnLan)
+    ))
+    def read(value: JsValue): ConnectionInfo = {
+      val obj = value.asJsObject
+      new ConnectionInfo {
+        def version   = obj.fields("Version").convertTo[MythTvVersionInfo]
+        def database  = obj.fields("Database").convertTo[DatabaseConnectionInfo]
+        def wakeOnLan = obj.fields("WOL").convertTo[WakeOnLanInfo]
+      }
+    }
+  }
 }

@@ -8,7 +8,7 @@ import java.time.{ Duration, Instant }
 import spray.json.DefaultJsonProtocol
 
 import services.MythService
-import model.{ Settings, StorageGroupDir, TimeZoneInfo }
+import model.{ ConnectionInfo, Settings, StorageGroupDir, TimeZoneInfo }
 import RichJsonObject._
 
 import services.LogMessage // TODO temporary
@@ -16,6 +16,14 @@ import services.LogMessage // TODO temporary
 class JsonMythService(conn: BackendJsonConnection)
   extends JsonBackendService(conn)
      with MythService {
+
+  def getConnectionInfo(pin: String): ConnectionInfo = {
+    val params: Map[String, Any] = Map("Pin" -> pin)
+    val response = post("GetConnectionInfo", params)
+    val root = responseRoot(response, "ConnectionInfo")
+    root.convertTo[ConnectionInfo]
+  }
+
   def getHostName: String = {
     import DefaultJsonProtocol.StringJsonFormat
     val response = request("GetHostName")

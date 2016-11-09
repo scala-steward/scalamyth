@@ -3,14 +3,14 @@ package services
 
 import java.time.{ Duration, Instant }
 
-import model.{ Settings, StorageGroupDir, TimeZoneInfo }
+import model.{ ConnectionInfo, Settings, StorageGroupDir, TimeZoneInfo }
 
 trait LogMessage // TODO temporary
 
 trait MythService extends BackendService {
   def serviceName: String = "Myth"
 
-  //def getConnectionInfo(pin: String): ConnectionInfo
+  def getConnectionInfo(pin: String): ConnectionInfo
 
   def getHostName: String
 

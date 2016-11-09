@@ -86,3 +86,42 @@ trait TitleInfo {
 
   override def toString: String = s"<TitleInfo $title, $inetRef>"
 }
+
+trait MythTvVersionInfo {
+  def fullVersion: String
+  def branch: String
+  def protocol: String
+  def binary: String
+  def schema: String
+
+  override def toString: String = s"$fullVersion $binary $protocol $schema"
+}
+
+trait DatabaseConnectionInfo {
+  def host: String
+  def port: Int
+  def ping: Boolean
+  def userName: String
+  def password: String
+  def dbName: String
+  def driver: String
+  def localEnabled: Boolean
+  def localHostName: String
+
+  override def toString: String = s"$userName@$host:$port/$dbName"
+}
+
+trait WakeOnLanInfo {
+  def enabled: Boolean
+  def reconnect: Int
+  def retry: Int
+  def command: String
+
+  override def toString: String = s"<WakeOnLanInfo $enabled $command>"
+}
+
+trait ConnectionInfo {
+  def version: MythTvVersionInfo
+  def database: DatabaseConnectionInfo
+  def wakeOnLan: WakeOnLanInfo
+}
