@@ -318,6 +318,11 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
   }
 
   implicit object RecordableJsonFormat extends RootJsonFormat[Recordable] {
+    // Recordable/Recording fields missing
+    // findId
+    // recpriority2
+    // parentId
+
     def write(r: Recordable): JsValue = {
       val pmap: Map[String, JsValue] = ProgramJsonFormat.write(r) match {
         case JsObject(fields) => fields
@@ -442,8 +447,6 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     def read(value: JsValue): Program = {
       val obj = value.asJsObject
 
-      // We probably don't care too much about this other than
-      // snagging the chanId; maybe callsign, channum, channame
       val channel: RichJsonObject =  // inner object
         if (obj.fields contains "Channel") obj.fields("Channel").asJsObject
         else channelContext.value
@@ -452,15 +455,13 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         if (obj.fields contains "Recording") obj.fields("Recording").asJsObject
         else EmptyJsonObject
 
-      // Return a Recording if there is a non-empty recording start time AND a non-empty filename
+      // Determine which type of trait we should return based on available data:
+      //  - a Recording  if there is a non-empty recording StartTS AND a non-empty FileName
+      //  - a Recordable if we have a recording StartTS but not FileName
+      //  - a Program    otherwise
       if (rec.stringFieldOption("StartTs", "").nonEmpty) {
-        // Generate a Recordable if we have a recording StartTS but not FileName
         if (obj.stringFieldOption("FileName", "").nonEmpty) RecordingJsonFormat.read(value)
         else                                                RecordableJsonFormat.read(value)
-        // Recordable/Recording fields missing
-        // findId
-        // recpriority2
-        // parentId
       }
       else new Program {
         override def toString: String = s"<JsonProgram $chanId, $startTime: $title>"
@@ -491,7 +492,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
 
       /* missing:
          syndicatedEpisode   (but we do have "Season" and "Episode")
-         year                (but we have originalAirDate)
+         year                (but we do have "Airdate")
          partNumber
          partTotal */
     }
