@@ -82,29 +82,46 @@ class FileTransfer private[myth](controlChannel: MythFileTransferAPI, dataChanne
   // seek to beginning
   def rewind(): Unit = seek(0, SeekWhence.Begin)
 
-  // NB It seems that the myth backend won't send any blocks bigger than 128k no
-  //    matter what size we ask for. Is this a hard limit in the server code?
+  // It seems that the myth backend won't send any blocks bigger than 128k no
+  // matter what size we ask for. Is this a hard limit in the server code?
+  //
+  // Maybe it's a Java socket limit, as the Myth server seems to think I am
+  // getting all the bytes?
+  //
+  // Actually, probably linux, combatting bufferbloat, see:
+  //    cat /proc/sys/net/ipv4/tcp_limit_output_bytes
 
   def read(buf: Array[Byte], off: Int, len: Int): Int = {
     if (!dataChannel.isReadble) throw new RuntimeException("data channel is not readable")
-    val adjLen = clamp(len, 0, math.min(size - position, Int.MaxValue)).toInt
+    val length = clamp(len, 0, math.min(size - position, Int.MaxValue)).toInt
 
-    // TODO need to loop until we've read size bytes??  what are normal semantics of Java I/O?
-    var count = adjLen  // TODO what value is this really supposed to have? (leftover amount we need in loop)
+    var bytesRead: Int = 0
+    var canReadMore: Boolean = true
 
-    val rc = controlChannel.requestBlock(count)
-    if (rc != count) {
-      if (rc < 0) {
-        // TODO failure; re-seek to current position and retry?
-        ???
+    while (bytesRead < length && canReadMore) {
+      val requestSize = length - bytesRead
+      val allotedSize = controlChannel.requestBlock(requestSize)
+
+      if (allotedSize != requestSize) {
+        if (allotedSize < 0) {
+          // TODO failure; re-seek to current position and retry?
+          ???
+        }
       }
-      else count = rc
-    }
 
-    val n = dataChannel.read(buf, off, count)
-    println(s"Read $n bytes from data channel (desired $count)")
-    position += n    // can 'n' and 'count' differ here? Yep!
-    n
+      var bytesReadThisRequest: Int = 0
+
+      while (bytesReadThisRequest < allotedSize && canReadMore) {
+        val toRead = allotedSize - bytesReadThisRequest
+        val n = dataChannel.read(buf, off, toRead)
+        if (n <= 0) canReadMore = false
+        println(s"Read $n bytes from data channel (desired $toRead)")
+        bytesReadThisRequest += n
+      }
+      bytesRead += bytesReadThisRequest
+    }
+    position += bytesRead
+    bytesRead
   }
 
   def write(buf: Array[Byte], off: Int, len: Int): Unit = {

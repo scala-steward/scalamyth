@@ -49,6 +49,9 @@ private abstract class AbstractFileTransferConnection(
 
   override def fileSize: Long = filesize
 
+  // TODO the read/write methods call getInputStream and getOutputStream with every invocation --
+  // FIXME these methods Java methods on a socket are not exactly cheap...
+
   override def read(buf: Array[Byte], off: Int, len: Int): Int =
     inputStream.read(buf, off, len)
 
