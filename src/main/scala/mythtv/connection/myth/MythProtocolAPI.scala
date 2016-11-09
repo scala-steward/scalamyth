@@ -7,7 +7,7 @@ import java.time.Duration
 import model._
 import model.EnumTypes._
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythFileHash }
-import EnumTypes.{ MythLogLevel, MythProtocolEventMode }
+import EnumTypes.{ MythLogLevel, MythProtocolEventMode, SeekWhence }
 
 // TODO these APIs should be converted to return Option[_] or Either[_] or something
 /**
@@ -55,7 +55,7 @@ trait MythProtocolAPI {
   def queryFileTransferReopen(ftId: FileTransferId, newFileName: String): Boolean
   def queryFileTransferRequestBlock(ftId: FileTransferId, blockSize: Int): Int
   def queryFileTransferRequestSize(ftId: FileTransferId): Long
-  def queryFileTransferSeek(ftId: FileTransferId, pos: Long, whence: Int, currentPos: Long): Long
+  def queryFileTransferSeek(ftId: FileTransferId, pos: Long, whence: SeekWhence, currentPos: Long): Long
   def queryFileTransferSetTimeout(ftId: FileTransferId, fast: Boolean): Unit
   def queryFileTransferWriteBlock(ftId: FileTransferId, blockSize: Int): Int
   def queryFreeSpace: List[FreeSpace]

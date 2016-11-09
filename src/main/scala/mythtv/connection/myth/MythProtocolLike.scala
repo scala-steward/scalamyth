@@ -8,7 +8,7 @@ import data._
 import util._
 import model._
 import model.EnumTypes._
-import EnumTypes.{ MythLogLevel, MythProtocolEventMode }
+import EnumTypes.{ MythLogLevel, MythProtocolEventMode, SeekWhence }
 import MythProtocol.{ AnnounceResult, QueryFileTransferResult, QueryRecorderResult }
 
 private[myth] trait MythProtocolLike extends MythProtocolSerializer {
@@ -41,6 +41,13 @@ private[myth] trait MythProtocolLike extends MythProtocolSerializer {
 final case class BackendCommandArgumentException(command: String, message: String)
     extends IllegalArgumentException("for " + command + ", expecting " + message) {
   def this(command: String) = this(command, "valid argument list")
+}
+
+object SeekWhence extends Enumeration {
+  type SeekWhence = Value
+  val Begin      = Value(0)
+  val Current    = Value(1)
+  val End        = Value(2)
 }
 
 object MythProtocolEventMode extends Enumeration {
@@ -1252,7 +1259,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       val prefix = List(command, serialize(ftId)) mkString " "
       val elems = List(prefix, sub, serialize(blockSize))
       elems mkString BACKEND_SEP
-    case Seq(ftId: FileTransferId, sub @ "SEEK", pos: Long, whence: Int, curPos: Long) =>
+    case Seq(ftId: FileTransferId, sub @ "SEEK", pos: Long, whence: SeekWhence, curPos: Long) =>
       val prefix = List(command, serialize(ftId)) mkString " "
       val elems = List(prefix, sub, serialize(pos), serialize(whence), serialize(curPos))
       elems mkString BACKEND_SEP
@@ -1267,7 +1274,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     case _ => throwArgumentExceptionMultipleSig(command, """
       | ftId: FileTransferId, sub @ ("DONE" | "IS_OPEN" | "REQUEST_SIZE")
       | ftId: FileTransferId, sub @ ("REQUEST_BLOCK" | "WRITE_BLOCK"), blockSize: Int
-      | ftId: FileTransferId, sub @ "SEEK", pos: Long, whence: Int, curPos: Long
+      | ftId: FileTransferId, sub @ "SEEK", pos: Long, whence: SeekWhence, curPos: Long
       | ftId: FileTransferId, sub @ "REOPEN", newFileName: String
       | ftId: FileTransferId, sub @ "SET_TIMEOUT", fast: Boolean""")
   }

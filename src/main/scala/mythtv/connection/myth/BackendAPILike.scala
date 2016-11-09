@@ -7,7 +7,7 @@ import java.time.Duration
 import model._
 import model.EnumTypes._
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythFileHash, NetworkUtil }
-import EnumTypes.{ MythLogLevel, MythProtocolEventMode }
+import EnumTypes.{ MythLogLevel, MythProtocolEventMode, SeekWhence }
 import MythProtocol.QueryRecorderResult._
 import MythProtocol.QueryFileTransferResult._
 
@@ -206,7 +206,7 @@ private trait BackendAPILike {
     (result map { case QueryFileTransferRequestSize(size, _) => size }).get
   }
 
-  def queryFileTransferSeek(ftId: FileTransferId, pos: Long, whence: Int, currentPos: Long): Long = {
+  def queryFileTransferSeek(ftId: FileTransferId, pos: Long, whence: SeekWhence, currentPos: Long): Long = {
     val result = sendCommand("QUERY_FILETRANSFER", ftId, "SEEK", pos, whence, currentPos)
     (result map { case QueryFileTransferPosition(newPos) => newPos}).get
   }

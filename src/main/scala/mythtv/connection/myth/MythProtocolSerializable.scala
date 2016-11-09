@@ -10,6 +10,7 @@ import data._
 import util._
 import model._
 import model.EnumTypes._
+import EnumTypes.SeekWhence
 
 // Type class for serializable objects in the MythProtocol stream
 trait MythProtocolSerializable[T] {
@@ -151,6 +152,12 @@ object MythProtocolSerializable {
   implicit object RecTypeSerializer extends MythProtocolSerializable[RecType] {
     def deserialize(in: String): RecType = RecType.applyOrUnknown(in.toInt)
     def serialize(in: RecType): String = in.id.toString
+  }
+
+  implicit object SeekWhenceSerializer extends MythProtocolSerializable[SeekWhence] {
+    def deserialize(in: String): SeekWhence = SeekWhence(in.toInt)
+    def serialize(in: SeekWhence): String = in.id.toString
+    override def serialize(in: SeekWhence, builder: StringBuilder): StringBuilder = builder.append(in.id)
   }
 
   implicit object InstantSerializer extends MythProtocolSerializable[Instant] {
