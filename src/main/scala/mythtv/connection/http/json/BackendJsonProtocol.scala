@@ -1072,7 +1072,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       "RollOff"          -> JsString(m.rolloff),
       "SIStandard"       -> JsString(m.siStandard),
       "ServiceVersion"   -> JsString(m.serviceVersion.toString),
-      "UpdateTimeStamp"  -> jsonWriter[Instant].write(m.updateTimestamp),
+      "UpdateTimeStamp"  -> jsonWriter[Instant].write(m.updatedTimestamp),
       "DefaultAuthority" -> JsString(m.defaultAuthority.getOrElse(""))
     ))
 
@@ -1101,7 +1101,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def rolloff          = obj.stringField("RollOff")
         def siStandard       = obj.stringField("SIStandard")
         def serviceVersion   = obj.intField("ServiceVersion")
-        def updateTimestamp  = obj.fields("UpdateTimeStamp").convertTo[Instant]
+        def updatedTimestamp = obj.fields("UpdateTimeStamp").convertTo[Instant]
         def defaultAuthority = obj.stringFieldOption("DefaultAuthority", "")
       }
     }

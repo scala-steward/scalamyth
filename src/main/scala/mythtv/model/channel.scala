@@ -142,7 +142,7 @@ trait VideoMultiplex {
   def rolloff: String
   def siStandard: String
   def serviceVersion: Int
-  def updateTimestamp: Instant
+  def updatedTimestamp: Instant
   def defaultAuthority: Option[String]
 
   override def toString: String =
