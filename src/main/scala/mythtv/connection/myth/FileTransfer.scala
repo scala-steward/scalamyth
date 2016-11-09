@@ -4,6 +4,9 @@ package myth
 
 import EnumTypes.SeekWhence
 
+import model.ChanId
+import util.MythDateTime
+
 final case class FileTransferId(id: Int) extends AnyVal
 
 class MythFileTransferObject(ftID: FileTransferId, conn: MythProtocolAPI) extends MythFileTransferAPILike {
@@ -150,10 +153,12 @@ abstract class EventingFileTransfer(
   }
 }
 
-class RecordingFileTransfer(
+class RecordingFileTransfer private[myth](
   controlChannel: MythFileTransferAPI,
   dataChannel: FileTransferConnection,
-  eventChannel: EventConnection
+  eventChannel: EventConnection,
+  chanId: ChanId,
+  recStartTs: MythDateTime
 ) extends EventingFileTransfer(controlChannel, dataChannel, eventChannel) {
 
   override def listener: EventListener = updateListener
@@ -162,11 +167,30 @@ class RecordingFileTransfer(
     override def listenFor(event: BackendEvent): Boolean = event.isEventName("UPDATE_FILE_SIZE")
 
     override def handle(event: BackendEvent): Unit = event.parse match {
-      case Event.UpdateFileSizeEvent(chanId, recStartTs, newSize) =>
-        // TODO ensure that chanId/recStartTs matches the recording we're transferring
-        size = newSize
+      case Event.UpdateFileSizeEvent(chan, startTime, newSize) =>
+        if (chan == chanId && startTime == recStartTs)
+          size = newSize
       case _ => ()
     }
+  }
+}
+
+object RecordingFileTransfer {
+  // TODO: method that takes a hostname vs control channel?
+  def apply(api: BackendAPIConnection, chanId: ChanId, recStartTs: MythDateTime): RecordingFileTransfer = {
+    val rec = api.queryRecording(chanId, recStartTs)   // TODO check for failure/not found
+
+    // TODO who is managing these opened connections??  Also, we have no re-use...
+
+    val controlChannel =
+      if (rec.hostname == api.host) api
+      else BackendAPIConnection(rec.hostname)
+
+    val dataChannel = FileTransferConnection(controlChannel.host, rec.filename, rec.storageGroup, controlChannel.port)
+    val eventChannel = EventConnection(controlChannel.host, controlChannel.port)
+
+    val fto = MythFileTransferObject(controlChannel, dataChannel)
+    new RecordingFileTransfer(fto, dataChannel, eventChannel, chanId, recStartTs)
   }
 }
 
