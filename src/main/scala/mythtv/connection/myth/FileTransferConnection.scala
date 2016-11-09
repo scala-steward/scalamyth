@@ -8,6 +8,9 @@ trait FileTransferConnection extends SocketConnection {
   def transferId: FileTransferId
   def fileSize: Long
 
+  def fileName: String
+  def storageGroup: String
+
   def isReadble: Boolean = true    // FIXME
   def isWriteable: Boolean = false // FIXME
 
@@ -16,8 +19,13 @@ trait FileTransferConnection extends SocketConnection {
 }
 
 // TODO are we expected to send "DONE" command when finished with a FileTransfer socket? Python bindings don't seem to.
-private abstract class AbstractFileTransferConnection(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String)
-  extends AbstractBackendConnection(host, port, timeout)
+private abstract class AbstractFileTransferConnection(
+  host: String,
+  port: Int,
+  timeout: Int,
+  val fileName: String,
+  val storageGroup: String
+) extends AbstractBackendConnection(host, port, timeout)
      with FileTransferConnection {
 
   self: MythProtocolAPI with AnnouncingConnection =>

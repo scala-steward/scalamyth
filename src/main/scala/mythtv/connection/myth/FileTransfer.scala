@@ -57,6 +57,12 @@ class FileTransfer private[myth](controlChannel: MythFileTransferAPI, dataChanne
     // TODO close the data channel (how? just shut down the socket?)
   }
 
+  def fileName: String = dataChannel.fileName
+
+  def storageGroup: String = dataChannel.storageGroup
+
+  def expectedSize: Long = size
+
   // current offset in file
   def tell: Long = position
 
