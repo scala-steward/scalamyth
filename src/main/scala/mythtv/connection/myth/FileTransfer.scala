@@ -196,7 +196,7 @@ object RecordingFileTransfer {
 
 // TODO what exactly is this class for?
 // Reading/writing(?) from a file that is being downloaded to the server using DOWNLOAD_FILE ?
-class DownloadFileTransfer(
+class DownloadFileTransfer private[myth](
   controlChannel: MythFileTransferAPI,
   dataChannel: FileTransferConnection,
   eventChannel: EventConnection
