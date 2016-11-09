@@ -16,21 +16,6 @@ object MythFileTransferObject {
     new MythFileTransferObject(dataChannel.transferId, controlChannel)
 }
 
-// TODO what happens if we specify a file that does not exist?
-object FileTransfer {  // TODO this doesn't specify read/write mode
-  def apply(host: String, fileName: String, storageGroup: String): FileTransfer = {
-    // TODO how will control channel get closed since it's embeedded here and FT doesn't know that it owns it...
-    val controlChannel = BackendAPIConnection(host)
-    apply(controlChannel, fileName, storageGroup)
-  }
-
-  def apply(controlChannel: BackendAPIConnection, fileName: String, storageGroup: String): FileTransfer = {
-    val dataChannel = FileTransferConnection(controlChannel.host, fileName, storageGroup, controlChannel.port)
-    val fto = MythFileTransferObject(controlChannel, dataChannel)
-    new FileTransfer(fto, dataChannel)
-  }
-}
-
 // TODO are we opening data channel with event mode set (or something??)  Actually, it's readahead...
 //   Sending command ANN FileTransfer dove 0 1 2000[]:[]Music/Performances/Rolling_in_the_Deep.mp4[]:[]Videos
 
@@ -131,6 +116,21 @@ class FileTransfer private[myth](controlChannel: MythFileTransferAPI, dataChanne
       controlChannel.writeBlock(len)  // TODO utilize result value? or is it just parroted back to us?
       position = math.max(position + len, size)
     }
+  }
+}
+
+// TODO what happens if we specify a file that does not exist?
+object FileTransfer {  // TODO this doesn't specify read/write mode
+def apply(host: String, fileName: String, storageGroup: String): FileTransfer = {
+  // TODO how will control channel get closed since it's embeedded here and FT doesn't know that it owns it...
+  val controlChannel = BackendAPIConnection(host)
+  apply(controlChannel, fileName, storageGroup)
+}
+
+  def apply(controlChannel: BackendAPIConnection, fileName: String, storageGroup: String): FileTransfer = {
+    val dataChannel = FileTransferConnection(controlChannel.host, fileName, storageGroup, controlChannel.port)
+    val fto = MythFileTransferObject(controlChannel, dataChannel)
+    new FileTransfer(fto, dataChannel)
   }
 }
 
