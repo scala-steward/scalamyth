@@ -12,10 +12,10 @@ trait BackendEvent extends Any with BackendResponse {
 }
 
 private object BackendEvent {
-  def apply(r: String): BackendResponse = Event(r)
+  def apply(r: String): BackendResponse = RawEvent(r)
 }
 
-private final case class Event(raw: String) extends AnyVal with BackendEvent
+private final case class RawEvent(raw: String) extends AnyVal with BackendEvent
 
 
 /*
@@ -186,7 +186,7 @@ private abstract class AbstractEventConnection(
 
   // blocking read to wait for the next event
   // TODO this only blocks for 'timeout' seconds!
-  protected def readEvent(): BackendEvent = Event(reader.read())
+  protected def readEvent(): BackendEvent = RawEvent(reader.read())
 
   private def isEventLoopRunning: Boolean =
     if (eventLoopThread eq null) false
