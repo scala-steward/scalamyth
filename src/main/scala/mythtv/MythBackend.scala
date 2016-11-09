@@ -48,7 +48,7 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
 
   def reschedule(recordId: Option[RecordRuleId], wait: Boolean): Unit = {
     val lock =
-      if (wait) EventLock(eventConnection, ev => ev.raw contains "SCHEDULE_CHANGE") // TODO more precise event filter
+      if (wait) EventLock(eventConnection, ev => ev.isEventName("SCHEDULE_CHANGE")) // TODO more precise event filter
       else EventLock.empty
     if (recordId.isEmpty) conn.rescheduleRecordingsCheck(programId = "**any**")
     else conn.rescheduleRecordingsMatch(recordId = recordId.get)
@@ -103,22 +103,16 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
   def guideDataThrough: MythDateTime = conn.queryGuideDataThrough
 
   def scanVideos(): Map[String, Set[VideoId]] = {
+    import connection.myth.Event.{ VideoListChangeEvent, VideoListNoChangeEvent }
+
     if (conn.scanVideos) {
-      val lock = EventLock(eventConnection, ev => ev.raw contains "VIDEO_LIST_") // TODO filter criteria too broad
+      val lock = EventLock(eventConnection, ev => ev.isEventName("VIDEO_LIST_")) // TODO filter criteria too broad
       lock.waitFor()
 
-      // TODO this may be protocol dependent, don't perform in here!
-      val parts = lock.event.get.split
-      if (parts(1) == "VIDEO_LIST_CHANGE") {
-        // This is a list of { added | deleted | moved } :: <videoid>
-        val changeItems = parts.slice(2, parts.length)
-        val changeTuples = changeItems map (_ split "::") collect {
-          case Array(x, y) => (x, VideoId(y.toInt))
-        }
-        // ... group by change type (key), change value to set of videoId
-        changeTuples groupBy (_._1) mapValues { a => (a map (_._2)).toSet }
-      } else {
-        Map.empty
+      lock.event.get.parse match {
+        case VideoListChangeEvent(changeMap) => changeMap
+        case VideoListNoChangeEvent => Map.empty
+        case _ => Map.empty  // unexpected event
       }
     } else {
       Map.empty
