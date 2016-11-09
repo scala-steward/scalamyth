@@ -52,6 +52,17 @@ trait ArtworkInfo {
     else s"$storageGroup:$fileName"
 }
 
+// included in VideoService.lookupVideo results
+trait ArtworkItem {
+  def url: String
+  def thumbnail: String
+  def artworkType: String
+  def width: Option[Int]
+  def height: Option[Int]
+
+  override def toString: String = s"$artworkType: $url"
+}
+
 trait TimeZoneInfo {
   def tzName: String
   def offset: ZoneOffset

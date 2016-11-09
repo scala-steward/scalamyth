@@ -212,6 +212,26 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     def elementToJson(elem: ArtworkInfo): JsValue = jsonWriter[ArtworkInfo].write(elem)
   }
 
+  implicit object ArtworkItemJsonFormat extends JsonFormat[ArtworkItem] {
+    def write(a: ArtworkItem): JsValue = ???
+    def read(value: JsValue): ArtworkItem = {
+      val obj = value.asJsObject
+      new ArtworkItem {
+        def url         = obj.stringField("Url")
+        def thumbnail   = obj.stringField("Thumbnail")
+        def artworkType = obj.stringField("Type")
+        def width       = obj.intFieldOption("Width", 0)
+        def height      = obj.intFieldOption("Height", 0)
+      }
+    }
+  }
+
+  implicit object ArtworkItemListJsonFormat extends MythJsonListFormat[ArtworkItem] {
+    def listFieldName = "Artwork"   // TODO this doesn't follow the typical list pattern, this should be "" in that pattern
+    def convertElement(value: JsValue): ArtworkItem = value.convertTo[ArtworkItem]
+    def elementToJson(elem: ArtworkItem): JsValue = jsonWriter[ArtworkItem].write(elem)
+  }
+
   implicit object RecordingJsonFormat extends RootJsonFormat[Recording] {
     def write(r: Recording): JsValue = {
       val rmap: Map[String, JsValue] = RecordableJsonFormat.write(r) match {
@@ -1285,7 +1305,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def revenue        = obj.intFieldOption("Revenue", 0)
         def imdb           = obj.stringFieldOption("IMDB", "")
         def tmsRef         = obj.stringFieldOption("TMSRef", "")
-        def artwork        = ???
+        def artwork        = obj.convertTo[List[ArtworkItem]]  // TODO doesn't follow usual list field pattern
       }
     }
   }
