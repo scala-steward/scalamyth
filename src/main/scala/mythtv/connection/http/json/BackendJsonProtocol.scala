@@ -15,7 +15,7 @@ import services.PagedList
 import model.EnumTypes._
 import model._
 
-// TODO artwork info on recordings?
+// TODO expose artwork info on recording/recordable/program
 
 // TODO default values for model elements need to be centralized somewhere (e.g. Inetref="000000...")
 
@@ -187,6 +187,31 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     )
   }
 
+  implicit object ArtworkInfoJsonFormat extends RootJsonFormat[ArtworkInfo] {
+    def write(a: ArtworkInfo): JsValue = JsObject(Map(
+      "URL"          -> JsString(a.url),
+      "FileName"     -> JsString(a.fileName),
+      "StorageGroup" -> JsString(a.storageGroup),
+      "Type"         -> JsString(a.artworkType)
+    ))
+
+    def read(value: JsValue): ArtworkInfo = {
+      val obj = value.asJsObject
+      new ArtworkInfo {
+        def url          = obj.stringField("URL")
+        def fileName     = obj.stringField("FileName")
+        def storageGroup = obj.stringField("StorageGroup")
+        def artworkType  = obj.stringField("Type")
+      }
+    }
+  }
+
+  implicit object ArtworkInfoListJsonFormat extends MythJsonListFormat[ArtworkInfo] {
+    def listFieldName = "ArtworkInfos"
+    def convertElement(value: JsValue): ArtworkInfo = value.convertTo[ArtworkInfo]
+    def elementToJson(elem: ArtworkInfo): JsValue = jsonWriter[ArtworkInfo].write(elem)
+  }
+
   implicit object RecordingJsonFormat extends RootJsonFormat[Recording] {
     def write(r: Recording): JsValue = {
       val rmap: Map[String, JsValue] = RecordableJsonFormat.write(r) match {
@@ -266,6 +291,8 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def season                  = obj.intFieldOrElse("Season", 0)
         def episode                 = obj.intFieldOrElse("Episode", 0)
         def inetRef                 = obj.stringField("Inetref")
+
+        def artworkInfo             = obj.fields("Artwork").convertTo[List[ArtworkInfo]]
       }
     }
   }
@@ -356,6 +383,8 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def callsign                = channel.stringFieldOrElse("CallSign", "")
         def chanName                = channel.stringFieldOrElse("ChannelName", "")
         def outputFilters           = channel.stringFieldOrElse("ChanFilters", "")
+
+        def artworkInfo             = obj.fields("Artwork").convertTo[List[ArtworkInfo]]
       }
     }
   }
@@ -403,12 +432,6 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         if (obj.fields contains "Recording") obj.fields("Recording").asJsObject
         else EmptyJsonObject
 
-      if (obj.fields contains "Artwork") {     // inner object
-        /*
-            "ArtworkInfos": []
-         */
-      }
-
       // Return a Recording if there is a non-empty recording start time AND a non-empty filename
       if (rec.stringFieldOption("StartTs", "").nonEmpty) {
         // Generate a Recordable if we have a recording StartTS but not FileName
@@ -442,6 +465,8 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def partNumber              = None
         def partTotal               = None
         def programFlags            = ProgramFlags(obj.intField("ProgramFlags"))
+
+        def artworkInfo             = obj.fields("Artwork").convertTo[List[ArtworkInfo]]
       }
 
       /* missing:
@@ -864,31 +889,6 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def currentTime = obj.fields("CurrentDateTime").convertTo[Instant]
       }
     }
-  }
-
-  implicit object ArtworkInfoJsonFormat extends RootJsonFormat[ArtworkInfo] {
-    def write(a: ArtworkInfo): JsValue = JsObject(Map(
-      "URL"          -> JsString(a.url),
-      "FileName"     -> JsString(a.fileName),
-      "StorageGroup" -> JsString(a.storageGroup),
-      "Type"         -> JsString(a.artworkType)
-    ))
-
-    def read(value: JsValue): ArtworkInfo = {
-      val obj = value.asJsObject
-      new ArtworkInfo {
-        def url          = obj.stringField("URL")
-        def fileName     = obj.stringField("FileName")
-        def storageGroup = obj.stringField("StorageGroup")
-        def artworkType  = obj.stringField("Type")
-      }
-    }
-  }
-
-  implicit object ArtworkInfoListJsonFormat extends MythJsonListFormat[ArtworkInfo] {
-    def listFieldName = "ArtworkInfos"
-    def convertElement(value: JsValue): ArtworkInfo = value.convertTo[ArtworkInfo]
-    def elementToJson(elem: ArtworkInfo): JsValue = jsonWriter[ArtworkInfo].write(elem)
   }
 
   // TODO need to support abbreviated (non-detailed guide as well!)
