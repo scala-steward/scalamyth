@@ -28,7 +28,7 @@ private trait BackendAPILike {
   }
 
   def announceFileTransfer(hostName: String, fileName: String, storageGroup: String,
-    writeMode: Boolean, useReadAhead: Boolean, timeout: Duration): (Int, ByteCount) = {
+    writeMode: Boolean, useReadAhead: Boolean, timeout: Duration): (FileTransferId, ByteCount) = {
     import MythProtocol.AnnounceResult._
     val result = sendCommand("ANN", "FileTransfer", hostName, writeMode, useReadAhead, timeout, fileName, storageGroup)
     (result map { case AnnounceFileTransfer(ftID, fileSize) => (ftID, fileSize) }).get

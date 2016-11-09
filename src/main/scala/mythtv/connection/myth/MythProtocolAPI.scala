@@ -17,7 +17,7 @@ trait MythProtocolAPI {
   def allowShutdown(): Boolean
   def announce(mode: String, hostName: String = "", eventMode: MythProtocolEventMode = MythProtocolEventMode.None): Boolean
   def announceFileTransfer(hostName: String, fileName: String, storageGroup: String,
-    writeMode: Boolean = false, useReadAhead: Boolean = true, timeout: Duration = Duration.ofSeconds(2)): (Int, ByteCount)
+    writeMode: Boolean = false, useReadAhead: Boolean = true, timeout: Duration = Duration.ofSeconds(2)): (FileTransferId, ByteCount)
   // TODO SlaveBackend and FileTransfer announces (more complex)
   def blockShutdown(): Boolean
   def checkRecording(rec: Recording): Boolean

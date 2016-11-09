@@ -76,6 +76,12 @@ object MythProtocolSerializable {
     override def serialize(in: ChannelNumber, builder: StringBuilder): StringBuilder = builder.append(in.num)
   }
 
+  implicit object FileTranferIdSerializer extends MythProtocolSerializable[FileTransferId] {
+    def deserialize(in: String): FileTransferId = FileTransferId(in.toInt)
+    def serialize(in: FileTransferId): String = in.id.toString
+    override def serialize(in: FileTransferId, builder: StringBuilder): StringBuilder = builder.append(in.id)
+  }
+
   implicit object InputIdSerializer extends MythProtocolSerializable[InputId] {
     def deserialize(in: String): InputId = InputId(in.toInt)
     def serialize(in: InputId): String = in.id.toString

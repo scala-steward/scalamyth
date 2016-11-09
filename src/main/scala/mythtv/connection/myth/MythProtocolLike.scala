@@ -1244,32 +1244,32 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def serializeQueryFileTransfer(command: String, args: Seq[Any]): String = args match {
-    case Seq(ftId: Int, sub @ ("DONE" | "IS_OPEN" | "REQUEST_SIZE")) =>
-      val prefix = List(command, ftId) mkString " "
+    case Seq(ftId: FileTransferId, sub @ ("DONE" | "IS_OPEN" | "REQUEST_SIZE")) =>
+      val prefix = List(command, serialize(ftId)) mkString " "
       val elems = List(prefix, sub)
       elems mkString BACKEND_SEP
-    case Seq(ftId: Int, sub @ ("REQUEST_BLOCK" | "WRITE_BLOCK"), blockSize: Int) =>
-      val prefix = List(command, ftId) mkString " "
+    case Seq(ftId: FileTransferId, sub @ ("REQUEST_BLOCK" | "WRITE_BLOCK"), blockSize: Int) =>
+      val prefix = List(command, serialize(ftId)) mkString " "
       val elems = List(prefix, sub, serialize(blockSize))
       elems mkString BACKEND_SEP
-    case Seq(ftId: Int, sub @ "SEEK", pos: Long, whence: Int, curPos: Long) =>
-      val prefix = List(command, ftId) mkString " "
+    case Seq(ftId: FileTransferId, sub @ "SEEK", pos: Long, whence: Int, curPos: Long) =>
+      val prefix = List(command, serialize(ftId)) mkString " "
       val elems = List(prefix, sub, serialize(pos), serialize(whence), serialize(curPos))
       elems mkString BACKEND_SEP
-    case Seq(ftId: Int, sub @ "REOPEN", newFileName: String) =>
-      val prefix = List(command, ftId) mkString " "
+    case Seq(ftId: FileTransferId, sub @ "REOPEN", newFileName: String) =>
+      val prefix = List(command, serialize(ftId)) mkString " "
       val elems = List(prefix, sub, newFileName)
       elems mkString BACKEND_SEP
-    case Seq(ftId: Int, sub @ "SET_TIMEOUT", fast: Boolean) =>
-      val prefix = List(command, ftId) mkString " "
+    case Seq(ftId: FileTransferId, sub @ "SET_TIMEOUT", fast: Boolean) =>
+      val prefix = List(command, serialize(ftId)) mkString " "
       val elems = List(prefix, sub, serialize(fast))
       elems mkString BACKEND_SEP
     case _ => throwArgumentExceptionMultipleSig(command, """
-      | ftId: Int, sub @ ("DONE" | "IS_OPEN" | "REQUEST_SIZE")
-      | ftId: Int, sub @ ("REQUEST_BLOCK" | "WRITE_BLOCK"), blockSize: Int
-      | ftId: Int, sub @ "SEEK", pos: Long, whence: Int, curPos: Long
-      | ftId: Int, sub @ "REOPEN", newFileName: String
-      | ftId: Int, sub @ "SET_TIMEOUT", fast: Boolean""")
+      | ftId: FileTransferId, sub @ ("DONE" | "IS_OPEN" | "REQUEST_SIZE")
+      | ftId: FileTransferId, sub @ ("REQUEST_BLOCK" | "WRITE_BLOCK"), blockSize: Int
+      | ftId: FileTransferId, sub @ "SEEK", pos: Long, whence: Int, curPos: Long
+      | ftId: FileTransferId, sub @ "REOPEN", newFileName: String
+      | ftId: FileTransferId, sub @ "SET_TIMEOUT", fast: Boolean""")
   }
 
   protected def serializeQueryGetAllPending(command: String, args: Seq[Any]): String = args match {
@@ -1537,7 +1537,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       val items = response.split
       if (items(0) != "OK") None
       else {
-        val ftId = deserialize[Int](items(1))
+        val ftId = deserialize[FileTransferId](items(1))
         val fileSize = DecimalByteCount(deserialize[Long](items(2)))
         Some(AnnounceFileTransfer(ftId, fileSize))
       }

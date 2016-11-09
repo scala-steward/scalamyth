@@ -20,7 +20,7 @@ object MythProtocol extends MythProtocolSerializer {
   sealed trait AnnounceResult
   object AnnounceResult {
     case object AnnounceAcknowledgement extends AnnounceResult
-    final case class AnnounceFileTransfer(ftID: Int, size: ByteCount) extends AnnounceResult
+    final case class AnnounceFileTransfer(ftID: FileTransferId, size: ByteCount) extends AnnounceResult
   }
 
   // Sum type representing return values from QUERY_FILETRANSFER
