@@ -8,7 +8,9 @@ import util.NetworkUtil
 import EnumTypes.MythProtocolEventMode
 
 trait BackendEvent extends Any with BackendResponse {
-  def isSystemEvent: Boolean = raw.substring(20,32) == "SYSTEM_EVENT"
+  def isSystemEvent: Boolean = raw.startsWith("SYSTEM_EVENT", 20)
+  def isEventName(name: String): Boolean = raw.startsWith(name, 20)
+  def parse: Event = (new EventParser).parse(this)  // TODO
 }
 
 private object BackendEvent {
