@@ -11,8 +11,8 @@ trait FileTransferConnection extends SocketConnection {
   def fileName: String
   def storageGroup: String
 
-  def isReadble: Boolean = true    // FIXME
-  def isWriteable: Boolean = false // FIXME
+  def isReadable: Boolean
+  def isWriteable: Boolean
 
   def read(buf: Array[Byte], off: Int, len: Int): Int
   def write(buf: Array[Byte], off: Int, len: Int): Unit
@@ -24,7 +24,8 @@ private abstract class AbstractFileTransferConnection(
   port: Int,
   timeout: Int,
   val fileName: String,
-  val storageGroup: String
+  val storageGroup: String,
+  writeMode: Boolean
 ) extends AbstractBackendConnection(host, port, timeout)
      with FileTransferConnection {
 
@@ -49,6 +50,10 @@ private abstract class AbstractFileTransferConnection(
 
   override def fileSize: Long = filesize
 
+  override def isReadable: Boolean = !writeMode
+
+  override def isWriteable: Boolean = writeMode
+
   // TODO the read/write methods call getInputStream and getOutputStream with every invocation --
   // FIXME these methods Java methods on a socket are not exactly cheap...
 
@@ -60,7 +65,7 @@ private abstract class AbstractFileTransferConnection(
 }
 
 private sealed trait FileTransferConnectionFactory {
-  def apply(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String): FileTransferConnection
+  def apply(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean): FileTransferConnection
 }
 
 object FileTransferConnection {
@@ -73,43 +78,44 @@ object FileTransferConnection {
     host: String,
     fileName: String,
     storageGroup: String,
+    writeMode: Boolean = false,
     port: Int = BackendConnection.DEFAULT_PORT,
     timeout: Int = BackendConnection.DEFAULT_TIMEOUT
   ): FileTransferConnection = {
     try {
       val factory = supportedVersions(BackendConnection.DEFAULT_VERSION)
-      factory(host, port, timeout, fileName, storageGroup)
+      factory(host, port, timeout, fileName, storageGroup, writeMode)
     } catch {
       case ex @ WrongMythProtocolException(requiredVersion) =>
         if (supportedVersions contains requiredVersion) {
           val factory = supportedVersions(requiredVersion)
-          factory(host, port, timeout, fileName, storageGroup)
+          factory(host, port, timeout, fileName, storageGroup, writeMode)
         }
         else throw new UnsupportedMythProtocolException(ex)
     }
   }
 }
 
-private class FileTransferConnection75(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String)
-  extends AbstractFileTransferConnection(host, port, timeout, fileName, storageGroup)
+private class FileTransferConnection75(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean)
+  extends AbstractFileTransferConnection(host, port, timeout, fileName, storageGroup, writeMode)
      with MythProtocol75
      with MythProtocolAPI
      with BackendAPILike
      with AnnouncingConnection
 
 private object FileTransferConnection75 extends FileTransferConnectionFactory {
-  def apply(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String): FileTransferConnection =
-    new FileTransferConnection75(host, port, timeout, fileName, storageGroup)
+  def apply(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean): FileTransferConnection =
+    new FileTransferConnection75(host, port, timeout, fileName, storageGroup, writeMode)
 }
 
-private class FileTransferConnection77(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String)
-  extends AbstractFileTransferConnection(host, port, timeout, fileName, storageGroup)
+private class FileTransferConnection77(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean)
+  extends AbstractFileTransferConnection(host, port, timeout, fileName, storageGroup, writeMode)
      with MythProtocol77
      with MythProtocolAPI
      with BackendAPILike
      with AnnouncingConnection
 
 private object FileTransferConnection77 extends FileTransferConnectionFactory {
-  def apply(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String): FileTransferConnection =
-    new FileTransferConnection77(host, port, timeout, fileName, storageGroup)
+  def apply(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean): FileTransferConnection =
+    new FileTransferConnection77(host, port, timeout, fileName, storageGroup, writeMode)
 }
