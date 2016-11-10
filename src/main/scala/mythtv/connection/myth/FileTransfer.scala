@@ -2,6 +2,10 @@ package mythtv
 package connection
 package myth
 
+import java.io.{ InputStream, IOException }
+import java.nio.channels.SeekableByteChannel
+import java.nio.ByteBuffer
+
 import EnumTypes.SeekWhence
 
 import model.{ ChanId, Recording }
@@ -22,17 +26,19 @@ object MythFileTransferObject {
 // TODO are we opening data channel with event mode set (or something??)  Actually, it's readahead...
 //   Sending command ANN FileTransfer dove 0 1 2000[]:[]Music/Performances/Rolling_in_the_Deep.mp4[]:[]Videos
 
-class FileTransfer private[myth](controlChannel: MythFileTransferAPI, dataChannel: FileTransferConnection) {
+// TODO support full Java InputStream/OutputStream interfaces? + NIO: Readable/Seekable/Writeable ByteChannel
+// TODO arggggh InputStream is an abstract class, not an interface! All the NIO stuff is interfaces...
+
+class FileTransferChannel private[myth](controlChannel: MythFileTransferAPI, dataChannel: FileTransferConnection)
+  extends SeekableByteChannel {
   // A file transfer requires two (optionally three) channels:
   //   - control channel  (BackendConnection or BackendAPIConnection)
   //   - data channel     (FileTransferConnection)
   // and optionally
   //   - event channel    (EventConnection)
 
-  // TODO support full Java InputStream/OutputStream interfaces? + NIO: Readable/Seekwable/Writeable ByteChannel
-
-  @volatile protected[myth] var size: Long = dataChannel.fileSize
-  protected[myth] var position: Long = 0L
+  @volatile protected[myth] var currentSize: Long = dataChannel.fileSize
+  protected[myth] var currentPosition: Long = 0L
 
   private def clamp(value: Long, min: Long, max: Long): Long =
     if (value < min) min
@@ -40,7 +46,7 @@ class FileTransfer private[myth](controlChannel: MythFileTransferAPI, dataChanne
     else value
 
   // close the file
-  def close(): Unit = {
+  override def close(): Unit = {
     controlChannel.done()
     // TODO close the data channel (how? just shut down the socket?)
   }
@@ -49,26 +55,51 @@ class FileTransfer private[myth](controlChannel: MythFileTransferAPI, dataChanne
 
   def storageGroup: String = dataChannel.storageGroup
 
-  def expectedSize: Long = size
-
   // current offset in file
-  def tell: Long = position
+  def tell: Long = currentPosition
 
-  // seek to offset (relative to whence)
-  def seek(offset: Long, whence: SeekWhence): Unit = {
-    val adjOffset = whence match {
-      case SeekWhence.Begin   => clamp(offset, 0L, size)
-      case SeekWhence.Current => clamp(offset, -position, size - position)
-      case SeekWhence.End     => clamp(offset, -size, 0L) + size
-    }
-    val adjWhence = if (whence == SeekWhence.End) SeekWhence.Begin else whence
-    val newPos: Long = controlChannel.seek(adjOffset, adjWhence, position)
-    if (newPos < 0) throw new RuntimeException("failed seek")
-    position = newPos
+  override def size: Long = currentSize
+
+  override def isOpen: Boolean = true // TODO
+
+  private[myth] def available: Int = dataChannel.inputBytesAvailable
+
+  override def position: Long = currentPosition
+
+  override def position(newPosition: Long): SeekableByteChannel = {
+    seek(newPosition, SeekWhence.Begin)
+    this
   }
 
   // seek to beginning
   def rewind(): Unit = seek(0, SeekWhence.Begin)
+
+  // seek to offset (relative to whence)
+  def seek(offset: Long, whence: SeekWhence): Unit = {
+    val adjOffset = whence match {
+      case SeekWhence.Begin   => clamp(offset, 0L, currentSize)
+      case SeekWhence.Current => clamp(offset, -currentPosition, currentSize - currentPosition)
+      case SeekWhence.End     => clamp(offset, -currentSize, 0L) + currentSize
+    }
+    val adjWhence = if (whence == SeekWhence.End) SeekWhence.Begin else whence
+    val newPos: Long = controlChannel.seek(adjOffset, adjWhence, currentPosition)
+    if (newPos < 0) throw new IOException("failed seek")
+    currentPosition = newPos
+  }
+
+  override def read(bb: ByteBuffer): Int = {
+    if (bb.hasArray) {
+      read(bb.array, bb.arrayOffset + bb.position, bb.remaining)
+    } else {
+      // TODO ugh, we really need to base on ByteBuffer/Channel and adapt to byte[] instead...
+      val buf = new Array[Byte](bb.remaining)
+      val n = read(buf, 0, buf.length)
+      bb.put(buf)
+      n
+    }
+  }
+
+  // TODO: automatic management of request block size?
 
   // It seems that the myth backend won't send any blocks bigger than 128k no
   // matter what size we ask for. Is this a hard limit in the server code?
@@ -80,8 +111,8 @@ class FileTransfer private[myth](controlChannel: MythFileTransferAPI, dataChanne
   //    cat /proc/sys/net/ipv4/tcp_limit_output_bytes
 
   def read(buf: Array[Byte], off: Int, len: Int): Int = {
-    if (!dataChannel.isReadble) throw new RuntimeException("data channel is not readable")
-    val length = clamp(len, 0, math.min(size - position, Int.MaxValue)).toInt
+    if (!dataChannel.isReadable) throw new IOException("data channel is not readable")
+    val length = clamp(len, 0, math.min(currentSize - currentPosition, Int.MaxValue)).toInt
 
     var bytesRead: Int = 0
     var canReadMore: Boolean = true
@@ -107,40 +138,82 @@ class FileTransfer private[myth](controlChannel: MythFileTransferAPI, dataChanne
         bytesRead += bytesReadThisRequest
       }
     }
-    position += bytesRead
+    currentPosition += bytesRead
     bytesRead
   }
 
+  /*
   def write(buf: Array[Byte], off: Int, len: Int): Unit = {
-    if (!dataChannel.isWriteable) throw new RuntimeException("data channel is not writeable")
+    if (!dataChannel.isWriteable) throw new IOException("data channel is not writeable")
     if (len > 0) {
       dataChannel.write(buf, off, len)
       controlChannel.writeBlock(len)  // TODO utilize result value? or is it just parroted back to us?
       position = math.max(position + len, size)
     }
   }
-}
+  */
 
-// TODO what happens if we specify a file that does not exist?
-object FileTransfer {  // TODO this doesn't specify read/write mode
-def apply(host: String, fileName: String, storageGroup: String): FileTransfer = {
-  // TODO how will control channel get closed since it's embeedded here and FT doesn't know that it owns it...
-  val controlChannel = BackendAPIConnection(host)
-  apply(controlChannel, fileName, storageGroup)
-}
+  override def write(bb: ByteBuffer): Int = ???
 
-  def apply(controlChannel: BackendAPIConnection, fileName: String, storageGroup: String): FileTransfer = {
-    val dataChannel = FileTransferConnection(controlChannel.host, fileName, storageGroup, controlChannel.port)
-    val fto = MythFileTransferObject(controlChannel, dataChannel)
-    new FileTransfer(fto, dataChannel)
+  override def truncate(size: Long): SeekableByteChannel = {
+    throw new IOException("truncate is not currently supported")
+    this
   }
 }
 
-abstract class EventingFileTransfer(
+// TODO what happens if we specify a file that does not exist?
+object FileTransferChannel {  // TODO this doesn't specify read/write mode
+  def apply(host: String, fileName: String, storageGroup: String): FileTransferChannel = {
+    // TODO how will control channel get closed since it's embeedded here and FT doesn't know that it owns it...
+    val controlChannel = BackendAPIConnection(host)
+    apply(controlChannel, fileName, storageGroup)
+  }
+
+  def apply(controlChannel: BackendAPIConnection, fileName: String, storageGroup: String): FileTransferChannel = {
+    val dataChannel = FileTransferConnection(controlChannel.host, fileName, storageGroup, port = controlChannel.port)
+    val fto = MythFileTransferObject(controlChannel, dataChannel)
+    new FileTransferChannel(fto, dataChannel)
+  }
+}
+
+/* *******************************************************************************************************************/
+
+class FileTransferInputStream private[myth](channel: FileTransferChannel) extends InputStream {
+  private[this] var markPosition: Long = -1L
+
+  // Horribly inefficient implementation, but nobody should be using it ...
+  override def read(): Int = {
+    val buf = new Array[Byte](1)
+    val n = channel.read(buf, 0, 1)
+    if (n > 1) channel.seek(n - 1, SeekWhence.Current)
+    buf(0)
+  }
+
+  override def read(bytes: Array[Byte], offset: Int, len: Int): Int = channel.read(bytes, offset, len)
+
+  override def skip(n: Long): Long = {
+    val oldPosition = channel.position
+    channel.seek(n, SeekWhence.Current)
+    channel.position - oldPosition
+  }
+
+  override def markSupported: Boolean = true
+
+  override def mark(readLimit: Int): Unit = synchronized { markPosition = channel.position }
+
+  override def reset(): Unit = synchronized {
+    if (markPosition < 0) throw new IOException("Resetting to invalid mark")
+    channel.seek(markPosition, SeekWhence.Begin)
+  }
+}
+
+/* *******************************************************************************************************************/
+
+abstract class EventingFileTransferChannel(
   controlChannel: MythFileTransferAPI,
   dataChannel: FileTransferConnection,
   eventChannel: EventConnection
-) extends FileTransfer(controlChannel, dataChannel) {
+) extends FileTransferChannel(controlChannel, dataChannel) {
 
   eventChannel.addListener(listener)
 
@@ -149,19 +222,20 @@ abstract class EventingFileTransfer(
   override def close(): Unit = {
     super.close()
     eventChannel.removeListener(listener)
+    eventChannel.disconnect()  // TODO temporarary
   }
 }
 
-class RecordingFileTransfer private[myth](
+class RecordingFileTransferChannel private[myth](
   controlChannel: MythFileTransferAPI,
   dataChannel: FileTransferConnection,
   eventChannel: EventConnection,
   recording: Recording
-) extends EventingFileTransfer(controlChannel, dataChannel, eventChannel) {
+) extends EventingFileTransferChannel(controlChannel, dataChannel, eventChannel) {
 
   override def listener: EventListener = updateListener
 
-  // TODO block read if the recording is still in progress but we hit EOF?
+  // TODO block read if the recording is still in progress but we hit EOF? (wait for the event to come...)
 
   private[this] lazy val updateListener = new EventListener {
     override def listenFor(event: BackendEvent): Boolean = event.isEventName("UPDATE_FILE_SIZE")
@@ -169,15 +243,15 @@ class RecordingFileTransfer private[myth](
     override def handle(event: BackendEvent): Unit = event.parse match {
       case Event.UpdateFileSizeEvent(chanId, startTime, newSize) =>
         if (chanId == recording.chanId && startTime == recording.startTime)
-          size = newSize
+          currentSize = newSize
       case _ => ()
     }
   }
 }
 
-object RecordingFileTransfer {
+object RecordingFileTransferChannel {
   // TODO: method that takes a hostname vs control channel?
-  def apply(api: BackendAPIConnection, chanId: ChanId, recStartTs: MythDateTime): RecordingFileTransfer = {
+  def apply(api: BackendAPIConnection, chanId: ChanId, recStartTs: MythDateTime): RecordingFileTransferChannel = {
     val rec = api.queryRecording(chanId, recStartTs)   // TODO check for failure/not found
 
     // TODO who is managing these opened connections??  Also, we have no re-use...
@@ -186,21 +260,21 @@ object RecordingFileTransfer {
       if (rec.hostname == api.host) api
       else BackendAPIConnection(rec.hostname)
 
-    val dataChannel = FileTransferConnection(controlChannel.host, rec.filename, rec.storageGroup, controlChannel.port)
+    val dataChannel = FileTransferConnection(controlChannel.host, rec.filename, rec.storageGroup, port = controlChannel.port)
     val eventChannel = EventConnection(controlChannel.host, controlChannel.port)
 
     val fto = MythFileTransferObject(controlChannel, dataChannel)
-    new RecordingFileTransfer(fto, dataChannel, eventChannel, rec)
+    new RecordingFileTransferChannel(fto, dataChannel, eventChannel, rec)
   }
 }
 
 // TODO what exactly is this class for?
 // Reading/writing(?) from a file that is being downloaded to the server using DOWNLOAD_FILE ?
-class DownloadFileTransfer private[myth](
+class DownloadFileTransferChannel private[myth](
   controlChannel: MythFileTransferAPI,
   dataChannel: FileTransferConnection,
   eventChannel: EventConnection
-) extends EventingFileTransfer(controlChannel, dataChannel, eventChannel) {
+) extends EventingFileTransferChannel(controlChannel, dataChannel, eventChannel) {
 
   override protected def listener: EventListener = downloadListener
 
@@ -210,10 +284,10 @@ class DownloadFileTransfer private[myth](
     override def handle(event: BackendEvent): Unit = event.parse match {
       case Event.DownloadFileUpdateEvent(url, fileName, received, total) =>
         // TODO verify that the url/filename matches the file we're downloading
-        size = received  // TODO is this the update we want?
+        currentSize = received  // TODO is this the update we want?
       case Event.DownloadFileFinished(url, fileName, fileSize, err, errCode) =>
         // TODO verify that the url/filename matches the file we're downloading
-        size = fileSize
+        currentSize = fileSize
         // TODO initiate finalization of this object/mark as completed?
       case _ => ()
     }
