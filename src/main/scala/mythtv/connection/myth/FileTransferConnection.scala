@@ -14,6 +14,8 @@ trait FileTransferConnection extends SocketConnection {
   def isReadable: Boolean
   def isWriteable: Boolean
 
+  def inputBytesAvailable: Int
+
   def read(buf: Array[Byte], off: Int, len: Int): Int
   def write(buf: Array[Byte], off: Int, len: Int): Unit
 }
@@ -56,6 +58,8 @@ private abstract class AbstractFileTransferConnection(
 
   // TODO the read/write methods call getInputStream and getOutputStream with every invocation --
   // FIXME these methods Java methods on a socket are not exactly cheap...
+
+  override def inputBytesAvailable: Int = inputStream.available
 
   override def read(buf: Array[Byte], off: Int, len: Int): Int =
     inputStream.read(buf, off, len)
