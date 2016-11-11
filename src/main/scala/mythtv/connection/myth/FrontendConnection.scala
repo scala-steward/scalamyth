@@ -8,6 +8,8 @@ import java.nio.{ ByteBuffer, CharBuffer }
 import java.nio.channels.{ SelectionKey, Selector, SocketChannel }
 import java.nio.charset.StandardCharsets
 
+import scala.util.Try
+
 trait FrontendNetworkControl {
   /*
     * Commands:
@@ -125,11 +127,12 @@ class FrontendConnection(host: String, port: Int, timeout: Int)
     // TODO: swallow any response (asynchronously?!)
   }
 
-  // TODO: convert to Try[] instead of Option[]
-  def sendCommand(command: String): Option[String] = {
+  def sendCommand(command: String): Try[String] = {
     val message = s"$command\n"
-    writer.write(message)
-    Some(reader.read())
+    Try {
+      writer.write(message)
+      reader.read()
+    }
   }
 
 }
