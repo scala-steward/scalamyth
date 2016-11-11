@@ -27,23 +27,14 @@ abstract class AbstractSocketConnection[A](val host: String, val port: Int, time
 
   finishConnect()
 
-  def isConnected: Boolean = connected
+  def isConnected: Boolean = connected  // TODO also check channel.isConnected ?
 
   private def connectSocketChannel(): SocketChannel = {
     val newChannel = SocketChannel.open(new InetSocketAddress(host, port))
-    //newChannel.configureBlocking(false)
+    newChannel.configureBlocking(false)
     connected = true
     newChannel
   }
-
-  /*
-  private def connectSocket(): Socket = {
-    val newSocket = new Socket(host, port)
-    if (timeout > 0) setSocketTimeout(newSocket, timeout)
-    connected = true
-    newSocket
-  }
-  */
 
   protected def finishConnect(): Unit
 
@@ -78,22 +69,9 @@ abstract class AbstractSocketConnection[A](val host: String, val port: Int, time
 
   def timeout: Int = timeoutVar.value
 
-  def withTimeout[T](timeOut: Int)(thunk: => T): T = {
-    /*
-    val result = timeoutVar.withValue(timeOut) {
-      setSocketTimeout(socket, timeout)
-      thunk
-    }
-    setSocketTimeout(socket, timeout)
-    result
-    */
-    thunk   // TODO re-implement
+  def withTimeout[T](seconds: Int)(thunk: => T): T = {
+    timeoutVar.withValue(seconds) { thunk }
   }
-
-  /*
-  private def setSocketTimeout(sock: Socket, secs: Int): Unit =
-    sock.setSoTimeout(secs * 1000)
-    */
 
   protected def inputStream: InputStream = channel.socket.getInputStream
   protected def outputStream: OutputStream = channel.socket.getOutputStream

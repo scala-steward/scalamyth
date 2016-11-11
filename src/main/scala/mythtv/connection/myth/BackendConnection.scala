@@ -2,8 +2,9 @@ package mythtv
 package connection
 package myth
 
+import java.net.SocketTimeoutException
 import java.nio.ByteBuffer
-import java.nio.channels.SocketChannel
+import java.nio.channels.{ SelectionKey, Selector, SocketChannel }
 
 import scala.util.Try
 
@@ -11,20 +12,33 @@ private trait BackendCommandStream {
   final val SIZE_HEADER_BYTES = 8
 }
 
-private class BackendCommandReader(channel: SocketChannel) extends SocketReader[String] with BackendCommandStream {
+private class BackendCommandReader(channel: SocketChannel, conn: SocketConnection)
+  extends AbstractSocketReader[String](channel, conn)
+     with BackendCommandStream {
   private[this] var buffer = ByteBuffer.allocate(1024)  // will reallocate as needed
 
   private def readStringWithLength(length: Int): String = {
     if (length > buffer.capacity) buffer = ByteBuffer.allocate(length)
     buffer.clear().limit(length)
 
+    val selector = Selector.open
+    val key = channel.register(selector, SelectionKey.OP_READ)
+
     var n: Int = 0
     do {
-      n = channel.read(buffer)
-      println("Read " + n + " bytes")
-    } while (n > 0)
+      val ready = selector.select(conn.timeout * 1000)
+      if (ready == 0) throw new SocketTimeoutException(s"read timed out after ${conn.timeout} seconds")
 
-    if (n < 0) throw new RuntimeException("connection has been closed")
+      if (key.isReadable) {
+        n = channel.read(buffer)
+        selector.selectedKeys.clear()
+        println("Read " + n + " bytes")
+      }
+    } while (n > 0 && buffer.hasRemaining)
+
+    selector.close()
+
+    if (n < 0) throw new RuntimeException("connection has been closed")  // TODO is this still valid in nonblocking mode?
     utf8.decode({ buffer.flip(); buffer }).toString
   }
 
@@ -39,7 +53,9 @@ private class BackendCommandReader(channel: SocketChannel) extends SocketReader[
   }
 }
 
-private class BackendCommandWriter(channel: SocketChannel) extends SocketWriter[String] with BackendCommandStream {
+private class BackendCommandWriter(channel: SocketChannel, conn: SocketConnection)
+  extends AbstractSocketWriter[String](channel, conn)
+     with BackendCommandStream {
   private final val HEADER_FORMAT = "%-" + SIZE_HEADER_BYTES + "d"
 
   private[this] val buffers = new Array[ByteBuffer](2)
@@ -51,7 +67,11 @@ private class BackendCommandWriter(channel: SocketChannel) extends SocketWriter[
     buffers(0) = header
     buffers(1) = message
     println("Sending command " + command)
-    channel.write(buffers)  // FIXME may not complete writing all bytes in non-blocking mode
+
+    while (message.hasRemaining) {
+      val n = channel.write(buffers)
+      if (n == 0) waitForWriteableSocket()
+    }
   }
 }
 
@@ -80,10 +100,10 @@ trait BackendConnection extends SocketConnection with MythProtocol
   protected def gracefulDisconnect(): Unit = postCommandRaw("DONE")
 
   protected def openReader(channel: SocketChannel): SocketReader[String] =
-    new BackendCommandReader(channel)
+    new BackendCommandReader(channel, this)
 
   protected def openWriter(channel: SocketChannel): SocketWriter[String] =
-    new BackendCommandWriter(channel)
+    new BackendCommandWriter(channel, this)
 
   /*protected*/ def sendCommandRaw(command: String): Try[BackendResponse] = {
     Try {
