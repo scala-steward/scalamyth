@@ -72,6 +72,30 @@ private sealed trait FileTransferConnectionFactory {
   def apply(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean): FileTransferConnection
 }
 
+private class FileTransferConnection75(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean)
+  extends AbstractFileTransferConnection(host, port, timeout, fileName, storageGroup, writeMode)
+     with MythProtocol75
+     with MythProtocolAPI
+     with BackendAPILike
+     with AnnouncingConnection
+
+private object FileTransferConnection75 extends FileTransferConnectionFactory {
+  def apply(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean): FileTransferConnection =
+    new FileTransferConnection75(host, port, timeout, fileName, storageGroup, writeMode)
+}
+
+private class FileTransferConnection77(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean)
+  extends AbstractFileTransferConnection(host, port, timeout, fileName, storageGroup, writeMode)
+     with MythProtocol77
+     with MythProtocolAPI
+     with BackendAPILike
+     with AnnouncingConnection
+
+private object FileTransferConnection77 extends FileTransferConnectionFactory {
+  def apply(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean): FileTransferConnection =
+    new FileTransferConnection77(host, port, timeout, fileName, storageGroup, writeMode)
+}
+
 object FileTransferConnection {
   private val supportedVersions = Map[Int, FileTransferConnectionFactory](
     75 -> FileTransferConnection75,
@@ -98,28 +122,4 @@ object FileTransferConnection {
         else throw new UnsupportedMythProtocolException(ex)
     }
   }
-}
-
-private class FileTransferConnection75(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean)
-  extends AbstractFileTransferConnection(host, port, timeout, fileName, storageGroup, writeMode)
-     with MythProtocol75
-     with MythProtocolAPI
-     with BackendAPILike
-     with AnnouncingConnection
-
-private object FileTransferConnection75 extends FileTransferConnectionFactory {
-  def apply(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean): FileTransferConnection =
-    new FileTransferConnection75(host, port, timeout, fileName, storageGroup, writeMode)
-}
-
-private class FileTransferConnection77(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean)
-  extends AbstractFileTransferConnection(host, port, timeout, fileName, storageGroup, writeMode)
-     with MythProtocol77
-     with MythProtocolAPI
-     with BackendAPILike
-     with AnnouncingConnection
-
-private object FileTransferConnection77 extends FileTransferConnectionFactory {
-  def apply(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean): FileTransferConnection =
-    new FileTransferConnection77(host, port, timeout, fileName, storageGroup, writeMode)
 }

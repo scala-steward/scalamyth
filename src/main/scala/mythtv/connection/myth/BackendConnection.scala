@@ -147,6 +147,21 @@ trait BackendConnection extends SocketConnection with MythProtocol
   }
 }
 
+private class BackendConnection75(host: String, port: Int, timeout: Int)
+    extends AbstractBackendConnection(host, port, timeout) with MythProtocol75
+
+private object BackendConnection75 extends BackendConnectionFactory {
+  def apply(host: String, port: Int, timeout: Int) = new BackendConnection75(host, port, timeout)
+}
+
+private class BackendConnection77(host: String, port: Int, timeout: Int)
+    extends AbstractBackendConnection(host, port, timeout) with MythProtocol77
+
+private object BackendConnection77 extends BackendConnectionFactory {
+  def apply(host: String, port: Int, timeout: Int) = new BackendConnection77(host, port, timeout)
+}
+
+
 private sealed trait BackendConnectionFactory {
   def apply(host: String, port: Int, timeout: Int): BackendConnection
 }
@@ -175,19 +190,4 @@ object BackendConnection {
         else throw new UnsupportedMythProtocolException(ex)
     }
   }
-}
-
-
-private class BackendConnection75(host: String, port: Int, timeout: Int)
-    extends AbstractBackendConnection(host, port, timeout) with MythProtocol75
-
-private object BackendConnection75 extends BackendConnectionFactory {
-  def apply(host: String, port: Int, timeout: Int) = new BackendConnection75(host, port, timeout)
-}
-
-private class BackendConnection77(host: String, port: Int, timeout: Int)
-    extends AbstractBackendConnection(host, port, timeout) with MythProtocol77
-
-private object BackendConnection77 extends BackendConnectionFactory {
-  def apply(host: String, port: Int, timeout: Int) = new BackendConnection77(host, port, timeout)
 }

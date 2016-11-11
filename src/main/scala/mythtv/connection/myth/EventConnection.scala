@@ -107,6 +107,29 @@ private sealed trait EventConnectionFactory {
   def apply(host: String, port: Int, eventMode: MythProtocolEventMode): EventConnection
 }
 
+// NB Important that AnnouncingConnection is listed last, for initialization order
+
+private class EventConnection75(host: String, port: Int, eventMode: MythProtocolEventMode)
+    extends AbstractEventConnection(host, port, eventMode)
+    with MythProtocol75
+    with AnnouncingConnection
+
+private object EventConnection75 extends EventConnectionFactory {
+  def apply(host: String, port: Int, eventMode: MythProtocolEventMode) =
+    new EventConnection75(host, port, eventMode)
+}
+
+private class EventConnection77(host: String, port: Int, eventMode: MythProtocolEventMode)
+    extends AbstractEventConnection(host, port, eventMode)
+    with MythProtocol77
+    with AnnouncingConnection
+
+private object EventConnection77 extends EventConnectionFactory {
+  def apply(host: String, port: Int, eventMode: MythProtocolEventMode) =
+    new EventConnection77(host, port, eventMode)
+}
+
+
 object EventConnection {
   private val supportedVersions = Map[Int, EventConnectionFactory](
     75 -> EventConnection75,
@@ -130,26 +153,4 @@ object EventConnection {
         else throw new UnsupportedMythProtocolException(ex)
     }
   }
-}
-
-// NB Important that AnnouncingConnection is listed last, for initialization order
-
-private class EventConnection75(host: String, port: Int, eventMode: MythProtocolEventMode)
-    extends AbstractEventConnection(host, port, eventMode)
-    with MythProtocol75
-    with AnnouncingConnection
-
-private object EventConnection75 extends EventConnectionFactory {
-  def apply(host: String, port: Int, eventMode: MythProtocolEventMode) =
-    new EventConnection75(host, port, eventMode)
-}
-
-private class EventConnection77(host: String, port: Int, eventMode: MythProtocolEventMode)
-    extends AbstractEventConnection(host, port, eventMode)
-    with MythProtocol77
-    with AnnouncingConnection
-
-private object EventConnection77 extends EventConnectionFactory {
-  def apply(host: String, port: Int, eventMode: MythProtocolEventMode) =
-    new EventConnection77(host, port, eventMode)
 }
