@@ -12,7 +12,7 @@ import util.{ ByteCount, BinaryByteCount }
 class MythFrontend(val host: String) extends Frontend with FrontendOperations {
   import MythFrontend._
 
-  private[this] val conn = new FrontendConnection(host, DEFAULT_PORT)
+  private[this] val conn = new FrontendConnection(host)
 
   def close() = {
     conn.disconnect()
@@ -92,7 +92,6 @@ class MythFrontend(val host: String) extends Frontend with FrontendOperations {
 }
 
 object MythFrontend {
-  final val DEFAULT_PORT: Int = 6546
   type KeyName = String
   type JumpPoint = String
 }

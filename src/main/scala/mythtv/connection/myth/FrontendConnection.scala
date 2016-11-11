@@ -107,7 +107,8 @@ class FrontendConnection(host: String, port: Int, timeout: Int)
     extends AbstractSocketConnection[String](host, port, timeout)
     with FrontendNetworkControl {
 
-  def this(host: String, port: Int) = this(host, port, 10)
+  def this(host: String) = this(host, FrontendConnection.DefaultPort, FrontendConnection.DefaultTimeout)
+  def this(host: String, port: Int) = this(host, port, FrontendConnection.DefaultTimeout)
 
   protected def finishConnect(): Unit = {
     // TODO swallow up connection start returned data
@@ -134,5 +135,9 @@ class FrontendConnection(host: String, port: Int, timeout: Int)
       reader.read()
     }
   }
+}
 
+object FrontendConnection {
+  final val DefaultPort: Int = 6546
+  final val DefaultTimeout: Int = 10  // seconds
 }

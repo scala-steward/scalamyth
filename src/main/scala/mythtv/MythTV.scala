@@ -5,6 +5,7 @@ import java.net.InetAddress
 import services._
 import util.ServiceDiscovery
 import connection.http.BackendServiceConnection
+import connection.myth.FrontendConnection
 
 object MythTV {
   def frontend(host: String): MythFrontend = new MythFrontend(host)
@@ -27,7 +28,7 @@ object MythTV {
       def hostName     = parseHostNameFromServiceName(f.name)
       def addresses    = f.addresses
       def servicesPort = f.port
-      def remoteControlPort = MythFrontend.DEFAULT_PORT  // TODO should be in connection.myth.FrontendConnection
+      def remoteControlPort = FrontendConnection.DefaultPort
     })
   }
 
