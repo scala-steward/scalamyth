@@ -13,11 +13,11 @@ object BackendAPIConnection {
 
   def apply(
     host: String,
-    port: Int = BackendConnection.DEFAULT_PORT,
-    timeout: Int = BackendConnection.DEFAULT_TIMEOUT
+    port: Int = BackendConnection.DefaultPort,
+    timeout: Int = BackendConnection.DefaultTimeout
   ): BackendAPIConnection = {
     try {
-      val factory = supportedVersions(BackendConnection.DEFAULT_VERSION)
+      val factory = supportedVersions(BackendConnection.DefaultVersion)
       factory(host, port, timeout)
     } catch {
       case ex @ WrongMythProtocolException(requiredVersion) =>

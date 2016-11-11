@@ -9,7 +9,7 @@ private[myth] class BackendSerializationBuilder(builder: StringBuilder) extends 
   def result: StringBuilder = builder
 
   def += [T: MythProtocolSerializable](obj: T): this.type = {
-    if (count > 0) builder ++= MythProtocol.BACKEND_SEP
+    if (count > 0) builder ++= MythProtocol.BackendSeparator
     serialize(obj, builder)
     count += 1
     this

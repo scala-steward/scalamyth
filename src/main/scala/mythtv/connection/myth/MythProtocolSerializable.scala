@@ -212,7 +212,7 @@ object MythProtocolSerializable {
   /**** UTILITY OBJECTS (not MythTV specific) ******/
 
   implicit object FileStatsSerializer extends MythProtocolSerializable[FileStats] {
-    def deserialize(in: String): FileStats = deserialize(in split MythProtocol.SPLIT_PATTERN)
+    def deserialize(in: String): FileStats = deserialize(in split MythProtocol.SplitPattern)
     override def deserialize(in: Seq[String]): FileStats = FileStats(
       MythProtocol.deserialize[Long](in(0)),    // st_dev
       MythProtocol.deserialize[Long](in(1)),    // st_ino
@@ -234,7 +234,7 @@ object MythProtocolSerializable {
   /**** BACKEND OBJECTS (protocol version neutral)  ***/
 
   implicit object RecordedMarkupSerializer extends MythProtocolSerializable[RecordedMarkup] {
-    def deserialize(in: String): RecordedMarkup = deserialize(in split MythProtocol.SPLIT_PATTERN)
+    def deserialize(in: String): RecordedMarkup = deserialize(in split MythProtocol.SplitPattern)
     override def deserialize(in: Seq[String]): RecordedMarkup = {
       assert(in.lengthCompare(1) > 0)
       BackendRecordedMarkup(
@@ -266,7 +266,7 @@ trait GenericBackendObjectSerializer[T, F <: GenericBackendObjectFactory[T], S <
 
   def deserialize(in: String): T = {
     val factory = newFactory
-    val data: Seq[String] = in split MythProtocol.SPLIT_PATTERN
+    val data: Seq[String] = in split MythProtocol.SplitPattern
     factory(data take factory.FIELD_ORDER.length)
   }
 
@@ -278,14 +278,14 @@ trait GenericBackendObjectSerializer[T, F <: GenericBackendObjectFactory[T], S <
   def serialize(in: T): String = in match {
     case g: GenericBackendObject =>
       val factory = newFactory
-      factory.FIELD_ORDER map (g(_)) mkString MythProtocol.BACKEND_SEP
+      factory.FIELD_ORDER map (g(_)) mkString MythProtocol.BackendSeparator
     case _ => otherSerializer.serialize(in)
   }
 
   override def serialize(in: T, builder: StringBuilder): StringBuilder = in match {
     case g: GenericBackendObject =>
       val factory = newFactory
-      (factory.FIELD_ORDER map (g(_))).addString(builder, MythProtocol.BACKEND_SEP)
+      (factory.FIELD_ORDER map (g(_))).addString(builder, MythProtocol.BackendSeparator)
     case _ => otherSerializer.serialize(in, builder)
   }
 }

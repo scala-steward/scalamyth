@@ -4,7 +4,7 @@ package myth
 
 trait BackendResponse extends Any {
   def raw: String
-  def split: Array[String] = raw split MythProtocol.SPLIT_PATTERN
+  def split: Array[String] = raw split MythProtocol.SplitPattern
 }
 
 private object BackendResponse {

@@ -83,11 +83,11 @@ object FileTransferConnection {
     fileName: String,
     storageGroup: String,
     writeMode: Boolean = false,
-    port: Int = BackendConnection.DEFAULT_PORT,
-    timeout: Int = BackendConnection.DEFAULT_TIMEOUT
+    port: Int = BackendConnection.DefaultPort,
+    timeout: Int = BackendConnection.DefaultTimeout
   ): FileTransferConnection = {
     try {
-      val factory = supportedVersions(BackendConnection.DEFAULT_VERSION)
+      val factory = supportedVersions(BackendConnection.DefaultVersion)
       factory(host, port, timeout, fileName, storageGroup, writeMode)
     } catch {
       case ex @ WrongMythProtocolException(requiredVersion) =>

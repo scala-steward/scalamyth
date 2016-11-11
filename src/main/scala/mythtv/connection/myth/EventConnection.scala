@@ -115,11 +115,11 @@ object EventConnection {
 
   def apply(
     host: String,
-    port: Int = BackendConnection.DEFAULT_PORT,
+    port: Int = BackendConnection.DefaultPort,
     eventMode: MythProtocolEventMode = MythProtocolEventMode.Normal
   ): EventConnection = {
     try {
-      val factory = supportedVersions(BackendConnection.DEFAULT_VERSION)
+      val factory = supportedVersions(BackendConnection.DefaultVersion)
       factory(host, port, eventMode)
     } catch {
       case ex @ WrongMythProtocolException(requiredVersion) =>

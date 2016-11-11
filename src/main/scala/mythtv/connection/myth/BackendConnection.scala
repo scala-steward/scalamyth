@@ -9,7 +9,7 @@ import java.nio.channels.{ SelectionKey, Selector, SocketChannel }
 import scala.util.Try
 
 private trait BackendCommandStream {
-  final val SIZE_HEADER_BYTES = 8
+  final val HeaderSizeBytes = 8
 }
 
 private class BackendCommandReader(channel: SocketChannel, conn: SocketConnection)
@@ -44,7 +44,7 @@ private class BackendCommandReader(channel: SocketChannel, conn: SocketConnectio
 
   def read(): String = {
     //println("Waiting for size header")
-    val size = readStringWithLength(SIZE_HEADER_BYTES).trim.toInt
+    val size = readStringWithLength(HeaderSizeBytes).trim.toInt
     println("Waiting for response of length " + size)
     val response = readStringWithLength(size)
     //println("Received response: " + response)
@@ -56,13 +56,13 @@ private class BackendCommandReader(channel: SocketChannel, conn: SocketConnectio
 private class BackendCommandWriter(channel: SocketChannel, conn: SocketConnection)
   extends AbstractSocketWriter[String](channel, conn)
      with BackendCommandStream {
-  private final val HEADER_FORMAT = "%-" + SIZE_HEADER_BYTES + "d"
+  private final val HeaderFormat= "%-" + HeaderSizeBytes + "d"
 
   private[this] val buffers = new Array[ByteBuffer](2)
 
   def write(command: String): Unit = {
     val message = utf8 encode command
-    val header = utf8 encode (HEADER_FORMAT format message.limit)
+    val header = utf8 encode (HeaderFormat format message.limit)
 
     buffers(0) = header
     buffers(1) = message
@@ -127,10 +127,10 @@ trait BackendConnection extends SocketConnection with MythProtocol
       val response = sendCommandRaw(cmdstring).get
       handle(request, response)
     }
-    else throw UnsupportedBackendCommandException(command, PROTO_VERSION)
+    else throw UnsupportedBackendCommandException(command, ProtocolVersion)
   }
 
-  def checkVersion(): Boolean = checkVersion(PROTO_VERSION, PROTO_TOKEN)
+  def checkVersion(): Boolean = checkVersion(ProtocolVersion, ProtocolToken)
 
   def checkVersion(version: Int, token: String): Boolean = {
     val msg = for {
@@ -152,19 +152,19 @@ private sealed trait BackendConnectionFactory {
 }
 
 object BackendConnection {
-  final val DEFAULT_PORT = 6543
-  final val DEFAULT_TIMEOUT = 10
+  final val DefaultPort = 6543
+  final val DefaultTimeout = 10
 
   private val supportedVersions = Map[Int, BackendConnectionFactory](
     75 -> BackendConnection75,
     77 -> BackendConnection77
   )
 
-  private[myth] val DEFAULT_VERSION = 75  // TODO just for now for testing
+  private[myth] val DefaultVersion = 75  // TODO just for now for testing
 
-  def apply(host: String, port: Int = DEFAULT_PORT, timeout: Int = DEFAULT_TIMEOUT): BackendConnection = {
+  def apply(host: String, port: Int = DefaultPort, timeout: Int = DefaultTimeout): BackendConnection = {
     try {
-      val factory = supportedVersions(DEFAULT_VERSION)
+      val factory = supportedVersions(DefaultVersion)
       factory(host, port, timeout)
     } catch {
       case ex @ WrongMythProtocolException(requiredVersion) =>

@@ -8,13 +8,13 @@ import model._
 import util.ByteCount
 
 trait MythProtocol extends MythProtocolLike {
-  def PROTO_VERSION: Int
-  def PROTO_TOKEN: String
+  def ProtocolVersion: Int
+  def ProtocolToken: String
 }
 
 object MythProtocol extends MythProtocolSerializer {
-  final val BACKEND_SEP: String = "[]:[]"
-  final val SPLIT_PATTERN: String = Pattern.quote(BACKEND_SEP)
+  final val BackendSeparator: String = "[]:[]"
+  final val SplitPattern: String = Pattern.quote(BackendSeparator)
 
   // Sum type representing return values from ANN
   sealed trait AnnounceResult
@@ -59,16 +59,16 @@ object MythProtocol extends MythProtocolSerializer {
 //                                                          protocol version 72   // myth 0.25.x
 
 private trait MythProtocol75 extends MythProtocol with MythProtocolLike75 { // myth 0.26.x
-  final val PROTO_VERSION = 75
-  final val PROTO_TOKEN = "SweetRock"
+  final val ProtocolVersion = 75
+  final val ProtocolToken = "SweetRock"
 }
 
 private trait MythProtocol77 extends MythProtocol with MythProtocolLike77 { // myth 0.27.x
-  final val PROTO_VERSION = 77
-  final val PROTO_TOKEN = "WindMark"
+  final val ProtocolVersion = 77
+  final val ProtocolToken = "WindMark"
 }
 
 private trait MythProtocol88 extends MythProtocol with MythProtocolLike88 { // myth 0.28.x
-  final val PROTO_VERSION = 88
-  final val PROTO_TOKEN = "XmasGift"
+  final val ProtocolVersion = 88
+  final val ProtocolToken = "XmasGift"
 }
