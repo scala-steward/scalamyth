@@ -2,11 +2,8 @@ package mythtv
 package connection
 package myth
 
-import java.io.{ BufferedOutputStream, InputStream, OutputStream }
 import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-
-// TODO consider using scala.io.Codec rather than Java charset stuff directly?
+import java.nio.channels.SocketChannel
 
 import scala.util.Try
 
@@ -14,24 +11,21 @@ private trait BackendCommandStream {
   final val SIZE_HEADER_BYTES = 8
 }
 
-private class BackendCommandReader(in: InputStream) extends SocketReader[String](in) with BackendCommandStream {
-  private[this] var buffer = new Array[Byte](1024)
+private class BackendCommandReader(channel: SocketChannel) extends SocketReader[String] with BackendCommandStream {
+  private[this] var buffer = ByteBuffer.allocate(1024)  // will reallocate as needed
 
   private def readStringWithLength(length: Int): String = {
-    if (length > buffer.length) buffer = new Array[Byte](length)
-    var off: Int = 0
-    var n: Int = 0
+    if (length > buffer.capacity) buffer = ByteBuffer.allocate(length)
+    buffer.clear().limit(length)
 
+    var n: Int = 0
     do {
-      n = in.read(buffer, off, length - off)
-      //println("Read " + n + " bytes")
-      off += n
+      n = channel.read(buffer)
+      println("Read " + n + " bytes")
     } while (n > 0)
 
     if (n < 0) throw new RuntimeException("connection has been closed")
-
-    assert(off == length)
-    new String(buffer, 0, length, StandardCharsets.UTF_8)
+    utf8.decode({ buffer.flip(); buffer }).toString
   }
 
   def read(): String = {
@@ -45,27 +39,19 @@ private class BackendCommandReader(in: InputStream) extends SocketReader[String]
   }
 }
 
-private class BackendCommandWriter(out: OutputStream) extends SocketWriter[String](out) with BackendCommandStream {
+private class BackendCommandWriter(channel: SocketChannel) extends SocketWriter[String] with BackendCommandStream {
   private final val HEADER_FORMAT = "%-" + SIZE_HEADER_BYTES + "d"
-  private final val utf8 = StandardCharsets.UTF_8
 
-  private def write(bb: ByteBuffer): Unit = {
-    if (bb.hasArray) {
-      out.write(bb.array, bb.arrayOffset, bb.limit)
-    } else {
-      val buf = new Array[Byte](bb.remaining)
-      bb.get(buf)
-      out.write(buf)
-    }
-  }
+  private[this] val buffers = new Array[ByteBuffer](2)
 
   def write(command: String): Unit = {
     val message = utf8 encode command
     val header = utf8 encode (HEADER_FORMAT format message.limit)
+
+    buffers(0) = header
+    buffers(1) = message
     println("Sending command " + command)
-    write(header)
-    write(message)
-    out.flush()
+    channel.write(buffers)  // FIXME may not complete writing all bytes in non-blocking mode
   }
 }
 
@@ -83,7 +69,7 @@ final case class UnsupportedBackendCommandException(command: String, protocolVer
 
 trait BackendConnection extends SocketConnection with MythProtocol
 
-private abstract class AbstractBackendConnection(host: String, port: Int, timeout: Int)
+/*private*/ abstract class AbstractBackendConnection(host: String, port: Int, timeout: Int)
     extends AbstractSocketConnection[String](host, port, timeout)
     with BackendConnection {
 
@@ -93,13 +79,13 @@ private abstract class AbstractBackendConnection(host: String, port: Int, timeou
 
   protected def gracefulDisconnect(): Unit = postCommandRaw("DONE")
 
-  protected def openReader(inStream: InputStream): SocketReader[String] =
-    new BackendCommandReader(inStream)
+  protected def openReader(channel: SocketChannel): SocketReader[String] =
+    new BackendCommandReader(channel)
 
-  protected def openWriter(outStream: OutputStream): SocketWriter[String] =
-    new BackendCommandWriter(new BufferedOutputStream(outStream))
+  protected def openWriter(channel: SocketChannel): SocketWriter[String] =
+    new BackendCommandWriter(channel)
 
-  protected def sendCommandRaw(command: String): Try[BackendResponse] = {
+  /*protected*/ def sendCommandRaw(command: String): Try[BackendResponse] = {
     Try {
       writer.write(command)
       Response(reader.read())

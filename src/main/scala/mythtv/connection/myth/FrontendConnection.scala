@@ -2,6 +2,11 @@ package mythtv
 package connection
 package myth
 
+import java.lang.{ StringBuilder => JStringBuilder }
+import java.nio.{ ByteBuffer, CharBuffer }
+import java.nio.channels.SocketChannel
+import java.nio.charset.StandardCharsets
+
 trait FrontendNetworkControl {
   /*
     * Commands:
@@ -19,50 +24,62 @@ trait FrontendNetworkControl {
     */
 }
 
-import java.io.{ InputStreamReader, OutputStreamWriter, InputStream, OutputStream }
-import java.nio.charset.StandardCharsets
+private class FrontendSocketReader(channel: SocketChannel) extends SocketReader[String] {
+  final val PromptString = "\r\n# "  // expect this at the end of every response (interactive prompt)
 
-private class FrontendSocketReader(in: InputStream) extends SocketReader[String](in) {
-  val underlying = new InputStreamReader(in)
+  // For detecting the prompt string bytes at the end of a response
+  private val promptBytes = PromptString.getBytes(StandardCharsets.UTF_8)
+  private val promptCompare = new Array[Byte](promptBytes.length)
 
-  // we should expect "\n# " at the end of all replies (this is the interactive prompt)
+  // Buffers for reading from the socket and for character decoding
+  private[this] val buffer = ByteBuffer.allocate(2048)
+  private[this] val charBuffer = CharBuffer.allocate(2048)
+
+  // Returns true iff the bytes immediately preceding the current
+  // buffer position are the same as those in 'bytes' argument
+  private def bufferEndsWith(bytes: Array[Byte]): Boolean = {
+    buffer.position(buffer.position - promptCompare.length)
+    buffer.get(promptCompare)
+    promptCompare sameElements promptBytes
+  }
+
   def read(): String = {
-    val sb = new StringBuffer
-
+    var endOfInput: Boolean = false
+    val sb = new JStringBuilder
     var n: Int = 0
-    var off: Int = 0
-    val BUFSZ = 1024
 
-    val buf = new Array[Char](BUFSZ)
+    utf8.reset()
+    buffer.clear()
 
-    println("Starting read...")
     do {
-      n = underlying.read(buf, off, BUFSZ - off)
-      println(" .. read " + n + " bytes")
-      off += n
-      if (off >= BUFSZ) {
-        sb.append(buf, 0, BUFSZ)
-        off = 0
+      n = channel.read(buffer)
+      endOfInput = bufferEndsWith(promptBytes)
+
+      if (n >= 0) {
+        // decode UTF-8 bytes to charBuffer
+        utf8.decode({ buffer.flip(); buffer }, charBuffer, endOfInput)
+        if (endOfInput) utf8.flush(charBuffer)
+
+        // drain the charBuffer into string builder
+        sb.append({ charBuffer.flip(); charBuffer })
+        charBuffer.clear()
+
+        // get ready for next round, preserve any un-decoded bytes
+        if (buffer.hasRemaining) buffer.compact()
+        else                     buffer.clear()
       }
-    } while (n == BUFSZ)
+    } while (!endOfInput)
 
-    if (off > 0) sb.append(buf, 0, off)
-
-    val prompt = "\r\n# "
-    val pn = prompt.length
-    val sn = sb.length
-    val end = if (sn >= pn && sb.substring(sn - pn, sn) == prompt) sn - pn else sn
-    sb.substring(0, end)
+    // Don't include the trailing prompt string in our result
+    sb.substring(0, sb.length - PromptString.length)
   }
 }
 
-private class FrontendSocketWriter(out: OutputStream) extends SocketWriter[String](out) {
-  val underlying = new OutputStreamWriter(out, StandardCharsets.UTF_8)
-
+private class FrontendSocketWriter(channel: SocketChannel) extends SocketWriter[String] {
   def write(data: String): Unit = {
     println("Writing message " + data)
-    underlying.write(data)
-    underlying.flush()
+    val message = utf8 encode data
+    channel.write(message)
   }
 }
 
@@ -79,8 +96,10 @@ class FrontendConnection(host: String, port: Int, timeout: Int)
 
   protected def gracefulDisconnect(): Unit = postCommand("exit")
 
-  protected def openReader(inStream: InputStream): SocketReader[String] = new FrontendSocketReader(inStream)
-  protected def openWriter(outStream: OutputStream): SocketWriter[String] = new FrontendSocketWriter(outStream)
+  protected def openReader(channel: SocketChannel): SocketReader[String] = new FrontendSocketReader(channel)
+  protected def openWriter(channel: SocketChannel): SocketWriter[String] = new FrontendSocketWriter(channel)
+
+  // TODO should command end with \r\n instead of just \n ??
 
   def postCommand(command: String): Unit = {
     val message = s"$command\n"
@@ -89,7 +108,6 @@ class FrontendConnection(host: String, port: Int, timeout: Int)
   }
 
   // TODO: convert to Try[] instead of Option[]
-  // TODO: need to exclude the trailing newline and prompt from the result!
   def sendCommand(command: String): Option[String] = {
     val message = s"$command\n"
     writer.write(message)

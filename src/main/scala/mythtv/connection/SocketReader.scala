@@ -1,10 +1,15 @@
 package mythtv
 package connection
 
-import java.net.Socket
-import java.io.InputStream
+import java.nio.charset.{ CharsetDecoder, CodingErrorAction, StandardCharsets }
 
-abstract class SocketReader[A](inputStream: InputStream) {
-  def this(sock: Socket) = this(sock.getInputStream)
+trait SocketReader[A] {
   def read(): A
+
+  // UTF-8 charset decoder
+  protected val utf8: CharsetDecoder = (
+    StandardCharsets.UTF_8.newDecoder
+      onMalformedInput CodingErrorAction.REPLACE
+      onUnmappableCharacter CodingErrorAction.REPLACE
+    )
 }
