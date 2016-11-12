@@ -1,6 +1,8 @@
 package mythtv
 package util
 
+import java.nio.ByteBuffer
+
 import scala.io.Codec
 
 /** CRC-16 CCITT (X.25 variant)
@@ -15,6 +17,14 @@ import scala.io.Codec
   * https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/lib/crc-ccitt.c
   *
   */
+class Crc16(val crc: Int) extends AnyVal {
+  def verify(data: Array[Byte], off: Int, len: Int): Boolean = this == Crc16(data, off, len)
+  def verify(data: Array[Byte]): Boolean = this == Crc16(data)
+  def verify(buf: ByteBuffer): Boolean = this == Crc16(buf)
+  def verify(str: String): Boolean = this == Crc16(str)
+  override def toString = f"Crc16(0x$crc%04x)"
+}
+
 object Crc16 {
   private final val Precomputed = Array(
     0x0000, 0x1189, 0x2312, 0x329b, 0x4624, 0x57ad, 0x6536, 0x74bf,
@@ -51,18 +61,39 @@ object Crc16 {
     0x7bc7, 0x6a4e, 0x58d5, 0x495c, 0x3de3, 0x2c6a, 0x1ef1, 0x0f78
   )
 
-  def apply(data: Array[Byte]): Int = {
+  private def compute(crcIn: Int, data: Array[Byte], off: Int, len: Int): Int ={
     val table = Precomputed
-    val n = data.length
-    var crc = 0xffff
-    var i = 0
+    val n = len
+    var i = off
+    var crc = crcIn
 
     while (i < n) {
       crc = (crc >> 8) ^ table((crc ^ data(i)) & 0xff)
       i += 1
     }
-    crc ^ 0xffff
+    crc
   }
 
-  def apply(s: String): Int = apply(Codec.toUTF8(s))
+  def apply(data: Array[Byte], off: Int, len: Int): Crc16 =
+    new Crc16(compute(0xffff, data, off, len) ^ 0xffff)
+
+  def apply(data: Array[Byte]): Crc16 = apply(data, 0, data.length)
+
+  def apply(buf: ByteBuffer): Crc16 = {
+    if (buf.hasArray) {
+      apply(buf.array, buf.arrayOffset + buf.position, buf.remaining)
+    } else {
+      // convert a chunk at a time to an array and compute
+      var crc = 0xffff
+      val tmp = new Array[Byte](4096)
+      while (buf.hasRemaining) {
+        val n = math.min(buf.remaining, tmp.length)
+        buf.get(tmp, 0, n)
+        crc = compute(crc, tmp, 0, n)
+      }
+      new Crc16(crc ^ 0xffff)
+    }
+  }
+
+  def apply(s: String): Crc16 = apply(Codec.toUTF8(s))
 }
