@@ -32,7 +32,7 @@ private class BackendCommandReader(channel: SocketChannel, conn: SocketConnectio
       if (key.isReadable) {
         n = channel.read(buffer)
         selector.selectedKeys.clear()
-        println("Read " + n + " bytes")
+        //println("Read " + n + " bytes")
       }
     } while (n > 0 && buffer.hasRemaining)
 
@@ -45,10 +45,10 @@ private class BackendCommandReader(channel: SocketChannel, conn: SocketConnectio
   def read(): String = {
     //println("Waiting for size header")
     val size = readStringWithLength(HeaderSizeBytes).trim.toInt
-    println("Waiting for response of length " + size)
+    //println("Waiting for response of length " + size)
     val response = readStringWithLength(size)
     //println("Received response: " + response)
-    println("Received response.")
+    //println("Received response.")
     response
   }
 }
@@ -89,9 +89,9 @@ final case class UnsupportedBackendCommandException(command: String, protocolVer
 
 trait BackendConnection extends SocketConnection with MythProtocol
 
-/*private*/ abstract class AbstractBackendConnection(host: String, port: Int, timeout: Int)
-    extends AbstractSocketConnection[String](host, port, timeout)
-    with BackendConnection {
+private abstract class AbstractBackendConnection(host: String, port: Int, timeout: Int)
+  extends AbstractSocketConnection[String](host, port, timeout)
+     with BackendConnection {
 
   protected def finishConnect(): Unit = {
     checkVersion()
@@ -105,7 +105,7 @@ trait BackendConnection extends SocketConnection with MythProtocol
   protected def openWriter(channel: SocketChannel): SocketWriter[String] =
     new BackendCommandWriter(channel, this)
 
-  /*protected*/ def sendCommandRaw(command: String): Try[BackendResponse] = {
+  protected def sendCommandRaw(command: String): Try[BackendResponse] = {
     Try {
       writer.write(command)
       Response(reader.read())
