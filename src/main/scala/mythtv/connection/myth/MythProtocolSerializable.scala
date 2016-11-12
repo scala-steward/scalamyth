@@ -254,7 +254,7 @@ trait BackendTypeSerializer[T] {
 // Idea here is a generic de-/serializer for backend objects that can be
 //  - constructed from a Seq[String] and a FIELD_ORDER
 //  - deconstructed using FIELD_ORDER and the apply-based fields accessor
-trait GenericBackendObjectSerializer[T, F <: GenericBackendObjectFactory[T], S <: BackendTypeSerializer[T]]
+private trait GenericBackendObjectSerializer[T, F <: GenericBackendObjectFactory[T], S <: BackendTypeSerializer[T]]
     extends MythProtocolSerializable[T] {
   def newFactory: F
   def otherSerializer: S
@@ -290,31 +290,31 @@ trait GenericBackendObjectSerializer[T, F <: GenericBackendObjectFactory[T], S <
   }
 }
 
-object ProgramInfoSerializerGeneric
+private object ProgramInfoSerializerGeneric
   extends GenericBackendObjectSerializer[Recording, BackendProgramFactory, ProgramOtherSerializer] {
   def newFactory = BackendProgram
   def otherSerializer = BackendProgram
 }
 
-object FreeSpaceSerializerGeneric
+private object FreeSpaceSerializerGeneric
   extends GenericBackendObjectSerializer[FreeSpace, BackendFreeSpaceFactory, FreeSpaceOtherSerializer] {
   def newFactory = BackendFreeSpace
   def otherSerializer = ???
 }
 
-object CardInputSerializerGeneric
+private object CardInputSerializerGeneric
   extends GenericBackendObjectSerializer[CardInput, BackendCardInputFactory, CardInputOtherSerializer] {
   def newFactory = BackendCardInput
   def otherSerializer = ???
 }
 
-object ChannelSerializerGeneric
+private object ChannelSerializerGeneric
   extends GenericBackendObjectSerializer[Channel, BackendChannelFactory, ChannelOtherSerializer] {
   def newFactory = BackendChannel
   def otherSerializer = ???
 }
 
-object UpcomingProgramSerializerGeneric
+private object UpcomingProgramSerializerGeneric
   extends GenericBackendObjectSerializer[UpcomingProgram, BackendUpcomingProgramFactory, UpcomingProgramOtherSerializer] {
   def newFactory = BackendUpcomingProgram
   def otherSerializer = ???
