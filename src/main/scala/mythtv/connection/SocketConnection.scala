@@ -1,8 +1,7 @@
 package mythtv
 package connection
 
-import java.io.{ InputStream, OutputStream }
-import java.net.{ InetSocketAddress, Socket }
+import java.net.InetSocketAddress
 import java.nio.channels.SocketChannel
 
 import scala.util.DynamicVariable
@@ -73,8 +72,7 @@ abstract class AbstractSocketConnection[A](val host: String, val port: Int, time
     timeoutVar.withValue(seconds) { thunk }
   }
 
-  protected def inputStream: InputStream = channel.socket.getInputStream
-  protected def outputStream: OutputStream = channel.socket.getOutputStream
+  protected def underlyingChannel: SocketChannel = channel
 
   protected def reader: SocketReader[A] = socketReader
   protected def writer: SocketWriter[A] = socketWriter

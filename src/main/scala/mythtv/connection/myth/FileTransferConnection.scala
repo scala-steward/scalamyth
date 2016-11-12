@@ -2,19 +2,20 @@ package mythtv
 package connection
 package myth
 
+import java.nio.ByteBuffer
+
 import util.NetworkUtil
 
-trait FileTransferConnection extends SocketConnection {
+trait FileTransferConnection extends FileTransfer with SocketConnection {
   def transferId: FileTransferId
-  def fileSize: Long
-
-  def fileName: String
-  def storageGroup: String
 
   def isReadable: Boolean
-  def isWriteable: Boolean
+  def isWritable: Boolean
 
-  def inputBytesAvailable: Int
+  def read(buf: ByteBuffer): Int
+  def write(buf: ByteBuffer): Int
+
+  // TODO expose more channel methods?
 
   def read(buf: Array[Byte], off: Int, len: Int): Int
   def write(buf: Array[Byte], off: Int, len: Int): Unit
@@ -41,6 +42,9 @@ private abstract class AbstractFileTransferConnection(
     val (ftID, size) = announceFileTransfer(localHost, fileName, storageGroup)
     this.ftId = ftID
     this.filesize = size.bytes
+
+    // perform file transfers in blocking mode, at least for now
+    underlyingChannel.configureBlocking(true)
   }
 
   override def sendCommand(command: String, args: Any*): Option[_] = {
@@ -54,18 +58,16 @@ private abstract class AbstractFileTransferConnection(
 
   override def isReadable: Boolean = !writeMode
 
-  override def isWriteable: Boolean = writeMode
+  override def isWritable: Boolean = writeMode
 
-  // TODO the read/write methods call getInputStream and getOutputStream with every invocation --
-  // FIXME these methods Java methods on a socket are not exactly cheap...
-
-  override def inputBytesAvailable: Int = inputStream.available
+  override def read(buf: ByteBuffer): Int = underlyingChannel.read(buf)
+  override def write(buf: ByteBuffer): Int = underlyingChannel.write(buf)
 
   override def read(buf: Array[Byte], off: Int, len: Int): Int =
-    inputStream.read(buf, off, len)
+    read(ByteBuffer.wrap(buf, off, len))
 
   override def write(buf: Array[Byte], off: Int, len: Int): Unit =
-    outputStream.write(buf, off, len)
+    write(ByteBuffer.wrap(buf, off, len))
 }
 
 private sealed trait FileTransferConnectionFactory {

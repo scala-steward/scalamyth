@@ -2,23 +2,25 @@ package mythtv
 package connection
 package myth
 
-import java.io.{ InputStream, IOException }
-import java.nio.channels.SeekableByteChannel
+import java.io.{ IOException, InputStream }
+import java.nio.channels.{ NonReadableChannelException, NonWritableChannelException, SeekableByteChannel }
 import java.nio.ByteBuffer
 
 import EnumTypes.SeekWhence
-
 import model.{ ChanId, Recording }
 import util.MythDateTime
 
 final case class FileTransferId(id: Int) extends AnyVal
 
-class MythFileTransferObject(ftID: FileTransferId, conn: MythProtocolAPI) extends MythFileTransferAPILike {
-  def ftId = ftID
-  protected def protoApi = conn
+trait FileTransfer {
+  def fileSize: Long
+  def fileName: String
+  def storageGroup: String
 }
 
-object MythFileTransferObject {
+private class MythFileTransferObject(val ftId: FileTransferId, val protoApi: MythProtocolAPI) extends MythFileTransferAPILike
+
+private object MythFileTransferObject {
   def apply(controlChannel: BackendAPIConnection, dataChannel: FileTransferConnection) =
     new MythFileTransferObject(dataChannel.transferId, controlChannel)
 }
@@ -26,11 +28,8 @@ object MythFileTransferObject {
 // TODO are we opening data channel with event mode set (or something??)  Actually, it's readahead...
 //   Sending command ANN FileTransfer dove 0 1 2000[]:[]Music/Performances/Rolling_in_the_Deep.mp4[]:[]Videos
 
-// TODO support full Java InputStream/OutputStream interfaces? + NIO: Readable/Seekable/Writeable ByteChannel
-// TODO arggggh InputStream is an abstract class, not an interface! All the NIO stuff is interfaces...
-
 class FileTransferChannel private[myth](controlChannel: MythFileTransferAPI, dataChannel: FileTransferConnection)
-  extends SeekableByteChannel {
+  extends FileTransfer with SeekableByteChannel {
   // A file transfer requires two (optionally three) channels:
   //   - control channel  (BackendConnection or BackendAPIConnection)
   //   - data channel     (FileTransferConnection)
@@ -48,21 +47,21 @@ class FileTransferChannel private[myth](controlChannel: MythFileTransferAPI, dat
   // close the file
   override def close(): Unit = {
     controlChannel.done()
-    // TODO close the data channel (how? just shut down the socket?)
+    dataChannel.disconnect()  // TODO close the data channel (how? just shut down the socket? call a close() method?)
   }
 
-  def fileName: String = dataChannel.fileName
+  override def fileName: String = dataChannel.fileName
 
-  def storageGroup: String = dataChannel.storageGroup
+  override def storageGroup: String = dataChannel.storageGroup
 
-  // current offset in file
-  def tell: Long = currentPosition
+  override def fileSize: Long = dataChannel.fileSize
 
   override def size: Long = currentSize
 
-  override def isOpen: Boolean = true // TODO
+  override def isOpen: Boolean = true // TODO need an open status
 
-  private[myth] def available: Int = dataChannel.inputBytesAvailable
+  // current offset in file
+  def tell: Long = currentPosition
 
   override def position: Long = currentPosition
 
@@ -87,18 +86,6 @@ class FileTransferChannel private[myth](controlChannel: MythFileTransferAPI, dat
     currentPosition = newPos
   }
 
-  override def read(bb: ByteBuffer): Int = {
-    if (bb.hasArray) {
-      read(bb.array, bb.arrayOffset + bb.position, bb.remaining)
-    } else {
-      // TODO ugh, we really need to base on ByteBuffer/Channel and adapt to byte[] instead...
-      val buf = new Array[Byte](bb.remaining)
-      val n = read(buf, 0, buf.length)
-      bb.put(buf)
-      n
-    }
-  }
-
   // TODO: automatic management of request block size?
 
   // It seems that the myth backend won't send any blocks bigger than 128k no
@@ -110,16 +97,18 @@ class FileTransferChannel private[myth](controlChannel: MythFileTransferAPI, dat
   // Actually, probably linux, combatting bufferbloat, see:
   //    cat /proc/sys/net/ipv4/tcp_limit_output_bytes
 
-  def read(buf: Array[Byte], off: Int, len: Int): Int = {
-    if (!dataChannel.isReadable) throw new IOException("data channel is not readable")
-    val length = clamp(len, 0, math.min(currentSize - currentPosition, Int.MaxValue)).toInt
+  override def read(bb: ByteBuffer): Int = {
+    if (!dataChannel.isReadable) throw new NonReadableChannelException
+    val length = clamp(bb.remaining, 0, math.min(currentSize - currentPosition, Int.MaxValue)).toInt
+    if (length < bb.remaining) bb.limit(bb.position + length)
 
     var bytesRead: Int = 0
     var canReadMore: Boolean = true
 
-    while (bytesRead < length && canReadMore) {
+    while (bb.hasRemaining && canReadMore) {
       val requestSize = length - bytesRead
       val allotedSize = controlChannel.requestBlock(requestSize)
+      assert(requestSize == bb.remaining)
 
       if (allotedSize != requestSize) {}  // TODO do I want to take some action here?
 
@@ -129,10 +118,8 @@ class FileTransferChannel private[myth](controlChannel: MythFileTransferAPI, dat
         var bytesReadThisRequest: Int = 0
 
         while (bytesReadThisRequest < allotedSize && canReadMore) {
-          val toRead = allotedSize - bytesReadThisRequest
-          val n = dataChannel.read(buf, off, toRead)
+          val n = dataChannel.read(bb)
           if (n <= 0) canReadMore = false
-          //println(s"Read $n bytes from data channel (desired $toRead)")
           bytesReadThisRequest += n
         }
         bytesRead += bytesReadThisRequest
@@ -142,21 +129,16 @@ class FileTransferChannel private[myth](controlChannel: MythFileTransferAPI, dat
     bytesRead
   }
 
-  /*
-  def write(buf: Array[Byte], off: Int, len: Int): Unit = {
-    if (!dataChannel.isWriteable) throw new IOException("data channel is not writeable")
-    if (len > 0) {
-      dataChannel.write(buf, off, len)
-      controlChannel.writeBlock(len)  // TODO utilize result value? or is it just parroted back to us?
-      position = math.max(position + len, size)
-    }
+  override def write(bb: ByteBuffer): Int = {
+    if (!dataChannel.isWritable) throw new NonWritableChannelException
+    val bytesWritten = dataChannel.write(bb)  // TODO may need to loop here...
+    controlChannel.writeBlock(bytesWritten)  // TODO utilize result value? or is it just parroted back to us?
+    currentPosition = math.max(currentPosition + bytesWritten, currentSize)
+    bytesWritten
   }
-  */
-
-  override def write(bb: ByteBuffer): Int = ???
 
   override def truncate(size: Long): SeekableByteChannel = {
-    throw new IOException("truncate is not currently supported")
+    throw new IOException("truncate is not supported")
     this
   }
 }
@@ -178,18 +160,26 @@ object FileTransferChannel {  // TODO this doesn't specify read/write mode
 
 /* *******************************************************************************************************************/
 
-class FileTransferInputStream private[myth](channel: FileTransferChannel) extends InputStream {
+class FileTransferInputStream private[myth](channel: FileTransferChannel) extends InputStream with FileTransfer {
   private[this] var markPosition: Long = -1L
+
+  override def fileName: String = channel.fileName
+
+  override def storageGroup: String = channel.storageGroup
+
+  override def fileSize: Long = channel.fileSize
 
   // Horribly inefficient implementation, but nobody should be using it ...
   override def read(): Int = {
-    val buf = new Array[Byte](1)
-    val n = channel.read(buf, 0, 1)
+    val buf = ByteBuffer.allocate(1)
+    val n = channel.read(buf)
     if (n > 1) channel.seek(n - 1, SeekWhence.Current)
-    buf(0)
+    buf.flip()
+    buf.get(0)
   }
 
-  override def read(bytes: Array[Byte], offset: Int, len: Int): Int = channel.read(bytes, offset, len)
+  override def read(bytes: Array[Byte], offset: Int, len: Int): Int =
+    channel.read(ByteBuffer.wrap(bytes, offset, len))
 
   override def skip(n: Long): Long = {
     val oldPosition = channel.position
@@ -235,7 +225,7 @@ class RecordingFileTransferChannel private[myth](
 
   override def listener: EventListener = updateListener
 
-  // TODO block read if the recording is still in progress but we hit EOF? (wait for the event to come...)
+  // TODO block read if the recording is still in progress but we hit EOF? (wait for the event to arrive...)
 
   private[this] lazy val updateListener = new EventListener {
     override def listenFor(event: BackendEvent): Boolean = event.isEventName("UPDATE_FILE_SIZE")

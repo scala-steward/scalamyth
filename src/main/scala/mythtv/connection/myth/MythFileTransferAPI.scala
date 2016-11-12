@@ -21,7 +21,7 @@ trait MythFileTransferAPI {
 
 trait MythFileTransferAPILike extends MythFileTransferAPI {
   def ftId: FileTransferId
-  protected def protoApi: MythProtocolAPI
+  def protoApi: MythProtocolAPI
 
   def done(): Unit =
     protoApi.queryFileTransferDone(ftId)
