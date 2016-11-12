@@ -1888,7 +1888,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       else {
         val fileSize = deserialize[Long](items(1))
         val crc16 = new Crc16(deserialize[Int](items(2)))
-        val base64data = items(3)
+        val base64data = new Base64String(items(3))
         Some((lastModified, Some(PixmapInfo(DecimalByteCount(fileSize), crc16, base64data))))
       }
     }
