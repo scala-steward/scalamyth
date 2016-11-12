@@ -1,12 +1,15 @@
 package mythtv
 package util
 
-import java.nio.{ ByteOrder, ByteBuffer }
+import java.nio.{ ByteBuffer, ByteOrder }
+import java.nio.channels.SeekableByteChannel
 import java.nio.file.{ Files, Path, StandardOpenOption }
 
 class MythFileHash(val hash: String) extends AnyVal {
+  def verify(data: ByteBuffer): Boolean = this == MythFileHash(data)
   def verify(data: Array[Byte]): Boolean = this == MythFileHash(data)
   def verify(path: Path): Boolean = this == MythFileHash(path)
+  def verify(channel: SeekableByteChannel): Boolean = this == MythFileHash(channel)
   override def toString: String = hash
 }
 
@@ -27,14 +30,18 @@ object MythFileHash {
     hash
   }
 
-  def apply(data: Array[Byte]): MythFileHash = {
-    val initialsize = data.length
+  def apply(data: Array[Byte]): MythFileHash =
+    apply(ByteBuffer.wrap(data))
+
+  def apply(bb: ByteBuffer): MythFileHash = {
+    val initialsize = bb.remaining
 
     if (initialsize == 0) new MythFileHash("NULL")
     else {
-      val bb = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN)
-      var hash: Long = initialsize
+      val origByteOrder = bb.order
+      bb.order(ByteOrder.LITTLE_ENDIAN)
 
+      var hash: Long = initialsize
       hash = chunk(bb, hash)
 
       val repos = initialsize - ChunkSize
@@ -43,38 +50,37 @@ object MythFileHash {
         hash = chunk(bb, hash)
       }
 
+      bb.order(origByteOrder)
+
       new MythFileHash(hash.toHexString)
     }
   }
 
   def apply(path: Path): MythFileHash = {
-    val initialsize = Files.size(path)
-    if (initialsize == 0) new MythFileHash("NULL")
+    val channel = Files.newByteChannel(path, StandardOpenOption.READ)
+    try {
+      apply(channel)
+    } finally {
+      channel.close()
+    }
+  }
+
+  def apply(channel: SeekableByteChannel): MythFileHash = {
+    val totalSize = channel.size
+    if (totalSize == 0) new MythFileHash("NULL")
     else {
-      var hash: Long = initialsize
-      val channel = Files.newByteChannel(path, StandardOpenOption.READ)
+      var hash: Long = totalSize
+      val bb = ByteBuffer.allocate(ChunkSize).order(ByteOrder.LITTLE_ENDIAN)
 
-      try {
-        val bb = ByteBuffer.allocate(ChunkSize).order(ByteOrder.LITTLE_ENDIAN)
+      channel.position(0)
+      val nRead = channel.read({ bb.clear(); bb })  // TODO check # bytes read was sufficient
+      hash = chunk({ bb.flip(); bb }, hash)
 
-        bb.clear()
-        val nRead = channel.read(bb)  // TODO check # bytes read was sufficient
-
-        bb.flip()
-        hash = chunk(bb, hash)
-
-        val repos = initialsize - ChunkSize
-        if (repos >= 0) {
-          channel.position(repos)
-
-          bb.clear()
-          val nRead = channel.read(bb)    // TODO check # bytes read was sufficient
-
-          bb.flip()
-          hash = chunk(bb, hash)
-        }
-      } finally {
-        channel.close()
+      val repos = totalSize - ChunkSize
+      if (repos >= 0) {
+        channel.position(repos)
+        val nRead = channel.read({ bb.clear(); bb }) // TODO check # bytes read was sufficient
+        hash = chunk({ bb.flip(); bb }, hash)
       }
 
       new MythFileHash(hash.toHexString)
