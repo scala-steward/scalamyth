@@ -72,6 +72,8 @@ abstract class AbstractSocketConnection[A](val host: String, val port: Int, time
     timeoutVar.withValue(seconds) { thunk }
   }
 
+  private[connection] def changeTimeout(seconds: Int) = timeoutVar.value = seconds
+
   protected def underlyingChannel: SocketChannel = channel
 
   protected def reader: SocketReader[A] = socketReader
