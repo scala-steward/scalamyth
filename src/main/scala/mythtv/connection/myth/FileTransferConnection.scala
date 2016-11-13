@@ -15,8 +15,6 @@ trait FileTransferConnection extends FileTransfer with SocketConnection {
   def read(buf: ByteBuffer): Int
   def write(buf: ByteBuffer): Int
 
-  // TODO expose more channel methods?
-
   def read(buf: Array[Byte], off: Int, len: Int): Int
   def write(buf: Array[Byte], off: Int, len: Int): Unit
 }

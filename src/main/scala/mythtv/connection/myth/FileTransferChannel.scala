@@ -3,13 +3,10 @@ package connection
 package myth
 
 import java.io.IOException
-import java.nio.channels.{ NonReadableChannelException, NonWritableChannelException, SeekableByteChannel }
 import java.nio.ByteBuffer
+import java.nio.channels.{ NonReadableChannelException, NonWritableChannelException, SeekableByteChannel }
 
 import EnumTypes.SeekWhence
-
-// TODO are we opening data channel with event mode set (or something??)  Actually, it's readahead...
-//   Sending command ANN FileTransfer dove 0 1 2000[]:[]Music/Performances/Rolling_in_the_Deep.mp4[]:[]Videos
 
 class FileTransferChannel private[myth](controlChannel: MythFileTransferAPI, dataChannel: FileTransferConnection)
   extends FileTransfer with SeekableByteChannel {

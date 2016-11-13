@@ -43,6 +43,7 @@ private abstract class AbstractEventConnection(
   def announce(): Unit = {
     val localHost = NetworkUtil.myHostName
     val result = sendCommand("ANN", "Monitor", localHost, eventMode)
+    assert(result.get == MythProtocol.AnnounceResult.AnnounceAcknowledgement)
 
     // use infinite timeout in event loop, but not for initial connection
     changeTimeout(0)
@@ -57,7 +58,7 @@ private abstract class AbstractEventConnection(
 
   def addListener(listener: EventListener): Unit = {
     synchronized { listenerSet = listenerSet + listener }
-    if (!isEventLoopRunning) eventLoopThread = startEventLoop
+    if (!isEventLoopRunning) eventLoopThread = startEventLoop  // TODO this probably needs synchronization too
   }
 
   def removeListener(listener: EventListener): Unit = {

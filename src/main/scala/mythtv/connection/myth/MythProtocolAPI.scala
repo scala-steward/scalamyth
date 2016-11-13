@@ -16,9 +16,10 @@ import EnumTypes.{ MythLogLevel, MythProtocolEventMode, SeekWhence }
 trait MythProtocolAPI {
   def allowShutdown(): Boolean
   def announce(mode: String, hostName: String = "", eventMode: MythProtocolEventMode = MythProtocolEventMode.None): Boolean
+  // TODO: do we want default value of useReadAhead to be true or false?
   def announceFileTransfer(hostName: String, fileName: String, storageGroup: String,
     writeMode: Boolean = false, useReadAhead: Boolean = true, timeout: Duration = Duration.ofSeconds(2)): (FileTransferId, ByteCount)
-  // TODO SlaveBackend and FileTransfer announces (more complex)
+  // TODO SlaveBackend announce (more complex)
   def blockShutdown(): Boolean
   def checkRecording(rec: Recording): Boolean
   def deleteFile(fileName: String, storageGroup: String): Boolean
