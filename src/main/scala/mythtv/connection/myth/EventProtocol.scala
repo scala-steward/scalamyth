@@ -158,7 +158,7 @@ class EventParser {
   }
 
   def unknownEvent(name: String, split: Array[String]): Event =
-    UnknownEvent(name, split.slice(2, split.length): _*)
+    UnknownEvent(name, split.slice(1, split.length): _*)
 }
 
 /*
