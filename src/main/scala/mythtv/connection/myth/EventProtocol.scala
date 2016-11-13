@@ -2,26 +2,37 @@ package mythtv
 package connection
 package myth
 
-import model.{ ChanId, Program, VideoId }
+import java.time.Instant
+
+import model.{ CaptureCardId, ChanId, Program, Recordable, VideoId }
 import util.MythDateTime
 import data.BackendProgram
 
 sealed trait Event
 
+// TODO change some parameter types to ByteCount ?
+
 object Event {
-  case class SystemEvent(name: String, data: String, sender: String) extends Event
-  case class DownloadFileFinished(url: String, fileName: String, fileSize: Long, errString: String, errCode: Int) extends Event
-  case class DownloadFileUpdateEvent(url: String, fileName: String, bytesReceived: Long, bytesTotal: Long) extends Event
-  case class GeneratedPixmapEvent() extends Event  // TODO parameters
-  case class GeneratedPixmapFailEvent() extends Event // TODO parameters
-  case class RecordingListAddEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
-  case class RecordingListDeleteEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
-  case class RecordingListUpdateEvent(program: Program) extends Event
+  case class  SystemEvent(name: String, data: String, sender: String) extends Event
+  case class  AskRecordingEvent(cardId: CaptureCardId, timeUntil: Int, hasRec: Boolean, hasLaterShowing: Boolean, rec: Recordable) extends Event
+  case class  CommflagRequestEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
+  case class  CommflagStartEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
+  case class  DoneRecordingEvent(cardId: CaptureCardId, secondsSinceStart: Int, framesWritten: Long) extends Event
+  case class  DownloadFileFinished(url: String, fileName: String, fileSize: Long, errString: String, errCode: Int) extends Event
+  case class  DownloadFileUpdateEvent(url: String, fileName: String, bytesReceived: Long, bytesTotal: Long) extends Event
+  case class  FileClosedEvent(fileName: String) extends Event
+  case class  FileWrittenEvent(fileName: String, fileSize: Long) extends Event
+  case class  GeneratedPixmapEvent() extends Event  // TODO parameters
+  case class  GeneratedPixmapFailEvent() extends Event // TODO parameters
+  case class  HousekeeperRunningEvent(hostName: String, tag: String, lastRunTime: Instant) extends Event
+  case class  RecordingListAddEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
+  case class  RecordingListDeleteEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
+  case class  RecordingListUpdateEvent(program: Program) extends Event
   case object ScheduleChangeEvent extends Event
-  case class UpdateFileSizeEvent(chanId: ChanId, recStartTs: MythDateTime, size: Long) extends Event
-  case class VideoListChangeEvent(changes: Map[String, Set[VideoId]]) extends Event
+  case class  UpdateFileSizeEvent(chanId: ChanId, recStartTs: MythDateTime, size: Long) extends Event
+  case class  VideoListChangeEvent(changes: Map[String, Set[VideoId]]) extends Event
   case object VideoListNoChangeEvent extends Event
-  case class UnknownEvent(name: String, body: String*) extends Event
+  case class  UnknownEvent(name: String, body: String*) extends Event
 }
 
 class EventParser {
@@ -34,8 +45,15 @@ class EventParser {
     val name = split(1).takeWhile(_ != ' ')
     name match {
       case "SYSTEM_EVENT"          => parseSystemEvent(name, split)
+      case "ASK_RECORDING"         => parseAskRecording(name, split)
+      case "COMMFLAG_REQUEST"      => parseCommflagRequest(name, split)
+      case "COMMFLAG_START"        => parseCommflagStart(name, split)
       case "DOWNLOAD_FILE"         => parseDownloadFile(name, split)
+      case "DONE_RECORDING"        => parseDoneRecording(name, split)
+      case "FILE_CLOSED"           => parseFileClosed(name, split)
+      case "FILE_WRITTEN"          => parseFileWritten(name, split)
       case "GENERATED_PIXMAP"      => parseGeneratedPixmap(name, split)
+      case "HOUSE_KEEPER_RUNNING"  => parseHousekeeperRunning(name, split)
       case "RECORDING_LIST_CHANGE" => parseRecordingListChange(name, split)
       case "SCHEDULE_CHANGE"       => ScheduleChangeEvent
       case "UPDATE_FILE_SIZE"      => parseUpdateFileSize(name, split)
@@ -53,6 +71,35 @@ class EventParser {
     }
   }
 
+  def parseAskRecording(name: String, split: Array[String]): Event = {
+    val parts = split(1).split(' ')
+    val rec = BackendProgram(split.drop(2))
+    AskRecordingEvent(
+      CaptureCardId(parts(1).toInt),
+      parts(2).toInt,
+      parts(3).toInt != 0,
+      parts(4).toInt != 0,
+      rec
+    )
+  }
+
+  def parseCommflagRequest(name: String, split: Array[String]): Event = {
+    val parts = split(1).split(' ')
+    val tokenSplit = parts(1).split('_')
+    CommflagRequestEvent(ChanId(tokenSplit(0).toInt), MythDateTime.fromIso(tokenSplit(1)))
+  }
+
+  def parseCommflagStart(name: String, split: Array[String]): Event = {
+    val parts = split(1).split(' ')
+    val tokenSplit = parts(1).split('_')
+    CommflagStartEvent(ChanId(tokenSplit(0).toInt), MythDateTime.fromIso(tokenSplit(1)))
+  }
+
+  def parseDoneRecording(name: String, split: Array[String]): Event = {
+    val parts = split(1).split(' ')
+    DoneRecordingEvent(CaptureCardId(parts(1).toInt), parts(2).toInt, parts(3).toLong)
+  }
+
   def parseDownloadFile(name: String, split: Array[String]): Event = {
     split(1).substring(name.length + 1) match {
       case "FINISHED" => DownloadFileFinished(split(2), split(3), split(4).toLong, split(5), split(6).toInt) // TODO last param may be empty, not convertible to int?
@@ -61,8 +108,23 @@ class EventParser {
     }
   }
 
+  def parseFileClosed(name: String, split: Array[String]): Event = {
+    val parts = split(1).split(' ')
+    FileClosedEvent(parts(1))
+  }
+
+  def parseFileWritten(name: String, split: Array[String]): Event = {
+    val parts = split(1).split(' ')
+    FileWrittenEvent(parts(1), parts(2).toLong)
+  }
+
   def parseGeneratedPixmap(name: String, split: Array[String]): Event = {
     GeneratedPixmapEvent()  // TODO parse parameters; also success or failure
+  }
+
+  def parseHousekeeperRunning(name: String, split: Array[String]): Event = {
+    val parts = split(1).split(' ')
+    HousekeeperRunningEvent(parts(1), parts(2), MythDateTime.fromIso(parts(3)).toInstant)
   }
 
   def parseRecordingListChange(name: String, split: Array[String]): Event = {
@@ -102,16 +164,34 @@ class EventParser {
 /*
  * Some BACKEND_MESSAGE examples
  *
- *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT NET_CTRL_CONNECTED SENDER mythfe1[]:[]empty
- *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT NET_CTRL_DISCONNECTED SENDER mythfe2[]:[]empty
- *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT SCREEN_TYPE DESTROYED playbackbox SENDER mythfe1[]:[]empty
- *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT SCREEN_TYPE CREATED mythscreentypebusydialog SENDER mythfe1[]:[]empty
  *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT CLIENT_CONNECTED HOSTNAME myth1 SENDER myth1[]:[]empty
  *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT CLIENT_DISCONNECTED HOSTNAME myth1 SENDER myth1[]:[]empty
- *  BACKEND_MESSAGE[]:[]VIDEO_LIST_NO_CHANGE[]:[]empty
- *  BACKEND_MESSAGE[]:[]RECORDING_LIST_CHANGE UPDATE[]:[]Survivor[]:[]Not Going Down Without a Fight[]:[]Castaways from all three tribes remain, and one will be crowned the Sole Survivor.[]:[]32[]:[]14[]:[]3214[]:[]Reality[]:[]1081[]:[]8-1[]:[]KFMB-DT[]:[]KFMBDT (KFMB-DT)[]:[]1081_20160519030000.mpg[]:[]13323011228[]:[]1463626800[]:[]1463634000[]:[]0[]:[]myth1[]:[]0[]:[]0[]:[]0[]:[]0[]:[]-3[]:[]380[]:[]0[]:[]15[]:[]6[]:[]1463626800[]:[]1463634001[]:[]11583492[]:[]Reality TV[]:[][]:[]EP00367078[]:[]EP003670780116[]:[]76733[]:[]1471849923[]:[]0[]:[]2016-05-18[]:[]Default[]:[]0[]:[]0[]:[]Default[]:[]9[]:[]17[]:[]1[]:[]0[]:[]0[]:[]0
+ *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT NET_CTRL_CONNECTED SENDER mythfe1[]:[]empty
+ *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT NET_CTRL_DISCONNECTED SENDER mythfe2[]:[]empty
+ *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT PLAY_STARTED HOSTNAME mythfe1 CHANID 1081 STARTTIME 2016-09-29T03:00:00Z SENDER mythfe1[]:[]empty
+ *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT PLAY_STOPPED HOSTNAME mythfe1 CHANID 1081 STARTTIME 2016-09-29T03:00:00Z SENDER mythfe1[]:[]empty
+ *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT REC_FINISHED CARDID 4 CHANID 1151 STARTTIME 2016-11-12T22:30:00Z RECSTATUS -3 SENDER myth1[]:[]empty
+ *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT REC_PENDING SECS 59 CARDID 4 CHANID 1151 STARTTIME 2016-11-12T22:30:00Z RECSTATUS -1 SENDER myth1[]:[]empty
+ *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT REC_PENDING SECS 30 CARDID 4 CHANID 1151 STARTTIME 2016-11-12T22:30:00Z RECSTATUS -1 SENDER myth1[]:[]empty
+ *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT REC_STARTED CARDID 4 CHANID 1151 STARTTIME 2016-11-12T22:30:00Z RECSTATUS -1 SENDER myth1[]:[]empty
+ *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT REC_STARTED_WRITING CARDID 4 CHANID 1151 STARTTIME 2016-11-12T22:30:00Z RECSTATUS -2 SENDER myth1[]:[]empty
+ *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT SCHEDULER_RAN SENDER myth1[]:[]empty
+ *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT SCREEN_TYPE DESTROYED playbackbox SENDER mythfe1[]:[]empty
+ *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT SCREEN_TYPE CREATED mythscreentypebusydialog SENDER mythfe1[]:[]empty
+ *
+ *  BACKEND_MESSAGE[]:[]ASK_RECORDING 4 29 0 0[]:[]Martha Bakes[]:[]New England[]:[]Cheddar-crusted apple pie; steamed Boston brown bread made in a can; lemon-blueberry tart; hermit bars.[]:[]0[]:[]0[]:[]706[]:[]Cooking[]:[]1151[]:[]15-1[]:[]KPBS-HD[]:[]KPBSDT (KPBS-DT)[]:[]/video/record[]:[]0[]:[]1478989800[]:[]1478991600[]:[]0[]:[]myth1[]:[]1[]:[]4[]:[]1[]:[]0[]:[]-1[]:[]562[]:[]4[]:[]15[]:[]6[]:[]1478989800[]:[]1478991600[]:[]2048[]:[]Cooking[]:[][]:[]EP01360285[]:[]EP013602850078[]:[][]:[]1478989740[]:[]0[]:[]2016-11-10[]:[]Default[]:[]0[]:[]0[]:[]Default[]:[]1[]:[]32[]:[]0[]:[]0[]:[]0[]:[]0
+ *  BACKEND_MESSAGE[]:[]COMMFLAG_REQUEST 1081_2016-09-29T03:00:00Z[]:[]empty
+ *  BACKEND_MESSAGE[]:[]COMMFLAG_START 1081_2016-11-11T04:00:00Z[]:[]empty
+ *  BACKEND_MESSAGE[]:[]DONE_RECORDING 4 1801 -1[]:[]empty
+ *  BACKEND_MESSAGE[]:[]FILE_CLOSED /video/record/1151_20161112223000.mpg[]:[]empty
+ *  BACKEND_MESSAGE[]:[]FILE_WRITTEN /video/record/1151_20161112223000.mpg 1874473928[]:[]empty
  *  BACKEND_MESSAGE[]:[]GENERATED_PIXMAP[]:[]OK[]:[]1081_2016-05-19T05:00:00Z[]:[]Generated on myth1 in 3.919 seconds, starting at 16:19:33[]:[]2016-10-05T23:19:33Z[]:[]83401[]:[]39773[]:[] <<< base64 data + extra tokens redacted >>>
  *  BACKEND_MESSAGE[]:[]GENERATED_PIXMAP[]:[]OK[]:[]1151_2016-07-30T20:30:00Z[]:[]On Disk[]:[]2016-10-05T23:19:42Z[]:[]87547[]:[]13912[]:[] << base64 data + extra tokens redacted >>
+ *  BACKEND_MESSAGE[]:[]HOUSE_KEEPER_RUNNING myth1 DBCleanup 2016-11-12T22:20:24Z[]:[]empty
+ *  BACKEND_MESSAGE[]:[]RECORDING_LIST_CHANGE ADD 1151 2016-11-12T22:30:00Z[]:[]empty
+ *  BACKEND_MESSAGE[]:[]RECORDING_LIST_CHANGE UPDATE[]:[]Survivor[]:[]Not Going Down Without a Fight[]:[]Castaways from all three tribes remain, and one will be crowned the Sole Survivor.[]:[]32[]:[]14[]:[]3214[]:[]Reality[]:[]1081[]:[]8-1[]:[]KFMB-DT[]:[]KFMBDT (KFMB-DT)[]:[]1081_20160519030000.mpg[]:[]13323011228[]:[]1463626800[]:[]1463634000[]:[]0[]:[]myth1[]:[]0[]:[]0[]:[]0[]:[]0[]:[]-3[]:[]380[]:[]0[]:[]15[]:[]6[]:[]1463626800[]:[]1463634001[]:[]11583492[]:[]Reality TV[]:[][]:[]EP00367078[]:[]EP003670780116[]:[]76733[]:[]1471849923[]:[]0[]:[]2016-05-18[]:[]Default[]:[]0[]:[]0[]:[]Default[]:[]9[]:[]17[]:[]1[]:[]0[]:[]0[]:[]0 *  BACKEND_MESSAGE[]:[]VIDEO_LIST_NO_CHANGE[]:[]empty
+ *  BACKEND_MESSAGE[]:[]SCHEDULE_CHANGE[]:[]empty
+ *  BACKEND_MESSAGE[]:[]UPDATE_FILE_SIZE 1151 2016-11-12T22:30:00Z 1864356708[]:[]empty
  */
 
 /*
@@ -169,9 +249,32 @@ class EventParser {
  */
 
 /*
+ * Format of ASK_RECORDING
+ *   <cardId> <timeUntil> <hasRec> <hasLaterShowing>
+ *   []:[]
+ *   <programinfo> of the pending recording
+ *   timeUntil is in seconds ?
+ */
+
+/*
+ * Format of COMMFLAG_REQUEST and COMMFLAG_START
+ *  <chanid>_<recStartTs>  (single token with underscore separator)
+ */
+
+/*
+ * Format of DONE_RECORDING
+ *  <cardId> <secondsSinceStart> <framesWritten>
+ */
+
+/*
  * Format of DOWNLOAD_FILE
  *   UPDATE   <url> <outFile> <bytesReceived> <bytesTotal>
  *   FINISHED <url> <outfile> <fileSize> <errorStringPlaceholder> <errorCode>
+ */
+
+/*
+ * Format of HOUSE_KEEPER_RUNNING
+ *   <hostName> <tag> <lastRunDateTime:ISO>
  */
 
 /*
@@ -196,25 +299,26 @@ class EventParser {
 
 /*
  * Some system events:
+ *   AIRPLAY_DELETE_CONNECTION
+ *   AIRPLAY_NEW_CONNECTION
+ *   AIRTUNES_DELETE_CONNECTION
+ *   AIRTUNES_NEW_CONNECTION
  *   CLIENT_CONNECTED HOSTNAME %1
  *   CLIENT_DISCONNECTED HOSTNAME %1
- *   SLAVE_CONNECTED HOSTNAME %1
- *   SLAVE_DISCONNECTED HOSTNAME %1
- *   REC_DELETED CHANID %1 STARTTIME %2
- *   AIRTUNES_NEW_CONNECTION
- *   AIRTUNES_DELETE_CONNECTION
- *   AIRPLAY_NEW_CONNECTION
- *   AIRPLAY_DELETE_CONNECTION
  *   LIVETV_STARTED
- *   PLAY_STOPPED
- *   TUNING_SIGNAL_TIMEOUT CARDID %1
- *   MASTER_STARTED
  *   MASTER_SHUTDOWN
- *   SCHEDULER_RAN
- *   NET_CTRL_DISCONNECTED
- *   NET_CTRL_CONNECTED
+ *   MASTER_STARTED
  *   MYTHFILLDATABASE_RAN
+ *   NET_CTRL_CONNECTED
+ *   NET_CTRL_DISCONNECTED
+ *   PLAY_STARTED
+ *   PLAY_STOPPED
+ *   REC_DELETED CHANID %1 STARTTIME %2
+ *   SCHEDULER_RAN
  *   SCREEN_TYPE CREATED %1
  *   SCREEN_TYPE DESTROYED %1
+ *   SLAVE_CONNECTED HOSTNAME %1
+ *   SLAVE_DISCONNECTED HOSTNAME %1
  *   THEME_INSTALLED PATH %1
+ *   TUNING_SIGNAL_TIMEOUT CARDID %1
  */
