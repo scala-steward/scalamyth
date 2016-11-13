@@ -43,13 +43,6 @@ final case class BackendCommandArgumentException(command: String, message: Strin
   def this(command: String) = this(command, "valid argument list")
 }
 
-object SeekWhence extends Enumeration {
-  type SeekWhence = Value
-  val Begin      = Value(0)
-  val Current    = Value(1)
-  val End        = Value(2)
-}
-
 object MythProtocolEventMode extends Enumeration {
   type MythProtocolEventMode = Value
   val None       = Value(0)

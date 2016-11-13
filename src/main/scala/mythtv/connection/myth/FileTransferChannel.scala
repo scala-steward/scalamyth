@@ -9,7 +9,7 @@ import java.nio.channels.{ NonReadableChannelException, NonWritableChannelExcept
 import EnumTypes.SeekWhence
 
 class FileTransferChannel private[myth](controlChannel: MythFileTransferAPI, dataChannel: FileTransferConnection)
-  extends FileTransfer with SeekableByteChannel {
+  extends FileTransfer with Seekable with SeekableByteChannel {
   // A file transfer requires two (optionally three) channels:
   //   - control channel  (BackendConnection or BackendAPIConnection)
   //   - data channel     (FileTransferConnection)
