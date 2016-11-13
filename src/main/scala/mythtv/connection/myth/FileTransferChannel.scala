@@ -18,6 +18,7 @@ class FileTransferChannel private[myth](controlChannel: MythFileTransferAPI, dat
 
   @volatile protected[myth] var currentSize: Long = dataChannel.fileSize
   protected[myth] var currentPosition: Long = 0L
+  private[this] var openStatus: Boolean = true
 
   private def clamp(value: Long, min: Long, max: Long): Long =
     if (value < min) min
@@ -28,6 +29,7 @@ class FileTransferChannel private[myth](controlChannel: MythFileTransferAPI, dat
   override def close(): Unit = {
     controlChannel.done()
     dataChannel.disconnect()  // TODO close the data channel (how? just shut down the socket? call a close() method?)
+    openStatus = false
   }
 
   override def fileName: String = dataChannel.fileName
@@ -38,7 +40,7 @@ class FileTransferChannel private[myth](controlChannel: MythFileTransferAPI, dat
 
   override def size: Long = currentSize
 
-  override def isOpen: Boolean = true // TODO need an open status
+  override def isOpen: Boolean = openStatus
 
   // current offset in file
   def tell: Long = currentPosition
