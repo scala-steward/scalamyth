@@ -10,17 +10,11 @@ import EnumTypes.MythProtocolEventMode
 trait BackendEvent extends Any with BackendResponse {
   def isSystemEvent: Boolean = raw.startsWith("SYSTEM_EVENT", 20)
   def isEventName(name: String): Boolean = raw.startsWith(name, 20)
-  def parse: Event = (new EventParser).parse(this)  // TODO
+  def parse: Event
 }
-
-private object BackendEvent {
-  def apply(r: String): BackendResponse = RawEvent(r)
-}
-
-private final case class RawEvent(raw: String) extends AnyVal with BackendEvent
 
 trait EventListener {
-  def listenFor(event: BackendEvent): Boolean  // TODO rename to filter?
+  def listenFor(event: BackendEvent): Boolean
   def handle(event: BackendEvent): Unit
 }
 
@@ -70,8 +64,10 @@ private abstract class AbstractEventConnection(
     synchronized { listenerSet = listenerSet - listener }
   }
 
+  protected def newEvent(eventString: String): BackendEvent
+
   // blocking read to wait for the next event
-  protected def readEvent(): BackendEvent = RawEvent(reader.read())
+  protected def readEvent(): BackendEvent = newEvent(reader.read())
 
   private def isEventLoopRunning: Boolean =
     if (eventLoopThread eq null) false
@@ -112,9 +108,19 @@ private sealed trait EventConnectionFactory {
 // NB Important that AnnouncingConnection is listed last, for initialization order
 
 private class EventConnection75(host: String, port: Int, eventMode: MythProtocolEventMode)
-    extends AbstractEventConnection(host, port, eventMode)
+ extends AbstractEventConnection(host, port, eventMode)
     with MythProtocol75
-    with AnnouncingConnection
+    with AnnouncingConnection {
+  private[this] val eventParser = new EventParser
+
+  override protected def newEvent(eventString: String): BackendEvent = {
+    val parser = eventParser
+    new BackendEvent {
+      def raw = eventString
+      def parse = parser.parse(this)
+    }
+  }
+}
 
 private object EventConnection75 extends EventConnectionFactory {
   def apply(host: String, port: Int, eventMode: MythProtocolEventMode) =
@@ -122,9 +128,19 @@ private object EventConnection75 extends EventConnectionFactory {
 }
 
 private class EventConnection77(host: String, port: Int, eventMode: MythProtocolEventMode)
-    extends AbstractEventConnection(host, port, eventMode)
+ extends AbstractEventConnection(host, port, eventMode)
     with MythProtocol77
-    with AnnouncingConnection
+    with AnnouncingConnection {
+  private[this] val eventParser = new EventParser
+
+  override protected def newEvent(eventString: String): BackendEvent = {
+    val parser = eventParser
+    new BackendEvent {
+      def raw = eventString
+      def parse = parser.parse(this)
+    }
+  }
+}
 
 private object EventConnection77 extends EventConnectionFactory {
   def apply(host: String, port: Int, eventMode: MythProtocolEventMode) =
