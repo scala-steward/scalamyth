@@ -34,10 +34,12 @@ trait EventConnection extends SocketConnection { /* with EventProtocol ?? */
   final def -= (listener: EventListener): Unit = removeListener(listener)
 }
 
-// TODO don't use infinite timeout for protocol negotiation
 private abstract class AbstractEventConnection(
-  host: String, port: Int, val eventMode: MythProtocolEventMode)
-    extends AbstractBackendConnection(host, port, 0) with EventConnection {
+  host: String,
+  port: Int,
+  val eventMode: MythProtocolEventMode
+) extends AbstractBackendConnection(host, port, BackendConnection.DefaultTimeout)
+     with EventConnection {
 
   self: AnnouncingConnection =>
 
@@ -47,6 +49,9 @@ private abstract class AbstractEventConnection(
   def announce(): Unit = {
     val localHost = NetworkUtil.myHostName
     val result = sendCommand("ANN", "Monitor", localHost, eventMode)
+
+    // use infinite timeout in event loop, but not for initial connection
+    changeTimeout(0)
   }
 
   override def sendCommand(command: String, args: Any*): Option[_] = {
@@ -66,7 +71,6 @@ private abstract class AbstractEventConnection(
   }
 
   // blocking read to wait for the next event
-  // TODO this only blocks for 'timeout' seconds!
   protected def readEvent(): BackendEvent = RawEvent(reader.read())
 
   private def isEventLoopRunning: Boolean =
@@ -83,8 +87,6 @@ private abstract class AbstractEventConnection(
     // TODO : this approach has the disadvantage that event listener de-/registration
     //   does not become visible until after the next event is received (which may not
     //   be for some time)  Can we interrupt the blocked call to process?
-
-    // TODO need to catch SocketException: Socket closed (when disconnect() is called)
     def run(): Unit = {
       var myListeners = listeners
       while (myListeners.nonEmpty && isConnected) {
