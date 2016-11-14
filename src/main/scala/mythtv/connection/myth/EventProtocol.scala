@@ -185,8 +185,10 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
  *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT CLIENT_DISCONNECTED HOSTNAME myth1 SENDER myth1[]:[]empty
  *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT NET_CTRL_CONNECTED SENDER mythfe1[]:[]empty
  *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT NET_CTRL_DISCONNECTED SENDER mythfe2[]:[]empty
+ *  2016-11-14T13:31:57.852 SystemEvent(PLAY_CHANGED,HOSTNAME mythtest-atom CHANID 1692 STARTTIME 2016-11-14T21:32:01Z,mythtest-atom)
  *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT PLAY_STARTED HOSTNAME mythfe1 CHANID 1081 STARTTIME 2016-09-29T03:00:00Z SENDER mythfe1[]:[]empty
  *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT PLAY_STOPPED HOSTNAME mythfe1 CHANID 1081 STARTTIME 2016-09-29T03:00:00Z SENDER mythfe1[]:[]empty
+ *  2016-11-14T08:57:36.187 SystemEvent(REC_EXPIRED,HOSTNAME myth1 CHANID 1132 STARTTIME 2016-11-14T16:21:00Z,myth1)
  *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT REC_FINISHED CARDID 4 CHANID 1151 STARTTIME 2016-11-12T22:30:00Z RECSTATUS -3 SENDER myth1[]:[]empty
  *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT REC_PENDING SECS 59 CARDID 4 CHANID 1151 STARTTIME 2016-11-12T22:30:00Z RECSTATUS -1 SENDER myth1[]:[]empty
  *  BACKEND_MESSAGE[]:[]SYSTEM_EVENT REC_PENDING SECS 30 CARDID 4 CHANID 1151 STARTTIME 2016-11-12T22:30:00Z RECSTATUS -1 SENDER myth1[]:[]empty
@@ -328,11 +330,17 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
  *   MYTHFILLDATABASE_RAN
  *   NET_CTRL_CONNECTED
  *   NET_CTRL_DISCONNECTED
+ *   PLAY_CHANGED
  *   PLAY_PAUSED
  *   PLAY_STARTED
  *   PLAY_STOPPED
  *   PLAY_UNPAUSED
  *   REC_DELETED CHANID %1 STARTTIME %2
+ *   REC_EXPIRED
+ *   REC_FINISHED
+ *   REC_PENDING
+ *   REC_STARTED
+ *   REC_STARTED_WRITING
  *   SCHEDULER_RAN
  *   SCREEN_TYPE CREATED %1
  *   SCREEN_TYPE DESTROYED %1
@@ -340,4 +348,22 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
  *   SLAVE_DISCONNECTED HOSTNAME %1
  *   THEME_INSTALLED PATH %1
  *   TUNING_SIGNAL_TIMEOUT CARDID %1
+ */
+
+/*
+
+2016-11-14T08:40:36.875 UnknownEvent(LIVETV_CHAIN,WrappedArray(LIVETV_CHAIN UPDATE live-mythtest-atom-2016-11-14T16:40:33Z, 1, 1391, 2016-11-14T16:40:39Z, 2016-11-14T17:00:00Z, 0, myth://192.168.1.123:6543/, DUMMY, 39-1, DVBInput))
+
+2016-11-14T08:40:36.990 UnknownEvent(SIGNAL,WrappedArray(SIGNAL 4, Script Status, script 3 3 0 3 0 1 1, Signal Lock, slock 1 1 0 1 3000 1 1, Signal Power, signal 0 0 0 65535 3000 1 1, Seen PAT, seen_pat 0 1 0 1 0 1 1, Matching PAT, matching_pat 0 1 0 1 0 1 1, Seen MGT, seen_mgt 0 1 0 1 0 1 1, Matching MGT, matching_mgt 0 1 0 1 0 1 1, Seen VCT, seen_vct 0 1 0 1 0 1 1, Matching VCT, matching_vct 0 1 0 1 0 1 1, Signal To Noise, snr 0 0 0 65535 0 1 1, Bit Error Rate, ber 0 65535 0 65535 0 0 1, Uncorrected Blocks, ucb 0 65535 0 65535 0 0 1))
+2016-11-14T08:40:37.040 UnknownEvent(SIGNAL,WrappedArray(SIGNAL 4, Script Status, script 3 3 0 3 0 1 1, Signal Lock, slock 1 1 0 1 3000 1 1, Signal Power, signal 0 0 0 65535 3000 1 1, Seen PAT, seen_pat 1 1 0 1 0 1 1, Matching PAT, matching_pat 0 1 0 1 0 1 1, Seen MGT, seen_mgt 1 1 0 1 0 1 1, Matching MGT, matching_mgt 1 1 0 1 0 1 1, Seen VCT, seen_vct 0 1 0 1 0 1 1, Matching VCT, matching_vct 0 1 0 1 0 1 1, Signal To Noise, snr 0 0 0 65535 0 1 1, Bit Error Rate, ber 0 65535 0 65535 0 0 1, Uncorrected Blocks, ucb 0 65535 0 65535 0 0 1))
+2016-11-14T08:40:37.091 UnknownEvent(SIGNAL,WrappedArray(SIGNAL 4, Script Status, script 3 3 0 3 0 1 1, Signal Lock, slock 1 1 0 1 3000 1 1, Signal Power, signal 0 0 0 65535 3000 1 1, Seen PAT, seen_pat 1 1 0 1 0 1 1, Matching PAT, matching_pat 1 1 0 1 0 1 1, Seen PMT, seen_pmt 0 1 0 1 0 1 1, Matching PMT, matching_pmt 0 1 0 1 0 1 1, Seen MGT, seen_mgt 1 1 0 1 0 1 1, Matching MGT, matching_mgt 1 1 0 1 0 1 1, Seen VCT, seen_vct 1 1 0 1 0 1 1, Matching VCT, matching_vct 1 1 0 1 0 1 1, Signal To Noise, snr 0 0 0 65535 0 1 1, Bit Error Rate, ber 0 65535 0 65535 0 0 1, Uncorrected Blocks, ucb 0 65535 0 65535 0 0 1))
+2016-11-14T08:40:37.141 UnknownEvent(SIGNAL,WrappedArray(SIGNAL 4, Script Status, script 3 3 0 3 0 1 1, Signal Lock, slock 1 1 0 1 3000 1 1, Signal Power, signal 0 0 0 65535 3000 1 1, Seen PAT, seen_pat 1 1 0 1 0 1 1, Matching PAT, matching_pat 1 1 0 1 0 1 1, Seen PMT, seen_pmt 1 1 0 1 0 1 1, Matching PMT, matching_pmt 1 1 0 1 0 1 1, Seen MGT, seen_mgt 1 1 0 1 0 1 1, Matching MGT, matching_mgt 1 1 0 1 0 1 1, Seen VCT, seen_vct 1 1 0 1 0 1 1, Matching VCT, matching_vct 1 1 0 1 0 1 1, Signal To Noise, snr 0 0 0 65535 0 1 1, Bit Error Rate, ber 0 65535 0 65535 0 0 1, Uncorrected Blocks, ucb 0 65535 0 65535 0 0 1))
+2016-11-14T08:40:37.191 UnknownEvent(SIGNAL,WrappedArray(SIGNAL 4, Script Status, script 3 3 0 3 0 1 1, Signal Lock, slock 1 1 0 1 3000 1 1, Signal Power, signal 0 0 0 65535 3000 1 1, Seen PAT, seen_pat 1 1 0 1 0 1 1, Matching PAT, matching_pat 1 1 0 1 0 1 1, Seen PMT, seen_pmt 1 1 0 1 0 1 1, Matching PMT, matching_pmt 1 1 0 1 0 1 1, Seen MGT, seen_mgt 1 1 0 1 0 1 1, Matching MGT, matching_mgt 1 1 0 1 0 1 1, Seen VCT, seen_vct 1 1 0 1 0 1 1, Matching VCT, matching_vct 1 1 0 1 0 1 1, Signal To Noise, snr 0 0 0 65535 0 1 1, Bit Error Rate, ber 0 65535 0 65535 0 0 1, Uncorrected Blocks, ucb 0 65535 0 65535 0 0 1))
+
+2016-11-14T08:40:37.195 UnknownEvent(LIVETV_CHAIN,WrappedArray(LIVETV_CHAIN UPDATE live-mythtest-atom-2016-11-14T16:40:33Z, 1, 1391, 2016-11-14T16:40:39Z, 2016-11-14T16:40:39Z, 0, myth://192.168.1.123:6543/, DUMMY, 39-1, DVBInput))
+
+2016-11-14T08:40:37.260 UnknownEvent(LIVETV_CHAIN,WrappedArray(LIVETV_CHAIN UPDATE live-mythtest-atom-2016-11-14T16:40:33Z, 2, 1391, 2016-11-14T16:40:39Z, 2016-11-14T16:40:39Z, 0, myth://192.168.1.123:6543/, DUMMY, 39-1, DVBInput, 1391, 2016-11-14T16:40:40Z, 2016-11-14T17:00:00Z, 1, myth://192.168.1.123:6543/, DVB, 39-1, DVBInput))
+
+2016-11-14T08:42:39.211 UnknownEvent(LIVETV_CHAIN,WrappedArray(LIVETV_CHAIN UPDATE live-mythtest-atom-2016-11-14T16:40:33Z, 2, 1391, 2016-11-14T16:40:40Z, 2016-11-14T17:00:00Z, 1, myth://192.168.1.123:6543/, DVB, 39-1, DVBInput))
+
  */
