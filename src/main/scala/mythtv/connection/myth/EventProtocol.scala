@@ -141,7 +141,7 @@ private class EventParserImpl extends EventParser {
   }
 
   def parseRecordingListChange(name: String, split: Array[String]): Event = {
-    split(1).substring(name.length + 1) match {
+    split(1).substring(name.length + 1).takeWhile(_ != ' ') match {
       case "ADD" =>
         val parts = split(1).substring(name.length + 4).split(' ')
         RecordingListAddEvent(ChanId(parts(0).toInt), MythDateTime.fromIso(parts(1)))
