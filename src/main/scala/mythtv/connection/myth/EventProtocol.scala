@@ -4,8 +4,9 @@ package myth
 
 import java.time.Instant
 
-import model.{ CaptureCardId, ChanId, Program, Recordable, Recording, VideoId }
+import model.{ CaptureCardId, ChanId, LiveTvChain, LiveTvChainId, Program, Recordable, Recording, VideoId }
 import util.{ ByteCount, DecimalByteCount, MythDateTime }
+import data.BackendLiveTvChain
 
 sealed trait Event
 
@@ -22,6 +23,7 @@ object Event {
   case class  GeneratedPixmapEvent() extends Event  // TODO parameters
   case class  GeneratedPixmapFailEvent() extends Event // TODO parameters
   case class  HousekeeperRunningEvent(hostName: String, tag: String, lastRunTime: Instant) extends Event
+  case class  LiveTvChainUpdateEvent(chainId: LiveTvChainId, maxPos: Int, chain: List[LiveTvChain]) extends Event
   case class  RecordingListAddEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
   case class  RecordingListDeleteEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
   case class  RecordingListUpdateEvent(program: Program) extends Event
@@ -40,6 +42,7 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
   import Event._
 
   protected implicit val programInfoSerializer = ProgramInfoSerializerGeneric
+  protected implicit val liveTvChainSerializer = LiveTvChainSerializerGeneric
 
   private val SystemEventPattern = """SYSTEM_EVENT ([^ ]*) (?:(.*) )?SENDER (.*)""".r
 
@@ -57,6 +60,7 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
       case "FILE_WRITTEN"          => parseFileWritten(name, split)
       case "GENERATED_PIXMAP"      => parseGeneratedPixmap(name, split)
       case "HOUSE_KEEPER_RUNNING"  => parseHousekeeperRunning(name, split)
+      case "LIVETV_CHAIN"          => parseLiveTvChain(name, split)
       case "RECORDING_LIST_CHANGE" => parseRecordingListChange(name, split)
       case "SCHEDULE_CHANGE"       => ScheduleChangeEvent
       case "UPDATE_FILE_SIZE"      => parseUpdateFileSize(name, split)
@@ -138,6 +142,18 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
   def parseHousekeeperRunning(name: String, split: Array[String]): Event = {
     val parts = split(1).split(' ')
     HousekeeperRunningEvent(parts(1), parts(2), deserialize[Instant](parts(3)))
+  }
+
+  def parseLiveTvChain(name: String, split: Array[String]): Event = {
+    val parts = split(1).split(' ')
+    val chainId = deserialize[LiveTvChainId](parts(2))
+    val maxPos = deserialize[Int](split(2))
+
+    val fieldCount = BackendLiveTvChain.FIELD_ORDER.length - 1
+    val it = split.iterator drop 2 grouped fieldCount withPartial false map (chainId.id +: _)
+    val chain = it map deserialize[LiveTvChain]
+
+    LiveTvChainUpdateEvent(chainId, maxPos, chain.toList)
   }
 
   def parseRecordingListChange(name: String, split: Array[String]): Event = {
