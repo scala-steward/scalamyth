@@ -18,10 +18,10 @@ private class DownloadFileTransferChannel(
     override def handle(event: BackendEvent): Unit = event.parse match {
       case Event.DownloadFileUpdateEvent(url, fileName, received, total) =>
         // TODO verify that the url/filename matches the file we're downloading
-        currentSize = received  // TODO is this the update we want?
+        currentSize = received.bytes // TODO is this the update we want?
       case Event.DownloadFileFinished(url, fileName, fileSize, err, errCode) =>
         // TODO verify that the url/filename matches the file we're downloading
-        currentSize = fileSize
+        currentSize = fileSize.bytes
         // TODO initiate finalization of this object/mark as completed?
       case _ => ()
     }

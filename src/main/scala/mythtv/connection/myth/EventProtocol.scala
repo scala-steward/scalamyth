@@ -5,12 +5,10 @@ package myth
 import java.time.Instant
 
 import model.{ CaptureCardId, ChanId, Program, Recordable, VideoId }
-import util.MythDateTime
+import util.{ ByteCount, DecimalByteCount, MythDateTime }
 import data.BackendProgram
 
 sealed trait Event
-
-// TODO change some parameter types to ByteCount ?
 
 object Event {
   case class  SystemEvent(name: String, data: String, sender: String) extends Event
@@ -18,10 +16,10 @@ object Event {
   case class  CommflagRequestEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
   case class  CommflagStartEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
   case class  DoneRecordingEvent(cardId: CaptureCardId, secondsSinceStart: Int, framesWritten: Long) extends Event
-  case class  DownloadFileFinished(url: String, fileName: String, fileSize: Long, errString: String, errCode: Int) extends Event
-  case class  DownloadFileUpdateEvent(url: String, fileName: String, bytesReceived: Long, bytesTotal: Long) extends Event
+  case class  DownloadFileFinished(url: String, fileName: String, fileSize: ByteCount, errString: String, errCode: Int) extends Event
+  case class  DownloadFileUpdateEvent(url: String, fileName: String, bytesReceived: ByteCount, bytesTotal: ByteCount) extends Event
   case class  FileClosedEvent(fileName: String) extends Event
-  case class  FileWrittenEvent(fileName: String, fileSize: Long) extends Event
+  case class  FileWrittenEvent(fileName: String, fileSize: ByteCount) extends Event
   case class  GeneratedPixmapEvent() extends Event  // TODO parameters
   case class  GeneratedPixmapFailEvent() extends Event // TODO parameters
   case class  HousekeeperRunningEvent(hostName: String, tag: String, lastRunTime: Instant) extends Event
@@ -106,8 +104,19 @@ private class EventParserImpl extends EventParser {
 
   def parseDownloadFile(name: String, split: Array[String]): Event = {
     split(1).substring(name.length + 1) match {
-      case "FINISHED" => DownloadFileFinished(split(2), split(3), split(4).toLong, split(5), split(6).toInt) // TODO last param may be empty, not convertible to int?
-      case "UPDATE" => DownloadFileUpdateEvent(split(2), split(3), split(4).toLong, split(5).toLong)
+      case "FINISHED" => DownloadFileFinished(
+        split(2),
+        split(3),
+        DecimalByteCount(split(4).toLong)
+        split(5),
+        split(6).toInt     // TODO last param may be empty, not convertible to int?
+      )
+      case "UPDATE" => DownloadFileUpdateEvent(
+        split(2),
+        split(3),
+        DecimalByteCount(split(4).toLong),
+        DecimalByteCount(split(5).toLong)
+      )
       case _ => unknownEvent(name, split)
     }
   }
@@ -119,7 +128,7 @@ private class EventParserImpl extends EventParser {
 
   def parseFileWritten(name: String, split: Array[String]): Event = {
     val parts = split(1).split(' ')
-    FileWrittenEvent(parts(1), parts(2).toLong)
+    FileWrittenEvent(parts(1), DecimalByteCount(parts(2).toLong))
   }
 
   def parseGeneratedPixmap(name: String, split: Array[String]): Event = {
