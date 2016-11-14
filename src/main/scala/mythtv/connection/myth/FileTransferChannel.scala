@@ -8,8 +8,10 @@ import java.nio.channels.{ NonReadableChannelException, NonWritableChannelExcept
 
 import EnumTypes.SeekWhence
 
-class FileTransferChannel private[myth](controlChannel: MythFileTransferAPI, dataChannel: FileTransferConnection)
-  extends FileTransfer with Seekable with SeekableByteChannel {
+trait FileTransferChannel extends SeekableByteChannel with Seekable with FileTransfer
+
+private class FileTransferChannelImpl(controlChannel: MythFileTransferAPI, dataChannel: FileTransferConnection)
+  extends FileTransferChannel {
   // A file transfer requires two (optionally three) channels:
   //   - control channel  (BackendConnection or BackendAPIConnection)
   //   - data channel     (FileTransferConnection)
@@ -136,6 +138,6 @@ object FileTransferChannel {  // TODO this doesn't specify read/write mode
   def apply(controlChannel: BackendAPIConnection, fileName: String, storageGroup: String): FileTransferChannel = {
     val dataChannel = FileTransferConnection(controlChannel.host, fileName, storageGroup, port = controlChannel.port)
     val fto = MythFileTransferObject(controlChannel, dataChannel)
-    new FileTransferChannel(fto, dataChannel)
+    new FileTransferChannelImpl(fto, dataChannel)
   }
 }

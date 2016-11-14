@@ -5,20 +5,31 @@ package myth
 import model.{ ChanId, Recording }
 import util.MythDateTime
 
-// TODO only use this (recording in progress) file channel if we have called
+trait RecordingTransferChannel extends FileTransferChannel {
+  def recording: Recording
+  def isRecordingInProgress: Boolean
+}
+
+// Only use this (recording in progress) file channel if we have called
 // api.checkRecording(Recording) to verify that the recording is still in progress.
-// Otherwise use a CompletedRecordingFileTransferChannel.  Don't expose these
-// differences to clients; hide behind a RecordingFileTransferChannel trait.
+
+// Otherwise use a CompletedRecordingTransferChannel.  Don't expose these
+// differences to clients; hide behind a RecordingTransferChannel trait.
 
 // TODO: also listen for DoneRecording/FileClosed event
 // TODO: listen for RecordingListUpdate event to update our copy of Recording object??
 
-class RecordingFileTransferChannel private[myth](
+private class InProgressRecordingTransferChannel(
   controlChannel: MythFileTransferAPI,
   dataChannel: FileTransferConnection,
   eventChannel: EventConnection,
-  recording: Recording
-) extends EventingFileTransferChannel(controlChannel, dataChannel, eventChannel) {
+  rec: Recording
+) extends EventingFileTransferChannel(controlChannel, dataChannel, eventChannel)
+     with RecordingTransferChannel {
+
+  override def recording: Recording = rec
+
+  override def isRecordingInProgress = true // TODO not always true! just until we hear otherwise
 
   override def listener: EventListener = updateListener
 
@@ -36,10 +47,25 @@ class RecordingFileTransferChannel private[myth](
   }
 }
 
-object RecordingFileTransferChannel {
+private class CompletedRecordingTransferChannel(
+  controlChannel: MythFileTransferAPI,
+  dataChannel: FileTransferConnection,
+  rec: Recording
+) extends FileTransferChannelImpl(controlChannel, dataChannel)
+     with RecordingTransferChannel {
+  override def recording: Recording = rec
+  override def isRecordingInProgress = false
+}
+
+object RecordingTransferChannel {
   // TODO: method that takes a hostname vs control channel?
-  def apply(api: BackendAPIConnection, chanId: ChanId, recStartTs: MythDateTime): RecordingFileTransferChannel = {
+
+  def apply(api: BackendAPIConnection, chanId: ChanId, recStartTs: MythDateTime): RecordingTransferChannel = {
     val rec = api.queryRecording(chanId, recStartTs)   // TODO check for failure/not found
+    apply(api, rec)
+  }
+
+  def apply(api: BackendAPIConnection, rec: Recording): RecordingTransferChannel = {
     val inProgress = api.checkRecording(rec)
 
     // TODO who is managing these opened connections??  Also, we have no re-use...
@@ -48,10 +74,20 @@ object RecordingFileTransferChannel {
       if (rec.hostname == api.host) api
       else BackendAPIConnection(rec.hostname)
 
-    val dataChannel = FileTransferConnection(controlChannel.host, rec.filename, rec.storageGroup, port = controlChannel.port)
-    val eventChannel = EventConnection(controlChannel.host, controlChannel.port)
+    val dataChannel = FileTransferConnection(
+      controlChannel.host,
+      rec.filename,
+      rec.storageGroup,
+      port = controlChannel.port
+    )
 
     val fto = MythFileTransferObject(controlChannel, dataChannel)
-    new RecordingFileTransferChannel(fto, dataChannel, eventChannel, rec)
+
+    if (inProgress) {
+      val eventChannel = EventConnection(controlChannel.host, controlChannel.port)
+      new InProgressRecordingTransferChannel(fto, dataChannel, eventChannel, rec)
+    } else {
+      new CompletedRecordingTransferChannel(fto, dataChannel, rec)
+    }
   }
 }

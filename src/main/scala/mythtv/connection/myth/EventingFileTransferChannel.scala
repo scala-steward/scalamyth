@@ -2,11 +2,11 @@ package mythtv
 package connection
 package myth
 
-abstract class EventingFileTransferChannel(
+private abstract class EventingFileTransferChannel(
   controlChannel: MythFileTransferAPI,
   dataChannel: FileTransferConnection,
   eventChannel: EventConnection
-) extends FileTransferChannel(controlChannel, dataChannel) {
+) extends FileTransferChannelImpl(controlChannel, dataChannel) {
 
   eventChannel.addListener(listener)
 
