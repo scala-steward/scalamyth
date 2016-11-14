@@ -4,9 +4,8 @@ package myth
 
 import java.time.Instant
 
-import model.{ CaptureCardId, ChanId, Program, Recordable, VideoId }
+import model.{ CaptureCardId, ChanId, Program, Recordable, Recording, VideoId }
 import util.{ ByteCount, DecimalByteCount, MythDateTime }
-import data.BackendProgram
 
 sealed trait Event
 
@@ -37,8 +36,10 @@ trait EventParser {
   def parse(rawEvent: BackendEvent): Event
 }
 
-private class EventParserImpl extends EventParser {
+private class EventParserImpl extends EventParser with MythProtocolSerializer {
   import Event._
+
+  protected implicit val programInfoSerializer = ProgramInfoSerializerGeneric
 
   private val SystemEventPattern = """SYSTEM_EVENT ([^ ]*) (?:(.*) )?SENDER (.*)""".r
 
@@ -75,31 +76,30 @@ private class EventParserImpl extends EventParser {
 
   def parseAskRecording(name: String, split: Array[String]): Event = {
     val parts = split(1).split(' ')
-    val rec = BackendProgram(split.drop(2))
     AskRecordingEvent(
-      CaptureCardId(parts(1).toInt),
-      parts(2).toInt,
-      parts(3).toInt != 0,
-      parts(4).toInt != 0,
-      rec
+      deserialize[CaptureCardId](parts(1)),
+      deserialize[Int](parts(2)),
+      deserialize[Boolean](parts(3)),
+      deserialize[Boolean](parts(4)),
+      deserialize[Recording](split.drop(2))
     )
   }
 
   def parseCommflagRequest(name: String, split: Array[String]): Event = {
     val parts = split(1).split(' ')
     val tokenSplit = parts(1).split('_')
-    CommflagRequestEvent(ChanId(tokenSplit(0).toInt), MythDateTime.fromIso(tokenSplit(1)))
+    CommflagRequestEvent(deserialize[ChanId](tokenSplit(0)), MythDateTime(deserialize[Instant](tokenSplit(1))))
   }
 
   def parseCommflagStart(name: String, split: Array[String]): Event = {
     val parts = split(1).split(' ')
     val tokenSplit = parts(1).split('_')
-    CommflagStartEvent(ChanId(tokenSplit(0).toInt), MythDateTime.fromIso(tokenSplit(1)))
+    CommflagStartEvent(deserialize[ChanId](tokenSplit(0)), MythDateTime(deserialize[Instant](tokenSplit(1))))
   }
 
   def parseDoneRecording(name: String, split: Array[String]): Event = {
     val parts = split(1).split(' ')
-    DoneRecordingEvent(CaptureCardId(parts(1).toInt), parts(2).toInt, parts(3).toLong)
+    DoneRecordingEvent(deserialize[CaptureCardId](parts(1)), deserialize[Int](parts(2)), deserialize[Long](parts(3)))
   }
 
   def parseDownloadFile(name: String, split: Array[String]): Event = {
@@ -107,15 +107,15 @@ private class EventParserImpl extends EventParser {
       case "FINISHED" => DownloadFileFinished(
         split(2),
         split(3),
-        DecimalByteCount(split(4).toLong)
+        DecimalByteCount(deserialize[Long](split(4))),
         split(5),
-        split(6).toInt     // TODO last param may be empty, not convertible to int?
+        deserialize[Int](split(6))     // TODO last param may be empty, not convertible to int?
       )
       case "UPDATE" => DownloadFileUpdateEvent(
         split(2),
         split(3),
-        DecimalByteCount(split(4).toLong),
-        DecimalByteCount(split(5).toLong)
+        DecimalByteCount(deserialize[Long](split(4))),
+        DecimalByteCount(deserialize[Long](split(5)))
       )
       case _ => unknownEvent(name, split)
     }
@@ -128,7 +128,7 @@ private class EventParserImpl extends EventParser {
 
   def parseFileWritten(name: String, split: Array[String]): Event = {
     val parts = split(1).split(' ')
-    FileWrittenEvent(parts(1), DecimalByteCount(parts(2).toLong))
+    FileWrittenEvent(parts(1), DecimalByteCount(deserialize[Long](parts(2))))
   }
 
   def parseGeneratedPixmap(name: String, split: Array[String]): Event = {
@@ -137,26 +137,30 @@ private class EventParserImpl extends EventParser {
 
   def parseHousekeeperRunning(name: String, split: Array[String]): Event = {
     val parts = split(1).split(' ')
-    HousekeeperRunningEvent(parts(1), parts(2), MythDateTime.fromIso(parts(3)).toInstant)
+    HousekeeperRunningEvent(parts(1), parts(2), deserialize[Instant](parts(3)))
   }
 
   def parseRecordingListChange(name: String, split: Array[String]): Event = {
     split(1).substring(name.length + 1).takeWhile(_ != ' ') match {
       case "ADD" =>
-        val parts = split(1).substring(name.length + 4).split(' ')
-        RecordingListAddEvent(ChanId(parts(0).toInt), MythDateTime.fromIso(parts(1)))
+        val parts = split(1).substring(name.length + 5).split(' ')
+        RecordingListAddEvent(deserialize[ChanId](parts(0)), MythDateTime(deserialize[Instant](parts(1))))
       case "DELETE" =>
-        val parts = split(1).substring(name.length + 7).split(' ')
-        RecordingListDeleteEvent(ChanId(parts(0).toInt), MythDateTime.fromIso(parts(1)))
+        val parts = split(1).substring(name.length + 8).split(' ')
+        RecordingListDeleteEvent(deserialize[ChanId](parts(0)), MythDateTime(deserialize[Instant](parts(1))))
       case "UPDATE" =>
-        RecordingListUpdateEvent(BackendProgram(split.drop(2)))
+        RecordingListUpdateEvent(deserialize[Recording](split.drop(2)))
       case _ => unknownEvent(name, split)
     }
   }
 
   def parseUpdateFileSize(name: String, split: Array[String]): Event = {
     val parts = split(1).split(' ')
-    UpdateFileSizeEvent(ChanId(parts(1).toInt), MythDateTime.fromIso(parts(2)), parts(3).toLong)
+    UpdateFileSizeEvent(
+      deserialize[ChanId](parts(1)),
+      MythDateTime(deserialize[Instant](parts(2))),
+      deserialize[Long](parts(3))
+    )
   }
 
   def parseVideoListChange(name: String, split: Array[String]): Event = {
