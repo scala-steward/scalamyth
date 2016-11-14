@@ -112,7 +112,7 @@ private class EventConnection75(host: String, port: Int, eventMode: MythProtocol
  extends AbstractEventConnection(host, port, eventMode)
     with MythProtocol75
     with AnnouncingConnection {
-  private[this] val eventParser = new EventParser
+  private[this] val eventParser = new EventParserImpl
 
   override protected def newEvent(eventString: String): BackendEvent = {
     val parser = eventParser
@@ -132,7 +132,7 @@ private class EventConnection77(host: String, port: Int, eventMode: MythProtocol
  extends AbstractEventConnection(host, port, eventMode)
     with MythProtocol77
     with AnnouncingConnection {
-  private[this] val eventParser = new EventParser
+  private[this] val eventParser = new EventParserImpl
 
   override protected def newEvent(eventString: String): BackendEvent = {
     val parser = eventParser

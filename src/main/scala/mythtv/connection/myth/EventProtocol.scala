@@ -35,7 +35,11 @@ object Event {
   case class  UnknownEvent(name: String, body: String*) extends Event
 }
 
-class EventParser {
+trait EventParser {
+  def parse(rawEvent: BackendEvent): Event
+}
+
+private class EventParserImpl extends EventParser {
   import Event._
 
   private val SystemEventPattern = """SYSTEM_EVENT ([^ ]*) (?:(.*) )?SENDER (.*)""".r
