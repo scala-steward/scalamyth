@@ -95,6 +95,11 @@ object MythProtocolSerializable {
     override def serialize(in: ListingSourceId, builder: StringBuilder): StringBuilder = builder.append(in.id)
   }
 
+  implicit object LiveTvChainIdSerializer extends MythProtocolSerializable[LiveTvChainId] {
+    def deserialize(in: String): LiveTvChainId = LiveTvChainId(in)
+    def serialize(in: LiveTvChainId): String = in.id
+  }
+
   implicit object MultiplexIdSerializer extends MythProtocolSerializable[MultiplexId] {
     def deserialize(in: String): MultiplexId = MultiplexId(in.toInt)
     def serialize(in: MultiplexId): String = in.id.toString
@@ -311,6 +316,12 @@ private object CardInputSerializerGeneric
 private object ChannelSerializerGeneric
   extends GenericBackendObjectSerializer[Channel, BackendChannelFactory, ChannelOtherSerializer] {
   def newFactory = BackendChannel
+  def otherSerializer = ???
+}
+
+private object LiveTvChainSerializerGeneric
+  extends GenericBackendObjectSerializer[LiveTvChain, BackendLiveTvChainFactory, LiveTvChainOtherSerializer] {
+  def newFactory = BackendLiveTvChain
   def otherSerializer = ???
 }
 
