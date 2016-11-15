@@ -4,14 +4,18 @@ package myth
 
 import java.time.Instant
 
-import model.{ CaptureCardId, ChanId, LiveTvChain, LiveTvChainId, Program, Recordable, Recording, VideoId }
+import model._
+import model.EnumTypes.RecStatus
 import util.{ ByteCount, DecimalByteCount, MythDateTime }
 import data.BackendLiveTvChain
 
 sealed trait Event
 
+sealed trait SystemEvent extends Event {
+  def sender: String
+}
+
 object Event {
-  case class  SystemEvent(name: String, data: String, sender: String) extends Event
   case class  AskRecordingEvent(cardId: CaptureCardId, timeUntil: Int, hasRec: Boolean, hasLaterShowing: Boolean, rec: Recordable) extends Event
   case class  CommflagRequestEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
   case class  CommflagStartEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
@@ -34,12 +38,48 @@ object Event {
   case class  UnknownEvent(name: String, body: String*) extends Event
 }
 
+object SystemEvent {
+  case class AirPlayDeleteConnectionEvent(sender: String) extends SystemEvent
+  case class AirPlayNewConnectionEvent(sender: String) extends SystemEvent
+  case class AirTunesDeleteConnectionEvent(sender: String) extends SystemEvent
+  case class AirTunesNewConnectionEvent(sender: String) extends SystemEvent
+  case class ClientConnectedEvent(hostName: String, sender: String) extends SystemEvent
+  case class ClientDisconnectedEvent(hostName: String, sender: String) extends SystemEvent
+  case class LiveTvStartedEvent(sender: String) extends SystemEvent
+  case class MasterShutdownEvent(sender: String) extends SystemEvent
+  case class MasterStartedEvent(sender: String) extends SystemEvent
+  case class MythfilldatabaseRanEvent(sender: String) extends SystemEvent
+  case class NetControlConnectedEvent(sender: String) extends SystemEvent
+  case class NetControlDisconnectedEvent(sender: String) extends SystemEvent
+  case class PlayChangedEvent(hostName: String, chanId: ChanId, startTime: MythDateTime, sender: String) extends SystemEvent
+  case class PlayPausedEvent(hostName: String, chanId: ChanId, startTime: MythDateTime, sender: String) extends SystemEvent
+  case class PlayStartedEvent(hostName: String, chanId: ChanId, startTime: MythDateTime, sender: String) extends SystemEvent
+  case class PlayStoppedEvent(hostName: String, chanId: ChanId, startTime: MythDateTime, sender: String) extends SystemEvent  // TODO may not have any parameters sometimes
+  case class PlayUnpausedEvent(hostName: String, chanId: ChanId, startTime: MythDateTime, sender: String) extends SystemEvent
+  case class RecordingDeletedEvent(chanId: ChanId, startTime: MythDateTime, sender: String) extends SystemEvent
+  case class RecordingExpiredEvent(hostName: String, chanId: ChanId, startTime: MythDateTime, sender: String) extends SystemEvent
+  case class RecordingFinishedEvent(cardId: CaptureCardId, chanId: ChanId, startTime: MythDateTime, status: RecStatus, sender: String) extends SystemEvent
+  case class RecordingStartedEvent(cardId: CaptureCardId, chanId: ChanId, startTime: MythDateTime, status: RecStatus, sender: String) extends SystemEvent
+  case class RecordingStartedWritingEvent(cardId: CaptureCardId, chanId: ChanId, startTime: MythDateTime, status: RecStatus, sender: String) extends SystemEvent
+  case class RecordPendingEvent(secondsUntilStart: Int, cardId: CaptureCardId, chanId: ChanId, startTime: MythDateTime, status: RecStatus, sender: String) extends SystemEvent
+  case class SchedulerRanEvent(sender: String) extends SystemEvent
+  case class ScreenCreatedEvent(screenType: String, sender: String) extends SystemEvent
+  case class ScreenDestroyedEvent(screenType: String, sender: String) extends SystemEvent
+  case class SettingsCacheClearedEvent(sender: String) extends SystemEvent
+  case class SlaveConnectedEvent(hostName: String, sender: String) extends SystemEvent
+  case class SlaveDisconnectedEvent(hostName: String, sender: String) extends SystemEvent
+  case class ThemeInstalledEvent(path: String, sender: String) extends SystemEvent
+  case class TuningSignalTimeoutEvent(cardId: CaptureCardId, sender: String) extends SystemEvent
+  case class UnknownSystemEvent(name: String, data: String, sender: String) extends SystemEvent
+}
+
 trait EventParser {
   def parse(rawEvent: BackendEvent): Event
 }
 
 private class EventParserImpl extends EventParser with MythProtocolSerializer {
   import Event._
+  import SystemEvent._
 
   protected implicit val programInfoSerializer = ProgramInfoSerializerGeneric
   protected implicit val liveTvChainSerializer = LiveTvChainSerializerGeneric
@@ -73,7 +113,7 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
   def parseSystemEvent(name: String, split: Array[String]): Event = {
     split(1) match {
       case SystemEventPattern(evt, body, sender) =>
-        SystemEvent(evt, if (body eq null) "" else body, sender)
+        UnknownSystemEvent(evt, if (body eq null) "" else body, sender)
       case _ => unknownEvent(name, split)
     }
   }
@@ -340,6 +380,7 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
  *   AIRTUNES_NEW_CONNECTION
  *   CLIENT_CONNECTED HOSTNAME %1
  *   CLIENT_DISCONNECTED HOSTNAME %1
+ *   KEY_*                             // ???
  *   LIVETV_STARTED
  *   MASTER_SHUTDOWN
  *   MASTER_STARTED
@@ -360,6 +401,7 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
  *   SCHEDULER_RAN
  *   SCREEN_TYPE CREATED %1
  *   SCREEN_TYPE DESTROYED %1
+ *   SETTINGS_CACHE_CLEARED
  *   SLAVE_CONNECTED HOSTNAME %1
  *   SLAVE_DISCONNECTED HOSTNAME %1
  *   THEME_INSTALLED PATH %1
