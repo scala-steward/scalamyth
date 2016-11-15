@@ -20,7 +20,7 @@ object Event {
   case class  CommflagRequestEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
   case class  CommflagStartEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
   case class  DoneRecordingEvent(cardId: CaptureCardId, secondsSinceStart: Int, framesWritten: Long) extends Event
-  case class  DownloadFileFinished(url: String, fileName: String, fileSize: ByteCount, errString: String, errCode: Int) extends Event
+  case class  DownloadFileFinishedEvent(url: String, fileName: String, fileSize: ByteCount, errString: String, errCode: Int) extends Event
   case class  DownloadFileUpdateEvent(url: String, fileName: String, bytesReceived: ByteCount, bytesTotal: ByteCount) extends Event
   case class  FileClosedEvent(fileName: String) extends Event
   case class  FileWrittenEvent(fileName: String, fileSize: ByteCount) extends Event
@@ -74,7 +74,7 @@ object SystemEvent {
 }
 
 trait EventParser {
-  def parse(rawEvent: BackendEvent): Event
+  def parse(rawEvent: BackendEventResponse): Event
 }
 
 private class EventParserImpl extends EventParser with MythProtocolSerializer {
@@ -86,7 +86,7 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
 
   private val SystemEventPattern = """SYSTEM_EVENT ([^ ]*) (?:(.*) )?SENDER (.*)""".r
 
-  def parse(rawEvent: BackendEvent): Event = {
+  def parse(rawEvent: BackendEventResponse): Event = {
     val split = rawEvent.split
     val name = split(1).takeWhile(_ != ' ')
     name match {
@@ -148,7 +148,7 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
 
   def parseDownloadFile(name: String, split: Array[String]): Event = {
     split(1).substring(name.length + 1) match {
-      case "FINISHED" => DownloadFileFinished(
+      case "FINISHED" => DownloadFileFinishedEvent(
         split(2),
         split(3),
         DecimalByteCount(deserialize[Long](split(4))),

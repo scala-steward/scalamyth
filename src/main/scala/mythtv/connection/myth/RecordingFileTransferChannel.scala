@@ -36,9 +36,12 @@ private class InProgressRecordingTransferChannel(
   // TODO block read if the recording is still in progress but we hit EOF? (wait for the event to arrive...)
 
   private[this] lazy val updateListener = new EventListener {
-    override def listenFor(event: BackendEvent): Boolean = event.isEventName("UPDATE_FILE_SIZE")
+    override def listenFor(event: Event): Boolean = event match {
+      case e: Event.UpdateFileSizeEvent => true
+      case _ => false
+    }
 
-    override def handle(event: BackendEvent): Unit = event.parse match {
+    override def handle(event: Event): Unit = event match {
       case Event.UpdateFileSizeEvent(chanId, startTime, newSize) =>
         if (chanId == recording.chanId && startTime == recording.startTime)
           currentSize = newSize.bytes

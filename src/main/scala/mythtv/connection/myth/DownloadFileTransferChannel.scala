@@ -10,16 +10,22 @@ private class DownloadFileTransferChannel(
   eventChannel: EventConnection
 ) extends EventingFileTransferChannel(controlChannel, dataChannel, eventChannel) {
 
+  import Event.{ DownloadFileFinishedEvent, DownloadFileUpdateEvent }
+
   override protected def listener: EventListener = downloadListener
 
   private[this] lazy val downloadListener = new EventListener {
-    override def listenFor(event: BackendEvent): Boolean = event.isEventName("DOWNLOAD_FILE")
+    override def listenFor(event: Event): Boolean = event match {
+      case e: DownloadFileUpdateEvent => true
+      case e: DownloadFileFinishedEvent => true
+      case _ => false
+    }
 
-    override def handle(event: BackendEvent): Unit = event.parse match {
-      case Event.DownloadFileUpdateEvent(url, fileName, received, total) =>
+    override def handle(event: Event): Unit = event match {
+      case DownloadFileUpdateEvent(url, fileName, received, total) =>
         // TODO verify that the url/filename matches the file we're downloading
         currentSize = received.bytes // TODO is this the update we want?
-      case Event.DownloadFileFinished(url, fileName, fileSize, err, errCode) =>
+      case DownloadFileFinishedEvent(url, fileName, fileSize, err, errCode) =>
         // TODO verify that the url/filename matches the file we're downloading
         currentSize = fileSize.bytes
         // TODO initiate finalization of this object/mark as completed?

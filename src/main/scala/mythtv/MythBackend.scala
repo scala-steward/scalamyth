@@ -3,7 +3,7 @@ package mythtv
 import java.time.Duration
 
 import model._
-import connection.myth.{ BackendAPIConnection, EventConnection, EventLock }
+import connection.myth.{ BackendAPIConnection, Event, EventConnection, EventLock }
 import util.{ ByteCount, ExpectedCountIterator, MythDateTime, MythFileHash }
 
 class MythBackend(val host: String) extends Backend with BackendOperations {
@@ -48,7 +48,7 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
 
   def reschedule(recordId: Option[RecordRuleId], wait: Boolean): Unit = {
     val lock =
-      if (wait) EventLock(eventConnection, ev => ev.isEventName("SCHEDULE_CHANGE")) // TODO more precise event filter
+      if (wait) EventLock(eventConnection, _ == Event.ScheduleChangeEvent)
       else EventLock.empty
     if (recordId.isEmpty) conn.rescheduleRecordingsCheck(programId = "**any**")
     else conn.rescheduleRecordingsMatch(recordId = recordId.get)
@@ -107,10 +107,14 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
     import connection.myth.Event.{ VideoListChangeEvent, VideoListNoChangeEvent }
 
     if (conn.scanVideos) {
-      val lock = EventLock(eventConnection, ev => ev.isEventName("VIDEO_LIST_")) // TODO filter criteria too broad
+      val lock = EventLock(eventConnection, {
+        case e: VideoListChangeEvent => true
+        case VideoListNoChangeEvent => true
+        case _ => false
+      })
       lock.waitFor()
 
-      lock.event.get.parse match {
+      lock.event.get match {
         case VideoListChangeEvent(changeMap) => changeMap
         case VideoListNoChangeEvent => Map.empty
         case _ => Map.empty  // unexpected event

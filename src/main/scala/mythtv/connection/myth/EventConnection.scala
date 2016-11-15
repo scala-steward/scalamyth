@@ -7,15 +7,15 @@ import java.net.SocketException
 import util.NetworkUtil
 import EnumTypes.MythProtocolEventMode
 
-trait BackendEvent extends Any with BackendResponse {
+trait BackendEventResponse extends Any with BackendResponse {
   def isSystemEvent: Boolean = raw.startsWith("SYSTEM_EVENT", 20)
   def isEventName(name: String): Boolean = raw.startsWith(name, 20)
   def parse: Event
 }
 
 trait EventListener {
-  def listenFor(event: BackendEvent): Boolean
-  def handle(event: BackendEvent): Unit
+  def listenFor(event: Event): Boolean
+  def handle(event: Event): Unit
 }
 
 trait EventConnection extends SocketConnection { /* with EventProtocol ?? */
@@ -65,10 +65,10 @@ private abstract class AbstractEventConnection(
     synchronized { listenerSet = listenerSet - listener }
   }
 
-  protected def newEvent(eventString: String): BackendEvent
+  protected def newEventResponse(eventString: String): BackendEventResponse
 
   // blocking read to wait for the next event
-  protected def readEvent(): BackendEvent = newEvent(reader.read())
+  protected def readEvent(): BackendEventResponse = newEventResponse(reader.read())
 
   private def isEventLoopRunning: Boolean =
     if (eventLoopThread eq null) false
@@ -88,7 +88,8 @@ private abstract class AbstractEventConnection(
       var myListeners = listeners
       while (myListeners.nonEmpty && isConnected) {
         try {
-          val event = readEvent()
+          val eventResponse = readEvent()
+          val event = eventResponse.parse
           myListeners = listeners
           for (ear <- myListeners) {
             if (ear.listenFor(event))
@@ -114,9 +115,9 @@ private class EventConnection75(host: String, port: Int, eventMode: MythProtocol
     with AnnouncingConnection {
   private[this] val eventParser = new EventParserImpl
 
-  override protected def newEvent(eventString: String): BackendEvent = {
+  override protected def newEventResponse(eventString: String): BackendEventResponse = {
     val parser = eventParser
-    new BackendEvent {
+    new BackendEventResponse {
       def raw = eventString
       def parse = parser.parse(this)
     }
@@ -134,9 +135,9 @@ private class EventConnection77(host: String, port: Int, eventMode: MythProtocol
     with AnnouncingConnection {
   private[this] val eventParser = new EventParserImpl
 
-  override protected def newEvent(eventString: String): BackendEvent = {
+  override protected def newEventResponse(eventString: String): BackendEventResponse = {
     val parser = eventParser
-    new BackendEvent {
+    new BackendEventResponse {
       def raw = eventString
       def parse = parser.parse(this)
     }
