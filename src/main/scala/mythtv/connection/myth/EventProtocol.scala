@@ -32,7 +32,7 @@ object Event {
   case class  RecordingListDeleteEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
   case class  RecordingListUpdateEvent(program: Program) extends Event
   case object ScheduleChangeEvent extends Event
-  case class  UpdateFileSizeEvent(chanId: ChanId, recStartTs: MythDateTime, size: Long) extends Event
+  case class  UpdateFileSizeEvent(chanId: ChanId, recStartTs: MythDateTime, size: ByteCount) extends Event
   case class  VideoListChangeEvent(changes: Map[String, Set[VideoId]]) extends Event
   case object VideoListNoChangeEvent extends Event
   case class  UnknownEvent(name: String, body: String*) extends Event
@@ -215,7 +215,7 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
     UpdateFileSizeEvent(
       deserialize[ChanId](parts(1)),
       MythDateTime(deserialize[Instant](parts(2))),
-      deserialize[Long](parts(3))
+      DecimalByteCount(deserialize[Long](parts(3)))
     )
   }
 

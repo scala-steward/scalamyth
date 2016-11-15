@@ -41,7 +41,7 @@ private class InProgressRecordingTransferChannel(
     override def handle(event: BackendEvent): Unit = event.parse match {
       case Event.UpdateFileSizeEvent(chanId, startTime, newSize) =>
         if (chanId == recording.chanId && startTime == recording.startTime)
-          currentSize = newSize
+          currentSize = newSize.bytes
       case _ => ()
     }
   }
