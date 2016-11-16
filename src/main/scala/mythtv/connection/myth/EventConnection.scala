@@ -3,6 +3,7 @@ package connection
 package myth
 
 import java.net.SocketException
+import java.util.concurrent.{ BlockingQueue, LinkedBlockingQueue }
 
 import util.NetworkUtil
 import EnumTypes.MythProtocolEventMode
@@ -74,10 +75,49 @@ private abstract class AbstractEventConnection(
     if (eventLoopThread eq null) false
     else eventLoopThread.isAlive
 
-  private def startEventLoop: Thread = {
+  private def startEventLoopOld: Thread = {
     val thread = new Thread(new EventLoop)
     thread.start()
     thread
+  }
+
+  private def startEventLoop: Thread = {
+    val eventQueue = new LinkedBlockingQueue[BackendEventResponse]
+    val monitorThread = new Thread(new EventMonitor(eventQueue))
+    val dispatchThread = new Thread(new EventDispatcher(eventQueue))
+    dispatchThread.start()
+    monitorThread.start()
+    monitorThread
+  }
+
+  // TODO is isConnected thread safe?
+  private class EventMonitor(queue: BlockingQueue[BackendEventResponse]) extends Runnable {
+    def run(): Unit = {
+      while (listeners.nonEmpty && isConnected) {
+        try {
+          val eventResponse = readEvent()
+          queue.put(eventResponse)
+        } catch {
+          case e: SocketException => ()
+        }
+      }
+    }
+  }
+
+  private class EventDispatcher(queue: BlockingQueue[BackendEventResponse]) extends Runnable {
+    def run(): Unit = {
+      while (true) {  // TODO have some way to exit the thread, maybe a "posion pill" ?
+        val eventResponse = queue.take()
+        val myListeners = listeners
+        if (myListeners.nonEmpty) {
+          val event = eventResponse.parse
+          for (ear <- myListeners) {
+            if (ear.listenFor(event))
+              ear.handle(event)
+          }
+        }
+      }
+    }
   }
 
   private class EventLoop extends Runnable {
