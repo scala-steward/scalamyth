@@ -178,7 +178,7 @@ object MythProtocolSerializable {
 
   implicit object LocalDateOptionSerializer extends MythProtocolSerializable[Option[LocalDate]] {
     def deserialize(in: String): Option[LocalDate] = Try(LocalDate.parse(in)).toOption
-    def serialize(in: Option[LocalDate]): String = if (in.isEmpty) ??? else in.get.toString
+    def serialize(in: Option[LocalDate]): String = if (in.isEmpty) "" else in.get.toString
   }
 
   implicit object YearOptionSerializer extends MythProtocolSerializable[Option[Year]] {
