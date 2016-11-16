@@ -154,9 +154,9 @@ private trait BackendAPILike {
     (result map { case xs: List[_] => xs.asInstanceOf[List[String]] }).get
   }
 
-  def queryBookmark(chanId: ChanId, startTime: MythDateTime): VideoPosition = {
+  def queryBookmark(chanId: ChanId, startTime: MythDateTime): VideoPositionFrame = {
     val result = sendCommand("QUERY_BOOKMARK", chanId, startTime)
-    (result map { case p: VideoPosition => p }).get
+    (result map { case p: VideoPositionFrame => p }).get
   }
 
   def queryCheckFile(rec: Recording, checkSlaves: Boolean): String = {
@@ -363,13 +363,13 @@ private trait BackendAPILike {
       (matched, card, extraCharUseful, spacer) }).get
   }
   // TODO return type more specific?
-  def queryRecorderFillDurationMap(cardId: CaptureCardId, start: VideoPosition, end: VideoPosition): Map[VideoPosition, Long] = {
+  def queryRecorderFillDurationMap(cardId: CaptureCardId, start: VideoPositionFrame, end: VideoPositionFrame): Map[VideoPositionFrame, Long] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "FILL_DURATION_MAP", start, end)
     (result map { case QueryRecorderPositionMap(m) => m }).get
   }
 
   // TODO return type more specific?
-  def queryRecorderFillPositionMap(cardId: CaptureCardId, start: VideoPosition, end: VideoPosition): Map[VideoPosition, Long] = {
+  def queryRecorderFillPositionMap(cardId: CaptureCardId, start: VideoPositionFrame, end: VideoPositionFrame): Map[VideoPositionFrame, Long] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "FILL_POSITION_MAP", start, end)
     (result map { case QueryRecorderPositionMap(m) => m }).get
   }
@@ -438,7 +438,7 @@ private trait BackendAPILike {
     (result map { case QueryRecorderInput(input) => input }).get
   }
 
-  def queryRecorderGetKeyframePos(cardId: CaptureCardId, desiredPos: VideoPosition): Long = {
+  def queryRecorderGetKeyframePos(cardId: CaptureCardId, desiredPos: VideoPositionFrame): Long = {
     val result = sendCommand("QUERY_RECORDER", cardId, "GET_KEYFRAME_POS", desiredPos)
     (result map { case QueryRecorderPosition(p) => p }).get
   }
@@ -585,7 +585,7 @@ private trait BackendAPILike {
     (result map { case r: Boolean => r }).get
   }
 
-  def setBookmark(chanId: ChanId, startTime: MythDateTime, pos: VideoPosition): Boolean = {
+  def setBookmark(chanId: ChanId, startTime: MythDateTime, pos: VideoPositionFrame): Boolean = {
     val result = sendCommand("SET_BOOKMARK", chanId, startTime, pos)
     (result map { case r: Boolean => r }).get
   }

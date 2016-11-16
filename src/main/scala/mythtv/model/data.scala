@@ -14,24 +14,24 @@ trait Frontend extends FrontendOperations
 /**
  * Represents the position of a video stream as a frame number.
  */
-final case class VideoPosition(pos: Long) extends AnyVal
+final case class VideoPositionFrame(pos: Long) extends AnyVal
 
-object VideoPosition {
-  object VideoPositionOrdering extends Ordering[VideoPosition] {
-    def compare(x: VideoPosition, y: VideoPosition): Int = x.pos compare y.pos
+object VideoPositionFrame {
+  object VideoPositionFrameOrdering extends Ordering[VideoPositionFrame] {
+    def compare(x: VideoPositionFrame, y: VideoPositionFrame): Int = x.pos compare y.pos
   }
-  implicit def ordering: Ordering[VideoPosition] = VideoPositionOrdering
+  implicit def ordering: Ordering[VideoPositionFrame] = VideoPositionFrameOrdering
 }
 
 trait VideoSegment {
-  def start: VideoPosition
-  def end: VideoPosition
+  def start: VideoPositionFrame
+  def end: VideoPositionFrame
   override def toString: String = start.pos + ":" + end.pos
 }
 
 trait RecordedMarkup {
   def tag: Markup
-  def position: VideoPosition
+  def position: VideoPositionFrame
 }
 
 trait Settings {

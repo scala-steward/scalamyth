@@ -3,10 +3,10 @@ package connection
 package myth
 package data
 
-import model.{ RecordedMarkup, VideoPosition }
+import model.{ RecordedMarkup, VideoPositionFrame }
 import model.EnumTypes.Markup
 
 private[myth] case class BackendRecordedMarkup(
   tag: Markup,
-  position: VideoPosition
+  position: VideoPositionFrame
 ) extends RecordedMarkup

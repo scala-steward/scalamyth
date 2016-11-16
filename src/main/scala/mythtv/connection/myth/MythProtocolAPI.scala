@@ -45,7 +45,7 @@ trait MythProtocolAPI {
   def messageSetVerbose(verboseMask: String): Boolean
   def protocolVersion(ver: Int, token: String): (Boolean, Int)
   def queryActiveBackends: List[String]
-  def queryBookmark(chanId: ChanId, startTime: MythDateTime): VideoPosition
+  def queryBookmark(chanId: ChanId, startTime: MythDateTime): VideoPositionFrame
   def queryCheckFile(rec: Recording, checkSlaves: Boolean = true): String
   def queryCommBreak(chanId: ChanId, startTime: MythDateTime): List[VideoSegment]
   def queryCutList(chanId: ChanId, startTime: MythDateTime): List[VideoSegment]
@@ -86,9 +86,9 @@ trait MythProtocolAPI {
   def queryRecorderCheckChannel(cardId: CaptureCardId, channum: ChannelNumber): Boolean
   def queryRecorderCheckChannelPrefix(cardId: CaptureCardId, channumPrefix: ChannelNumber): (Boolean, Option[CaptureCardId], Boolean, String)
   // This returns a map from frame number to duration, what is that???
-  def queryRecorderFillDurationMap(cardId: CaptureCardId, start: VideoPosition, end: VideoPosition): Map[VideoPosition, Long]
+  def queryRecorderFillDurationMap(cardId: CaptureCardId, start: VideoPositionFrame, end: VideoPositionFrame): Map[VideoPositionFrame, Long]
   // This returns a map from frame number to file byte offset
-  def queryRecorderFillPositionMap(cardId: CaptureCardId, start: VideoPosition, end: VideoPosition): Map[VideoPosition, Long]
+  def queryRecorderFillPositionMap(cardId: CaptureCardId, start: VideoPositionFrame, end: VideoPositionFrame): Map[VideoPositionFrame, Long]
   def queryRecorderFinishRecording(cardId: CaptureCardId): Unit
   def queryRecorderFrontendReady(cardId: CaptureCardId): Unit
   def queryRecorderGetBrightness(cardId: CaptureCardId): Int
@@ -103,7 +103,7 @@ trait MythProtocolAPI {
   def queryRecorderGetHue(cardId: CaptureCardId): Int
   def queryRecorderGetInput(cardId: CaptureCardId): String
   // This returns byte offset from the approximate keyframe position
-  def queryRecorderGetKeyframePos(cardId: CaptureCardId, desiredPos: VideoPosition): Long
+  def queryRecorderGetKeyframePos(cardId: CaptureCardId, desiredPos: VideoPositionFrame): Long
   def queryRecorderGetMaxBitrate(cardId: CaptureCardId): Long
   def queryRecorderGetNextProgramInfo(cardId: CaptureCardId, chanId: ChanId, dir: ChannelBrowseDirection,
     startTime: MythDateTime): UpcomingProgram
@@ -139,7 +139,7 @@ trait MythProtocolAPI {
     mplexId: MultiplexId = MultiplexId(0), maxStartTime: Option[MythDateTime] = None, reason: String = "Scala"): Boolean
   def rescheduleRecordingsPlace(reason: String = "Scala"): Boolean
   def scanVideos: Boolean
-  def setBookmark(chanId: ChanId, startTime: MythDateTime, pos: VideoPosition): Boolean
+  def setBookmark(chanId: ChanId, startTime: MythDateTime, pos: VideoPositionFrame): Boolean
   def setSetting(hostName: String, settingName: String, value: String): Boolean
   def shutdownNow(haltCommand: String = ""): Unit
   def stopRecording(rec: Recording): Int  // TODO better encapsulate return codes

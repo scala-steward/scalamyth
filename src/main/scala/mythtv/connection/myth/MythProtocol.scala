@@ -42,7 +42,7 @@ object MythProtocol extends MythProtocolSerializer {
     final case class QueryRecorderFrameCount(frames: Long) extends QueryRecorderResult
     final case class QueryRecorderPosition(pos: Long) extends QueryRecorderResult
     final case class QueryRecorderBitrate(bitrate: Long) extends QueryRecorderResult
-    final case class QueryRecorderPositionMap(map: Map[VideoPosition, Long]) extends QueryRecorderResult
+    final case class QueryRecorderPositionMap(map: Map[VideoPositionFrame, Long]) extends QueryRecorderResult
     final case class QueryRecorderRecording(recording: Recording) extends QueryRecorderResult
     final case class QueryRecorderCardList(cards: List[CaptureCardId]) extends QueryRecorderResult
     final case class QueryRecorderCardInputList(inputs: List[CardInput]) extends QueryRecorderResult

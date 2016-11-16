@@ -118,10 +118,10 @@ object MythProtocolSerializable {
     override def serialize(in: RecStatus, builder: StringBuilder): StringBuilder = builder.append(in.id)
   }
 
-  implicit object VideoPositionSerializer extends MythProtocolSerializable[VideoPosition] {
-    def deserialize(in: String): VideoPosition = VideoPosition(in.toLong)
-    def serialize(in: VideoPosition): String = in.pos.toString
-    override def serialize(in: VideoPosition, builder: StringBuilder): StringBuilder = builder.append(in.pos)
+  implicit object VideoPositionFrameSerializer extends MythProtocolSerializable[VideoPositionFrame] {
+    def deserialize(in: String): VideoPositionFrame = VideoPositionFrame(in.toLong)
+    def serialize(in: VideoPositionFrame): String = in.pos.toString
+    override def serialize(in: VideoPositionFrame, builder: StringBuilder): StringBuilder = builder.append(in.pos)
   }
 
   implicit object DupInSerializer extends MythProtocolSerializable[DupCheckIn] {
@@ -244,7 +244,7 @@ object MythProtocolSerializable {
       assert(in.lengthCompare(1) > 0)
       BackendRecordedMarkup(
         Markup.applyOrUnknown(MythProtocol.deserialize[Int](in(0))),
-        MythProtocol.deserialize[VideoPosition](in(1))
+        MythProtocol.deserialize[VideoPositionFrame](in(1))
       )
     }
     def serialize(in: RecordedMarkup): String = throw new UnsupportedOperationException

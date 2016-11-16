@@ -251,7 +251,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def verifyArgsSetBookmark(args: Seq[Any]): Boolean = args match {
-    case Seq(chanId: ChanId, startTime: MythDateTime, position: VideoPosition) => true
+    case Seq(chanId: ChanId, startTime: MythDateTime, position: VideoPositionFrame) => true
     case _ => false
   }
 
@@ -751,8 +751,8 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *   | GET_FILE_POSITION                                                   -> Long
      *   | GET_MAX_BITRATE                                                     -> Long
      *   | GET_KEYFRAME_POS [%ld]          [<desiredFrame>]                    -> Long
-     *   | FILL_POSITION_MAP [%ld, %ld]    [<start> <end>]                     -> Map<VideoPosition,Long> or "OK" or "error"
-     *   | FILL_DURATION_MAP [%ld, %ld]    [<start> <end>]                     -> Map<VideoPosition,Long> or "OK" or "error"
+     *   | FILL_POSITION_MAP [%ld, %ld]    [<start> <end>]                     -> Map<VideoPositionFrame,Long> or "OK" or "error"
+     *   | FILL_DURATION_MAP [%ld, %ld]    [<start> <end>]                     -> Map<VideoPositionFrame,Long> or "OK" or "error"
      *   | GET_CURRENT_RECORDING                                               -> Recording
      *   | GET_RECORDING                                                       -> Recording
      *   | FRONTEND_READY                                                      -> "OK"
@@ -1167,13 +1167,13 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     case Seq(token: String, rec: Recording, timeFmt @ "s", time: Long, outputFile: String, width: Int, height: Int) =>
       val elems = List(command, token, serialize(rec), timeFmt, serialize(time), outputFile, serialize(width), serialize(height))
       elems mkString BackendSeparator
-    case Seq(token: String, rec: Recording, timeFmt @ "f", time: VideoPosition, outputFile: String, width: Int, height: Int) =>
+    case Seq(token: String, rec: Recording, timeFmt @ "f", time: VideoPositionFrame, outputFile: String, width: Int, height: Int) =>
       val elems = List(command, token, serialize(rec), timeFmt, serialize(time), outputFile, serialize(width), serialize(height))
       elems mkString BackendSeparator
     case _ => throwArgumentExceptionMultipleSig(command, """
       | token: String, rec: Recording
       | token: String, rec: Recording, timeFmt @ "s", time: Long, outputFile: String, width: Int, height: Int
-      | token: String, rec: Recording, timeFmt @ "f", time: VideoPosition, outputFile: String, width: Int, height: Int""")
+      | token: String, rec: Recording, timeFmt @ "f", time: VideoPositionFrame, outputFile: String, width: Int, height: Int""")
   }
 
   protected def serializeLockTuner(command: String, args: Seq[Any]): String = args match {
@@ -1323,12 +1323,12 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       val args = List(serialize(cardId), sub)
       val elems = List(command, args mkString BackendSeparator)
       elems mkString " "
-    case Seq(cardId: CaptureCardId, sub @ "GET_KEYFRAME_POS", desiredPos: VideoPosition) =>
+    case Seq(cardId: CaptureCardId, sub @ "GET_KEYFRAME_POS", desiredPos: VideoPositionFrame) =>
       val args = List(serialize(cardId), sub, serialize(desiredPos))
       val elems = List(command, args mkString BackendSeparator)
       elems mkString " "
     case Seq(cardId: CaptureCardId, sub @ ("FILL_POSITION_MAP" | "FILL_DURATION_MAP"),
-      start: VideoPosition, end: VideoPosition) =>
+      start: VideoPositionFrame, end: VideoPositionFrame) =>
       val args = List(serialize(cardId), sub, serialize(start), serialize(end))
       val elems = List(command, args mkString BackendSeparator)
       elems mkString " "
@@ -1393,8 +1393,8 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       |                                "GET_MAX_BITRATE" | "GET_CURRENT_RECORDING" | "GET_RECORDING" | "FRONTEND_READY |"
       |                                "STOP_LIVETV" | "PAUSE" | "FINISH_RECORDING" | "GET_INPUT" | "GET_COLOUR"
       |                                "GET_CONTRAST"| "GET_BRIGHTNESS" | "GET_HUE" )
-      | cardId: CaptureCardId, sub @ "GET_KEYFRAME_POS", desiredPos: VideoPosition
-      | cardId: CaptureCardId, sub @ ("FILL_POSITION_MAP" | "FILL_DURATION_MAP"), start: VideoPosition, end: VideoPosition
+      | cardId: CaptureCardId, sub @ "GET_KEYFRAME_POS", desiredPos: VideoPositionFrame
+      | cardId: CaptureCardId, sub @ ("FILL_POSITION_MAP" | "FILL_DURATION_MAP"), start: VideoPositionFrame, end: VideoPositionFrame
       | cardId: CaptureCardId, sub @ "CANCEL_NEXT_RECORDING", cancel: Boolean
       | cardId: CaptureCardId, sub @ ("SET_CHANNEL" | "CHECK_CHANNEL"), channum: ChannelNumber
       | cardId: CaptureCardId, sub @ "CHECK_CHANNEL_PREFIX", channumPrefix: ChannelNumber
@@ -1484,11 +1484,11 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def serializeSetBookmark(command: String, args: Seq[Any]): String = args match {
-    case Seq(chanId: ChanId, startTime: MythDateTime, position: VideoPosition) =>
+    case Seq(chanId: ChanId, startTime: MythDateTime, position: VideoPositionFrame) =>
       val elems = List(command, serialize(chanId), serialize(startTime), serialize(position))
       elems mkString " "
     case _ => throwArgumentExceptionSignature(command, """
-      | chanId: ChanId, startTime: MythDateTime, position: VideoPosition""")
+      | chanId: ChanId, startTime: MythDateTime, position: VideoPositionFrame""")
   }
 
   protected def serializeSetSetting(command: String, args: Seq[Any]): String = args match {
@@ -1660,8 +1660,8 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     else Some((recs.iterator drop 1).toList)
   }
 
-  protected def handleQueryBookmark(request: BackendRequest, response: BackendResponse): Option[VideoPosition] = {
-    Some(deserialize[VideoPosition](response.raw))
+  protected def handleQueryBookmark(request: BackendRequest, response: BackendResponse): Option[VideoPositionFrame] = {
+    Some(deserialize[VideoPositionFrame](response.raw))
   }
 
   protected def handleQueryCheckFile(request: BackendRequest, response: BackendResponse): Option[String] = {
@@ -1931,7 +1931,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       else {
         val map = (response.split grouped 2 map {
           case Array(frame, offset) =>
-            (deserialize[VideoPosition](frame), deserialize[Long](offset))
+            (deserialize[VideoPositionFrame](frame), deserialize[Long](offset))
         }).toMap
         Some(QueryRecorderPositionMap(map))
       }

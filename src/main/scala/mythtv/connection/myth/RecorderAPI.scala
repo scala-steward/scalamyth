@@ -17,10 +17,10 @@ trait RecorderAPI {
   def checkChannelPrefix(channumPrefix: ChannelNumber): (Boolean, Option[CaptureCardId], Boolean, String)
 
   // This returns a map from frame number to duration, what is that???
-  def fillDurationMap(start: VideoPosition, end: VideoPosition): Map[VideoPosition, Long]
+  def fillDurationMap(start: VideoPositionFrame, end: VideoPositionFrame): Map[VideoPositionFrame, Long]
 
   // This returns a map from frame number to file byte offset
-  def fillPositionMap(start: VideoPosition, end: VideoPosition): Map[VideoPosition, Long]
+  def fillPositionMap(start: VideoPositionFrame, end: VideoPositionFrame): Map[VideoPositionFrame, Long]
 
   def finishRecording(): Unit
   def frontendReady(): Unit
@@ -36,7 +36,7 @@ trait RecorderAPI {
   def getHue: Int
   def getInput: String
   // This returns byte offset from the approximate keyframe position
-  def getKeyframePos(desiredPos: VideoPosition): Long
+  def getKeyframePos(desiredPos: VideoPositionFrame): Long
   def getMaxBitrate: Long
   def getNextProgramInfo(chanId: ChanId, dir: ChannelBrowseDirection, startTime: MythDateTime): UpcomingProgram
   def getNextProgramInfo(channum: ChannelNumber, dir: ChannelBrowseDirection, startTime: MythDateTime): UpcomingProgram
@@ -84,10 +84,10 @@ trait RecorderAPILike extends RemoteEncoder with RecorderAPI {
   def checkChannelPrefix(channumPrefix: ChannelNumber): (Boolean, Option[CaptureCardId], Boolean, String) =
     protoApi.queryRecorderCheckChannelPrefix(cardId, channumPrefix)
 
-  def fillDurationMap(start: VideoPosition, end: VideoPosition): Map[VideoPosition, Long] =
+  def fillDurationMap(start: VideoPositionFrame, end: VideoPositionFrame): Map[VideoPositionFrame, Long] =
     protoApi.queryRecorderFillDurationMap(cardId, start, end)
 
-  def fillPositionMap(start: VideoPosition, end: VideoPosition): Map[VideoPosition, Long] =
+  def fillPositionMap(start: VideoPositionFrame, end: VideoPositionFrame): Map[VideoPositionFrame, Long] =
     protoApi.queryRecorderFillPositionMap(cardId, start, end)
 
   def finishRecording(): Unit =
@@ -129,7 +129,7 @@ trait RecorderAPILike extends RemoteEncoder with RecorderAPI {
   def getInput: String =
     protoApi.queryRecorderGetInput(cardId)
 
-  def getKeyframePos(desiredPos: VideoPosition): Long =
+  def getKeyframePos(desiredPos: VideoPositionFrame): Long =
     protoApi.queryRecorderGetKeyframePos(cardId, desiredPos)
 
   def getMaxBitrate: Long =
