@@ -69,7 +69,10 @@ private trait BackendAPILike {
 
   def done(): Unit = ???
 
-  def fillProgramInfo(playbackHost: String, p: Recording): Recording = ???
+  def fillProgramInfo(playbackHost: String, p: Recording): Recording = {
+    val result = sendCommand("FILL_PROGRAM_INFO", playbackHost, p)
+    (result map { case r: Recording => r }).get
+  }
 
   // TODO is the result here really Int or Boolean
   def forceDeleteRecording(rec: Recording): Int = {

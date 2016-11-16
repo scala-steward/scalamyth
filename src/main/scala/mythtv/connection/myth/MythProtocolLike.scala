@@ -227,10 +227,11 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     /*
      * FILL_PROGRAM_INFO [] [%s, %p]     [<playback host> <ProgramInfo>]
      *  @responds always
-     *  @returns ProgramInfo structure, populated
+     *  @returns ProgramInfo structure populated with updated filename and fileSize
      *           (if already contained pathname, otherwise unchanged)
+     *  To get useful results, the passed programinfo needs to contain valid: filename, chanId, recStartTS
      */
-    "FILL_PROGRAM_INFO" -> ((serializeNOP, handleNOP)),
+    "FILL_PROGRAM_INFO" -> ((serializeFillProgramInfo, handleFillProgramInfo)),
 
     /*
      * FORCE_DELETE_RECORDING [] [%p]   [<ProgramInfo>]
@@ -1002,6 +1003,14 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       | srcURL: String, storageGroup: String, fileName: String""")
   }
 
+  protected def serializeFillProgramInfo(command: String, args: Seq[Any]): String = args match {
+    case Seq(playbackHost: String, rec: Recording) =>
+      val elems = List(command, playbackHost, serialize(rec))
+      elems mkString BackendSeparator
+    case _ => throwArgumentExceptionSignature(command, """
+      | playbackHost: String, rec: Recording""")
+  }
+
   protected def serializeFreeTuner(command: String, args: Seq[Any]): String = args match {
     case Seq(cardId: CaptureCardId) =>
       val elems = List(command, serialize(cardId))
@@ -1411,6 +1420,10 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def handleDeleteRecording(request: BackendRequest, response: BackendResponse): Option[Int] = {
     Some(deserialize[Int](response.raw))
+  }
+
+  protected def handleFillProgramInfo(request: BackendRequest, response: BackendResponse): Option[Recording] = {
+    Some(deserialize[Recording](response.split))
   }
 
   protected def handleForceDeleteRecording(request: BackendRequest, response: BackendResponse): Option[Int] = {
