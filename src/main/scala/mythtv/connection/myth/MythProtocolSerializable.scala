@@ -124,6 +124,12 @@ object MythProtocolSerializable {
     override def serialize(in: VideoPositionFrame, builder: StringBuilder): StringBuilder = builder.append(in.pos)
   }
 
+  implicit object VideoFrameSecondsSerializer extends MythProtocolSerializable[VideoPositionSeconds] {
+    def deserialize(in: String): VideoPositionSeconds = VideoPositionSeconds(in.toLong)
+    def serialize(in: VideoPositionSeconds): String = in.pos.toString
+    override def serialize(in: VideoPositionSeconds, builder: StringBuilder): StringBuilder = builder.append(in.pos)
+  }
+
   implicit object DupInSerializer extends MythProtocolSerializable[DupCheckIn] {
     def deserialize(in: String): DupCheckIn = DupCheckIn.apply(in.toInt)
     def serialize(in: DupCheckIn): String = in.id.toString
