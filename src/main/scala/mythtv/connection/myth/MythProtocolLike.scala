@@ -1164,7 +1164,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     case Seq(token: String, rec: Recording) =>
       val elems = List(command, token, serialize(rec))
       elems mkString BackendSeparator
-    case Seq(token: String, rec: Recording, timeFmt @ "s", time: Long, outputFile: String, width: Int, height: Int) =>
+    case Seq(token: String, rec: Recording, timeFmt @ "s", time: VideoPositionSeconds, outputFile: String, width: Int, height: Int) =>
       val elems = List(command, token, serialize(rec), timeFmt, serialize(time), outputFile, serialize(width), serialize(height))
       elems mkString BackendSeparator
     case Seq(token: String, rec: Recording, timeFmt @ "f", time: VideoPositionFrame, outputFile: String, width: Int, height: Int) =>
@@ -1172,7 +1172,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       elems mkString BackendSeparator
     case _ => throwArgumentExceptionMultipleSig(command, """
       | token: String, rec: Recording
-      | token: String, rec: Recording, timeFmt @ "s", time: Long, outputFile: String, width: Int, height: Int
+      | token: String, rec: Recording, timeFmt @ "s", time: VideoPositionSeconds, outputFile: String, width: Int, height: Int
       | token: String, rec: Recording, timeFmt @ "f", time: VideoPositionFrame, outputFile: String, width: Int, height: Int""")
   }
 

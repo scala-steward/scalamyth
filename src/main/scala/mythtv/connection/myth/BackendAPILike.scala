@@ -243,9 +243,15 @@ private trait BackendAPILike {
     (result map { case (total: ByteCount, used: ByteCount) => (total, used) }).get
   }
 
-  def queryGenPixmap(rec: Recording, token: String): Boolean = {
+  def queryGenPixmap(rec: Recording, token: String, time: VideoPosition, outputFile: String, width: Int, height: Int): Boolean = {
     val sentToken = if (token.isEmpty) "do_not_care" else token
-    val result = sendCommand("QUERY_GENPIXMAP2", sentToken, rec)
+    val fileName = if (outputFile.isEmpty) "<EMPTY>" else outputFile
+    val hasExtra = time.pos != -1 || outputFile.nonEmpty || width != 0 || height != 0
+
+    val result =
+      if (hasExtra) sendCommand("QUERY_GENPIXMAP2", sentToken, rec, time.units, time, fileName, width, height)
+      else          sendCommand("QUERY_GENPIXMAP2", sentToken, rec)
+
     (result map { case r: Boolean => r }).get
   }
 

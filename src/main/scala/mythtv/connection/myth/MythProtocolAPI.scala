@@ -62,8 +62,8 @@ trait MythProtocolAPI {
   def queryFreeSpace: List[FreeSpace]
   def queryFreeSpaceList: List[FreeSpace]
   def queryFreeSpaceSummary: (ByteCount, ByteCount)
-  def queryGenPixmap(rec: Recording, token: String = ""): Boolean
-  // TODO more GenPixmap methods, with improved type safety
+  def queryGenPixmap(rec: Recording, token: String = "", time: VideoPosition = VideoPositionSeconds(-1),
+    outputFile: String = "", width: Int = 0, height: Int = 0): Boolean
   def queryGetAllPending: ExpectedCountIterator[Recording]
   def queryGetAllScheduled: ExpectedCountIterator[Recording]
   def queryGetConflicting(rec: Recording): ExpectedCountIterator[Recording]  // TODO should parameter really be a Recordable?
