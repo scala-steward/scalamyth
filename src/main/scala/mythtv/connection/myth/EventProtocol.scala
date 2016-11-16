@@ -6,7 +6,7 @@ import java.time.Instant
 
 import model._
 import model.EnumTypes.RecStatus
-import util.{ ByteCount, DecimalByteCount, MythDateTime }
+import util.{ Base64String, ByteCount, Crc16, DecimalByteCount, MythDateTime }
 import data.BackendLiveTvChain
 
 sealed trait Event
@@ -17,6 +17,7 @@ sealed trait SystemEvent extends Event {
 
 object Event {
   case class  AskRecordingEvent(cardId: CaptureCardId, timeUntil: Int, hasRec: Boolean, hasLaterShowing: Boolean, rec: Recordable) extends Event
+  case object ClearSettingsCacheEvent extends Event
   case class  CommflagRequestEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
   case class  CommflagStartEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
   case class  DoneRecordingEvent(cardId: CaptureCardId, secondsSinceStart: Int, framesWritten: Long) extends Event
@@ -24,8 +25,8 @@ object Event {
   case class  DownloadFileUpdateEvent(url: String, fileName: String, bytesReceived: ByteCount, bytesTotal: ByteCount) extends Event
   case class  FileClosedEvent(fileName: String) extends Event
   case class  FileWrittenEvent(fileName: String, fileSize: ByteCount) extends Event
-  case class  GeneratedPixmapEvent() extends Event  // TODO parameters
-  case class  GeneratedPixmapFailEvent() extends Event // TODO parameters
+  case class  GeneratedPixmapEvent(chanId: ChanId, startTime: MythDateTime, message: String, finishTime: Instant, size: ByteCount, crc: Crc16, data: Base64String, tokens: List[String]) extends Event
+  case class  GeneratedPixmapFailEvent(chanId: ChanId, startTime: MythDateTime, message: String, tokens: List[String]) extends Event
   case class  HousekeeperRunningEvent(hostName: String, tag: String, lastRunTime: Instant) extends Event
   case class  LiveTvChainUpdateEvent(chainId: LiveTvChainId, maxPos: Int, chain: List[LiveTvChain]) extends Event
   case class  RecordingListAddEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
@@ -54,7 +55,8 @@ object SystemEvent {
   case class PlayChangedEvent(hostName: String, chanId: ChanId, startTime: MythDateTime, sender: String) extends SystemEvent
   case class PlayPausedEvent(hostName: String, chanId: ChanId, startTime: MythDateTime, sender: String) extends SystemEvent
   case class PlayStartedEvent(hostName: String, chanId: ChanId, startTime: MythDateTime, sender: String) extends SystemEvent
-  case class PlayStoppedEvent(hostName: String, chanId: ChanId, startTime: MythDateTime, sender: String) extends SystemEvent  // TODO may not have any parameters sometimes
+  case class PlayStoppedEvent(hostName: String, chanId: ChanId, startTime: MythDateTime, sender: String) extends SystemEvent
+  case class PlayStoppedNoProgramEvent(sender: String) extends SystemEvent
   case class PlayUnpausedEvent(hostName: String, chanId: ChanId, startTime: MythDateTime, sender: String) extends SystemEvent
   case class RecordingDeletedEvent(chanId: ChanId, startTime: MythDateTime, sender: String) extends SystemEvent
   case class RecordingExpiredEvent(hostName: String, chanId: ChanId, startTime: MythDateTime, sender: String) extends SystemEvent
@@ -84,7 +86,17 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
   protected implicit val programInfoSerializer = ProgramInfoSerializerGeneric
   protected implicit val liveTvChainSerializer = LiveTvChainSerializerGeneric
 
-  private val SystemEventPattern = """SYSTEM_EVENT ([^ ]*) (?:(.*) )?SENDER (.*)""".r
+  private val SystemEventPattern = """SYSTEM_EVENT ([^ ]*) (?:(.*) )?SENDER (.+)""".r
+
+  private val HostnamePattern   = """HOSTNAME (.+)""".r
+  private val PlayEventPattern  = """HOSTNAME (.+) CHANID (.+) STARTTIME (.+)""".r
+  private val RecDeletedPattern = """CHANID (.+) STARTTIME (.+)""".r
+  private val RecEventPattern   = """CARDID (.+) CHANID (.+) STARTTIME (.+) RECSTATUS (.+)""".r
+  private val RecPendingPattern = """SECS (.+) CARDID (.+) CHANID (.+) STARTTIME (.+) RECSTATUS (.+)""".r
+
+  private val ScreenCreatedPattern   = """CREATED (.+)""".r
+  private val ScreenDestroyedPattern = """DESTROYED (.+)""".r
+  private val ThemeInstalledPattern  = """PATH (.+)""".r
 
   def parse(rawEvent: BackendEventResponse): Event = {
     val split = rawEvent.split
@@ -92,6 +104,7 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
     name match {
       case "SYSTEM_EVENT"          => parseSystemEvent(name, split)
       case "ASK_RECORDING"         => parseAskRecording(name, split)
+      case "CLEAR_SETTINGS_CACHE"  => ClearSettingsCacheEvent
       case "COMMFLAG_REQUEST"      => parseCommflagRequest(name, split)
       case "COMMFLAG_START"        => parseCommflagStart(name, split)
       case "DOWNLOAD_FILE"         => parseDownloadFile(name, split)
@@ -112,11 +125,129 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
 
   def parseSystemEvent(name: String, split: Array[String]): Event = {
     split(1) match {
-      case SystemEventPattern(evt, body, sender) =>
-        UnknownSystemEvent(evt, if (body eq null) "" else body, sender)
+      case SystemEventPattern(evt, body, sender) => evt match {
+        case "AIRPLAY_DELETE_CONNECTION"  => AirPlayDeleteConnectionEvent(sender)
+        case "AIRPLAY_NEW_CONNECTION"     => AirPlayNewConnectionEvent(sender)
+        case "AIRTUNES_DELETE_CONNECTION" => AirTunesDeleteConnectionEvent(sender)
+        case "AIRTUNES_NEW_CONNECTION"    => AirTunesNewConnectionEvent(sender)
+        case "CLIENT_CONNECTED"           => hostnameEvent(ClientConnectedEvent, evt, body, sender)
+        case "CLIENT_DISCONNECTED"        => hostnameEvent(ClientDisconnectedEvent, evt, body, sender)
+        case "LIVETV_STARTED"             => LiveTvStartedEvent(sender)
+        case "MASTER_SHUTDOWN"            => MasterShutdownEvent(sender)
+        case "MASTER_STARTED"             => MasterStartedEvent(sender)
+        case "MYTHFILLDATABASE_RAN"       => MythfilldatabaseRanEvent(sender)
+        case "NET_CTRL_CONNECTED"         => NetControlConnectedEvent(sender)
+        case "NET_CTRL_DISCONNECTED"      => NetControlDisconnectedEvent(sender)
+        case "PLAY_CHANGED"               => playEvent(PlayChangedEvent, evt, body, sender)
+        case "PLAY_PAUSED"                => playEvent(PlayPausedEvent, evt, body, sender)
+        case "PLAY_STARTED"               => playEvent(PlayStartedEvent, evt, body, sender)
+        case "PLAY_STOPPED"               => playEvent(PlayStoppedEvent, evt, body, sender, fallback = playStoppedNoProgramEvent)
+        case "PLAY_UNPAUSED"              => playEvent(PlayUnpausedEvent, evt, body, sender)
+        case "REC_DELETED"                => recDeletedEvent(RecordingDeletedEvent, evt, body, sender)
+        case "REC_EXPIRED"                => playEvent(RecordingExpiredEvent, evt, body, sender)
+        case "REC_FINISHED"               => recEvent(RecordingFinishedEvent, evt, body, sender)
+        case "REC_PENDING"                => recPendingEvent(RecordPendingEvent, evt, body, sender)
+        case "REC_STARTED"                => recEvent(RecordingStartedEvent, evt, body, sender)
+        case "REC_STARTED_WRITING"        => recEvent(RecordingStartedWritingEvent, evt, body, sender)
+        case "SCHEDULER_RAN"              => SchedulerRanEvent(sender)
+        case "SCREEN_TYPE"                => screenTypeEvent(evt, body, sender)
+        case "SETTINGS_CACHE_CLEARED"     => SettingsCacheClearedEvent(sender)
+        case "SLAVE_CONNECTED"            => hostnameEvent(SlaveConnectedEvent, evt, body, sender)
+        case "SLAVE_DISCONNECTED"         => hostnameEvent(SlaveDisconnectedEvent, evt, body, sender)
+        case "THEME_INSTALLED"            => themeInstalledEvent(evt, body, sender)
+        //case "TUNING_SIGNAL_TIMEOUT"      =>  // TODO
+        case _ => unknownSystemEvent(evt, body, sender)
+      }
       case _ => unknownEvent(name, split)
     }
   }
+
+  def hostnameEvent(factory: (String, String) => SystemEvent, evt: String, body: String, sender: String): SystemEvent = {
+    if (body eq null) unknownSystemEvent(evt, body, sender)
+    else body match {
+      case HostnamePattern(host) => factory(host, sender)
+      case _                     => unknownSystemEvent(evt, body, sender)
+    }
+  }
+
+  // NB play events for non-recordings (e.g. videos/DVD?) will have 0 for chanId, and a synthetic startTime
+  def playEvent(factory: (String, ChanId, MythDateTime, String) => SystemEvent, evt: String, body: String, sender: String,
+    fallback: (String, String, String) => SystemEvent = unknownSystemEvent): SystemEvent = {
+    if (body eq null) fallback(evt, body, sender)
+    else body match {
+      case PlayEventPattern(host, chanId, startTime) =>
+        factory(host, deserialize[ChanId](chanId), MythDateTime(deserialize[Instant](startTime)), sender)
+      case _  => unknownSystemEvent(evt, body, sender)
+    }
+  }
+
+  def playStoppedNoProgramEvent(evt: String, body: String, sender: String): SystemEvent =
+    PlayStoppedNoProgramEvent(sender)
+
+  def recEvent(factory: (CaptureCardId, ChanId, MythDateTime, RecStatus, String) => SystemEvent, evt: String, body: String, sender: String): SystemEvent = {
+    if (body eq null) unknownSystemEvent(evt, body, sender)
+    else body match {
+      case RecEventPattern(cardId, chanId, startTime, recStatus) =>
+        factory(
+          deserialize[CaptureCardId](cardId),
+          deserialize[ChanId](chanId),
+          MythDateTime(deserialize[Instant](startTime)),
+          deserialize[RecStatus](recStatus),
+          sender
+        )
+      case _  => unknownSystemEvent(evt, body, sender)
+    }
+  }
+
+  def recDeletedEvent(factory: (ChanId, MythDateTime, String) => SystemEvent, evt: String, body: String, sender: String): SystemEvent = {
+    if (body eq null) unknownSystemEvent(evt, body, sender)
+    else body match {
+      case RecDeletedPattern(chanId, startTime) =>
+        factory(
+          deserialize[ChanId](chanId),
+          MythDateTime(deserialize[Instant](startTime)),
+          sender
+        )
+      case _  => unknownSystemEvent(evt, body, sender)
+    }
+  }
+
+  def recPendingEvent(factory: (Int, CaptureCardId, ChanId, MythDateTime, RecStatus, String) => SystemEvent,
+    evt: String, body: String, sender: String): SystemEvent = {
+    if (body eq null) unknownSystemEvent(evt, body, sender)
+    else body match {
+      case RecPendingPattern(seconds, cardId, chanId, startTime, recStatus) =>
+        factory(
+          deserialize[Int](seconds),
+          deserialize[CaptureCardId](cardId),
+          deserialize[ChanId](chanId),
+          MythDateTime(deserialize[Instant](startTime)),
+          deserialize[RecStatus](recStatus),
+          sender
+        )
+      case _  => unknownSystemEvent(evt, body, sender)
+    }
+  }
+
+  def screenTypeEvent(evt: String, body: String, sender: String): SystemEvent = {
+    if (body eq null) unknownSystemEvent(evt, body, sender)
+    else body match {
+      case ScreenCreatedPattern(screen)   => ScreenCreatedEvent(screen, sender)
+      case ScreenDestroyedPattern(screen) => ScreenDestroyedEvent(screen, sender)
+      case _                              => unknownSystemEvent(evt, body, sender)
+    }
+  }
+
+  def themeInstalledEvent(evt: String, body: String, sender: String): SystemEvent = {
+    if (body eq null) unknownSystemEvent(evt, body, sender)
+    else body match {
+      case ThemeInstalledPattern(path) => ThemeInstalledEvent(path, sender)
+      case _                           => unknownSystemEvent(evt, body, sender)
+    }
+  }
+
+  def unknownSystemEvent(name: String, body: String, sender: String): SystemEvent =
+    UnknownSystemEvent(name, if (body eq null) "" else body, sender)
 
   def parseAskRecording(name: String, split: Array[String]): Event = {
     val parts = split(1).split(' ')
@@ -176,7 +307,27 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
   }
 
   def parseGeneratedPixmap(name: String, split: Array[String]): Event = {
-    GeneratedPixmapEvent()  // TODO parse parameters; also success or failure
+    def splitProgramInfoToken(token: String): (ChanId, MythDateTime) = {
+      val pi = token.split('_')
+      (deserialize[ChanId](pi(0)), MythDateTime(deserialize[Instant](pi(1))))
+    }
+    split(2) match {
+      case "OK" =>
+        val (chanId, startTime) = splitProgramInfoToken(split(3))
+        val message = split(4)
+        val finishTime = deserialize[Instant](split(5))
+        val size = DecimalByteCount(deserialize[Long](split(6)))
+        val crc = new Crc16(deserialize[Int](split(7)))
+        val data = new Base64String(split(8))
+        val tokens = split.slice(9, split.length).toList
+        GeneratedPixmapEvent(chanId, startTime, message, finishTime, size, crc, data, tokens)
+      case "ERROR" =>
+        val (chanId, startTime) = splitProgramInfoToken(split(3))
+        val message = split(4)
+        val tokens = split.slice(5, split.length).toList
+        GeneratedPixmapFailEvent(chanId, startTime, message, tokens)
+      case _ => unknownEvent(name, split)
+    }
   }
 
   def parseHousekeeperRunning(name: String, split: Array[String]): Event = {
@@ -370,6 +521,12 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
  *   LOCAL_SLAVE_BACKEND_ENCODERS_OFFLINE
  *   THEME_INSTALLED
  *   THEME_RELOAD
+ */
+
+
+/*
+ * RESET_IDLETIME  ??  sent by mythshutdown
+ * SHUTDOWN_NOW    ??
  */
 
 /*
