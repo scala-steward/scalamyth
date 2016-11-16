@@ -847,6 +847,15 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     "QUERY_SETTING" -> ((serializeQuerySetting, handleQuerySetting)),
 
     /*
+     * QUERY_SG_FILEQUERY [] [%s, %s, %s]     <hostName> <storageGroup> <fileName>
+     *  @responds always
+     *  @returns [%s %t %ld]                  <fullFilePath> <fileTimestamp> <fileSize>
+     *        or ["EMPTY LIST"]               if wrong number of parameters given or no file found
+     *        or ["SLAVE UNREACHABLE: ", %s]  if slave specified and unreachable
+     */
+    "QUERY_SG_FILEQUERY" -> ((serializeQuerySGFileQuery, handleQuerySGFileQuery)),
+
+    /*
      * QUERY_SG_GETFILELIST [] [%s, %s, %s {, %b}]  <hostName> <storageGroup> <path> { fileNamesOnly> }
      *  @responds always
      *  @returns  list of filenames or list of storage group URLS (?)
@@ -858,15 +867,6 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  TODO are path and fileNamesOnly sort of mutually exclusive?
      */
     "QUERY_SG_GETFILELIST" -> ((serializeQuerySGGetFileList, handleQuerySGGetFileList)),
-
-    /*
-     * QUERY_SG_FILEQUERY [] [%s, %s, %s]     <hostName> <storageGroup> <fileName>
-     *  @responds always
-     *  @returns [%s %t %ld]                  <fullFilePath> <fileTimestamp> <fileSize>
-     *        or ["EMPTY LIST"]               if wrong number of parameters given or no file found
-     *        or ["SLAVE UNREACHABLE: ", %s]  if slave specified and unreachable
-     */
-    "QUERY_SG_FILEQUERY" -> ((serializeQuerySGFileQuery, handleQuerySGFileQuery)),
 
     /*
      * QUERY_TIME_ZONE
