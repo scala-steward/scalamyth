@@ -27,6 +27,9 @@ trait MythProtocolAPI {
   def deleteRecording(chanId: ChanId, startTime: MythDateTime): MythProtocolResult[Int]
   def deleteRecording(chanId: ChanId, startTime: MythDateTime, forceDeleteMetadata: Boolean = false, forgetHistory: Boolean = false): MythProtocolResult[Int]
   def done(): Unit
+  // TODO downloadFile/downloadFileNow returns a myth:// URL string
+  def downloadFile(sourceUrl: String, storageGroup: String, fileName: String = ""): MythProtocolResult[String]
+  def downloadFileNow(sourceUrl: String, storageGroup: String, fileName: String = ""): MythProtocolResult[String]
   def fillProgramInfo(playbackHost: String, p: Recording): MythProtocolResult[Recording]
   def forceDeleteRecording(rec: Recording): MythProtocolResult[Int]
   def forgetRecording(rec: Recording): MythProtocolResult[Boolean]

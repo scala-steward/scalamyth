@@ -68,6 +68,16 @@ private trait BackendAPILike {
     result map { case r: Int => r }
   }
 
+  def downloadFile(sourceUrl: String, storageGroup: String, fileName: String): MythProtocolResult[String] = {
+    val result = sendCommand("DOWNLOAD_FILE", sourceUrl, storageGroup, fileName)
+    result map { case s: String => s }
+  }
+
+  def downloadFileNow(sourceUrl: String, storageGroup: String, fileName: String): MythProtocolResult[String] = {
+    val result = sendCommand("DOWNLOAD_FILE", sourceUrl, storageGroup, fileName)
+    result map { case s: String => s }
+  }
+
   def fillProgramInfo(playbackHost: String, p: Recording): MythProtocolResult[Recording] = {
     val result = sendCommand("FILL_PROGRAM_INFO", playbackHost, p)
     result map { case r: Recording => r }

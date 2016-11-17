@@ -215,7 +215,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *     OK <storagegroup> <filename>      ??
      *     ERROR                             only if synchronous & download method fails
      */
-    "DOWNLOAD_FILE" -> ((serializeDownloadFile, handleNOP)),
+    "DOWNLOAD_FILE" -> ((serializeDownloadFile, handleDownloadFile)),
 
     /*
      * DOWNLOAD_FILE_NOW [] [%s, %s, %s]   [<srcURL> <storageGroup> <fileName>]
@@ -223,7 +223,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  @responds sometimes; only if slistCount == 4
      *  @returns see DOWNLOAD_FILE
      */
-    "DOWNLOAD_FILE_NOW" -> ((serializeDownloadFile, handleNOP)),
+    "DOWNLOAD_FILE_NOW" -> ((serializeDownloadFile, handleDownloadFileNow)),
 
     /*
      * FILL_PROGRAM_INFO [] [%s, %p]     [<playback host> <ProgramInfo>]
@@ -1428,6 +1428,16 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def handleDeleteRecording(request: BackendRequest, response: BackendResponse): MythProtocolResult[Int] = {
     Try(deserialize[Int](response.raw))
+  }
+
+  protected def handleDownloadFile(request: BackendRequest, response: BackendResponse): MythProtocolResult[String] = {
+    val items = response.split
+    Either.cond(items(0) == "OK" && items.length > 1, items(1), MythProtocolNoResult)
+  }
+
+  protected def handleDownloadFileNow(request: BackendRequest, response: BackendResponse): MythProtocolResult[String] = {
+    val items = response.split
+    Either.cond(items(0) == "OK" && items.length > 1, items(1), MythProtocolFailureMessage(items mkString " "))
   }
 
   protected def handleFillProgramInfo(request: BackendRequest, response: BackendResponse): MythProtocolResult[Recording] = {
