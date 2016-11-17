@@ -33,6 +33,7 @@ object Event {
   case class  RecordingListDeleteEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
   case class  RecordingListUpdateEvent(program: Program) extends Event
   case object ScheduleChangeEvent extends Event
+  case class  SignalEvent(cardId: CaptureCardId, values: Map[String, SignalMonitorValue]) extends Event
   case class  UpdateFileSizeEvent(chanId: ChanId, recStartTs: MythDateTime, size: ByteCount) extends Event
   case class  VideoListChangeEvent(changes: Map[String, Set[VideoId]]) extends Event
   case object VideoListNoChangeEvent extends Event
@@ -116,6 +117,7 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
       case "LIVETV_CHAIN"          => parseLiveTvChain(name, split)
       case "RECORDING_LIST_CHANGE" => parseRecordingListChange(name, split)
       case "SCHEDULE_CHANGE"       => ScheduleChangeEvent
+      case "SIGNAL"                => parseSignal(name, split)
       case "UPDATE_FILE_SIZE"      => parseUpdateFileSize(name, split)
       case "VIDEO_LIST_CHANGE"     => parseVideoListChange(name, split)
       case "VIDEO_LIST_NO_CHANGE"  => VideoListNoChangeEvent
@@ -361,6 +363,37 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
     }
   }
 
+  implicit object SignalMonitorValueSerializer extends MythProtocolSerializable[SignalMonitorValue] {
+    def deserialize(in: String): SignalMonitorValue =
+      deserialize(in split MythProtocol.SplitPattern)
+
+    override def deserialize(in: Seq[String]): SignalMonitorValue = {
+      val id = in(0)
+      val args = in(1) split ' '
+      new SignalMonitorValue {
+        def name            = id
+        def statusName      = args(0)
+        def value           = MythProtocol.deserialize[Int](args(1))
+        def threshold       = MythProtocol.deserialize[Int](args(2))
+        def minValue        = MythProtocol.deserialize[Int](args(3))
+        def maxValue        = MythProtocol.deserialize[Int](args(4))
+        def timeout         = MythProtocol.deserialize[Int](args(5))
+        def isHighThreshold = MythProtocol.deserialize[Boolean](args(6))
+        def isValueSet      = MythProtocol.deserialize[Boolean](args(7))
+      }
+    }
+
+    def serialize(in: SignalMonitorValue): String = ???
+  }
+
+  def parseSignal(name: String, split: Array[String]): Event = {
+    val parts = split(1) split ' '
+    val cardId = deserialize[CaptureCardId](parts(1))
+    val values = split.iterator drop 2 grouped 2 withPartial false map deserialize[SignalMonitorValue]
+    val valueMap = (values map { v => (v.name, v) }).toMap
+    SignalEvent(cardId, valueMap)
+  }
+
   def parseUpdateFileSize(name: String, split: Array[String]): Event = {
     val parts = split(1).split(' ')
     UpdateFileSizeEvent(
@@ -514,6 +547,17 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
  */
 
 /*
+ * Format of SIGNAL
+ *   see libs/libmythtv/recorders/signalmonitor.cpp::GetStatusList
+ *    plus its card-type-specific subclasses
+ *     and
+ *   libs/libmythtv/tv_rec.cpp::TuningFrequency
+ *
+ *  All are instances of SignalMonitorValue:
+ *    libs/libmythtv/signalmonitorvalue.h
+ */
+
+/*
  * Some other events:
  *   LOCAL_RECONNECT_TO_MASTER
  *   LOCAL_SLAVE_BACKEND_ONLINE %2
@@ -573,7 +617,23 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
 2016-11-14T08:40:37.040 UnknownEvent(SIGNAL,WrappedArray(SIGNAL 4, Script Status, script 3 3 0 3 0 1 1, Signal Lock, slock 1 1 0 1 3000 1 1, Signal Power, signal 0 0 0 65535 3000 1 1, Seen PAT, seen_pat 1 1 0 1 0 1 1, Matching PAT, matching_pat 0 1 0 1 0 1 1, Seen MGT, seen_mgt 1 1 0 1 0 1 1, Matching MGT, matching_mgt 1 1 0 1 0 1 1, Seen VCT, seen_vct 0 1 0 1 0 1 1, Matching VCT, matching_vct 0 1 0 1 0 1 1, Signal To Noise, snr 0 0 0 65535 0 1 1, Bit Error Rate, ber 0 65535 0 65535 0 0 1, Uncorrected Blocks, ucb 0 65535 0 65535 0 0 1))
 2016-11-14T08:40:37.091 UnknownEvent(SIGNAL,WrappedArray(SIGNAL 4, Script Status, script 3 3 0 3 0 1 1, Signal Lock, slock 1 1 0 1 3000 1 1, Signal Power, signal 0 0 0 65535 3000 1 1, Seen PAT, seen_pat 1 1 0 1 0 1 1, Matching PAT, matching_pat 1 1 0 1 0 1 1, Seen PMT, seen_pmt 0 1 0 1 0 1 1, Matching PMT, matching_pmt 0 1 0 1 0 1 1, Seen MGT, seen_mgt 1 1 0 1 0 1 1, Matching MGT, matching_mgt 1 1 0 1 0 1 1, Seen VCT, seen_vct 1 1 0 1 0 1 1, Matching VCT, matching_vct 1 1 0 1 0 1 1, Signal To Noise, snr 0 0 0 65535 0 1 1, Bit Error Rate, ber 0 65535 0 65535 0 0 1, Uncorrected Blocks, ucb 0 65535 0 65535 0 0 1))
 2016-11-14T08:40:37.141 UnknownEvent(SIGNAL,WrappedArray(SIGNAL 4, Script Status, script 3 3 0 3 0 1 1, Signal Lock, slock 1 1 0 1 3000 1 1, Signal Power, signal 0 0 0 65535 3000 1 1, Seen PAT, seen_pat 1 1 0 1 0 1 1, Matching PAT, matching_pat 1 1 0 1 0 1 1, Seen PMT, seen_pmt 1 1 0 1 0 1 1, Matching PMT, matching_pmt 1 1 0 1 0 1 1, Seen MGT, seen_mgt 1 1 0 1 0 1 1, Matching MGT, matching_mgt 1 1 0 1 0 1 1, Seen VCT, seen_vct 1 1 0 1 0 1 1, Matching VCT, matching_vct 1 1 0 1 0 1 1, Signal To Noise, snr 0 0 0 65535 0 1 1, Bit Error Rate, ber 0 65535 0 65535 0 0 1, Uncorrected Blocks, ucb 0 65535 0 65535 0 0 1))
-2016-11-14T08:40:37.191 UnknownEvent(SIGNAL,WrappedArray(SIGNAL 4, Script Status, script 3 3 0 3 0 1 1, Signal Lock, slock 1 1 0 1 3000 1 1, Signal Power, signal 0 0 0 65535 3000 1 1, Seen PAT, seen_pat 1 1 0 1 0 1 1, Matching PAT, matching_pat 1 1 0 1 0 1 1, Seen PMT, seen_pmt 1 1 0 1 0 1 1, Matching PMT, matching_pmt 1 1 0 1 0 1 1, Seen MGT, seen_mgt 1 1 0 1 0 1 1, Matching MGT, matching_mgt 1 1 0 1 0 1 1, Seen VCT, seen_vct 1 1 0 1 0 1 1, Matching VCT, matching_vct 1 1 0 1 0 1 1, Signal To Noise, snr 0 0 0 65535 0 1 1, Bit Error Rate, ber 0 65535 0 65535 0 0 1, Uncorrected Blocks, ucb 0 65535 0 65535 0 0 1))
+2016-11-14T08:40:37.191 UnknownEvent(SIGNAL,WrappedArray(
+   SIGNAL 4,
+   Script Status,      script 3     3 0     3    0 1 1,
+   Signal Lock,         slock 1     1 0     1 3000 1 1,
+   Signal Power,       signal 0     0 0 65535 3000 1 1,
+   Seen PAT,         seen_pat 1     1 0     1    0 1 1,
+   Matching PAT, matching_pat 1     1 0     1    0 1 1,
+   Seen PMT,         seen_pmt 1     1 0     1    0 1 1,
+   Matching PMT, matching_pmt 1     1 0     1    0 1 1,
+   Seen MGT,         seen_mgt 1     1 0     1    0 1 1,
+   Matching MGT, matching_mgt 1     1 0     1    0 1 1,
+   Seen VCT,         seen_vct 1     1 0     1    0 1 1,
+   Matching VCT, matching_vct 1     1 0     1    0 1 1,
+   Signal To Noise,       snr 0     0 0 65535    0 1 1,
+   Bit Error Rate,        ber 0 65535 0 65535    0 0 1,
+   Uncorrected Blocks,    ucb 0 65535 0 65535    0 0 1
+   ))
 
 2016-11-14T08:40:37.195 UnknownEvent(LIVETV_CHAIN,WrappedArray(LIVETV_CHAIN UPDATE live-mythtest-atom-2016-11-14T16:40:33Z, 1, 1391, 2016-11-14T16:40:39Z, 2016-11-14T16:40:39Z, 0, myth://192.168.1.123:6543/, DUMMY, 39-1, DVBInput))
 

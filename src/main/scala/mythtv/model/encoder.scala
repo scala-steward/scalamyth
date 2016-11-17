@@ -63,3 +63,22 @@ trait CardInput {
   def mplexId: MultiplexId
   def liveTvOrder: Int
 }
+
+trait SignalMonitorValue {
+  def name: String
+  def statusName: String
+  def value: Int
+  def threshold: Int
+  def minValue: Int
+  def maxValue: Int
+  def timeout: Int   // in millis
+  def isHighThreshold: Boolean
+  def isValueSet: Boolean
+
+  def isGood: Boolean =
+    if (isHighThreshold) value >= threshold
+    else                 value <= threshold
+
+  override def toString: String =
+    s"<Signal $name $value ($minValue,$maxValue) ${timeout}ms set:$isValueSet good:$isGood>"
+}
