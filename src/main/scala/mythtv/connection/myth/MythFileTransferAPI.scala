@@ -11,13 +11,13 @@ import MythProtocol.MythProtocolFailure
   */
 trait MythFileTransferAPI {
   def done(): Unit
-  def isOpen: Either[MythProtocolFailure, Boolean]
-  def reopen(newFileName: String): Either[MythProtocolFailure, Boolean]
-  def requestBlock(blockSize: Int): Either[MythProtocolFailure, Int]
-  def requestSize: Either[MythProtocolFailure, Long]
-  def seek(pos: Long, whence: SeekWhence, currentPos: Long): Either[MythProtocolFailure, Long]
+  def isOpen: MythProtocolResult[Boolean]
+  def reopen(newFileName: String): MythProtocolResult[Boolean]
+  def requestBlock(blockSize: Int): MythProtocolResult[Int]
+  def requestSize: MythProtocolResult[Long]
+  def seek(pos: Long, whence: SeekWhence, currentPos: Long): MythProtocolResult[Long]
   def setTimeout(fast: Boolean): Unit
-  def writeBlock(blockSize: Int): Either[MythProtocolFailure, Int]
+  def writeBlock(blockSize: Int): MythProtocolResult[Int]
 }
 
 trait MythFileTransferAPILike extends MythFileTransferAPI {
@@ -27,24 +27,24 @@ trait MythFileTransferAPILike extends MythFileTransferAPI {
   def done(): Unit =
     protoApi.queryFileTransferDone(ftId)
 
-  def isOpen: Either[MythProtocolFailure, Boolean] =
+  def isOpen: MythProtocolResult[Boolean] =
     protoApi.queryFileTransferIsOpen(ftId)
 
-  def reopen(newFileName: String): Either[MythProtocolFailure, Boolean] =
+  def reopen(newFileName: String): MythProtocolResult[Boolean] =
     protoApi.queryFileTransferReopen(ftId, newFileName)
 
-  def requestBlock(blockSize: Int): Either[MythProtocolFailure, Int] =
+  def requestBlock(blockSize: Int): MythProtocolResult[Int] =
     protoApi.queryFileTransferRequestBlock(ftId, blockSize)
 
-  def requestSize: Either[MythProtocolFailure, Long] =
+  def requestSize: MythProtocolResult[Long] =
     protoApi.queryFileTransferRequestSize(ftId)
 
-  def seek(pos: Long, whence: SeekWhence, currentPos: Long): Either[MythProtocolFailure, Long] =
+  def seek(pos: Long, whence: SeekWhence, currentPos: Long): MythProtocolResult[Long] =
     protoApi.queryFileTransferSeek(ftId, pos, whence, currentPos)
 
   def setTimeout(fast: Boolean): Unit =
     protoApi.queryFileTransferSetTimeout(ftId, fast)
 
-  def writeBlock(blockSize: Int): Either[MythProtocolFailure, Int] =
+  def writeBlock(blockSize: Int): MythProtocolResult[Int] =
     protoApi.queryFileTransferWriteBlock(ftId, blockSize)
 }

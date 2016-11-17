@@ -46,7 +46,7 @@ private abstract class AbstractFileTransferConnection(
     underlyingChannel.configureBlocking(true)
   }
 
-  override def sendCommand(command: String, args: Any*): Either[MythProtocolFailure, _] = {
+  override def sendCommand(command: String, args: Any*): MythProtocolResult[_] = {
     if (hasAnnounced) Left(MythProtocolFailure.MythProtocolFailureUnknown)
     else super.sendCommand(command, args: _*)
   }
