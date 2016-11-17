@@ -68,8 +68,6 @@ private trait BackendAPILike {
     result map { case r: Int => r }
   }
 
-  def done(): Unit = ???
-
   def fillProgramInfo(playbackHost: String, p: Recording): MythProtocolResult[Recording] = {
     val result = sendCommand("FILL_PROGRAM_INFO", playbackHost, p)
     result map { case r: Recording => r }

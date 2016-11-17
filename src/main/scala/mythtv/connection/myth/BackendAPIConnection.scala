@@ -2,7 +2,10 @@ package mythtv
 package connection
 package myth
 
-trait BackendAPIConnection extends BackendConnection with MythProtocolAPI
+trait BackendAPIConnection extends BackendConnection with MythProtocolAPI {
+  // defined here rather than in BackendAPILike so we have access to call disconnect()
+  def done(): Unit = disconnect(graceful = true)
+}
 
 object BackendAPIConnection {
 
