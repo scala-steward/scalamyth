@@ -2,6 +2,7 @@ package mythtv
 package connection
 package myth
 
+import java.net.URI
 import java.time.Duration
 
 import model._
@@ -68,14 +69,14 @@ private trait BackendAPILike {
     result map { case r: Int => r }
   }
 
-  def downloadFile(sourceUrl: String, storageGroup: String, fileName: String): MythProtocolResult[String] = {
+  def downloadFile(sourceUrl: URI, storageGroup: String, fileName: String): MythProtocolResult[URI] = {
     val result = sendCommand("DOWNLOAD_FILE", sourceUrl, storageGroup, fileName)
-    result map { case s: String => s }
+    result map { case s: URI => s }
   }
 
-  def downloadFileNow(sourceUrl: String, storageGroup: String, fileName: String): MythProtocolResult[String] = {
+  def downloadFileNow(sourceUrl: URI, storageGroup: String, fileName: String): MythProtocolResult[URI] = {
     val result = sendCommand("DOWNLOAD_FILE", sourceUrl, storageGroup, fileName)
-    result map { case s: String => s }
+    result map { case s: URI => s }
   }
 
   def fillProgramInfo(playbackHost: String, p: Recording): MythProtocolResult[Recording] = {

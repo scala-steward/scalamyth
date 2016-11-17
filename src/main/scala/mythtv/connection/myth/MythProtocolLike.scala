@@ -2,6 +2,7 @@ package mythtv
 package connection
 package myth
 
+import java.net.URI
 import java.time.{ Duration, Instant, LocalDate, ZoneOffset }
 
 import scala.util.{ Try, Success, Failure }
@@ -997,11 +998,11 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def serializeDownloadFile(command: String, args: Seq[Any]): String = args match {
-    case Seq(srcURL: String, storageGroup: String, fileName: String) =>
-      val elems = List(command, srcURL, storageGroup, fileName)
+    case Seq(srcUrl: URI, storageGroup: String, fileName: String) =>
+      val elems = List(command, srcUrl, storageGroup, fileName)
       elems mkString BackendSeparator
     case _ => throwArgumentExceptionSignature(command, """
-      | srcURL: String, storageGroup: String, fileName: String""")
+      | srcUrl: URI, storageGroup: String, fileName: String""")
   }
 
   protected def serializeFillProgramInfo(command: String, args: Seq[Any]): String = args match {
@@ -1430,14 +1431,14 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     Try(deserialize[Int](response.raw))
   }
 
-  protected def handleDownloadFile(request: BackendRequest, response: BackendResponse): MythProtocolResult[String] = {
+  protected def handleDownloadFile(request: BackendRequest, response: BackendResponse): MythProtocolResult[URI] = {
     val items = response.split
-    Either.cond(items(0) == "OK" && items.length > 1, items(1), MythProtocolNoResult)
+    Either.cond(items(0) == "OK" && items.length > 1, new URI(items(1)), MythProtocolNoResult)
   }
 
-  protected def handleDownloadFileNow(request: BackendRequest, response: BackendResponse): MythProtocolResult[String] = {
+  protected def handleDownloadFileNow(request: BackendRequest, response: BackendResponse): MythProtocolResult[URI] = {
     val items = response.split
-    Either.cond(items(0) == "OK" && items.length > 1, items(1), MythProtocolFailureMessage(items mkString " "))
+    Either.cond(items(0) == "OK" && items.length > 1, new URI(items(1)), MythProtocolFailureMessage(items mkString " "))
   }
 
   protected def handleFillProgramInfo(request: BackendRequest, response: BackendResponse): MythProtocolResult[Recording] = {
