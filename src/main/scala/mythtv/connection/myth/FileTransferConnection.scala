@@ -5,6 +5,7 @@ package myth
 import java.nio.ByteBuffer
 
 import util.NetworkUtil
+import MythProtocol.MythProtocolFailure
 
 trait FileTransferConnection extends FileTransfer with SocketConnection {
   def transferId: FileTransferId
@@ -45,8 +46,8 @@ private abstract class AbstractFileTransferConnection(
     underlyingChannel.configureBlocking(true)
   }
 
-  override def sendCommand(command: String, args: Any*): Option[_] = {
-    if (hasAnnounced) None
+  override def sendCommand(command: String, args: Any*): Either[MythProtocolFailure, _] = {
+    if (hasAnnounced) Left(MythProtocolFailure.MythProtocolFailureUnknown)
     else super.sendCommand(command, args: _*)
   }
 

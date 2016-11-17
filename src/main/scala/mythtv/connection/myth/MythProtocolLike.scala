@@ -9,18 +9,19 @@ import util._
 import model._
 import model.EnumTypes._
 import EnumTypes.{ MythLogLevel, MythProtocolEventMode, SeekWhence }
-import MythProtocol.{ AnnounceResult, QueryFileTransferResult, QueryRecorderResult }
+import MythProtocol.{ AnnounceResult, MythProtocolFailure, QueryFileTransferResult, QueryRecorderResult }
+import MythProtocolFailure._
 
 private[myth] trait MythProtocolLike extends MythProtocolSerializer {
   type SerializeRequest = (String, Seq[Any]) => String
-  type HandleResponse = (BackendRequest, BackendResponse) => Option[_]  // TODO what is result type?, maybe Either[_]
+  type HandleResponse = (BackendRequest, BackendResponse) => Either[MythProtocolFailure, _]
 
   // FIXME we lose the type of the option going through the message dispatch map
   //            is there a way around this?
 
   def commands: Map[String, (SerializeRequest, HandleResponse)] = Map.empty
 
-  def sendCommand(command: String, args: Any*): Option[_]
+  def sendCommand(command: String, args: Any*): Either[MythProtocolFailure, _]
 
   def supports(command: String): Boolean = commands contains command
 
@@ -1381,158 +1382,159 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
    * Response handling
    */
 
-  protected def handleNOP(request: BackendRequest, response: BackendResponse): Option[Nothing] = None
+  protected def handleNOP(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Nothing] =
+    Left(MythProtocolNoResult)
 
-  protected def handleAllowShutdown(request: BackendRequest, response: BackendResponse): Option[Boolean] = {
-    Some(response.raw == "OK")
+  protected def handleAllowShutdown(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Boolean] = {
+    Right(response.raw == "OK")
   }
 
-  protected def handleAnnounce(request: BackendRequest, response: BackendResponse): Option[AnnounceResult] = {
+  protected def handleAnnounce(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, AnnounceResult] = {
     import AnnounceResult._
     val mode = request.args match { case Seq(mode: String, _*) => mode }
     if (mode == "FileTransfer") {
       val items = response.split
-      if (items(0) != "OK") None
+      if (items(0) != "OK") Left(MythProtocolFailureUnknown)
       else {
         val ftId = deserialize[FileTransferId](items(1))
         val fileSize = DecimalByteCount(deserialize[Long](items(2)))
-        Some(AnnounceFileTransfer(ftId, fileSize))
+        Right(AnnounceFileTransfer(ftId, fileSize))
       }
     }
     else {
-      if (response.raw == "OK") Some(AnnounceAcknowledgement)
-      else None
+      if (response.raw == "OK") Right(AnnounceAcknowledgement)
+      else Left(MythProtocolFailureUnknown)
     }
   }
 
-  protected def handleBlockShutdown(request: BackendRequest, response: BackendResponse): Option[Boolean] = {
-    Some(response.raw == "OK")
+  protected def handleBlockShutdown(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Boolean] = {
+    Right(response.raw == "OK")
   }
 
-  protected def handleCheckRecording(request: BackendRequest, response: BackendResponse): Option[Boolean] = {
-    Some(deserialize[Boolean](response.raw))
+  protected def handleCheckRecording(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Boolean] = {
+    Right(deserialize[Boolean](response.raw))
   }
 
-  protected def handleDeleteFile(request: BackendRequest, response: BackendResponse): Option[Boolean] = {
-    Some(deserialize[Boolean](response.raw))
+  protected def handleDeleteFile(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Boolean] = {
+    Right(deserialize[Boolean](response.raw))
   }
 
-  protected def handleDeleteRecording(request: BackendRequest, response: BackendResponse): Option[Int] = {
-    Some(deserialize[Int](response.raw))
+  protected def handleDeleteRecording(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Int] = {
+    Right(deserialize[Int](response.raw))
   }
 
-  protected def handleFillProgramInfo(request: BackendRequest, response: BackendResponse): Option[Recording] = {
-    Some(deserialize[Recording](response.split))
+  protected def handleFillProgramInfo(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Recording] = {
+    Right(deserialize[Recording](response.split))
   }
 
-  protected def handleForceDeleteRecording(request: BackendRequest, response: BackendResponse): Option[Int] = {
-    Some(deserialize[Int](response.raw))
+  protected def handleForceDeleteRecording(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Int] = {
+    Right(deserialize[Int](response.raw))
   }
 
-  protected def handleForgetRecording(request: BackendRequest, response: BackendResponse): Option[Int] = {
-    Some(deserialize[Int](response.raw))
+  protected def handleForgetRecording(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Int] = {
+    Right(deserialize[Int](response.raw))
   }
 
-  protected def handleFreeTuner(request: BackendRequest, response: BackendResponse): Option[Boolean] = {
-    Some(response.raw == "OK")
+  protected def handleFreeTuner(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Boolean] = {
+    Right(response.raw == "OK")
   }
 
-  protected def handleGenPixmap2(request: BackendRequest, response: BackendResponse): Option[Boolean] = {
+  protected def handleGenPixmap2(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Boolean] = {
     val items = response.split
-    Some(items(0) == "OK")
+    Right(items(0) == "OK")
   }
 
-  protected def handleGetFreeRecorder(request: BackendRequest, response: BackendResponse): Option[RemoteEncoder] = {
+  protected def handleGetFreeRecorder(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, RemoteEncoder] = {
     val items = response.split
-    if (items(0) == "-1") None
+    if (items(0) == "-1") Left(MythProtocolFailureUnknown)
     else {
       val cardId = deserialize[CaptureCardId](items(0))
       val host = items(1)
       val port = deserialize[Int](items(2))
-      Some(BackendRemoteEncoder(cardId, host, port))
+      Right(BackendRemoteEncoder(cardId, host, port))
     }
   }
 
-  protected def handleGetFreeRecorderCount(request: BackendRequest, response: BackendResponse): Option[Int] = {
-    Some(deserialize[Int](response.raw))
+  protected def handleGetFreeRecorderCount(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Int] = {
+    Right(deserialize[Int](response.raw))
   }
 
-  protected def handleGetFreeRecorderList(request: BackendRequest, response: BackendResponse): Option[List[CaptureCardId]] = {
-    if (response.raw == "0") None
+  protected def handleGetFreeRecorderList(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, List[CaptureCardId]] = {
+    if (response.raw == "0") Left(MythProtocolFailureUnknown)
     else {
       val cards = response.split map deserialize[CaptureCardId]
-      Some(cards.toList)
+      Right(cards.toList)
     }
   }
 
-  protected def handleGetNextFreeRecorder(request: BackendRequest, response: BackendResponse): Option[RemoteEncoder] = {
+  protected def handleGetNextFreeRecorder(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, RemoteEncoder] = {
     val items = response.split
-    if (items(0) == "-1") None
+    if (items(0) == "-1") Left(MythProtocolFailureUnknown)
     else {
       val cardId = deserialize[CaptureCardId](items(0))
       val host = items(1)
       val port = deserialize[Int](items(2))
-      Some(BackendRemoteEncoder(cardId, host, port))
+      Right(BackendRemoteEncoder(cardId, host, port))
     }
   }
 
-  protected def handleGetRecorderFromNum(request: BackendRequest, response: BackendResponse): Option[RemoteEncoder] = {
+  protected def handleGetRecorderFromNum(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, RemoteEncoder] = {
     val items = response.split
-    if (items(1) == "-1") None
+    if (items(1) == "-1") Left(MythProtocolFailureUnknown)
     else {
       val host = items(0)
       val port = deserialize[Int](items(1))
       val cardId = request.args match { case Seq(cardId: CaptureCardId) => cardId }
-      Some(BackendRemoteEncoder(cardId, host, port))
+      Right(BackendRemoteEncoder(cardId, host, port))
     }
   }
 
-  protected def handleGetRecorderNum(request: BackendRequest, response: BackendResponse): Option[RemoteEncoder] = {
+  protected def handleGetRecorderNum(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, RemoteEncoder] = {
     val items = response.split
-    if (items(0) == "-1") None
+    if (items(0) == "-1") Left(MythProtocolFailureUnknown)
     else {
       val cardId = deserialize[CaptureCardId](items(0))
       val host = items(1)
       val port = deserialize[Int](items(2))
-      Some(BackendRemoteEncoder(cardId, host, port))
+      Right(BackendRemoteEncoder(cardId, host, port))
     }
   }
 
-  protected def handleGoToSleep(request: BackendRequest, response: BackendResponse): Option[Boolean] = {
-    Some(response.raw == "OK")
+  protected def handleGoToSleep(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Boolean] = {
+    Right(response.raw == "OK")
   }
 
-  protected def handleMessage(request: BackendRequest, response: BackendResponse): Option[Boolean] = {
-    Some(response.raw == "OK")
+  protected def handleMessage(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Boolean] = {
+    Right(response.raw == "OK")
   }
 
-  protected def handleMythProtoVersion(request: BackendRequest, response: BackendResponse): Option[(Boolean, Int)] = {
+  protected def handleMythProtoVersion(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, (Boolean, Int)] = {
     val parts = response.split
     assert(parts.length > 1)
     val accepted = parts(0) == "ACCEPT"
     val acceptedVersion = deserialize[Int](parts(1))
-    Some((accepted, acceptedVersion))
+    Right((accepted, acceptedVersion))
   }
 
-  protected def handleQueryActiveBackends(request: BackendRequest, response: BackendResponse): Option[List[String]] = {
+  protected def handleQueryActiveBackends(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, List[String]] = {
     val recs = response.split
     val expectedCount = deserialize[Int](recs(0))
-    if (expectedCount == 0) Some(Nil)
-    else Some((recs.iterator drop 1).toList)
+    if (expectedCount == 0) Right(Nil)
+    else Right((recs.iterator drop 1).toList)
   }
 
-  protected def handleQueryBookmark(request: BackendRequest, response: BackendResponse): Option[VideoPositionFrame] = {
-    Some(deserialize[VideoPositionFrame](response.raw))
+  protected def handleQueryBookmark(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, VideoPositionFrame] = {
+    Right(deserialize[VideoPositionFrame](response.raw))
   }
 
-  protected def handleQueryCheckFile(request: BackendRequest, response: BackendResponse): Option[String] = {
+  protected def handleQueryCheckFile(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, String] = {
     val items = response.split
     val exists = deserialize[Boolean](items(0))
-    if (exists) Some(items(1))
-    else None
+    if (exists) Right(items(1))
+    else Left(MythProtocolFailureUnknown)
   }
 
-  protected def handleQueryCommBreak(request: BackendRequest, response: BackendResponse): Option[List[VideoSegment]] = {
+  protected def handleQueryCommBreak(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, List[VideoSegment]] = {
     val items = response.split
     val count = deserialize[Int](items(0))
     assert(count % 2 == 0)  // TODO FIXME not guaranteed to be true!?
@@ -1545,10 +1547,10 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
         assert(end.tag == Markup.CommEnd)
         BackendVideoSegment(start.position, end.position)
     }
-    Some(segments.toList)
+    Right(segments.toList)
   }
 
-  protected def handleQueryCutList(request: BackendRequest, response: BackendResponse): Option[List[VideoSegment]] = {
+  protected def handleQueryCutList(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, List[VideoSegment]] = {
     val items = response.split
     val count = deserialize[Int](items(0))
     assert(count % 2 == 0)  // TODO FIXME not guaranteed to be true!?
@@ -1561,53 +1563,54 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
         assert(end.tag == Markup.CutEnd)
         BackendVideoSegment(start.position, end.position)
     }
-    Some(segments.toList)
+    Right(segments.toList)
   }
 
-  protected def handleQueryFileExists(request: BackendRequest, response: BackendResponse): Option[(String, FileStats)] = {
+  protected def handleQueryFileExists(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, (String, FileStats)] = {
     val items = response.split
     val statusCode = deserialize[Int](items(0))
     if (statusCode > 0) {
       val fullName = items(1)
       val stats = deserialize[FileStats](items.view(2, 2 + 13))  // TODO hardcoded size of # file stats fields
-      Some((fullName, stats))
+      Right((fullName, stats))
     }
-    else None
+    else Left(MythProtocolFailureUnknown)
   }
 
-  protected def handleQueryFileHash(request: BackendRequest, response: BackendResponse): Option[MythFileHash] = {
-    Some(new MythFileHash(response.raw))
+  protected def handleQueryFileHash(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, MythFileHash] = {
+    Right(new MythFileHash(response.raw))
   }
 
-  protected def handleQueryFileTransfer(request: BackendRequest, response: BackendResponse): Option[QueryFileTransferResult] = {
+  protected def handleQueryFileTransfer(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, QueryFileTransferResult] = {
     import QueryFileTransferResult._
 
-    def acknowledgement: Option[QueryFileTransferResult] =
-      if (response.raw == "OK") Some(QueryFileTransferAcknowledgement)
-      else None
+    def acknowledgement: Either[MythProtocolFailure, QueryFileTransferResult] =
+      if (response.raw == "OK") Right(QueryFileTransferAcknowledgement)
+      else Left(MythProtocolFailureUnknown)
 
-    def boolean = Some(QueryFileTransferBoolean(deserialize[Boolean](response.raw)))
+    def boolean: Either[MythProtocolFailure, QueryFileTransferResult] =
+      Right(QueryFileTransferBoolean(deserialize[Boolean](response.raw)))
 
-    def bytesTransferred: Option[QueryFileTransferResult] = {
+    def bytesTransferred: Either[MythProtocolFailure, QueryFileTransferResult] = {
       val count = deserialize[Int](response.raw)
-      if (count >= 0) Some(QueryFileTransferBytesTransferred(count))
-      else None
+      if (count >= 0) Right(QueryFileTransferBytesTransferred(count))
+      else Left(MythProtocolFailureUnknown)
     }
 
-    def position: Option[QueryFileTransferResult] = {
+    def position: Either[MythProtocolFailure, QueryFileTransferResult] = {
       val pos = deserialize[Long](response.raw)
-      if (pos >= 0) Some(QueryFileTransferPosition(pos))
-      else None
+      if (pos >= 0) Right(QueryFileTransferPosition(pos))
+      else Left(MythProtocolFailureUnknown)
     }
 
-    def requestSize: Option[QueryFileTransferResult] = {
+    def requestSize: Either[MythProtocolFailure, QueryFileTransferResult] = {
       val items = response.split
       val size = deserialize[Long](items(0))
       val readOnly = deserialize[Boolean](items(1))
-      Some(QueryFileTransferRequestSize(size, readOnly))
+      Right(QueryFileTransferRequestSize(size, readOnly))
     }
 
-    if (response.raw startsWith "ERROR") None
+    if (response.raw startsWith "ERROR") Left(MythProtocolFailureUnknown)
     else {
       val subcommand = request.args(1).toString
       subcommand match {
@@ -1619,223 +1622,227 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
         case "REOPEN"        => boolean
         case "SET_TIMEOUT"   => acknowledgement
         case "REQUEST_SIZE"  => requestSize
-        case _               => None
+        case _               => Left(MythProtocolFailureUnknown)
       }
     }
   }
 
-  protected def handleQueryFreeSpace(request: BackendRequest, response: BackendResponse): Option[List[FreeSpace]] = {
+  protected def handleQueryFreeSpace(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, List[FreeSpace]] = {
     val items = response.split
     val fieldCount = BackendFreeSpace.FIELD_ORDER.length
     val it = items.iterator grouped fieldCount withPartial false map deserialize[FreeSpace]
-    Some(it.toList)
+    Right(it.toList)
   }
 
-  protected def handleQueryFreeSpaceList(request: BackendRequest, response: BackendResponse): Option[List[FreeSpace]] = {
+  protected def handleQueryFreeSpaceList(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, List[FreeSpace]] = {
     val items = response.split
     val fieldCount = BackendFreeSpace.FIELD_ORDER.length
     val it = items.iterator grouped fieldCount withPartial false map deserialize[FreeSpace]
-    Some(it.toList)
+    Right(it.toList)
   }
 
-  protected def handleQueryFreeSpaceSummary(request: BackendRequest, response: BackendResponse): Option[(ByteCount, ByteCount)] = {
+  protected def handleQueryFreeSpaceSummary(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, (ByteCount, ByteCount)] = {
     val items = response.split
     assert(items.length > 1)
-    if (items(0) == "0" && items(1) == "0") None
+    if (items(0) == "0" && items(1) == "0") Left(MythProtocolFailureUnknown)
     else {
       val data = items map (n => deserialize[Long](n) * 1024)
-      Some((DecimalByteCount(data(0)), DecimalByteCount(data(1))))
+      Right((DecimalByteCount(data(0)), DecimalByteCount(data(1))))
     }
   }
 
-  protected def handleQueryGetAllPending(request: BackendRequest, response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
+  protected def handleQueryGetAllPending(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, ExpectedCountIterator[Recording]] = {
     val recs = response.split
     val hasConflicts = deserialize[Boolean](recs(0))  // TODO return this also?
     val expectedCount = deserialize[Int](recs(1))
-    if (expectedCount == 0) None
+    if (expectedCount == 0) Left(MythProtocolFailureUnknown)
     else {
       val fieldCount = BackendProgram.FIELD_ORDER.length
       val it = recs.iterator drop 2 grouped fieldCount withPartial false
-      Some(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
+      Right(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
     }
   }
 
-  protected def handleQueryGetAllScheduled(request: BackendRequest, response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
+  protected def handleQueryGetAllScheduled(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, ExpectedCountIterator[Recording]] = {
     val recs = response.split
     val expectedCount = deserialize[Int](recs(0))
-    if (expectedCount == 0) None
+    if (expectedCount == 0) Left(MythProtocolFailureUnknown)
     else {
       val fieldCount = BackendProgram.FIELD_ORDER.length
       val it = recs.iterator drop 1 grouped fieldCount withPartial false
-      Some(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
+      Right(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
     }
   }
 
-  protected def handleQueryGetConflicting(request: BackendRequest, response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
+  protected def handleQueryGetConflicting(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, ExpectedCountIterator[Recording]] = {
     val recs = response.split
     val expectedCount = deserialize[Int](recs(0))
-    if (expectedCount == 0) None
+    if (expectedCount == 0) Left(MythProtocolFailureUnknown)
     else {
       val fieldCount = BackendProgram.FIELD_ORDER.length
       val it = recs.iterator drop 1 grouped fieldCount withPartial false
-      Some(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
+      Right(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
     }
   }
 
-  protected def handleQueryGetExpiring(request: BackendRequest, response: BackendResponse): Option[ExpectedCountIterator[Recording]] = {
+  protected def handleQueryGetExpiring(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, ExpectedCountIterator[Recording]] = {
     val recs = response.split
     val expectedCount = deserialize[Int](recs(0))
-    if (expectedCount == 0) None
+    if (expectedCount == 0) Left(MythProtocolFailureUnknown)
     else {
       val fieldCount = BackendProgram.FIELD_ORDER.length
       val it = recs.iterator drop 1 grouped fieldCount withPartial false
-      Some(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
+      Right(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
     }
   }
 
-  protected def handleQueryGuideDataThrough(request: BackendRequest, response: BackendResponse): Option[MythDateTime] = {
-    if (response.raw startsWith "0000") None
-    else Some(deserialize[MythDateTime](response.raw))
+  protected def handleQueryGuideDataThrough(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, MythDateTime] = {
+    if (response.raw startsWith "0000") Left(MythProtocolFailureUnknown)
+    else Right(deserialize[MythDateTime](response.raw))
   }
 
-  protected def handleQueryHostname(request: BackendRequest, response: BackendResponse): Option[String] = {
-    Some(response.raw)
+  protected def handleQueryHostname(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, String] = {
+    Right(response.raw)
   }
 
-  protected def handleQueryIsActiveBackend(request: BackendRequest, response: BackendResponse): Option[Boolean] = {
+  protected def handleQueryIsActiveBackend(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Boolean] = {
     val result = deserialize[Boolean](response.raw)
-    Some(result)
+    Right(result)
   }
 
-  protected def handleQueryIsRecording(request: BackendRequest, response: BackendResponse): Option[(Int, Int)] = {
+  protected def handleQueryIsRecording(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, (Int, Int)] = {
     val results = response.split map deserialize[Int]
     assert(results.length > 1)
-    Some((results(0), results(1)))
+    Right((results(0), results(1)))
   }
 
-  protected def handleQueryLoad(request: BackendRequest, response: BackendResponse): Option[(Double, Double, Double)] = {
+  protected def handleQueryLoad(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, (Double, Double, Double)] = {
     val items = response.split
-    if (items(0) == "ERROR") None
+    if (items(0) == "ERROR") Left(MythProtocolFailureUnknown)
     else {
       val loads = items map deserialize[Double]
       assert(loads.length > 2)
-      Some((loads(0), loads(1), loads(2)))
+      Right((loads(0), loads(1), loads(2)))
     }
   }
 
-  protected def handleQueryMemStats(request: BackendRequest, response: BackendResponse): Option[(ByteCount, ByteCount, ByteCount, ByteCount)] = {
+  protected def handleQueryMemStats(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, (ByteCount, ByteCount, ByteCount, ByteCount)] = {
     val items = response.split
-    if (items(0) == "ERROR") None
+    if (items(0) == "ERROR") Left(MythProtocolFailureUnknown)
     else {
       val stats = items map (n => BinaryByteCount(deserialize[Long](n) * 1024 * 1024))
       assert(stats.length > 3)
-      Some((stats(0), stats(1), stats(2), stats(3)))
+      Right((stats(0), stats(1), stats(2), stats(3)))
     }
   }
 
-  protected def handleQueryPixmapGetIfModified(request: BackendRequest, response: BackendResponse): Option[(MythDateTime, Option[PixmapInfo])] = {
+  protected def handleQueryPixmapGetIfModified(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, (MythDateTime, Option[PixmapInfo])] = {
     val items = response.split
-    if (items(0) == "ERROR" || items(0) == "WARNING") None
+    if (items(0) == "ERROR" || items(0) == "WARNING") Left(MythProtocolFailureUnknown)
     else {
       val lastModified = deserialize[MythDateTime](items(0))
-      if (items.length == 1) Some((lastModified, None))
+      if (items.length == 1) Right((lastModified, None))
       else {
         val fileSize = deserialize[Long](items(1))
         val crc16 = new Crc16(deserialize[Int](items(2)))
         val base64data = new Base64String(items(3))
-        Some((lastModified, Some(PixmapInfo(DecimalByteCount(fileSize), crc16, base64data))))
+        Right((lastModified, Some(PixmapInfo(DecimalByteCount(fileSize), crc16, base64data))))
       }
     }
   }
 
-  protected def handleQueryPixmapLastModified(request: BackendRequest, response: BackendResponse): Option[MythDateTime] = {
-    if (response.raw == "BAD") None
+  protected def handleQueryPixmapLastModified(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, MythDateTime] = {
+    if (response.raw == "BAD") Left(MythProtocolFailureUnknown)
     else {
       val modified = deserialize[MythDateTime](response.raw)
-      Some(modified)
+      Right(modified)
     }
   }
 
-  protected def handleQueryRecorder(request: BackendRequest, response: BackendResponse): Option[QueryRecorderResult] = {
+  protected def handleQueryRecorder(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, QueryRecorderResult] = {
     import QueryRecorderResult._
 
-    def acknowledgement: Option[QueryRecorderResult] =
-      if (response.raw == "OK") Some(QueryRecorderAcknowledgement)
-      else None
+    def acknowledgement: Either[MythProtocolFailure, QueryRecorderResult] =
+      if (response.raw == "OK") Right(QueryRecorderAcknowledgement)
+      else Left(MythProtocolFailureUnknown)
 
-    def boolean = Some(QueryRecorderBoolean(deserialize[Boolean](response.raw)))
-    def bitrate = Some(QueryRecorderBitrate(deserialize[Long](response.raw)))
+    def boolean: Either[MythProtocolFailure, QueryRecorderResult] =
+      Right(QueryRecorderBoolean(deserialize[Boolean](response.raw)))
 
-    def frameRate =
-      if (response.raw == "-1") None
-      else Some(QueryRecorderFrameRate(deserialize[Double](response.raw)))
+    def bitrate: Either[MythProtocolFailure, QueryRecorderResult] =
+      Right(QueryRecorderBitrate(deserialize[Long](response.raw)))
 
-    def frameCount =
-      if (response.raw == "-1") None
-      else Some(QueryRecorderFrameCount(deserialize[Long](response.raw)))
+    def frameRate: Either[MythProtocolFailure, QueryRecorderResult] =
+      if (response.raw == "-1") Left(MythProtocolFailureUnknown)
+      else Right(QueryRecorderFrameRate(deserialize[Double](response.raw)))
 
-    def input =
-      if (response.raw == "UNKNOWN") None
-      else Some(QueryRecorderInput(response.raw))
+    def frameCount: Either[MythProtocolFailure, QueryRecorderResult] =
+      if (response.raw == "-1") Left(MythProtocolFailureUnknown)
+      else Right(QueryRecorderFrameCount(deserialize[Long](response.raw)))
 
-    def pictureAttribute = {
+    def input: Either[MythProtocolFailure, QueryRecorderResult] =
+      if (response.raw == "UNKNOWN") Left(MythProtocolFailureUnknown)
+      else Right(QueryRecorderInput(response.raw))
+
+    def pictureAttribute: Either[MythProtocolFailure, QueryRecorderResult] = {
       val value = deserialize[Int](response.raw)
-      if (value == -1) None
-      else Some(QueryRecorderPictureAttribute(value))
+      if (value == -1) Left(MythProtocolFailureUnknown)
+      else Right(QueryRecorderPictureAttribute(value))
     }
 
-    def position = Some(QueryRecorderPosition(deserialize[Long](response.raw)))
+    def position: Either[MythProtocolFailure, QueryRecorderResult] =
+      Right(QueryRecorderPosition(deserialize[Long](response.raw)))
 
-    def positionMap: Option[QueryRecorderResult] =
-      if (response.raw == "OK") Some(QueryRecorderPositionMap(Map.empty))
-      else if (response.raw == "error") None
+    def positionMap: Either[MythProtocolFailure, QueryRecorderResult] =
+      if (response.raw == "OK") Right(QueryRecorderPositionMap(Map.empty))
+      else if (response.raw == "error") Left(MythProtocolFailureUnknown)
       else {
         val map = (response.split grouped 2 map {
           case Array(frame, offset) =>
             (deserialize[VideoPositionFrame](frame), deserialize[Long](offset))
         }).toMap
-        Some(QueryRecorderPositionMap(map))
+        Right(QueryRecorderPositionMap(map))
       }
 
-    def recording = {
+    def recording: Either[MythProtocolFailure, QueryRecorderResult] = {
       val rec = deserialize[Recording](response.split)
-      if (rec.title.isEmpty && rec.chanId.id == 0) None
-      else Some(QueryRecorderRecording(rec))
+      if (rec.title.isEmpty && rec.chanId.id == 0) Left(MythProtocolFailureUnknown)
+      else Right(QueryRecorderRecording(rec))
     }
 
-    def signalMonitorRate = {
+    def signalMonitorRate: Either[MythProtocolFailure, QueryRecorderResult] = {
       val rate = deserialize[Int](response.raw)
-      if (rate < 0) None
-      else Some(QueryRecorderBoolean(rate != 0))
+      if (rate < 0) Left(MythProtocolFailureUnknown)
+      else Right(QueryRecorderBoolean(rate != 0))
     }
 
-    def freeInputs: Option[QueryRecorderResult] = {
-      if (response.raw == "EMPTY_LIST") None
+    def freeInputs: Either[MythProtocolFailure, QueryRecorderResult] = {
+      if (response.raw == "EMPTY_LIST") Left(MythProtocolFailureUnknown)
       else {
         val fieldCount = BackendCardInput.FIELD_ORDER.length
         val it = response.split.iterator grouped fieldCount withPartial false
         val inputs = (it map deserialize[CardInput]).toList
-        Some(QueryRecorderCardInputList(inputs))
+        Right(QueryRecorderCardInputList(inputs))
       }
     }
 
-    def checkChannelPrefix: Option[QueryRecorderResult] = {
+    def checkChannelPrefix: Either[MythProtocolFailure, QueryRecorderResult] = {
       val items = response.split
       val matched = deserialize[Boolean](items(0))
       val cardId = deserialize[Int](items(1))
       val extraCharUseful = deserialize[Boolean](items(2))
       val spacer = items(3)
       val card = if (cardId == 0) None else Some(CaptureCardId(cardId))
-      Some(QueryRecorderCheckChannelPrefix(matched, card, extraCharUseful, spacer))
+      Right(QueryRecorderCheckChannelPrefix(matched, card, extraCharUseful, spacer))
     }
 
-    def channelInfo: Option[QueryRecorderResult] =
-      Some(QueryRecorderChannelInfo(deserialize[Channel](response.split)))
+    def channelInfo: Either[MythProtocolFailure, QueryRecorderResult] =
+      Right(QueryRecorderChannelInfo(deserialize[Channel](response.split)))
 
-    def nextProgramInfo: Option[QueryRecorderResult] =
-      Some(QueryRecorderNextProgramInfo(deserialize[UpcomingProgram](response.split)))
+    def nextProgramInfo: Either[MythProtocolFailure, QueryRecorderResult] =
+      Right(QueryRecorderNextProgramInfo(deserialize[UpcomingProgram](response.split)))
 
-    if (response.raw == "bad") None
+    if (response.raw == "bad") Left(MythProtocolFailureUnknown)
     else {
       val subcommand = request.args(1).toString
       subcommand match {
@@ -1876,104 +1883,104 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
         case "CHECK_CHANNEL_PREFIX"       => checkChannelPrefix
         case "GET_CHANNEL_INFO"           => channelInfo
         case "GET_NEXT_PROGRAM_INFO"      => nextProgramInfo
-        case _                            => None
+        case _                            => Left(MythProtocolFailureUnknown)
       }
     }
   }
 
-  protected def handleQueryRecording(request: BackendRequest, response: BackendResponse): Option[Recording] = {
+  protected def handleQueryRecording(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Recording] = {
     val items = response.split
-    if (items(0) == "OK") Some(deserialize[Recording](items drop 1))
-    else None
+    if (items(0) == "OK") Right(deserialize[Recording](items drop 1))
+    else Left(MythProtocolFailureUnknown)
   }
 
-  protected def handleQueryRecordings(request: BackendRequest, response: BackendResponse): Option[Iterator[Recording]] = {
+  protected def handleQueryRecordings(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Iterator[Recording]] = {
     val recs = response.split
     val expectedCount = deserialize[Int](recs(0))
-    if (expectedCount == 0) None
+    if (expectedCount == 0) Left(MythProtocolFailureUnknown)
     else {
       val fieldCount = BackendProgram.FIELD_ORDER.length
       val it = recs.iterator drop 1 grouped fieldCount withPartial false
-      Some(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
+      Right(new ExpectedCountIterator(expectedCount, it map deserialize[Recording]))
     }
   }
 
   // TODO returns "-1" on error but that could also be a legitimate value!!?
-  protected def handleQuerySetting(request: BackendRequest, response: BackendResponse): Option[String] = {
-    Some(response.raw)
+  protected def handleQuerySetting(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, String] = {
+    Right(response.raw)
   }
 
-  protected def handleQuerySGFileQuery(request: BackendRequest, response: BackendResponse): Option[(String, MythDateTime, ByteCount)] = {
+  protected def handleQuerySGFileQuery(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, (String, MythDateTime, ByteCount)] = {
     val items = response.split
-    if (items(0) == "EMPTY LIST" || items(0).startsWith("SLAVE UNREACHABLE")) None
+    if (items(0) == "EMPTY LIST" || items(0).startsWith("SLAVE UNREACHABLE")) Left(MythProtocolFailureUnknown)
     else {
       val fullPath = items(0)
       val timestamp = deserialize[MythDateTime](items(1))
       val fileSize = deserialize[Long](items(2))
-      Some((fullPath, timestamp, DecimalByteCount(fileSize)))
+      Right((fullPath, timestamp, DecimalByteCount(fileSize)))
     }
   }
 
-  protected def handleQuerySGGetFileList(request: BackendRequest, response: BackendResponse): Option[List[String]] = {
+  protected def handleQuerySGGetFileList(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, List[String]] = {
     val items = response.split
-    if (items(0) == "EMPTY LIST" || items(0).startsWith("SLAVE UNREACHABLE")) None
-    else Some(items.toList)
+    if (items(0) == "EMPTY LIST" || items(0).startsWith("SLAVE UNREACHABLE")) Left(MythProtocolFailureUnknown)
+    else Right(items.toList)
   }
 
-  protected def handleQueryTimeZone(request: BackendRequest, response: BackendResponse): Option[TimeZoneInfo] = {
+  protected def handleQueryTimeZone(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, TimeZoneInfo] = {
     val items = response.split
     assert(items.length > 2)
     val tz = items(0)
     val off = ZoneOffset.ofTotalSeconds(deserialize[Int](items(1)))
     val time = deserialize[Instant](items(2))
-    Some(new TimeZoneInfo {
+    Right(new TimeZoneInfo {
       def tzName = tz
       def offset = off
       def currentTime = time
     })
   }
 
-  protected def handleQueryUptime(request: BackendRequest, response: BackendResponse): Option[Duration] = {
+  protected def handleQueryUptime(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Duration] = {
     val items = response.split
-    if (items(0) == "ERROR") None
+    if (items(0) == "ERROR") Left(MythProtocolFailureUnknown)
     else {
       val seconds = deserialize[Long](items(0))
-      Some(Duration.ofSeconds(seconds))
+      Right(Duration.ofSeconds(seconds))
     }
   }
 
-  protected def handleRefreshBackend(request: BackendRequest, response: BackendResponse): Option[Boolean] = {
+  protected def handleRefreshBackend(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Boolean] = {
     val success = response.raw == "OK"
-    Some(success)
+    Right(success)
   }
 
-  protected def handleRescheduleRecordings(request: BackendRequest, response: BackendResponse): Option[Boolean] = {
-    Some(deserialize[Boolean](response.raw))
+  protected def handleRescheduleRecordings(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Boolean] = {
+    Right(deserialize[Boolean](response.raw))
   }
 
-  protected def handleScanVideos(request: BackendRequest, response: BackendResponse): Option[Boolean] = {
+  protected def handleScanVideos(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Boolean] = {
     val success = response.raw == "OK"
-    Some(success)
+    Right(success)
   }
 
-  protected def handleSetBookmark(request: BackendRequest, response: BackendResponse): Option[Boolean] = {
+  protected def handleSetBookmark(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Boolean] = {
     val success = response.raw == "OK"
-    Some(success)
+    Right(success)
   }
 
-  protected def handleSetSetting(request: BackendRequest, response: BackendResponse): Option[Boolean] = {
+  protected def handleSetSetting(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Boolean] = {
     val success = response.raw == "OK"
-    Some(success)
+    Right(success)
   }
 
-  protected def handleStopRecording(request: BackendRequest, response: BackendResponse): Option[Int] = {
+  protected def handleStopRecording(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Int] = {
     val result = deserialize[Int](response.raw)
-    Some(result)
+    Right(result)
   }
 
-  protected def handleUndeleteRecording(request: BackendRequest, response: BackendResponse): Option[Boolean] = {
+  protected def handleUndeleteRecording(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Boolean] = {
     val status = deserialize[Int](response.raw)
-    Some(status == 0)
+    Right(status == 0)
   }
 }
 

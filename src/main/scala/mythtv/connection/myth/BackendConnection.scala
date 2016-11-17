@@ -8,6 +8,8 @@ import java.nio.channels.{ SelectionKey, Selector, SocketChannel }
 
 import scala.util.Try
 
+import MythProtocol.MythProtocolFailure
+
 private trait BackendCommandStream {
   final val HeaderSizeBytes = 8
 }
@@ -118,7 +120,7 @@ private abstract class AbstractBackendConnection(host: String, port: Int, timeou
     // TODO: swallow any response (asynchronously?!?), but socket may be closed
   }
 
-  def sendCommand(command: String, args: Any*): Option[_] = {
+  def sendCommand(command: String, args: Any*): Either[MythProtocolFailure, _] = {
     if (!isConnected) throw new IllegalStateException  // TODO attempt reconnection?
     if (commands contains command) {
       val (serialize, handle) = commands(command)

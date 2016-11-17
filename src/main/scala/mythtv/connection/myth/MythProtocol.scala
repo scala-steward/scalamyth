@@ -16,6 +16,14 @@ object MythProtocol extends MythProtocolSerializer {
   final val BackendSeparator: String = "[]:[]"
   final val SplitPattern: String = Pattern.quote(BackendSeparator)
 
+  sealed trait MythProtocolFailure
+  object MythProtocolFailure {
+    case object MythProtocolNoResult extends MythProtocolFailure
+    case object MythProtocolFailureUnknown extends MythProtocolFailure
+    final case class MythProtocolFailureMessage(message: String) extends MythProtocolFailure
+    final case class MythProtocolFailureThrowable(throwable: Throwable) extends MythProtocolFailure
+  }
+
   // Sum type representing return values from ANN
   sealed trait AnnounceResult
   object AnnounceResult {

@@ -7,6 +7,7 @@ import java.util.concurrent.{ BlockingQueue, LinkedBlockingQueue }
 
 import util.NetworkUtil
 import EnumTypes.MythProtocolEventMode
+import MythProtocol.MythProtocolFailure
 
 trait BackendEventResponse extends Any with BackendResponse {
   def isSystemEvent: Boolean = raw.startsWith("SYSTEM_EVENT", 20)
@@ -44,14 +45,14 @@ private abstract class AbstractEventConnection(
   def announce(): Unit = {
     val localHost = NetworkUtil.myHostName
     val result = sendCommand("ANN", "Monitor", localHost, eventMode)
-    assert(result.get == MythProtocol.AnnounceResult.AnnounceAcknowledgement)
+    assert(result.right.get == MythProtocol.AnnounceResult.AnnounceAcknowledgement)
 
     // use infinite timeout in event loop, but not for initial connection
     changeTimeout(0)
   }
 
-  override def sendCommand(command: String, args: Any*): Option[_] = {
-    if (hasAnnounced) None
+  override def sendCommand(command: String, args: Any*): Either[MythProtocolFailure, _] = {
+    if (hasAnnounced) Left(MythProtocolFailure.MythProtocolFailureUnknown)
     else super.sendCommand(command, args: _*)
   }
 
