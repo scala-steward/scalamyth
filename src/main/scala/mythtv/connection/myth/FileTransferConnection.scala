@@ -38,7 +38,7 @@ private abstract class AbstractFileTransferConnection(
 
   def announce(): Unit = {
     val localHost = NetworkUtil.myHostName
-    val (ftID, size) = announceFileTransfer(localHost, fileName, storageGroup)
+    val (ftID, size) = announceFileTransfer(localHost, fileName, storageGroup).right.get
     this.ftId = ftID
     this.filesize = size.bytes
 

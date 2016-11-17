@@ -6,6 +6,8 @@ import model._
 import connection.myth.{ BackendAPIConnection, Event, EventConnection, EventLock }
 import util.{ ByteCount, ExpectedCountIterator, MythDateTime, MythFileHash }
 
+// TODO fix up all the .right.get non-error-handling (both in here and other files)
+
 class MythBackend(val host: String) extends Backend with BackendOperations {
   def this(bi: BackendInfo) = this(bi.host)
 
@@ -25,23 +27,23 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
   }
 
   def recording(chanId: ChanId, startTime: MythDateTime): Recording = {
-    conn.queryRecording(chanId, startTime)
+    conn.queryRecording(chanId, startTime).right.get
   }
 
   def deleteRecording(rec: Recording, force: Boolean): Boolean = {
     val status =
-      if (force) conn.forceDeleteRecording(rec)
-      else conn.deleteRecording(rec)
+      if (force) conn.forceDeleteRecording(rec).right.get
+      else conn.deleteRecording(rec).right.get
     status == 0
   }
 
   def forgetRecording(rec: Recording): Boolean = {
-    val status = conn.forgetRecording(rec)
+    val status = conn.forgetRecording(rec).right.get
     status == 0
   }
 
   def stopRecording(rec: Recording): Option[CaptureCardId] = {
-    val status = conn.stopRecording(rec)
+    val status = conn.stopRecording(rec).right.get
     if (status < 0) None
     else Some(CaptureCardId(status))
   }
@@ -55,19 +57,19 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
     lock.waitFor()
   }
 
-  def isRecording(cardId: CaptureCardId): Boolean = conn.queryRecorderIsRecording(cardId)
+  def isRecording(cardId: CaptureCardId): Boolean = conn.queryRecorderIsRecording(cardId).right.get
 
-  def recordingsIterator: ExpectedCountIterator[Recording] = conn.queryRecordings("Ascending")
+  def recordingsIterator: ExpectedCountIterator[Recording] = conn.queryRecordings("Ascending").right.get
   def recordings: List[Recording] = recordingsIterator.toList
 
-  def expiringRecordingsIterator: ExpectedCountIterator[Recording] = conn.queryGetExpiring
+  def expiringRecordingsIterator: ExpectedCountIterator[Recording] = conn.queryGetExpiring.right.get
   def expiringRecordings: List[Recording] = expiringRecordingsIterator.toList
 
-  def pendingRecordingsIterator: ExpectedCountIterator[Recordable] = conn.queryGetAllPending
+  def pendingRecordingsIterator: ExpectedCountIterator[Recordable] = conn.queryGetAllPending.right.get
   def pendingRecordings: List[Recordable] = pendingRecordingsIterator.toList
 
   // TODO These are really *recording schedules*, not scheduled recordings
-  def scheduledRecordingsIterator: ExpectedCountIterator[Recordable] = conn.queryGetAllScheduled
+  def scheduledRecordingsIterator: ExpectedCountIterator[Recordable] = conn.queryGetAllScheduled.right.get
   def scheduledRecordings: List[Recordable] = scheduledRecordingsIterator.toList
 
   def upcomingRecordingsIterator: Iterator[Recordable] = {
@@ -82,31 +84,34 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
 
   // capture cards
 
-  def availableRecorders: List[CaptureCardId] = conn.getFreeRecorderList
+  def availableRecorders: List[CaptureCardId] = conn.getFreeRecorderList.right.get
 
   //////
 
-  def freeSpaceSummary: (ByteCount, ByteCount) = conn.queryFreeSpaceSummary
-  def freeSpace: List[FreeSpace] = conn.queryFreeSpace
-  def freeSpaceCombined: List[FreeSpace] = conn.queryFreeSpaceList
+  def freeSpaceSummary: (ByteCount, ByteCount) = conn.queryFreeSpaceSummary.right.get
+
+  def freeSpace: List[FreeSpace] = conn.queryFreeSpace.right.get
+
+  def freeSpaceCombined: List[FreeSpace] = conn.queryFreeSpaceList.right.get
 
   def fileHash(fileName: String, storageGroup: String, hostName: String): MythFileHash =
-    conn.queryFileHash(fileName, storageGroup, hostName)
+    conn.queryFileHash(fileName, storageGroup, hostName).right.get
 
 //  def fileExists(fileName: String, storageGroup: String): Boolean
 
-  def uptime: Duration = conn.queryUptime
-  def loadAverages: (Double, Double, Double) = conn.queryLoad
+  def uptime: Duration = conn.queryUptime.right.get
+  def loadAverages: (Double, Double, Double) = conn.queryLoad.right.get
 
-  def isActiveBackend(hostname: String): Boolean = conn.queryIsActiveBackend(hostname)
+  def isActiveBackend(hostname: String): Boolean = conn.queryIsActiveBackend(hostname).right.get
+
   def isActive: Boolean = isActiveBackend(host)   // TODO does this only work in master backends?
 
-  def guideDataThrough: MythDateTime = conn.queryGuideDataThrough
+  def guideDataThrough: MythDateTime = conn.queryGuideDataThrough.right.get
 
   def scanVideos(): Map[String, Set[VideoId]] = {
     import connection.myth.Event.{ VideoListChangeEvent, VideoListNoChangeEvent }
 
-    if (conn.scanVideos) {
+    if (conn.scanVideos.right.get) {
       val lock = EventLock(eventConnection, {
         case e: VideoListChangeEvent => true
         case VideoListNoChangeEvent => true

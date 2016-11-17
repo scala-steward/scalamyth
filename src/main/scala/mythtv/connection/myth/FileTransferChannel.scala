@@ -65,7 +65,7 @@ private class FileTransferChannelImpl(controlChannel: MythFileTransferAPI, dataC
       case SeekWhence.End     => clamp(offset, -currentSize, 0L) + currentSize
     }
     val adjWhence = if (whence == SeekWhence.End) SeekWhence.Begin else whence
-    val newPos: Long = controlChannel.seek(adjOffset, adjWhence, currentPosition)
+    val newPos: Long = controlChannel.seek(adjOffset, adjWhence, currentPosition).right.get
     if (newPos < 0) throw new IOException("failed seek")
     currentPosition = newPos
   }
@@ -91,7 +91,7 @@ private class FileTransferChannelImpl(controlChannel: MythFileTransferAPI, dataC
 
     while (bb.hasRemaining && canReadMore) {
       val requestSize = length - bytesRead
-      val allotedSize = controlChannel.requestBlock(requestSize)
+      val allotedSize = controlChannel.requestBlock(requestSize).right.get
       assert(requestSize == bb.remaining)
 
       if (allotedSize != requestSize) {}  // TODO do I want to take some action here?

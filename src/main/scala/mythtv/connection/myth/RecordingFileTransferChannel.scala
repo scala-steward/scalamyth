@@ -64,12 +64,12 @@ object RecordingTransferChannel {
   // TODO: method that takes a hostname vs control channel?
 
   def apply(api: BackendAPIConnection, chanId: ChanId, recStartTs: MythDateTime): RecordingTransferChannel = {
-    val rec = api.queryRecording(chanId, recStartTs)   // TODO check for failure/not found
+    val rec = api.queryRecording(chanId, recStartTs).right.get   // TODO check for failure/not found
     apply(api, rec)
   }
 
   def apply(api: BackendAPIConnection, rec: Recording): RecordingTransferChannel = {
-    val inProgress = api.checkRecording(rec)
+    val inProgress = api.checkRecording(rec).right.get
 
     // TODO who is managing these opened connections??  Also, we have no re-use...
 

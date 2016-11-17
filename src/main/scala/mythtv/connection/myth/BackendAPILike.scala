@@ -8,245 +8,246 @@ import model._
 import model.EnumTypes._
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythFileHash, NetworkUtil }
 import EnumTypes.{ MythLogLevel, MythProtocolEventMode, SeekWhence }
+import MythProtocol.MythProtocolFailure
 import MythProtocol.QueryRecorderResult._
 import MythProtocol.QueryFileTransferResult._
 
 private trait BackendAPILike {
   self: MythProtocolLike =>
 
-  def allowShutdown(): Boolean = {
+  def allowShutdown(): Either[MythProtocolFailure, Boolean] = {
     val result = sendCommand("ALLOW_SHUTDOWN")
-    (result map { case r: Boolean => r }).right.get
+    result map { case r: Boolean => r }
   }
 
-  def announce(mode: String, hostName: String, eventMode: MythProtocolEventMode): Boolean = {
+  def announce(mode: String, hostName: String, eventMode: MythProtocolEventMode): Either[MythProtocolFailure, Boolean] = {
     import MythProtocol.AnnounceResult._
     val localHost =
       if (hostName != "") hostName
       else NetworkUtil.myHostName
     val result = sendCommand("ANN", mode, localHost, eventMode)
-    (result map { case AnnounceAcknowledgement => true }).right.get
+    result map { case AnnounceAcknowledgement => true }
   }
 
   def announceFileTransfer(hostName: String, fileName: String, storageGroup: String,
-    writeMode: Boolean, useReadAhead: Boolean, timeout: Duration): (FileTransferId, ByteCount) = {
+    writeMode: Boolean, useReadAhead: Boolean, timeout: Duration): Either[MythProtocolFailure, (FileTransferId, ByteCount)] = {
     import MythProtocol.AnnounceResult._
     val result = sendCommand("ANN", "FileTransfer", hostName, writeMode, useReadAhead, timeout, fileName, storageGroup)
-    (result map { case AnnounceFileTransfer(ftID, fileSize) => (ftID, fileSize) }).right.get
+    result map { case AnnounceFileTransfer(ftID, fileSize) => (ftID, fileSize) }
   }
 
-  def blockShutdown(): Boolean = {
+  def blockShutdown(): Either[MythProtocolFailure, Boolean] = {
     val result = sendCommand("BLOCK_SHUTDOWN")
-    (result map { case r: Boolean => r }).right.get
+    result map { case r: Boolean => r }
   }
 
-  def checkRecording(rec: Recording): Boolean = {
+  def checkRecording(rec: Recording): Either[MythProtocolFailure, Boolean] = {
     val result = sendCommand("CHECK_RECORDING", rec)
-    (result map { case r: Boolean => r }).right.get
+    result map { case r: Boolean => r }
   }
 
-  def deleteFile(fileName: String, storageGroup: String): Boolean = {
+  def deleteFile(fileName: String, storageGroup: String): Either[MythProtocolFailure, Boolean] = {
     val result = sendCommand("DELETE_FILE", fileName, storageGroup)
-    (result map { case r: Boolean => r }).right.get
+    result map { case r: Boolean => r }
   }
 
-  def deleteRecording(rec: Recording): Int = {
+  def deleteRecording(rec: Recording): Either[MythProtocolFailure, Int] = {
     val result = sendCommand("DELETE_RECORDING", rec)
-    (result map { case r: Int => r }).right.get
+    result map { case r: Int => r }
   }
 
-  def deleteRecording(chanId: ChanId, startTime: MythDateTime): Int = {
+  def deleteRecording(chanId: ChanId, startTime: MythDateTime): Either[MythProtocolFailure, Int] = {
     val result = sendCommand("DELETE_RECORDING", chanId, startTime)
-    (result map { case r: Int => r }).right.get
+    result map { case r: Int => r }
   }
 
-  def deleteRecording(chanId: ChanId, startTime: MythDateTime, forceDeleteMetadata: Boolean, forgetHistory: Boolean): Int = {
+  def deleteRecording(chanId: ChanId, startTime: MythDateTime, forceDeleteMetadata: Boolean, forgetHistory: Boolean): Either[MythProtocolFailure, Int] = {
     val force = if (forceDeleteMetadata) "FORCE" else "-"
     val forget = if (forgetHistory) "FORGET" else ""
     val result = sendCommand("DELETE_RECORDING", chanId, startTime, force, forget)
-    (result map { case r: Int => r }).right.get
+    result map { case r: Int => r }
   }
 
   def done(): Unit = ???
 
-  def fillProgramInfo(playbackHost: String, p: Recording): Recording = {
+  def fillProgramInfo(playbackHost: String, p: Recording): Either[MythProtocolFailure, Recording] = {
     val result = sendCommand("FILL_PROGRAM_INFO", playbackHost, p)
-    (result map { case r: Recording => r }).right.get
+    result map { case r: Recording => r }
   }
 
   // TODO is the result here really Int or Boolean
-  def forceDeleteRecording(rec: Recording): Int = {
+  def forceDeleteRecording(rec: Recording): Either[MythProtocolFailure, Int] = {
     val result = sendCommand("FORCE_DELETE_RECORDING", rec)
-    (result map { case r: Int => r }).right.get
+    result map { case r: Int => r }
   }
 
   // TODO is the result here really Int or Boolean
-  def forgetRecording(rec: Recording): Int = {
+  def forgetRecording(rec: Recording): Either[MythProtocolFailure, Int] = {
     val result = sendCommand("FORGET_RECORDING", rec)
-    (result map { case r: Int => r }).right.get
+    result map { case r: Int => r }
   }
 
-  def freeTuner(cardId: CaptureCardId): Boolean = {
+  def freeTuner(cardId: CaptureCardId): Either[MythProtocolFailure, Boolean] = {
     val result = sendCommand("FREE_TUNER", cardId)
-    (result map { case r: Boolean => r }).right.get
+    result map { case r: Boolean => r }
   }
 
-  def getFreeRecorder: RemoteEncoder = {
+  def getFreeRecorder: Either[MythProtocolFailure, RemoteEncoder] = {
     val result = sendCommand("GET_FREE_RECORDER")
-    (result map { case e: RemoteEncoder => e }).right.get
+    result map { case e: RemoteEncoder => e }
   }
 
-  def getFreeRecorderCount: Int = {
+  def getFreeRecorderCount: Either[MythProtocolFailure, Int] = {
     val result = sendCommand("GET_FREE_RECORDER_COUNT")
-    (result map { case n: Int => n }).right.get
+    result map { case n: Int => n }
   }
 
-  def getFreeRecorderList: List[CaptureCardId] = {
+  def getFreeRecorderList: Either[MythProtocolFailure, List[CaptureCardId]] = {
     val result = sendCommand("GET_FREE_RECORDER_LIST")
-    (result map { case xs: List[_] => xs.asInstanceOf[List[CaptureCardId]] }).right.get
+    result map { case xs: List[_] => xs.asInstanceOf[List[CaptureCardId]] }
   }
 
-  def getNextFreeRecorder(cardId: CaptureCardId): RemoteEncoder = {
+  def getNextFreeRecorder(cardId: CaptureCardId): Either[MythProtocolFailure, RemoteEncoder] = {
     val result = sendCommand("GET_NEXT_FREE_RECORDER", cardId)
-    (result map { case e: RemoteEncoder => e }).right.get
+    result map { case e: RemoteEncoder => e }
   }
 
-  def getRecorderFromNum(cardId: CaptureCardId): RemoteEncoder = {
+  def getRecorderFromNum(cardId: CaptureCardId): Either[MythProtocolFailure, RemoteEncoder] = {
     val result = sendCommand("GET_RECORDER_FROM_NUM", cardId)
-    (result map { case e: RemoteEncoder => e }).right.get
+    result map { case e: RemoteEncoder => e }
   }
 
-  def getRecorderNum(rec: Recording): RemoteEncoder = {
+  def getRecorderNum(rec: Recording): Either[MythProtocolFailure, RemoteEncoder] = {
     val result = sendCommand("GET_RECORDER_NUM", rec)
-    (result map { case e: RemoteEncoder => e }).right.get
+    result map { case e: RemoteEncoder => e }
   }
 
   // TODO a way to return error message if any
-  def goToSleep(): Boolean = {
+  def goToSleep(): Either[MythProtocolFailure, Boolean] = {
     val result = sendCommand("GO_TO_SLEEP")
-    (result map { case r: Boolean => r }).right.get
+    result map { case r: Boolean => r }
   }
 
   def lockTuner(): Any = ??? // TODO capture the appropriate return type
   def lockTuner(cardId: CaptureCardId): Any = ??? // see above for return type
 
-  def message(message: String, extra: String*): Boolean = {
+  def message(message: String, extra: String*): Either[MythProtocolFailure, Boolean] = {
     val args = List(message) ++ extra
     val result = sendCommand("MESSAGE", args: _*)
-    (result map { case r: Boolean => r }).right.get
+    result map { case r: Boolean => r }
   }
 
-  def messageSetLogLevel(logLevel: MythLogLevel): Boolean = {
+  def messageSetLogLevel(logLevel: MythLogLevel): Either[MythProtocolFailure, Boolean] = {
     val result = sendCommand("MESSAGE", "SET_LOG_LEVEL", logLevel)
-    (result map { case r: Boolean => r }).right.get
+    result map { case r: Boolean => r }
   }
 
-  def messageSetVerbose(verboseMask: String): Boolean = {
+  def messageSetVerbose(verboseMask: String): Either[MythProtocolFailure, Boolean] = {
     val result = sendCommand("MESSAGE", "SET_VERBOSE", verboseMask)
-    (result map { case r: Boolean => r }).right.get
+    result map { case r: Boolean => r }
   }
 
-  def protocolVersion(version: Int, token: String): (Boolean, Int) = {
+  def protocolVersion(version: Int, token: String): Either[MythProtocolFailure, (Boolean, Int)] = {
     // NOTE that I believe an incorrect protocol version results in socket being closed
     val result = sendCommand("MYTH_PROTO_VERSION", version, token)
-    (result map { case (accepted: Boolean, acceptVer: Int) => (accepted, acceptVer) }).right.get
+    result map { case (accepted: Boolean, acceptVer: Int) => (accepted, acceptVer) }
   }
 
-  def queryActiveBackends: List[String] = {
+  def queryActiveBackends: Either[MythProtocolFailure, List[String]] = {
     val result = sendCommand("QUERY_ACTIVE_BACKENDS")
-    (result map { case xs: List[_] => xs.asInstanceOf[List[String]] }).right.get
+    result map { case xs: List[_] => xs.asInstanceOf[List[String]] }
   }
 
-  def queryBookmark(chanId: ChanId, startTime: MythDateTime): VideoPositionFrame = {
+  def queryBookmark(chanId: ChanId, startTime: MythDateTime): Either[MythProtocolFailure, VideoPositionFrame] = {
     val result = sendCommand("QUERY_BOOKMARK", chanId, startTime)
-    (result map { case p: VideoPositionFrame => p }).right.get
+    result map { case p: VideoPositionFrame => p }
   }
 
-  def queryCheckFile(rec: Recording, checkSlaves: Boolean): String = {
+  def queryCheckFile(rec: Recording, checkSlaves: Boolean): Either[MythProtocolFailure, String] = {
     val result = sendCommand("QUERY_CHECKFILE", checkSlaves, rec)
-    (result map { case s: String => s }).right.get
+    result map { case s: String => s }
   }
 
-  def queryCommBreak(chanId: ChanId, startTime: MythDateTime): List[VideoSegment] = {
+  def queryCommBreak(chanId: ChanId, startTime: MythDateTime): Either[MythProtocolFailure, List[VideoSegment]] = {
     val result = sendCommand("QUERY_COMMBREAK", chanId, startTime)
-    (result map { case xs: List[_] => xs.asInstanceOf[List[VideoSegment]] }).right.get
+    result map { case xs: List[_] => xs.asInstanceOf[List[VideoSegment]] }
   }
 
-  def queryCutList(chanId: ChanId, startTime: MythDateTime): List[VideoSegment] = {
+  def queryCutList(chanId: ChanId, startTime: MythDateTime): Either[MythProtocolFailure, List[VideoSegment]] = {
     val result = sendCommand("QUERY_CUTLIST", chanId, startTime)
-    (result map { case xs: List[_] => xs.asInstanceOf[List[VideoSegment]] }).right.get
+    result map { case xs: List[_] => xs.asInstanceOf[List[VideoSegment]] }
   }
 
-  def queryFileExists(fileName: String, storageGroup: String): (String, FileStats) = {
+  def queryFileExists(fileName: String, storageGroup: String): Either[MythProtocolFailure, (String, FileStats)] = {
     val result =
       if (storageGroup.isEmpty) sendCommand("QUERY_FILE_EXISTS", fileName)
       else sendCommand("QUERY_FILE_EXISTS", fileName, storageGroup)
-    (result map { case (fullName: String, stats: FileStats) => (fullName, stats) }).right.get
+    result map { case (fullName: String, stats: FileStats) => (fullName, stats) }
   }
 
   def queryFileTransferDone(ftId: FileTransferId): Unit = {
     val result = sendCommand("QUERY_FILETRANSFER", ftId, "DONE")
-    (result map { case QueryFileTransferAcknowledgement => true }).right.get
+    result map { case QueryFileTransferAcknowledgement => true }
   }
 
-  def queryFileTransferIsOpen(ftId: FileTransferId): Boolean = {
+  def queryFileTransferIsOpen(ftId: FileTransferId): Either[MythProtocolFailure, Boolean] = {
     val result = sendCommand("QUERY_FILETRANSFER", ftId, "IS_OPEN")
-    (result map { case QueryFileTransferBoolean(bool) => bool }).right.get
+    result map { case QueryFileTransferBoolean(bool) => bool }
   }
 
-  def queryFileTransferReopen(ftId: FileTransferId, newFileName: String): Boolean = {
+  def queryFileTransferReopen(ftId: FileTransferId, newFileName: String): Either[MythProtocolFailure, Boolean] = {
     val result = sendCommand("QUERY_FILETRANSFER", ftId, "REOPEN")
-    (result map { case QueryFileTransferBoolean(bool) => bool }).right.get
+    result map { case QueryFileTransferBoolean(bool) => bool }
   }
 
-  def queryFileTransferRequestBlock(ftId: FileTransferId, blockSize: Int): Int = {
+  def queryFileTransferRequestBlock(ftId: FileTransferId, blockSize: Int): Either[MythProtocolFailure, Int] = {
     val result = sendCommand("QUERY_FILETRANSFER", ftId, "REQUEST_BLOCK", blockSize)
-    (result map { case QueryFileTransferBytesTransferred(count) => count }).right.get
+    result map { case QueryFileTransferBytesTransferred(count) => count }
   }
 
-  def queryFileTransferRequestSize(ftId: FileTransferId): Long = {
+  def queryFileTransferRequestSize(ftId: FileTransferId): Either[MythProtocolFailure, Long] = {
     val result = sendCommand("QUERY_FILETRANSFER", ftId, "REQUEST_SIZE")
-    (result map { case QueryFileTransferRequestSize(size, _) => size }).right.get
+    result map { case QueryFileTransferRequestSize(size, _) => size }
   }
 
-  def queryFileTransferSeek(ftId: FileTransferId, pos: Long, whence: SeekWhence, currentPos: Long): Long = {
+  def queryFileTransferSeek(ftId: FileTransferId, pos: Long, whence: SeekWhence, currentPos: Long): Either[MythProtocolFailure, Long] = {
     val result = sendCommand("QUERY_FILETRANSFER", ftId, "SEEK", pos, whence, currentPos)
-    (result map { case QueryFileTransferPosition(newPos) => newPos}).right.get
+    result map { case QueryFileTransferPosition(newPos) => newPos}
   }
 
   def queryFileTransferSetTimeout(ftId: FileTransferId, fast: Boolean): Unit = {
     val result = sendCommand("QUERY_FILETRANSFER", ftId, "SET_TIMEOUT", fast)
-    (result map { case QueryFileTransferAcknowledgement => true }).right.get
+    result map { case QueryFileTransferAcknowledgement => true }
   }
 
-  def queryFileTransferWriteBlock(ftId: FileTransferId, blockSize: Int): Int = {
+  def queryFileTransferWriteBlock(ftId: FileTransferId, blockSize: Int): Either[MythProtocolFailure, Int] = {
     val result = sendCommand("QUERY_FILETRANSFER", ftId, "WRITE_BLOCK", blockSize)
-    (result map { case QueryFileTransferBytesTransferred(count) => count }).right.get
+    result map { case QueryFileTransferBytesTransferred(count) => count }
   }
 
-  def queryFileHash(fileName: String, storageGroup: String, hostName: String): MythFileHash = {
+  def queryFileHash(fileName: String, storageGroup: String, hostName: String): Either[MythProtocolFailure, MythFileHash] = {
     val result =
       if (hostName == "") sendCommand("QUERY_FILE_HASH", fileName, storageGroup)
       else sendCommand("QUERY_FILE_HASH", fileName, storageGroup, hostName)
-    (result map { case h: MythFileHash => h }).right.get
+    result map { case h: MythFileHash => h }
   }
 
-  def queryFreeSpace: List[FreeSpace] = {
+  def queryFreeSpace: Either[MythProtocolFailure, List[FreeSpace]] = {
     val result = sendCommand("QUERY_FREE_SPACE")
-    (result map { case xs: List[_] => xs.asInstanceOf[List[FreeSpace]] }).right.get
+    result map { case xs: List[_] => xs.asInstanceOf[List[FreeSpace]] }
   }
 
-  def queryFreeSpaceList: List[FreeSpace] = {
+  def queryFreeSpaceList: Either[MythProtocolFailure, List[FreeSpace]] = {
     val result = sendCommand("QUERY_FREE_SPACE_LIST")
-    (result map { case xs: List[_] => xs.asInstanceOf[List[FreeSpace]] }).right.get
+    result map { case xs: List[_] => xs.asInstanceOf[List[FreeSpace]] }
   }
 
-  def queryFreeSpaceSummary: (ByteCount, ByteCount) = {
+  def queryFreeSpaceSummary: Either[MythProtocolFailure, (ByteCount, ByteCount)] = {
     val result = sendCommand("QUERY_FREE_SPACE_SUMMARY")
-    (result map { case (total: ByteCount, used: ByteCount) => (total, used) }).right.get
+    result map { case (total: ByteCount, used: ByteCount) => (total, used) }
   }
 
-  def queryGenPixmap(rec: Recording, token: String, time: VideoPosition, outputFile: String, width: Int, height: Int): Boolean = {
+  def queryGenPixmap(rec: Recording, token: String, time: VideoPosition, outputFile: String, width: Int, height: Int): Either[MythProtocolFailure, Boolean] = {
     val sentToken = if (token.isEmpty) "do_not_care" else token
     val fileName = if (outputFile.isEmpty) "<EMPTY>" else outputFile
     val hasExtra = time.pos != -1 || outputFile.nonEmpty || width != 0 || height != 0
@@ -255,132 +256,133 @@ private trait BackendAPILike {
       if (hasExtra) sendCommand("QUERY_GENPIXMAP2", sentToken, rec, time.units, time, fileName, width, height)
       else          sendCommand("QUERY_GENPIXMAP2", sentToken, rec)
 
-    (result map { case r: Boolean => r }).right.get
+    result map { case r: Boolean => r }
   }
 
-  def queryGetAllPending: ExpectedCountIterator[Recording] = {
+  def queryGetAllPending: Either[MythProtocolFailure, ExpectedCountIterator[Recording]] = {
     val result = sendCommand("QUERY_GETALLPENDING")
-    (result map { case it: ExpectedCountIterator[_] => it.asInstanceOf[ExpectedCountIterator[Recording]] }).right.get
+    result map { case it: ExpectedCountIterator[_] => it.asInstanceOf[ExpectedCountIterator[Recording]] }
   }
 
-  def queryGetAllScheduled: ExpectedCountIterator[Recording] = {
+  def queryGetAllScheduled: Either[MythProtocolFailure, ExpectedCountIterator[Recording]] = {
     val result = sendCommand("QUERY_GETALLSCHEDULED")
-    (result map { case it: ExpectedCountIterator[_] => it.asInstanceOf[ExpectedCountIterator[Recording]] }).right.get
+    result map { case it: ExpectedCountIterator[_] => it.asInstanceOf[ExpectedCountIterator[Recording]] }
   }
 
-  def queryGetConflicting(rec: Recording): ExpectedCountIterator[Recording] = {
+  def queryGetConflicting(rec: Recording): Either[MythProtocolFailure, ExpectedCountIterator[Recording]] = {
     val result = sendCommand("QUERY_GETCONFLICTING", rec)
-    (result map { case it: ExpectedCountIterator[_] => it.asInstanceOf[ExpectedCountIterator[Recording]] }).right.get
+    result map { case it: ExpectedCountIterator[_] => it.asInstanceOf[ExpectedCountIterator[Recording]] }
   }
 
-  def queryGetExpiring: ExpectedCountIterator[Recording] = {
+  def queryGetExpiring: Either[MythProtocolFailure, ExpectedCountIterator[Recording]] = {
     val result = sendCommand("QUERY_GETEXPIRING")
-    (result map { case it: ExpectedCountIterator[_] => it.asInstanceOf[ExpectedCountIterator[Recording]] }).right.get
+    result map { case it: ExpectedCountIterator[_] => it.asInstanceOf[ExpectedCountIterator[Recording]] }
   }
 
-  def queryGuideDataThrough: MythDateTime = {
+  def queryGuideDataThrough: Either[MythProtocolFailure, MythDateTime] = {
     val result = sendCommand("QUERY_GUIDEDATATHROUGH")
-    (result map { case d: MythDateTime => d }).right.get
+    result map { case d: MythDateTime => d }
   }
 
-  def queryHostname: String = {
+  def queryHostname: Either[MythProtocolFailure, String] = {
     val result = sendCommand("QUERY_HOSTNAME")
-    (result map { case h: String => h }).right.get
+    result map { case h: String => h }
   }
 
-  def queryIsActiveBackend(hostName: String): Boolean = {
+  def queryIsActiveBackend(hostName: String): Either[MythProtocolFailure, Boolean] = {
     val result = sendCommand("QUERY_IS_ACTIVE_BACKEND", hostName)
-    (result map { case a: Boolean => a }).right.get
+    result map { case a: Boolean => a }
   }
 
-  def queryIsRecording: (Int, Int) = {
+  def queryIsRecording: Either[MythProtocolFailure, (Int, Int)] = {
     val result = sendCommand("QUERY_ISRECORDING")
-    (result map { case (rec: Int, live: Int) => (rec, live) }).right.get
+    result map { case (rec: Int, live: Int) => (rec, live) }
   }
 
-  def queryLoad: (Double, Double, Double) = {
+  def queryLoad: Either[MythProtocolFailure, (Double, Double, Double)] = {
     val result = sendCommand("QUERY_LOAD")
-    (result map { case (one: Double, five: Double, fifteen: Double) => (one, five, fifteen) }).right.get
+    result map { case (one: Double, five: Double, fifteen: Double) => (one, five, fifteen) }
   }
 
-  def queryMemStats: (ByteCount, ByteCount, ByteCount, ByteCount) = {
+  def queryMemStats: Either[MythProtocolFailure, (ByteCount, ByteCount, ByteCount, ByteCount)] = {
     val result = sendCommand("QUERY_MEMSTATS")
-    (result map {
+    result map {
       case (total: ByteCount, free: ByteCount, totalVM: ByteCount, freeVM: ByteCount) =>
         (total, free, totalVM, freeVM)
-    }).right.get
+    }
   }
 
-  def queryPixmapGetIfModified(maxFileSize: Long, rec: Recording): (MythDateTime, Option[PixmapInfo]) = {
+  def queryPixmapGetIfModified(maxFileSize: Long, rec: Recording): Either[MythProtocolFailure, (MythDateTime, Option[PixmapInfo])] = {
     val result = sendCommand("QUERY_PIXMAP_GET_IF_MODIFIED", maxFileSize, rec)
-    (result map {
+    result map {
       case (lastModified: MythDateTime, pixmapInfo: Option[_]) =>
         (lastModified, pixmapInfo map { case (p: PixmapInfo) => p })
-    }).right.get
+    }
   }
 
-  def queryPixmapGetIfModified(modifiedSince: MythDateTime, maxFileSize: Long, rec: Recording): (MythDateTime, Option[PixmapInfo]) = {
+  def queryPixmapGetIfModified(modifiedSince: MythDateTime, maxFileSize: Long, rec: Recording): Either[MythProtocolFailure, (MythDateTime, Option[PixmapInfo])] = {
     val result = sendCommand("QUERY_PIXMAP_GET_IF_MODIFIED", modifiedSince, maxFileSize, rec)
-    (result map {
+    result map {
       case (lastModified: MythDateTime, pixmapInfo: Option[_]) =>
         (lastModified, pixmapInfo map { case (p: PixmapInfo) => p })
-    }).right.get
+    }
   }
 
-  def queryPixmapLastModified(rec: Recording): MythDateTime = {
+  def queryPixmapLastModified(rec: Recording): Either[MythProtocolFailure, MythDateTime] = {
     val result = sendCommand("QUERY_PIXMAP_LASTMODIFIED", rec)
-    (result map { case d: MythDateTime => d }).right.get
+    result map { case d: MythDateTime => d }
   }
 
   def queryRecorderCancelNextRecording(cardId: CaptureCardId, cancel: Boolean): Unit = {
     val result = sendCommand("QUERY_RECORDER", cardId, "CANCEL_NEXT_RECORDING", cancel)
   }
 
-  def queryRecorderChangeBrightness(cardId: CaptureCardId, adjType: PictureAdjustType, up: Boolean): Int = {
+  def queryRecorderChangeBrightness(cardId: CaptureCardId, adjType: PictureAdjustType, up: Boolean): Either[MythProtocolFailure, Int] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "CHANGE_BRIGHTNESS", adjType, up)
-    (result map { case QueryRecorderPictureAttribute(a) => a }).right.get
+    result map { case QueryRecorderPictureAttribute(a) => a }
   }
 
   def queryRecorderChangeChannel(cardId: CaptureCardId, dir: ChannelChangeDirection): Unit = {
     val result = sendCommand("QUERY_RECORDER", cardId, "CHANGE_CHANNEL", dir)
   }
 
-  def queryRecorderChangeColour(cardId: CaptureCardId, adjType: PictureAdjustType, up: Boolean): Int = {
+  def queryRecorderChangeColour(cardId: CaptureCardId, adjType: PictureAdjustType, up: Boolean): Either[MythProtocolFailure, Int] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "CHANGE_COLOUR", adjType, up)
-    (result map { case QueryRecorderPictureAttribute(a) => a }).right.get
+    result map { case QueryRecorderPictureAttribute(a) => a }
   }
 
-  def queryRecorderChangeContrast(cardId: CaptureCardId, adjType: PictureAdjustType, up: Boolean): Int = {
+  def queryRecorderChangeContrast(cardId: CaptureCardId, adjType: PictureAdjustType, up: Boolean): Either[MythProtocolFailure, Int] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "CHANGE_CONTRAST", adjType, up)
-    (result map { case QueryRecorderPictureAttribute(a) => a }).right.get
+    result map { case QueryRecorderPictureAttribute(a) => a }
   }
 
-  def queryRecorderChangeHue(cardId: CaptureCardId, adjType: PictureAdjustType, up: Boolean): Int = {
+  def queryRecorderChangeHue(cardId: CaptureCardId, adjType: PictureAdjustType, up: Boolean): Either[MythProtocolFailure, Int] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "CHANGE_HUE", adjType, up)
-    (result map { case QueryRecorderPictureAttribute(a) => a }).right.get
+    result map { case QueryRecorderPictureAttribute(a) => a }
   }
 
-  def queryRecorderCheckChannel(cardId: CaptureCardId, channum: ChannelNumber): Boolean = {
+  def queryRecorderCheckChannel(cardId: CaptureCardId, channum: ChannelNumber): Either[MythProtocolFailure, Boolean] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "CHECK_CHANNEL", channum)
-    (result map { case QueryRecorderBoolean(b) => b }).right.get
+    result map { case QueryRecorderBoolean(b) => b }
   }
 
   def queryRecorderCheckChannelPrefix(cardId: CaptureCardId, channumPrefix: ChannelNumber):
-      (Boolean, Option[CaptureCardId], Boolean, String) = {
+      Either[MythProtocolFailure, (Boolean, Option[CaptureCardId], Boolean, String)] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "CHECK_CHANNEL_PREFIX", channumPrefix)
-    (result map { case QueryRecorderCheckChannelPrefix(matched, card, extraCharUseful, spacer) =>
-      (matched, card, extraCharUseful, spacer) }).right.get
-  }
-  // TODO return type more specific?
-  def queryRecorderFillDurationMap(cardId: CaptureCardId, start: VideoPositionFrame, end: VideoPositionFrame): Map[VideoPositionFrame, Long] = {
-    val result = sendCommand("QUERY_RECORDER", cardId, "FILL_DURATION_MAP", start, end)
-    (result map { case QueryRecorderPositionMap(m) => m }).right.get
+    result map { case QueryRecorderCheckChannelPrefix(matched, card, extraCharUseful, spacer) =>
+      (matched, card, extraCharUseful, spacer) }
   }
 
   // TODO return type more specific?
-  def queryRecorderFillPositionMap(cardId: CaptureCardId, start: VideoPositionFrame, end: VideoPositionFrame): Map[VideoPositionFrame, Long] = {
+  def queryRecorderFillDurationMap(cardId: CaptureCardId, start: VideoPositionFrame, end: VideoPositionFrame): Either[MythProtocolFailure, Map[VideoPositionFrame, Long]] = {
+    val result = sendCommand("QUERY_RECORDER", cardId, "FILL_DURATION_MAP", start, end)
+    result map { case QueryRecorderPositionMap(m) => m }
+  }
+
+  // TODO return type more specific?
+  def queryRecorderFillPositionMap(cardId: CaptureCardId, start: VideoPositionFrame, end: VideoPositionFrame): Either[MythProtocolFailure, Map[VideoPositionFrame, Long]] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "FILL_POSITION_MAP", start, end)
-    (result map { case QueryRecorderPositionMap(m) => m }).right.get
+    result map { case QueryRecorderPositionMap(m) => m }
   }
 
   def queryRecorderFinishRecording(cardId: CaptureCardId): Unit = {
@@ -391,92 +393,92 @@ private trait BackendAPILike {
     val result = sendCommand("QUERY_RECORDER", cardId, "FRONTEND_READY")
   }
 
-  def queryRecorderGetBrightness(cardId: CaptureCardId): Int = {
+  def queryRecorderGetBrightness(cardId: CaptureCardId): Either[MythProtocolFailure, Int] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "GET_BRIGHTNESS")
-    (result map { case QueryRecorderPictureAttribute(a) => a }).right.get
+    result map { case QueryRecorderPictureAttribute(a) => a }
   }
 
-  def queryRecorderGetChannelInfo(cardId: CaptureCardId, chanId: ChanId): Channel = {
+  def queryRecorderGetChannelInfo(cardId: CaptureCardId, chanId: ChanId): Either[MythProtocolFailure, Channel] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "GET_CHANNEL_INFO", chanId)
-    (result map { case QueryRecorderChannelInfo(c) => c }).right.get
+    result map { case QueryRecorderChannelInfo(c) => c }
   }
 
-  def queryRecorderGetColour(cardId: CaptureCardId): Int = {
+  def queryRecorderGetColour(cardId: CaptureCardId): Either[MythProtocolFailure, Int] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "GET_COLOUR")
-    (result map { case QueryRecorderPictureAttribute(a) => a }).right.get
+    result map { case QueryRecorderPictureAttribute(a) => a }
   }
 
-  def queryRecorderGetContrast(cardId: CaptureCardId): Int = {
+  def queryRecorderGetContrast(cardId: CaptureCardId): Either[MythProtocolFailure, Int] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "GET_CONTRAST")
-    (result map { case QueryRecorderPictureAttribute(a) => a }).right.get
+    result map { case QueryRecorderPictureAttribute(a) => a }
   }
 
-  def queryRecorderGetCurrentRecording(cardId: CaptureCardId): Recording = {
+  def queryRecorderGetCurrentRecording(cardId: CaptureCardId): Either[MythProtocolFailure, Recording] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "GET_CURRENT_RECORDING")
-    (result map { case QueryRecorderRecording(r) => r }).right.get
+    result map { case QueryRecorderRecording(r) => r }
   }
 
-  def queryRecorderGetFilePosition(cardId: CaptureCardId): Long = {
+  def queryRecorderGetFilePosition(cardId: CaptureCardId): Either[MythProtocolFailure, Long] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "GET_FILE_POSITION")
-    (result map { case QueryRecorderPosition(p) => p }).right.get
+    result map { case QueryRecorderPosition(p) => p }
   }
 
-  def queryRecorderGetFrameRate(cardId: CaptureCardId): Double = {
+  def queryRecorderGetFrameRate(cardId: CaptureCardId): Either[MythProtocolFailure, Double] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "GET_FRAMERATE")
-    (result map { case QueryRecorderFrameRate(r) => r }).right.get
+    result map { case QueryRecorderFrameRate(r) => r }
   }
 
-  def queryRecorderGetFramesWritten(cardId: CaptureCardId): Long = {
+  def queryRecorderGetFramesWritten(cardId: CaptureCardId): Either[MythProtocolFailure, Long] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "GET_FRAMES_WRITTEN")
-    (result map { case QueryRecorderFrameCount(n) => n }).right.get
+    result map { case QueryRecorderFrameCount(n) => n }
   }
 
-  def queryRecorderGetFreeInputs(cardId: CaptureCardId, excludedCards: CaptureCardId*): List[CardInput] = {
+  def queryRecorderGetFreeInputs(cardId: CaptureCardId, excludedCards: CaptureCardId*): Either[MythProtocolFailure, List[CardInput]] = {
     val args = List(cardId) ++ excludedCards
     val result = sendCommand("QUERY_RECORDER", args: _*)
-    (result map { case QueryRecorderCardInputList(i) => i }).right.get
+    result map { case QueryRecorderCardInputList(i) => i }
   }
 
-  def queryRecorderGetHue(cardId: CaptureCardId): Int = {
+  def queryRecorderGetHue(cardId: CaptureCardId): Either[MythProtocolFailure, Int] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "GET_HUE")
-    (result map { case QueryRecorderPictureAttribute(a) => a }).right.get
+    result map { case QueryRecorderPictureAttribute(a) => a }
   }
 
-  def queryRecorderGetInput(cardId: CaptureCardId): String = {
+  def queryRecorderGetInput(cardId: CaptureCardId): Either[MythProtocolFailure, String] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "GET_INPUT")
-    (result map { case QueryRecorderInput(input) => input }).right.get
+    result map { case QueryRecorderInput(input) => input }
   }
 
-  def queryRecorderGetKeyframePos(cardId: CaptureCardId, desiredPos: VideoPositionFrame): Long = {
+  def queryRecorderGetKeyframePos(cardId: CaptureCardId, desiredPos: VideoPositionFrame): Either[MythProtocolFailure, Long] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "GET_KEYFRAME_POS", desiredPos)
-    (result map { case QueryRecorderPosition(p) => p }).right.get
+    result map { case QueryRecorderPosition(p) => p }
   }
 
-  def queryRecorderGetMaxBitrate(cardId: CaptureCardId): Long = {
+  def queryRecorderGetMaxBitrate(cardId: CaptureCardId): Either[MythProtocolFailure, Long] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "GET_MAX_BITRATE")
-    (result map { case QueryRecorderBitrate(b) => b }).right.get
+    result map { case QueryRecorderBitrate(b) => b }
   }
 
   def queryRecorderGetNextProgramInfo(cardId: CaptureCardId, chanId: ChanId, dir: ChannelBrowseDirection,
-    startTime: MythDateTime): UpcomingProgram = {
+    startTime: MythDateTime): Either[MythProtocolFailure, UpcomingProgram] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "GET_NEXT_PROGRAM_INFO", ChannelNumber(""), chanId, dir, startTime)
-    (result map { case QueryRecorderNextProgramInfo(p) => p }).right.get
+    result map { case QueryRecorderNextProgramInfo(p) => p }
   }
 
   def queryRecorderGetNextProgramInfo(cardId: CaptureCardId, channum: ChannelNumber, dir: ChannelBrowseDirection,
-    startTime: MythDateTime): UpcomingProgram = {
+    startTime: MythDateTime): Either[MythProtocolFailure, UpcomingProgram] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "GET_NEXT_PROGRAM_INFO", channum, ChanId(0), dir, startTime)
-    (result map { case QueryRecorderNextProgramInfo(p) => p }).right.get
+    result map { case QueryRecorderNextProgramInfo(p) => p }
   }
 
-  def queryRecorderGetRecording(cardId: CaptureCardId): Recording = {
+  def queryRecorderGetRecording(cardId: CaptureCardId): Either[MythProtocolFailure, Recording] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "GET_RECORDING")
-    (result map { case QueryRecorderRecording(r) => r }).right.get
+    result map { case QueryRecorderRecording(r) => r }
   }
 
-  def queryRecorderIsRecording(cardId: CaptureCardId): Boolean = {
+  def queryRecorderIsRecording(cardId: CaptureCardId): Either[MythProtocolFailure, Boolean] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "IS_RECORDING")
-    (result map { case QueryRecorderBoolean(b) => b }).right.get
+    result map { case QueryRecorderBoolean(b) => b }
   }
 
   def queryRecorderPause(cardId: CaptureCardId): Unit = {
@@ -487,23 +489,23 @@ private trait BackendAPILike {
     val result = sendCommand("QUERY_RECORDER", cardId, "SET_CHANNEL", channum)
   }
 
-  def queryRecorderSetInput(cardId: CaptureCardId, inputName: String): String = {
+  def queryRecorderSetInput(cardId: CaptureCardId, inputName: String): Either[MythProtocolFailure, String] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "SET_INPUT", inputName)
-    (result map { case QueryRecorderInput(input) => input }).right.get
+    result map { case QueryRecorderInput(input) => input }
   }
 
   def queryRecorderSetLiveRecording(cardId: CaptureCardId, recordingState: Int): Unit = {
     val result = sendCommand("QUERY_RECORDER", cardId, "SET_LIVE_RECORDING", recordingState)
   }
 
-  def queryRecorderSetSignalMonitoringRate(cardId: CaptureCardId, rate: Int, notifyFrontend: Boolean): Boolean = {
+  def queryRecorderSetSignalMonitoringRate(cardId: CaptureCardId, rate: Int, notifyFrontend: Boolean): Either[MythProtocolFailure, Boolean] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "SET_SIGNAL_MONITORING_RATE", rate, notifyFrontend)
-    (result map { case QueryRecorderBoolean(b) => b }).right.get
+    result map { case QueryRecorderBoolean(b) => b }
   }
 
-  def queryRecorderShouldSwitchCard(cardId: CaptureCardId, chanId: ChanId): Boolean = {
+  def queryRecorderShouldSwitchCard(cardId: CaptureCardId, chanId: ChanId): Either[MythProtocolFailure, Boolean] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "SHOULD_SWITCH_CARD", chanId)
-    (result map { case QueryRecorderBoolean(b) => b }).right.get
+    result map { case QueryRecorderBoolean(b) => b }
   }
 
   def queryRecorderSpawnLiveTV(cardId: CaptureCardId, usePiP: Boolean, channumStart: ChannelNumber): Unit = {
@@ -518,90 +520,90 @@ private trait BackendAPILike {
     val result = sendCommand("QUERY_RECORDER", cardId, "TOGGLE_CHANNEL_FAVORITE", channelGroup)
   }
 
-  def queryRecording(pathName: String): Recording = {
+  def queryRecording(pathName: String): Either[MythProtocolFailure, Recording] = {
     val result = sendCommand("QUERY_RECORDING", "BASENAME", pathName)
-    (result map { case r: Recording => r }).right.get
+    result map { case r: Recording => r }
   }
 
-  def queryRecording(chanId: ChanId, startTime: MythDateTime): Recording = {
+  def queryRecording(chanId: ChanId, startTime: MythDateTime): Either[MythProtocolFailure, Recording] = {
     val result = sendCommand("QUERY_RECORDING", "TIMESLOT", chanId, startTime)
-    (result map { case r: Recording => r }).right.get
+    result map { case r: Recording => r }
   }
 
-  def queryRecordings(specifier: String): ExpectedCountIterator[Recording] = {
+  def queryRecordings(specifier: String): Either[MythProtocolFailure, ExpectedCountIterator[Recording]] = {
     val result = sendCommand("QUERY_RECORDINGS", specifier)
-    (result map { case it: ExpectedCountIterator[_] => it.asInstanceOf[ExpectedCountIterator[Recording]] }).right.get
+    result map { case it: ExpectedCountIterator[_] => it.asInstanceOf[ExpectedCountIterator[Recording]] }
   }
 
-  def querySGGetFileList(hostName: String, storageGroup: String, path: String): List[String] = {
+  def querySGGetFileList(hostName: String, storageGroup: String, path: String): Either[MythProtocolFailure, List[String]] = {
     val result = sendCommand("QUERY_SG_GETFILELIST", hostName, storageGroup, path)
-    (result map { case xs: List[_] => xs.asInstanceOf[List[String]] }).right.get
+    result map { case xs: List[_] => xs.asInstanceOf[List[String]] }
   }
 
-  def querySGGetFileList(hostName: String, storageGroup: String, path: String, fileNamesOnly: Boolean): List[String] = {
+  def querySGGetFileList(hostName: String, storageGroup: String, path: String, fileNamesOnly: Boolean): Either[MythProtocolFailure, List[String]] = {
     val result = sendCommand("QUERY_SG_GETFILELIST", hostName, storageGroup, path, fileNamesOnly)
-    (result map { case xs: List[_] => xs.asInstanceOf[List[String]] }).right.get
+    result map { case xs: List[_] => xs.asInstanceOf[List[String]] }
   }
 
-  def querySGFileQuery(hostName: String, storageGroup: String, fileName: String): (String, MythDateTime, ByteCount) = {
+  def querySGFileQuery(hostName: String, storageGroup: String, fileName: String): Either[MythProtocolFailure, (String, MythDateTime, ByteCount)] = {
     val result = sendCommand("QUERY_SG_FILEQUERY", hostName, storageGroup, fileName)
-    (result map { case (fullPath: String, fileTime: MythDateTime, fileSize: ByteCount) => (fullPath, fileTime, fileSize) }).right.get
+    result map { case (fullPath: String, fileTime: MythDateTime, fileSize: ByteCount) => (fullPath, fileTime, fileSize) }
   }
 
-  def querySetting(hostName: String, settingName: String): Option[String] = {
+  def querySetting(hostName: String, settingName: String): Either[MythProtocolFailure, String] = {
     val result = sendCommand("QUERY_SETTING", hostName, settingName)
-    (result map { case s: String => s }).toOption
+    result map { case s: String => s }
   }
 
-  def queryTimeZone: TimeZoneInfo = {
+  def queryTimeZone: Either[MythProtocolFailure, TimeZoneInfo] = {
     val result = sendCommand("QUERY_TIME_ZONE")
-    (result map { case (tzi: TimeZoneInfo) => tzi }).right.get
+    result map { case (tzi: TimeZoneInfo) => tzi }
   }
 
-  def queryUptime: Duration = {
+  def queryUptime: Either[MythProtocolFailure, Duration] = {
     val result = sendCommand("QUERY_UPTIME")
-    (result map { case d: Duration => d }).right.get
+    result map { case d: Duration => d }
   }
 
-  def refreshBackend: Boolean = {
+  def refreshBackend: Either[MythProtocolFailure, Boolean] = {
     val result = sendCommand("REFRESH_BACKEND")
-    (result map { case r: Boolean => r }).right.get
+    result map { case r: Boolean => r }
   }
 
   def rescheduleRecordingsCheck(recStatus: RecStatus, recordId: RecordRuleId, findId: Int, title: String, subtitle: String,
-    description: String, programId: String, reason: String): Boolean = {
+    description: String, programId: String, reason: String): Either[MythProtocolFailure, Boolean] = {
     val result = sendCommand("RESCHEDULE_RECORDINGS", "CHECK", recStatus, recordId, findId, reason,
       title, subtitle, description, programId)
-    (result map { case r: Boolean => r }).right.get
+    result map { case r: Boolean => r }
   }
 
   def rescheduleRecordingsMatch(recordId: RecordRuleId, sourceId: ListingSourceId, mplexId: MultiplexId,
-    maxStartTime: Option[MythDateTime], reason: String): Boolean = {
+    maxStartTime: Option[MythDateTime], reason: String): Either[MythProtocolFailure, Boolean] = {
     val result =
       if (maxStartTime.isEmpty) sendCommand("RESCHEDULE_RECORDINGS", "MATCH", recordId, sourceId, mplexId, reason)
       else sendCommand("RESCHEDULE_RECORDINGS", "MATCH", recordId, sourceId, mplexId, maxStartTime.get, reason)
-    (result map { case r: Boolean => r }).right.get
+    result map { case r: Boolean => r }
   }
 
-  def rescheduleRecordingsPlace(reason: String): Boolean = {
+  def rescheduleRecordingsPlace(reason: String): Either[MythProtocolFailure, Boolean] = {
     val result = sendCommand("RESCHEDULE_RECORDINGS", "PLACE", reason)
-    (result map { case r: Boolean => r }).right.get
+    result map { case r: Boolean => r }
   }
 
-  def scanVideos: Boolean = {
+  def scanVideos: Either[MythProtocolFailure, Boolean] = {
     // TODO this may need a longer timeout, may take some time? Is this true?
     val result = sendCommand("SCAN_VIDEOS")
-    (result map { case r: Boolean => r }).right.get
+    result map { case r: Boolean => r }
   }
 
-  def setBookmark(chanId: ChanId, startTime: MythDateTime, pos: VideoPositionFrame): Boolean = {
+  def setBookmark(chanId: ChanId, startTime: MythDateTime, pos: VideoPositionFrame): Either[MythProtocolFailure, Boolean] = {
     val result = sendCommand("SET_BOOKMARK", chanId, startTime, pos)
-    (result map { case r: Boolean => r }).right.get
+    result map { case r: Boolean => r }
   }
 
-  def setSetting(hostName: String, settingName: String, value: String): Boolean = {
+  def setSetting(hostName: String, settingName: String, value: String): Either[MythProtocolFailure, Boolean] = {
     val result = sendCommand("SET_SETTING", hostName, settingName, value)
-    (result map { case r: Boolean => r }).right.get
+    result map { case r: Boolean => r }
   }
 
   // TODO do we need to post this message rather than send it?
@@ -611,19 +613,19 @@ private trait BackendAPILike {
   }
 
   // TODO better encapsulate return codes
-  def stopRecording(rec: Recording): Int = {
+  def stopRecording(rec: Recording): Either[MythProtocolFailure, Int] = {
     val result = sendCommand("STOP_RECORDING", rec)
-    (result map { case e: Int => e }).right.get
+    result map { case e: Int => e }
   }
 
-  def undeleteRecording(rec: Recording): Boolean = {
+  def undeleteRecording(rec: Recording): Either[MythProtocolFailure, Boolean] = {
     val result = sendCommand("UNDELETE_RECORDING", rec)
-    (result map { case r: Boolean => r }).right.get
+    result map { case r: Boolean => r }
   }
 
-  def undeleteRecording(chanId: ChanId, startTime: MythDateTime): Boolean = {
+  def undeleteRecording(chanId: ChanId, startTime: MythDateTime): Either[MythProtocolFailure, Boolean] = {
     val result = sendCommand("UNDELETE_RECORDING", chanId, startTime)
-    (result map { case r: Boolean => r }).right.get
+    result map { case r: Boolean => r }
   }
 
 }
