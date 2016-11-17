@@ -1443,17 +1443,17 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleFreeTuner(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Boolean] = {
-    Right(response.raw == "OK")
+    Either.cond(response.raw == "OK", true, MythProtocolFailureMessage(response.raw))
   }
 
   protected def handleGenPixmap2(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Boolean] = {
     val items = response.split
-    Right(items(0) == "OK")
+    Either.cond(items(0) == "OK", true, MythProtocolFailureMessage(items mkString " "))
   }
 
   protected def handleGetFreeRecorder(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, RemoteEncoder] = {
     val items = response.split
-    if (items(0) == "-1") Left(MythProtocolFailureUnknown)
+    if (items(0) == "-1") Left(MythProtocolNoResult)
     else Try {
       val cardId = deserialize[CaptureCardId](items(0))
       val host = items(1)
@@ -1467,8 +1467,8 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleGetFreeRecorderList(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, List[CaptureCardId]] = {
-    if (response.raw == "0") Left(MythProtocolFailureUnknown)
-    else Try {
+    Try {
+      if (response.raw == "0") Nil
       val cards = response.split map deserialize[CaptureCardId]
       cards.toList
     }
@@ -1476,7 +1476,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def handleGetNextFreeRecorder(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, RemoteEncoder] = {
     val items = response.split
-    if (items(0) == "-1") Left(MythProtocolFailureUnknown)
+    if (items(0) == "-1") Left(MythProtocolNoResult)
     else Try {
       val cardId = deserialize[CaptureCardId](items(0))
       val host = items(1)
@@ -1487,7 +1487,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def handleGetRecorderFromNum(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, RemoteEncoder] = {
     val items = response.split
-    if (items(1) == "-1") Left(MythProtocolFailureUnknown)
+    if (items(1) == "-1") Left(MythProtocolNoResult)
     else Try {
       val host = items(0)
       val port = deserialize[Int](items(1))
@@ -1498,7 +1498,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def handleGetRecorderNum(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, RemoteEncoder] = {
     val items = response.split
-    if (items(0) == "-1") Left(MythProtocolFailureUnknown)
+    if (items(0) == "-1") Left(MythProtocolNoResult)
     else Try {
       val cardId = deserialize[CaptureCardId](items(0))
       val host = items(1)
@@ -1508,11 +1508,11 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleGoToSleep(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Boolean] = {
-    Right(response.raw == "OK")
+    Either.cond(response.raw == "OK", true, MythProtocolFailureMessage(response.raw))
   }
 
   protected def handleMessage(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Boolean] = {
-    Right(response.raw == "OK")
+    Either.cond(response.raw == "OK", true, MythProtocolFailureMessage(response.raw))
   }
 
   protected def handleMythProtoVersion(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, (Boolean, Int)] = {
@@ -1540,7 +1540,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     val items = response.split
     val exists = deserialize[Boolean](items(0))
     if (exists) Right(items(1))
-    else Left(MythProtocolFailureUnknown)
+    else Left(MythProtocolNoResult)
   }
 
   protected def handleQueryCommBreak(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, List[VideoSegment]] = {
@@ -1710,7 +1710,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleQueryGuideDataThrough(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, MythDateTime] = {
-    if (response.raw startsWith "0000") Left(MythProtocolFailureUnknown)
+    if (response.raw startsWith "0000") Left(MythProtocolNoResult)
     else Try(deserialize[MythDateTime](response.raw))
   }
 
@@ -1732,7 +1732,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def handleQueryLoad(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, (Double, Double, Double)] = {
     val items = response.split
-    if (items(0) == "ERROR") Left(MythProtocolFailureUnknown)
+    if (items(0) == "ERROR") Left(MythProtocolFailureMessage(items mkString " "))
     else Try {
       val loads = items map deserialize[Double]
       assert(loads.length > 2)
@@ -1742,7 +1742,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def handleQueryMemStats(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, (ByteCount, ByteCount, ByteCount, ByteCount)] = {
     val items = response.split
-    if (items(0) == "ERROR") Left(MythProtocolFailureUnknown)
+    if (items(0) == "ERROR") Left(MythProtocolFailureMessage(items mkString " "))
     else Try {
       val stats = items map (n => BinaryByteCount(deserialize[Long](n) * 1024 * 1024))
       assert(stats.length > 3)
@@ -1752,7 +1752,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def handleQueryPixmapGetIfModified(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, (MythDateTime, Option[PixmapInfo])] = {
     val items = response.split
-    if (items(0) == "ERROR" || items(0) == "WARNING") Left(MythProtocolFailureUnknown)
+    if (items(0) == "ERROR" || items(0) == "WARNING") Left(MythProtocolFailureMessage(items mkString " "))
     else Try {
       val lastModified = deserialize[MythDateTime](items(0))
       if (items.length == 1) (lastModified, None)
@@ -1766,7 +1766,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleQueryPixmapLastModified(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, MythDateTime] = {
-    if (response.raw == "BAD") Left(MythProtocolFailureUnknown)
+    if (response.raw == "BAD") Left(MythProtocolFailureMessage(response.raw))
     else Try(deserialize[MythDateTime](response.raw))
   }
 
@@ -1902,7 +1902,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   protected def handleQueryRecording(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Recording] = {
     val items = response.split
     if (items(0) == "OK") Try(deserialize[Recording](items drop 1))
-    else Left(MythProtocolFailureUnknown)
+    else Left(MythProtocolFailureMessage(items mkString " "))
   }
 
   protected def handleQueryRecordings(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Iterator[Recording]] = {
@@ -1923,7 +1923,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def handleQuerySGFileQuery(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, (String, MythDateTime, ByteCount)] = {
     val items = response.split
-    if (items(0) == "EMPTY LIST" || items(0).startsWith("SLAVE UNREACHABLE")) Left(MythProtocolFailureUnknown)
+    if (items(0) == "EMPTY LIST" || items(0).startsWith("SLAVE UNREACHABLE")) Left(MythProtocolFailureMessage(items mkString " "))
     else Try {
       val fullPath = items(0)
       val timestamp = deserialize[MythDateTime](items(1))
@@ -1934,7 +1934,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def handleQuerySGGetFileList(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, List[String]] = {
     val items = response.split
-    if (items(0) == "EMPTY LIST" || items(0).startsWith("SLAVE UNREACHABLE")) Left(MythProtocolFailureUnknown)
+    if (items(0) == "EMPTY LIST" || items(0).startsWith("SLAVE UNREACHABLE")) Left(MythProtocolFailureMessage(items mkString " "))
     else Right(items.toList)
   }
 
@@ -1955,7 +1955,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def handleQueryUptime(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Duration] = {
     val items = response.split
-    if (items(0) == "ERROR") Left(MythProtocolFailureUnknown)
+    if (items(0) == "ERROR") Left(MythProtocolFailureMessage(items mkString " "))
     else Try {
       val seconds = deserialize[Long](items(0))
       Duration.ofSeconds(seconds)
@@ -1972,21 +1972,19 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleScanVideos(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Boolean] = {
-    val success = response.raw == "OK"
-    Right(success)
+    Either.cond(response.raw == "OK", true, MythProtocolFailureMessage(response.raw))
   }
 
   protected def handleSetBookmark(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Boolean] = {
-    val success = response.raw == "OK"
-    Right(success)
+    Either.cond(response.raw == "OK", true, MythProtocolFailureMessage(response.raw))
   }
 
   protected def handleSetSetting(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Boolean] = {
-    val success = response.raw == "OK"
-    Right(success)
+    Either.cond(response.raw == "OK", true, MythProtocolFailureMessage(response.raw))
   }
 
   protected def handleStopRecording(request: BackendRequest, response: BackendResponse): Either[MythProtocolFailure, Int] = {
+    // TODO if code is -1 (recording not found), return a MythProtocolNoResult ?
     Try(deserialize[Int](response.raw))
   }
 
