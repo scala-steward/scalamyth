@@ -5,7 +5,7 @@ package myth
 // TODO what exactly is this class for?
 // Reading/writing(?) from a file that is being downloaded to the server using DOWNLOAD_FILE ?
 private class DownloadFileTransferChannel(
-  controlChannel: MythFileTransferAPI,
+  controlChannel: FileTransferAPI,
   dataChannel: FileTransferConnection,
   eventChannel: EventConnection
 ) extends EventingFileTransferChannel(controlChannel, dataChannel, eventChannel) {

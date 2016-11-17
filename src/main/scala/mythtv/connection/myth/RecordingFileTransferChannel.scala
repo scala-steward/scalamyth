@@ -20,7 +20,7 @@ trait RecordingTransferChannel extends FileTransferChannel {
 // TODO: listen for RecordingListUpdate event to update our copy of Recording object??
 
 private class InProgressRecordingTransferChannel(
-  controlChannel: MythFileTransferAPI,
+  controlChannel: FileTransferAPI,
   dataChannel: FileTransferConnection,
   eventChannel: EventConnection,
   rec: Recording
@@ -51,7 +51,7 @@ private class InProgressRecordingTransferChannel(
 }
 
 private class CompletedRecordingTransferChannel(
-  controlChannel: MythFileTransferAPI,
+  controlChannel: FileTransferAPI,
   dataChannel: FileTransferConnection,
   rec: Recording
 ) extends FileTransferChannelImpl(controlChannel, dataChannel)

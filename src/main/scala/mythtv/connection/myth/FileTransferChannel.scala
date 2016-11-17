@@ -10,7 +10,7 @@ import EnumTypes.SeekWhence
 
 trait FileTransferChannel extends SeekableByteChannel with Seekable with FileTransfer
 
-private class FileTransferChannelImpl(controlChannel: MythFileTransferAPI, dataChannel: FileTransferConnection)
+private class FileTransferChannelImpl(controlChannel: FileTransferAPI, dataChannel: FileTransferConnection)
   extends FileTransferChannel {
   // A file transfer requires two (optionally three) channels:
   //   - control channel  (BackendConnection or BackendAPIConnection)

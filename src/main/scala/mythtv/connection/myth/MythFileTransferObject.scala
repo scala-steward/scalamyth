@@ -5,7 +5,7 @@ package myth
 private class MythFileTransferObject(
   val ftId: FileTransferId,
   val protoApi: MythProtocolAPI
-) extends MythFileTransferAPILike
+) extends FileTransferAPILike
 
 private object MythFileTransferObject {
   def apply(controlChannel: BackendAPIConnection, dataChannel: FileTransferConnection) =

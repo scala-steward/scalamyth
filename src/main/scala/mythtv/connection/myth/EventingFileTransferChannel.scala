@@ -3,7 +3,7 @@ package connection
 package myth
 
 private abstract class EventingFileTransferChannel(
-  controlChannel: MythFileTransferAPI,
+  controlChannel: FileTransferAPI,
   dataChannel: FileTransferConnection,
   eventChannel: EventConnection
 ) extends FileTransferChannelImpl(controlChannel, dataChannel) {

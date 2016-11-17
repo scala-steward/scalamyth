@@ -9,7 +9,7 @@ import MythProtocol.MythProtocolFailure
   * The API in use over the control channel during Myth protocol file transfers
   * using the QUERY_FILETRANSFER series of protocol commands.
   */
-trait MythFileTransferAPI {
+trait FileTransferAPI {
   def done(): Unit
   def isOpen: MythProtocolResult[Boolean]
   def reopen(newFileName: String): MythProtocolResult[Boolean]
@@ -20,7 +20,7 @@ trait MythFileTransferAPI {
   def writeBlock(blockSize: Int): MythProtocolResult[Int]
 }
 
-trait MythFileTransferAPILike extends MythFileTransferAPI {
+trait FileTransferAPILike extends FileTransferAPI {
   def ftId: FileTransferId
   def protoApi: MythProtocolAPI
 
