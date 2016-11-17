@@ -121,7 +121,6 @@ private trait BackendAPILike {
     result map { case e: RemoteEncoder => e }
   }
 
-  // TODO a way to return error message if any
   def goToSleep(): MythProtocolResult[Boolean] = {
     val result = sendCommand("GO_TO_SLEEP")
     result map { case r: Boolean => r }

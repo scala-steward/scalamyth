@@ -37,7 +37,7 @@ trait MythProtocolAPI {
   def getNextFreeRecorder(cardId: CaptureCardId): MythProtocolResult[RemoteEncoder]
   def getRecorderFromNum(cardId: CaptureCardId): MythProtocolResult[RemoteEncoder]
   def getRecorderNum(rec: Recording): MythProtocolResult[RemoteEncoder]
-  def goToSleep(): MythProtocolResult[Boolean]  // TODO a way to return error message if any
+  def goToSleep(): MythProtocolResult[Boolean]
   def lockTuner(): Any // TODO capture the appropriate return type
   def lockTuner(cardId: CaptureCardId): Any // see above for return type
   def message(message: String, extra: String*): MythProtocolResult[Boolean]
