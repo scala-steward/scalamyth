@@ -1984,8 +1984,12 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def handleStopRecording(request: BackendRequest, response: BackendResponse): MythProtocolResult[Int] = {
-    // TODO if code is -1 (recording not found), return a MythProtocolNoResult ?
-    Try(deserialize[Int](response.raw))
+    val idTry = Try(deserialize[Int](response.raw))
+    if (idTry.isFailure) try2Result(idTry)
+    else {
+      val id = idTry.get
+      Either.cond(id != -1, id, MythProtocolNoResult)
+    }
   }
 
   protected def handleUndeleteRecording(request: BackendRequest, response: BackendResponse): MythProtocolResult[Boolean] = {
