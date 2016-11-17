@@ -2,6 +2,7 @@ package mythtv
 package connection
 package myth
 
+import java.net.URI
 import java.time.Instant
 
 import model._
@@ -21,8 +22,8 @@ object Event {
   case class  CommflagRequestEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
   case class  CommflagStartEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
   case class  DoneRecordingEvent(cardId: CaptureCardId, secondsSinceStart: Int, framesWritten: Long) extends Event
-  case class  DownloadFileFinishedEvent(url: String, fileName: String, fileSize: ByteCount, errString: String, errCode: Int) extends Event
-  case class  DownloadFileUpdateEvent(url: String, fileName: String, bytesReceived: ByteCount, bytesTotal: ByteCount) extends Event
+  case class  DownloadFileFinishedEvent(url: URI, fileName: String, fileSize: ByteCount, errString: String, errCode: Int) extends Event
+  case class  DownloadFileUpdateEvent(url: URI, fileName: String, bytesReceived: ByteCount, bytesTotal: ByteCount) extends Event
   case class  FileClosedEvent(fileName: String) extends Event
   case class  FileWrittenEvent(fileName: String, fileSize: ByteCount) extends Event
   case class  GeneratedPixmapEvent(chanId: ChanId, startTime: MythDateTime, message: String, finishTime: Instant, size: ByteCount, crc: Crc16, data: Base64String, tokens: List[String]) extends Event
@@ -282,14 +283,14 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
   def parseDownloadFile(name: String, split: Array[String]): Event = {
     split(1).substring(name.length + 1) match {
       case "FINISHED" => DownloadFileFinishedEvent(
-        split(2),
+        new URI(split(2)),
         split(3),
         DecimalByteCount(deserialize[Long](split(4))),
         split(5),
         deserialize[Int](split(6))     // TODO last param may be empty, not convertible to int?
       )
       case "UPDATE" => DownloadFileUpdateEvent(
-        split(2),
+        new URI(split(2)),
         split(3),
         DecimalByteCount(deserialize[Long](split(4))),
         DecimalByteCount(deserialize[Long](split(5)))
