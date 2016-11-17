@@ -610,10 +610,9 @@ private trait BackendAPILike {
     else sendCommand("SHUTDOWN_NOW", haltCommand)
   }
 
-  // TODO better encapsulate return codes
-  def stopRecording(rec: Recording): MythProtocolResult[Int] = {
+  def stopRecording(rec: Recording): MythProtocolResult[CaptureCardId] = {
     val result = sendCommand("STOP_RECORDING", rec)
-    result map { case e: Int => e }
+    result map { case c: CaptureCardId => c }
   }
 
   def undeleteRecording(rec: Recording): MythProtocolResult[Boolean] = {

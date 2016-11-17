@@ -1983,12 +1983,12 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     Either.cond(response.raw == "OK", true, MythProtocolFailureMessage(response.raw))
   }
 
-  protected def handleStopRecording(request: BackendRequest, response: BackendResponse): MythProtocolResult[Int] = {
-    val idTry = Try(deserialize[Int](response.raw))
-    if (idTry.isFailure) try2Result(idTry)
+  protected def handleStopRecording(request: BackendRequest, response: BackendResponse): MythProtocolResult[CaptureCardId] = {
+    val cardIdTry = Try(deserialize[CaptureCardId](response.raw))
+    if (cardIdTry.isFailure) try2Result(cardIdTry)
     else {
-      val id = idTry.get
-      Either.cond(id != -1, id, MythProtocolNoResult)
+      val cardId = cardIdTry.get
+      Either.cond(cardId.id != -1, cardId, MythProtocolNoResult)
     }
   }
 

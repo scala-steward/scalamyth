@@ -42,9 +42,7 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
   }
 
   def stopRecording(rec: Recording): Option[CaptureCardId] = {
-    val status = conn.stopRecording(rec).right.get
-    if (status < 0) None
-    else Some(CaptureCardId(status))
+    conn.stopRecording(rec).toOption
   }
 
   def reschedule(recordId: Option[RecordRuleId], wait: Boolean): Unit = {

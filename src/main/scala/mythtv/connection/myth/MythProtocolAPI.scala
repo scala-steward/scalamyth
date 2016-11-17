@@ -142,7 +142,7 @@ trait MythProtocolAPI {
   def setBookmark(chanId: ChanId, startTime: MythDateTime, pos: VideoPositionFrame): MythProtocolResult[Boolean]
   def setSetting(hostName: String, settingName: String, value: String): MythProtocolResult[Boolean]
   def shutdownNow(haltCommand: String = ""): Unit
-  def stopRecording(rec: Recording): MythProtocolResult[Int]  // TODO better encapsulate return codes
+  def stopRecording(rec: Recording): MythProtocolResult[CaptureCardId]
   def undeleteRecording(rec: Recording): MythProtocolResult[Boolean]
   def undeleteRecording(chanId: ChanId, startTime: MythDateTime): MythProtocolResult[Boolean]
   // TODO more methods
