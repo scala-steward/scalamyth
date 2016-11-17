@@ -1438,8 +1438,8 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     Try(deserialize[Int](response.raw))
   }
 
-  protected def handleForgetRecording(request: BackendRequest, response: BackendResponse): MythProtocolResult[Int] = {
-    Try(deserialize[Int](response.raw))
+  protected def handleForgetRecording(request: BackendRequest, response: BackendResponse): MythProtocolResult[Boolean] = {
+    Try(deserialize[Int](response.raw) == 0)
   }
 
   protected def handleFreeTuner(request: BackendRequest, response: BackendResponse): MythProtocolResult[Boolean] = {

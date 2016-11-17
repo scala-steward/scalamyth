@@ -81,10 +81,9 @@ private trait BackendAPILike {
     result map { case r: Int => r }
   }
 
-  // TODO is the result here really Int or Boolean
-  def forgetRecording(rec: Recording): MythProtocolResult[Int] = {
+  def forgetRecording(rec: Recording): MythProtocolResult[Boolean] = {
     val result = sendCommand("FORGET_RECORDING", rec)
-    result map { case r: Int => r }
+    result map { case r: Boolean => r }
   }
 
   def freeTuner(cardId: CaptureCardId): MythProtocolResult[Boolean] = {

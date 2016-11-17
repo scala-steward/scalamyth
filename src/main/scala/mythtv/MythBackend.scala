@@ -38,8 +38,7 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
   }
 
   def forgetRecording(rec: Recording): Boolean = {
-    val status = conn.forgetRecording(rec).right.get
-    status == 0
+    conn.forgetRecording(rec).right.get
   }
 
   def stopRecording(rec: Recording): Option[CaptureCardId] = {
