@@ -120,8 +120,6 @@ class FrontendConnection(host: String, port: Int, timeout: Int)
   protected def openReader(channel: SocketChannel): SocketReader[String] = new FrontendSocketReader(channel, this)
   protected def openWriter(channel: SocketChannel): SocketWriter[String] = new FrontendSocketWriter(channel, this)
 
-  // TODO should command end with \r\n instead of just \n ??
-
   def postCommand(command: String): Unit = {
     val message = s"$command\n"
     writer.write(message)
