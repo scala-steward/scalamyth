@@ -1980,21 +1980,32 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   protected def handleQueryRemoteEncoder(request: BackendRequest, response: BackendResponse): MythProtocolResult[QueryRemoteEncoderResult] = {
     import QueryRemoteEncoderResult._
 
+    /* Unfortunately, the backend sends "-1" as the result when an unknown encoder
+       number is passed as the cardId argument. Since this is a valid response in
+       some cases (e.g. getFlags), we cannot check for it globally but must check
+       in each instance where it is an invalid response. Some instances of passing
+       an invalid encoder number may not be able to be detected: e.g. startRecording
+       where a result of "-1" is a RecStatus of "WillRecord" */
+
     def acknowledgement: MythProtocolResult[QueryRemoteEncoderResult] =
       if (response.raw == "OK") Right(QueryRemoteEncoderAcknowledgement)
+      else if (response.raw == "-1") unknownEncoder
       else Left(MythProtocolFailureUnknown)
 
     def bitrate: MythProtocolResult[QueryRemoteEncoderResult] =
-      Try(QueryRemoteEncoderBitrate(deserialize[Long](response.raw)))
+      if (response.raw == "-1") unknownEncoder
+      else Try(QueryRemoteEncoderBitrate(deserialize[Long](response.raw)))
 
     def boolean: MythProtocolResult[QueryRemoteEncoderResult] =
-      Try(QueryRemoteEncoderBoolean(deserialize[Boolean](response.raw)))
+      if (response.raw == "-1") unknownEncoder
+      else Try(QueryRemoteEncoderBoolean(deserialize[Boolean](response.raw)))
 
     def flags: MythProtocolResult[QueryRemoteEncoderResult] =
       Try(QueryRemoteEncoderFlags(deserialize[Int](response.raw)))
 
     def freeInputs: MythProtocolResult[QueryRemoteEncoderResult] = {
-      if (response.raw == "EMPTY_LIST") Left(MythProtocolNoResult)  // TODO return Nil instead of error?
+      if (response.raw == "-1") unknownEncoder
+      else if (response.raw == "EMPTY_LIST") Right(QueryRemoteEncoderCardInputList(Nil))
       else Try {
         val fieldCount = BackendCardInput.FIELD_ORDER.length
         val it = response.split.iterator grouped fieldCount withPartial false
@@ -2004,29 +2015,36 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     }
 
     def recording: MythProtocolResult[QueryRemoteEncoderResult] = {
-      val rec = deserialize[Recording](response.split)
-      if (rec.title.isEmpty && rec.chanId.id == 0) Left(MythProtocolNoResult)
-      else Right(QueryRemoteEncoderRecording(rec))
+      if (response.raw == "-1") unknownEncoder
+      else {
+        val recTry = Try(QueryRemoteEncoderRecording(deserialize[Recording](response.split)))
+        if (recTry.isSuccess && recTry.get.recording.isDummy) Left(MythProtocolNoResult)
+        else recTry
+      }
     }
 
     def recstatus: MythProtocolResult[QueryRemoteEncoderResult] =
       Try(QueryRemoteEncoderRecStatus(deserialize[RecStatus](response.raw)))
 
     def sleepStatus: MythProtocolResult[QueryRemoteEncoderResult] =
-      Try(QueryRemoteEncoderSleepStatus(deserialize[SleepStatus](response.raw)))
+      if (response.raw == "-1") unknownEncoder
+      else Try(QueryRemoteEncoderSleepStatus(deserialize[SleepStatus](response.raw)))
 
     def state: MythProtocolResult[QueryRemoteEncoderResult] =
       Try(QueryRemoteEncoderState(deserialize[TvState](response.raw)))
 
-    def tunedInputInfo: MythProtocolResult[QueryRemoteEncoderResult] = Try {
-      val items = response.split
-      val busy = deserialize[Boolean](items.head)
-      val chanId = if (busy) Some(deserialize[ChanId](items.last)) else None
-      val input = if (busy) Some(deserialize[CardInput](items drop 1)) else None
-      QueryRemoteEncoderTunedInputInfo(busy, input, chanId)
-    }
+    def tunedInputInfo: MythProtocolResult[QueryRemoteEncoderResult] =
+      if (response.raw == "-1") unknownEncoder
+      else Try {
+        val items = response.split
+        val busy = deserialize[Boolean](items.head)
+        val chanId = if (busy) Some(deserialize[ChanId](items.last)) else None
+        val input = if (busy) Some(deserialize[CardInput](items drop 1)) else None
+        QueryRemoteEncoderTunedInputInfo(busy, input, chanId)
+      }
 
-    // TODO FIXME handle "-1" (encoder not found) on error detection for those types that don't support it as a value
+    def unknownEncoder: MythProtocolResult[QueryRemoteEncoderResult] =
+      Left(MythProtocolFailureMessage("unknown encoder: " + request.args(0)))
 
     val subcommand = request.args(1).toString
     subcommand match {

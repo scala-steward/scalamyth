@@ -109,6 +109,8 @@ trait Recording extends Recordable {
   def isDuplicate: Boolean = programFlags contains ProgramFlags.Duplicate
   def isReactivated: Boolean = programFlags contains ProgramFlags.Reactivate
   def isDeletePending: Boolean = programFlags contains ProgramFlags.DeletePending
+
+  def isDummy: Boolean = title.isEmpty && chanId.id == 0
 }
 
 trait PreviousRecording {
