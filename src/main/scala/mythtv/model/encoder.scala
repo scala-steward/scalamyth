@@ -38,7 +38,7 @@ trait CaptureCard {
 }
 
 trait RemoteEncoder {
-  def cardId: CaptureCardId  // is this correct type?
+  def cardId: CaptureCardId
   def host: String
   def port: Int
 }
