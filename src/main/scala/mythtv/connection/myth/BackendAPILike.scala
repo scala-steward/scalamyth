@@ -11,6 +11,7 @@ import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythFil
 import EnumTypes.{ MythLogLevel, MythProtocolEventMode, SeekWhence }
 import MythProtocol.MythProtocolFailure
 import MythProtocol.QueryRecorderResult._
+import MythProtocol.QueryRemoteEncoderResult._
 import MythProtocol.QueryFileTransferResult._
 
 private trait BackendAPILike {
@@ -540,6 +541,74 @@ private trait BackendAPILike {
   def queryRecordings(specifier: String): MythProtocolResult[ExpectedCountIterator[Recording]] = {
     val result = sendCommand("QUERY_RECORDINGS", specifier)
     result map { case it: ExpectedCountIterator[_] => it.asInstanceOf[ExpectedCountIterator[Recording]] }
+  }
+
+  def queryRemoteEncoderCancelNextRecording(cardId: CaptureCardId, cancel: Boolean): Unit = {
+    val result = sendCommand("QUERY_REMOTEENCODER", cardId, "CANCEL_NEXT_RECORDING", cancel)
+  }
+
+  def queryRemoteEncoderGetCurrentRecording(cardId: CaptureCardId): MythProtocolResult[Recording] = {
+    val result = sendCommand("QUERY_REMOTEENCODER", cardId, "GET_CURRENT_RECORDING")
+    result map { case QueryRemoteEncoderRecording(r) => r }
+  }
+
+  def queryRemoteEncoderGetFreeInputs(cardId: CaptureCardId, excludedCards: CaptureCardId*): MythProtocolResult[List[CardInput]] = {
+    val args = List(cardId, "GET_FREE_INPUTS") ++ excludedCards
+    val result = sendCommand("QUERY_REMOTEENCODER", args: _*)
+    result map { case QueryRemoteEncoderCardInputList(i) => i }
+  }
+
+  def queryRemoteEncoderGetMaxBitrate(cardId: CaptureCardId): MythProtocolResult[Long] = {
+    val result = sendCommand("QUERY_REMOTEENCODER", cardId, "GET_MAX_BITRATE")
+    result map { case QueryRemoteEncoderBitrate(r) => r }
+  }
+
+  def queryRemoteEncoderGetRecordingStatus(cardId: CaptureCardId): MythProtocolResult[RecStatus] = {
+    val result = sendCommand("QUERY_REMOTEENCODER", cardId, "GET_RECORDING_STATUS")
+    result map { case QueryRemoteEncoderRecStatus(s) => s }
+  }
+
+  def queryRemoteEncoderGetState(cardId: CaptureCardId): MythProtocolResult[TvState] = {
+    val result = sendCommand("QUERY_REMOTEENCODER", cardId, "GET_STATE")
+    result map { case QueryRemoteEncoderState(s) => s }
+  }
+
+  def queryRemoteEncoderGetSleepStatus(cardId: CaptureCardId): MythProtocolResult[SleepStatus] = {
+    val result = sendCommand("QUERY_REMOTEENCODER", cardId, "GET_SLEEPSTATUS")
+    result map { case QueryRemoteEncoderSleepStatus(s) => s }
+  }
+
+  def queryRemoteEncoderGetFlags(cardId: CaptureCardId): MythProtocolResult[Int] = {
+    val result = sendCommand("QUERY_REMOTEENCODER", cardId, "GET_FLAGS")
+    result map { case QueryRemoteEncoderFlags(f) => f }
+  }
+
+  def queryRemoteEncoderIsBusy(cardId: CaptureCardId): MythProtocolResult[(Boolean, Option[CardInput], Option[ChanId])] = {
+    val result = sendCommand("QUERY_REMOTEENCODER", cardId, "IS_BUSY")
+    result map { case QueryRemoteEncoderTunedInputInfo(busy, input, chanId) => (busy, input, chanId) }
+  }
+
+  def queryRemoteEncoderIsBusy(cardId: CaptureCardId, timeBufferSeconds: Int): MythProtocolResult[(Boolean, Option[CardInput], Option[ChanId])] = {
+    val result = sendCommand("QUERY_REMOTEENCODER", cardId, "IS_BUSY", timeBufferSeconds)
+    result map { case QueryRemoteEncoderTunedInputInfo(busy, input, chanId) => (busy, input, chanId) }
+  }
+
+  def queryRemoteEncoderMatchesRecording(cardId: CaptureCardId, rec: Recording): MythProtocolResult[Boolean] = {
+    val result = sendCommand("QUERY_REMOTEENCODER", cardId, "MATCHES_RECORDING", rec)
+    result map { case QueryRemoteEncoderBoolean(r) => r }
+  }
+
+  def queryRemoteEncoderRecordPending(cardId: CaptureCardId, secondsLeft: Int, hasLaterShowing: Boolean, rec: Recording): Unit = {
+    val result = sendCommand("QUERY_REMOTEENCODER", cardId, "RECORD_PENDING", secondsLeft, hasLaterShowing, rec)
+  }
+
+  def queryRemoteEncoderStartRecording(cardId: CaptureCardId, rec: Recording): MythProtocolResult[RecStatus] = {
+    val result = sendCommand("QUERY_REMOTEENCODER", cardId, "START_RECORDING", rec)
+    result map { case QueryRemoteEncoderRecStatus(s) => s }
+  }
+
+  def queryRemoteEncoderStopRecording(cardId: CaptureCardId): Unit = {
+    val result = sendCommand("QUERY_REMOTEENCODER", cardId, "STOP_RECORDING")
   }
 
   def querySGGetFileList(hostName: String, storageGroup: String, path: String): MythProtocolResult[List[String]] = {

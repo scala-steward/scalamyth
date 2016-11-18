@@ -12,7 +12,8 @@ import util._
 import model._
 import model.EnumTypes._
 import EnumTypes.{ MythLogLevel, MythProtocolEventMode, SeekWhence }
-import MythProtocol.{ AnnounceResult, MythProtocolFailure, QueryFileTransferResult, QueryRecorderResult }
+import MythProtocol.{ AnnounceResult, MythProtocolFailure, QueryFileTransferResult,
+  QueryRecorderResult, QueryRemoteEncoderResult }
 import MythProtocolFailure._
 
 private[myth] trait MythProtocolLike extends MythProtocolSerializer {
@@ -687,8 +688,10 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *   | GET_CURRENT_RECORDING
      *   | GET_FREE_INPUTS [%d {, %d}*]  <excludeCardId...>
      * ]
+     *  @responds TODO
+     `  @returns  "-1" on encoder not found error, but this can be a legitimate value for some other queries
      */
-    "QUERY_REMOTEENCODER" -> ((serializeNOP, handleNOP)),
+    "QUERY_REMOTEENCODER" -> ((serializeQueryRemoteEncoder, handleQueryRemoteEncoder)),
 
     /*
      * QUERY_SETTING %s %s      <hostname> <settingName>
@@ -1281,6 +1284,53 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     case _ => throwArgumentExceptionMultipleSig(command, """
       | "TIMESLOT", chanId: ChanId, startTime: MythDateTime
       | "BASENAME", basePathName: String""")
+  }
+
+  protected def serializeQueryRemoteEncoder(command: String, args: Seq[Any]): String = args match {
+    case Seq(
+      cardId: CaptureCardId,
+      sub @
+        ( "GET_STATE"
+        | "GET_SLEEPSTATUS"
+        | "GET_FLAGS"
+        | "GET_RECORDING_STATUS"
+        | "STOP_RECORDING"
+        | "GET_MAX_BITRATE"
+        | "GET_CURRENT_RECORDING"
+        | "IS_BUSY"
+        )) =>
+      val args = List(serialize(cardId), sub)
+      val elems = List(command, args mkString BackendSeparator)
+      elems mkString " "
+    case Seq(cardId: CaptureCardId, sub @ "IS_BUSY", timeBufferSeconds: Int) =>
+      val args = List(serialize(cardId), sub, serialize(timeBufferSeconds))
+      val elems = List(command, args mkString BackendSeparator)
+      elems mkString " "
+    case Seq(cardId: CaptureCardId, sub @ ("MATCHES_RECORDING" | "START_RECORDING"), rec: Recording) =>
+      val args = List(serialize(cardId), sub, serialize(rec))
+      val elems = List(command, args mkString BackendSeparator)
+      elems mkString " "
+    case Seq(cardId: CaptureCardId, sub @ "RECORD_PENDING", secsLeft: Int, hasLater: Boolean, rec: Recording) =>
+      val args = List(serialize(cardId), sub, serialize(secsLeft), serialize(hasLater), serialize(rec))
+      val elems = List(command, args mkString BackendSeparator)
+      elems mkString " "
+    case Seq(cardId: CaptureCardId, sub @ "CANCEL_NEXT_RECORDING", cancel: Boolean) =>
+      val args = List(serialize(cardId), sub, serialize(cancel))
+      val elems = List(command, args mkString BackendSeparator)
+      elems mkString " "
+    case Seq(cardId: CaptureCardId, sub @ "GET_FREE_INPUTS", excludedCardIds @ _*) =>
+      val excludedIds = excludedCardIds collect { case c: CaptureCardId => c } map serialize[CaptureCardId]
+      val args = List(serialize(cardId), sub) ++ excludedIds
+      val elems = List(command, args mkString BackendSeparator)
+      elems mkString " "
+    case _ => throwArgumentExceptionMultipleSig(command, """
+      | cardId: CaptureCardId, sub @ ( "GET_STATE" | "GET_SLEEPSTATUS" | "GET_FLAGS" | "GET_RECORDING_STATUS" |
+      |                                "STOP_RECORDING" | "GET_MAX_BITRATE" | "GET_CURRENT_RECORDING" | "IS_BUSY" )
+      | cardId: CaptureCardId, sub @ "IS_BUSY", timeBufferSeconds: Int
+      | cardId: CaptureCardId, sub @ ("MATCHES_RECORDING" | "START_RECORDING"), rec: Recording
+      | cardId: CaptureCardId, sub @ "RECORD_PENDING", secsLeft: Int, hasLater: Boolean, rec: Recording
+      | cardId: CaptureCardId, sub @ "CANCEL_NEXT_RECORDING", cancel: Boolean
+      | cardId: CaptureCardId, sub @ "GET_FREE_INPUTS", excludedCardIds @ _*""")
   }
 
   protected def serializeQueryRecordings(command: String, args: Seq[Any]): String = args match {
@@ -1927,7 +1977,77 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     }
   }
 
-  // TODO returns "-1" on error but that could also be a legitimate value!!?
+  protected def handleQueryRemoteEncoder(request: BackendRequest, response: BackendResponse): MythProtocolResult[QueryRemoteEncoderResult] = {
+    import QueryRemoteEncoderResult._
+
+    def acknowledgement: MythProtocolResult[QueryRemoteEncoderResult] =
+      if (response.raw == "OK") Right(QueryRemoteEncoderAcknowledgement)
+      else Left(MythProtocolFailureUnknown)
+
+    def bitrate: MythProtocolResult[QueryRemoteEncoderResult] =
+      Try(QueryRemoteEncoderBitrate(deserialize[Long](response.raw)))
+
+    def boolean: MythProtocolResult[QueryRemoteEncoderResult] =
+      Try(QueryRemoteEncoderBoolean(deserialize[Boolean](response.raw)))
+
+    def flags: MythProtocolResult[QueryRemoteEncoderResult] =
+      Try(QueryRemoteEncoderFlags(deserialize[Int](response.raw)))
+
+    def freeInputs: MythProtocolResult[QueryRemoteEncoderResult] = {
+      if (response.raw == "EMPTY_LIST") Left(MythProtocolNoResult)  // TODO return Nil instead of error?
+      else Try {
+        val fieldCount = BackendCardInput.FIELD_ORDER.length
+        val it = response.split.iterator grouped fieldCount withPartial false
+        val inputs = (it map deserialize[CardInput]).toList
+        QueryRemoteEncoderCardInputList(inputs)
+      }
+    }
+
+    def recording: MythProtocolResult[QueryRemoteEncoderResult] = {
+      val rec = deserialize[Recording](response.split)
+      if (rec.title.isEmpty && rec.chanId.id == 0) Left(MythProtocolNoResult)
+      else Right(QueryRemoteEncoderRecording(rec))
+    }
+
+    def recstatus: MythProtocolResult[QueryRemoteEncoderResult] =
+      Try(QueryRemoteEncoderRecStatus(deserialize[RecStatus](response.raw)))
+
+    def sleepStatus: MythProtocolResult[QueryRemoteEncoderResult] =
+      Try(QueryRemoteEncoderSleepStatus(deserialize[SleepStatus](response.raw)))
+
+    def state: MythProtocolResult[QueryRemoteEncoderResult] =
+      Try(QueryRemoteEncoderState(deserialize[TvState](response.raw)))
+
+    def tunedInputInfo: MythProtocolResult[QueryRemoteEncoderResult] = Try {
+      val items = response.split
+      val busy = deserialize[Boolean](items.head)
+      val chanId = if (busy) Some(deserialize[ChanId](items.last)) else None
+      val input = if (busy) Some(deserialize[CardInput](items drop 1)) else None
+      QueryRemoteEncoderTunedInputInfo(busy, input, chanId)
+    }
+
+    // TODO FIXME handle "-1" (encoder not found) on error detection for those types that don't support it as a value
+
+    val subcommand = request.args(1).toString
+    subcommand match {
+      case "GET_STATE"             => state
+      case "GET_SLEEPSTATUS"       => sleepStatus
+      case "GET_FLAGS"             => flags
+      case "IS_BUSY"               => tunedInputInfo
+      case "MATCHES_RECORDING"     => boolean
+      case "START_RECORDING"       => recstatus
+      case "GET_RECORDING_STATUS"  => recstatus
+      case "RECORD_PENDING"        => acknowledgement
+      case "CANCEL_NEXT_RECORDING" => acknowledgement
+      case "STOP_RECORDING"        => acknowledgement
+      case "GET_MAX_BITRATE"       => bitrate
+      case "GET_CURRENT_RECORDING" => recording
+      case "GET_FREE_INPUTS"       => freeInputs
+      case _                       => Left(MythProtocolFailureUnknown)
+    }
+  }
+
+  // TODO returns "-1" on error but that could also be a legitimate value  Not really much we can do here...
   protected def handleQuerySetting(request: BackendRequest, response: BackendResponse): MythProtocolResult[String] = {
     Right(response.raw)
   }

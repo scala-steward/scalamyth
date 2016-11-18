@@ -129,6 +129,20 @@ trait MythProtocolAPI {
   def queryRecording(pathName: String): MythProtocolResult[Recording]
   def queryRecording(chanId: ChanId, startTime: MythDateTime): MythProtocolResult[Recording]
   def queryRecordings(specifier: String = "Unsorted"): MythProtocolResult[ExpectedCountIterator[Recording]]
+  def queryRemoteEncoderCancelNextRecording(cardId: CaptureCardId, cancel: Boolean): Unit
+  def queryRemoteEncoderGetCurrentRecording(cardId: CaptureCardId): MythProtocolResult[Recording]
+  def queryRemoteEncoderGetFreeInputs(cardId: CaptureCardId, excludedCards: CaptureCardId*): MythProtocolResult[List[CardInput]]
+  def queryRemoteEncoderGetMaxBitrate(cardId: CaptureCardId): MythProtocolResult[Long]
+  def queryRemoteEncoderGetRecordingStatus(cardId: CaptureCardId): MythProtocolResult[RecStatus]
+  def queryRemoteEncoderGetState(cardId: CaptureCardId): MythProtocolResult[TvState]
+  def queryRemoteEncoderGetSleepStatus(cardId: CaptureCardId): MythProtocolResult[SleepStatus]
+  def queryRemoteEncoderGetFlags(cardId: CaptureCardId): MythProtocolResult[Int]
+  def queryRemoteEncoderIsBusy(cardId: CaptureCardId): MythProtocolResult[(Boolean, Option[CardInput], Option[ChanId])]
+  def queryRemoteEncoderIsBusy(cardId: CaptureCardId, timeBufferSeconds: Int): MythProtocolResult[(Boolean, Option[CardInput], Option[ChanId])]
+  def queryRemoteEncoderMatchesRecording(cardId: CaptureCardId, rec: Recording): MythProtocolResult[Boolean]
+  def queryRemoteEncoderRecordPending(cardId: CaptureCardId, secondsLeft: Int, hasLaterShowing: Boolean, rec: Recording): Unit
+  def queryRemoteEncoderStartRecording(cardId: CaptureCardId, rec: Recording): MythProtocolResult[RecStatus]
+  def queryRemoteEncoderStopRecording(cardId: CaptureCardId): Unit
   def querySetting(hostName: String, settingName: String): MythProtocolResult[String]
   def querySGGetFileList(hostName: String, storageGroup: String, path: String): MythProtocolResult[List[String]]
   def querySGGetFileList(hostName: String, storageGroup: String, path: String, fileNamesOnly: Boolean): MythProtocolResult[List[String]]

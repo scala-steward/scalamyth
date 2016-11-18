@@ -6,6 +6,7 @@ import java.util.regex.Pattern
 
 import model._
 import util.ByteCount
+import model.EnumTypes.{ RecStatus, SleepStatus, TvState }
 
 trait MythProtocol extends MythProtocolLike {
   def ProtocolVersion: Int
@@ -60,6 +61,21 @@ object MythProtocol extends MythProtocolSerializer {
       extraCharUseful: Boolean, spacer: String) extends QueryRecorderResult
     final case class QueryRecorderChannelInfo(channel: Channel) extends QueryRecorderResult
     final case class QueryRecorderNextProgramInfo(program: UpcomingProgram) extends QueryRecorderResult
+  }
+
+  // Sum type representing return values from QUERY_REMOTEENCODER
+  sealed trait QueryRemoteEncoderResult
+  object QueryRemoteEncoderResult {
+    case object QueryRemoteEncoderAcknowledgement extends QueryRemoteEncoderResult
+    final case class QueryRemoteEncoderBitrate(bitrate: Long) extends QueryRemoteEncoderResult
+    final case class QueryRemoteEncoderBoolean(value: Boolean) extends QueryRemoteEncoderResult
+    final case class QueryRemoteEncoderCardInputList(inputs: List[CardInput]) extends QueryRemoteEncoderResult
+    final case class QueryRemoteEncoderFlags(flags: Int) extends QueryRemoteEncoderResult
+    final case class QueryRemoteEncoderRecording(recording: Recording) extends QueryRemoteEncoderResult
+    final case class QueryRemoteEncoderRecStatus(status: RecStatus) extends QueryRemoteEncoderResult
+    final case class QueryRemoteEncoderSleepStatus(status: SleepStatus) extends QueryRemoteEncoderResult
+    final case class QueryRemoteEncoderState(state: TvState) extends QueryRemoteEncoderResult
+    final case class QueryRemoteEncoderTunedInputInfo(busy: Boolean, input: Option[CardInput], chanId: Option[ChanId]) extends QueryRemoteEncoderResult
   }
 }
 

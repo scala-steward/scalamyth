@@ -118,6 +118,16 @@ object MythProtocolSerializable {
     override def serialize(in: RecStatus, builder: StringBuilder): StringBuilder = builder.append(in.id)
   }
 
+  implicit object SleepStatusSerializer extends MythProtocolSerializable[SleepStatus] {
+    def deserialize(in: String): SleepStatus = SleepStatus.applyOrUnknown(in.toInt)
+    def serialize(in: SleepStatus): String = in.id.toString
+  }
+
+  implicit object TvStateSerializer extends MythProtocolSerializable[TvState] {
+    def deserialize(in: String): TvState = TvState.applyOrUnknown(in.toInt)
+    def serialize(in: TvState): String = in.id.toString
+  }
+
   implicit object VideoPositionFrameSerializer extends MythProtocolSerializable[VideoPositionFrame] {
     def deserialize(in: String): VideoPositionFrame = VideoPositionFrame(in.toLong)
     def serialize(in: VideoPositionFrame): String = in.pos.toString
