@@ -442,7 +442,7 @@ private trait BackendAPILike {
   }
 
   def queryRecorderGetFreeInputs(cardId: CaptureCardId, excludedCards: CaptureCardId*): MythProtocolResult[List[CardInput]] = {
-    val args = List(cardId) ++ excludedCards
+    val args = List(cardId, "GET_FREE_INPUTS") ++ excludedCards
     val result = sendCommand("QUERY_RECORDER", args: _*)
     result map { case QueryRecorderCardInputList(i) => i }
   }
