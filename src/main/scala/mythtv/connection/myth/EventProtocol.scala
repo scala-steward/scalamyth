@@ -32,7 +32,7 @@ object Event {
   case class  LiveTvChainUpdateEvent(chainId: LiveTvChainId, maxPos: Int, chain: List[LiveTvChain]) extends Event
   case class  RecordingListAddEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
   case class  RecordingListDeleteEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
-  case class  RecordingListUpdateEvent(program: Program) extends Event
+  case class  RecordingListUpdateEvent(rec: Recording) extends Event
   case object ScheduleChangeEvent extends Event
   case class  SignalEvent(cardId: CaptureCardId, values: Map[String, SignalMonitorValue]) extends Event
   case class  UpdateFileSizeEvent(chanId: ChanId, recStartTs: MythDateTime, size: ByteCount) extends Event
@@ -60,11 +60,11 @@ object SystemEvent {
   case class PlayStoppedEvent(hostName: String, chanId: ChanId, startTime: MythDateTime, sender: String) extends SystemEvent
   case class PlayStoppedNoProgramEvent(sender: String) extends SystemEvent
   case class PlayUnpausedEvent(hostName: String, chanId: ChanId, startTime: MythDateTime, sender: String) extends SystemEvent
-  case class RecordingDeletedEvent(chanId: ChanId, startTime: MythDateTime, sender: String) extends SystemEvent
-  case class RecordingExpiredEvent(hostName: String, chanId: ChanId, startTime: MythDateTime, sender: String) extends SystemEvent
-  case class RecordingFinishedEvent(cardId: CaptureCardId, chanId: ChanId, startTime: MythDateTime, status: RecStatus, sender: String) extends SystemEvent
-  case class RecordingStartedEvent(cardId: CaptureCardId, chanId: ChanId, startTime: MythDateTime, status: RecStatus, sender: String) extends SystemEvent
-  case class RecordingStartedWritingEvent(cardId: CaptureCardId, chanId: ChanId, startTime: MythDateTime, status: RecStatus, sender: String) extends SystemEvent
+  case class RecordingDeletedEvent(chanId: ChanId, recStartTs: MythDateTime, sender: String) extends SystemEvent
+  case class RecordingExpiredEvent(hostName: String, chanId: ChanId, recStartTs: MythDateTime, sender: String) extends SystemEvent
+  case class RecordingFinishedEvent(cardId: CaptureCardId, chanId: ChanId, recStartTs: MythDateTime, status: RecStatus, sender: String) extends SystemEvent
+  case class RecordingStartedEvent(cardId: CaptureCardId, chanId: ChanId, recStartTs: MythDateTime, status: RecStatus, sender: String) extends SystemEvent
+  case class RecordingStartedWritingEvent(cardId: CaptureCardId, chanId: ChanId, recStartTs: MythDateTime, status: RecStatus, sender: String) extends SystemEvent
   case class RecordPendingEvent(secondsUntilStart: Int, cardId: CaptureCardId, chanId: ChanId, startTime: MythDateTime, status: RecStatus, sender: String) extends SystemEvent
   case class SchedulerRanEvent(sender: String) extends SystemEvent
   case class ScreenCreatedEvent(screenType: String, sender: String) extends SystemEvent
