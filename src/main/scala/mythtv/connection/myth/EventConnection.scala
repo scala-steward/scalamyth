@@ -100,6 +100,7 @@ private abstract class AbstractEventConnection(
           queue.put(eventResponse)
         } catch {
           case e: SocketException => ()
+          case e: InterruptedException => ()  // force next iteration of loop to re-check listeners and connected
         }
       }
       // Tell dispatcher thread to shut down

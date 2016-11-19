@@ -17,6 +17,9 @@ private class BackendCommandReader(channel: SocketChannel, conn: SocketConnectio
      with BackendCommandStream {
   private[this] var buffer = ByteBuffer.allocate(1024)  // will reallocate as needed
 
+  // TODO handle AsynchronousCloseException and ClosedByInterruptException? (see InterruptibleChannel)
+  //    hierarchy: > IOException > ClosedChannelException > AsynchronousClosedException > ClosedByInterruptException
+  //
   private def readStringOfLength(length: Int): String = {
     if (length > buffer.capacity) buffer = ByteBuffer.allocate(length)
     buffer.clear().limit(length)
@@ -27,6 +30,7 @@ private class BackendCommandReader(channel: SocketChannel, conn: SocketConnectio
       var n: Int = 0
       do {
         val ready = selector.select(conn.timeout * 1000)
+        if (Thread.interrupted()) throw new InterruptedException
         if (ready == 0) throw new SocketTimeoutException(s"read timed out after ${conn.timeout} seconds")
 
         if (key.isReadable) {
