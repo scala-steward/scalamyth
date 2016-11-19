@@ -64,7 +64,11 @@ private abstract class AbstractEventConnection(
   }
 
   def removeListener(listener: EventListener): Unit = {
-    synchronized { listenerSet = listenerSet - listener }
+    synchronized {
+      listenerSet = listenerSet - listener
+      if (listenerSet.isEmpty && (eventLoopThread ne null))
+        eventLoopThread.interrupt()
+    }
   }
 
   protected def newEventResponse(eventString: String): BackendEventResponse
