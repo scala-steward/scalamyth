@@ -96,3 +96,27 @@ private trait MythProtocol88 extends MythProtocol with MythProtocolLike88 { // m
   final val ProtocolVersion = 88
   final val ProtocolToken = "XmasGift"
 }
+
+/*
+ * History of Myth Protocol version changes:
+ *
+ * Ver   Git Commit   Notes
+ * ====  ===========  =========================================================================
+ *  75*  1f8c5902107
+ *  76   d4dcff374e4  Add syndicatedEpisode, partNumber, partTotal to ProgramInfo
+ *  77*  49dbed5be07  Add command QUERY_RECORDER FILL_DURATION_MAP; VideoRate and DurationMs to Markup enum
+ *  78   e8bfd99e214  Add totalEpisodes to ProgramInfo
+ *  79   3af71b4f758  Add categoryType to ProgramInfo
+ *  80   3ee65b3b145  MythMusic changes in prior commits:
+ *  81   cd866684857  ??? chanId added to InputInfo ?
+ *  82   e8a99d45c3c  add recordedId to ProgramInfo
+ *  83   1dab1907956  add a QUERY_FINDFILE command to the protocol
+ *  84   b220116f77e  recordId changes; affects events: RECORDING_LIST_CHANGE (ADD|DELETE), UPDATE_FILE_SIZE,
+ *                    UPDATE_MASTER_PROG_INFO - renamed to UPDATE_MASTER_REC_INFO
+ *  85   a4f65ce15ba  new ANN Frontend
+ *  86   bcd7d65ef74  add inputName, bookmarkUpdate to ProgramInfo serialization
+ *  87   c4f8b270f16  due to prior changes; conversion of cardId to inputId (many/all places?)
+ *       ca71fcd28f9  <-- changes start with this commit?
+ *  88*  6f6a5914c63  add LyricsView to MythMusic; unsure of impact on protocol -- event changes?
+ *  89   1f8c275b814  add reclimit to InputInfo
+ */
