@@ -17,7 +17,7 @@ private class BackendCommandReader(channel: SocketChannel, conn: SocketConnectio
      with BackendCommandStream {
   private[this] var buffer = ByteBuffer.allocate(1024)  // will reallocate as needed
 
-  private def readStringWithLength(length: Int): String = {
+  private def readStringOfLength(length: Int): String = {
     if (length > buffer.capacity) buffer = ByteBuffer.allocate(length)
     buffer.clear().limit(length)
 
@@ -44,9 +44,9 @@ private class BackendCommandReader(channel: SocketChannel, conn: SocketConnectio
 
   def read(): String = {
     //println("Waiting for size header")
-    val size = readStringWithLength(HeaderSizeBytes).trim.toInt
+    val size = readStringOfLength(HeaderSizeBytes).trim.toInt
     //println("Waiting for response of length " + size)
-    val response = readStringWithLength(size)
+    val response = readStringOfLength(size)
     //println("Received response: " + response)
     //println("Received response.")
     response
