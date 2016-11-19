@@ -39,6 +39,7 @@ object Event {
   case class  VideoListChangeEvent(changes: Map[String, Set[VideoId]]) extends Event
   case object VideoListNoChangeEvent extends Event
   case class  UnknownEvent(name: String, body: String*) extends Event
+  case object NoMoreEvents extends Event  // poison pill
 }
 
 object SystemEvent {
@@ -122,6 +123,7 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
       case "UPDATE_FILE_SIZE"      => parseUpdateFileSize(name, split)
       case "VIDEO_LIST_CHANGE"     => parseVideoListChange(name, split)
       case "VIDEO_LIST_NO_CHANGE"  => VideoListNoChangeEvent
+      case "NO_MORE_EVENTS"        => NoMoreEvents
       case _ => unknownEvent(name, split)
     }
   }
