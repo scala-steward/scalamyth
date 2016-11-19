@@ -226,16 +226,16 @@ object MythProtocolSerializable {
   implicit object FileStatsSerializer extends MythProtocolSerializable[FileStats] {
     def deserialize(in: String): FileStats = deserialize(in split MythProtocol.SplitPattern)
     override def deserialize(in: Seq[String]): FileStats = FileStats(
-      MythProtocol.deserialize[Long](in(0)),    // st_dev
-      MythProtocol.deserialize[Long](in(1)),    // st_ino
-      MythProtocol.deserialize[Int](in(2)),     // st_mode
-      MythProtocol.deserialize[Long](in(3)),    // st_nlink
-      MythProtocol.deserialize[Int](in(4)),     // st_uid
-      MythProtocol.deserialize[Int](in(5)),     // st_gid
-      MythProtocol.deserialize[Long](in(6)),    // st_rdev
+      MythProtocol.deserialize[Long](in(0)),                         // st_dev
+      MythProtocol.deserialize[Long](in(1)),                         // st_ino
+      MythProtocol.deserialize[Int](in(2)),                          // st_mode
+      MythProtocol.deserialize[Long](in(3)),                         // st_nlink
+      MythProtocol.deserialize[Int](in(4)),                          // st_uid
+      MythProtocol.deserialize[Int](in(5)),                          // st_gid
+      MythProtocol.deserialize[Long](in(6)),                         // st_rdev
       DecimalByteCount(MythProtocol.deserialize[Long](in(7))),       // st_size
       BinaryByteCount(MythProtocol.deserialize[Long](in(8))),        // st_blksize
-      MythProtocol.deserialize[Long](in(9)),    // st_blocks
+      MythProtocol.deserialize[Long](in(9)),                         // st_blocks
       Instant.ofEpochSecond(MythProtocol.deserialize[Long](in(10))), // st_atim
       Instant.ofEpochSecond(MythProtocol.deserialize[Long](in(11))), // st_mtim
       Instant.ofEpochSecond(MythProtocol.deserialize[Long](in(12)))  // st_ctim
@@ -270,8 +270,6 @@ private trait GenericBackendObjectSerializer[T, F <: GenericBackendObjectFactory
     extends MythProtocolSerializable[T] {
   def newFactory: F
   def otherSerializer: S
-
-  // TODO pass FIELD_ORDER into factory apply/constructor...
 
   // TODO do we really need to call take() in deserialize? Use a view slice instead?
   // What about deserialization of a adjacent sequence of like-typed objects?

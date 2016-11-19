@@ -105,17 +105,9 @@ trait PlayableMedia {
   def playOnFrontend(fe: Frontend): Boolean
 }
 
-trait ProgramLike extends PlayableMedia {
-  // TODO
-}
-
-trait RecordingLike extends ProgramLike {
-  // TODO
-}
-
-trait VideoLike extends PlayableMedia {
-  // TODO
-}
+trait ProgramLike extends PlayableMedia
+trait RecordingLike extends ProgramLike
+trait VideoLike extends PlayableMedia
 
 trait TitleInfo {
   def title: String
