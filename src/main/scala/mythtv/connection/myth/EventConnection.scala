@@ -109,13 +109,17 @@ private abstract class AbstractEventConnection(
     def run(): Unit = {
       while (true) {  // TODO have some way to exit the thread, maybe a "posion pill" ?
         val eventResponse = queue.take()
-        val myListeners = listeners
-        if (myListeners.nonEmpty) {
-          val event = eventResponse.parse
-          for (ear <- myListeners) {
-            if (ear.listenFor(event))
-              ear.handle(event)
-          }
+        val event = eventResponse.parse
+        dispatch(event)
+      }
+    }
+
+    private def dispatch(event: Event): Unit = {
+      val myListeners = listeners
+      if (myListeners.nonEmpty) {
+        for (ear <- myListeners) {
+          if (ear.listenFor(event))
+            ear.handle(event)
         }
       }
     }
