@@ -2,7 +2,9 @@ package mythtv
 package connection
 package myth
 
-final case class FileTransferId(id: Int) extends AnyVal
+import model.IntegerIdentifier
+
+final case class FileTransferId(id: Int) extends AnyVal with IntegerIdentifier
 
 trait FileTransfer {
   def fileSize: Long

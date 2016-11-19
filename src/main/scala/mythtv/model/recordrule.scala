@@ -6,7 +6,7 @@ import java.time.LocalTime
 import EnumTypes._
 import util.MythDateTime
 
-final case class RecordRuleId(id: Int) extends AnyVal
+final case class RecordRuleId(id: Int) extends AnyVal with IntegerIdentifier
 
 // TODO seems like this contains most of the elements of ProgramGuideEntry or Recordable or some such...
 trait RecordRule {

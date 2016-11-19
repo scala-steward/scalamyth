@@ -3,7 +3,7 @@ package model
 
 import EnumTypes.{ TvState, SleepStatus }
 
-final case class CaptureCardId(id: Int) extends AnyVal
+final case class CaptureCardId(id: Int) extends AnyVal with IntegerIdentifier
 
 trait CaptureCard {
   def cardId: CaptureCardId
@@ -53,7 +53,7 @@ trait RemoteEncoderState extends RemoteEncoder {
   def currentRecording: Option[Recording]
 }
 
-final case class InputId(id: Int) extends AnyVal
+final case class InputId(id: Int) extends AnyVal with IntegerIdentifier
 
 trait CardInput {
   def cardInputId: InputId

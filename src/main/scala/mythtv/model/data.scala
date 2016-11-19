@@ -8,6 +8,10 @@ import EnumTypes.Markup
 trait Backend extends BackendOperations
 trait Frontend extends FrontendOperations
 
+trait IntegerIdentifier extends Any {
+  def id: Int
+}
+
 /* We define the Ordering objects in companion objects to the case classes
    because nested objects are currently prohibited inside value classes. */
 

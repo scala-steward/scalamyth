@@ -5,7 +5,7 @@ import java.time.Instant
 
 import EnumTypes.ChannelCommDetectMethod
 
-final case class ChanId(id: Int) extends AnyVal
+final case class ChanId(id: Int) extends AnyVal with IntegerIdentifier
 
 object ChanId {
   object ChanIdOrdering extends Ordering[ChanId] {
@@ -99,7 +99,7 @@ trait Lineup {
 }
 
 
-final case class ListingSourceId(id: Int) extends AnyVal
+final case class ListingSourceId(id: Int) extends AnyVal with IntegerIdentifier
 
 trait ListingSource {
   def sourceId: ListingSourceId
@@ -116,7 +116,7 @@ trait ListingSource {
   override def toString: String = s"<ListingSource $sourceId $name $lineupId>"
 }
 
-final case class MultiplexId(id: Int) extends AnyVal
+final case class MultiplexId(id: Int) extends AnyVal with IntegerIdentifier
 
 // from the dtv_multiplex table and the GetVideoMultiplex services command
 trait VideoMultiplex {
