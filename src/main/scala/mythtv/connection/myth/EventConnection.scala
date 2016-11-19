@@ -102,15 +102,20 @@ private abstract class AbstractEventConnection(
           case e: SocketException => ()
         }
       }
+      // Tell dispatcher thread to shut down
+      queue.put(newEventResponse(MythProtocol.BackendSeparator + "NO_MORE_EVENTS"))
     }
   }
 
   private class EventDispatcher(queue: BlockingQueue[BackendEventResponse]) extends Runnable {
     def run(): Unit = {
-      while (true) {  // TODO have some way to exit the thread, maybe a "posion pill" ?
+      var moreEvents = true
+      while (moreEvents) {
         val eventResponse = queue.take()
         val event = eventResponse.parse
-        dispatch(event)
+
+        if (event == Event.NoMoreEvents) moreEvents = false
+        else dispatch(event)
       }
     }
 
