@@ -22,23 +22,26 @@ private class BackendCommandReader(channel: SocketChannel, conn: SocketConnectio
     buffer.clear().limit(length)
 
     val selector = Selector.open
-    val key = channel.register(selector, SelectionKey.OP_READ)
+    try {
+      val key = channel.register(selector, SelectionKey.OP_READ)
+      var n: Int = 0
+      do {
+        val ready = selector.select(conn.timeout * 1000)
+        if (ready == 0) throw new SocketTimeoutException(s"read timed out after ${conn.timeout} seconds")
 
-    var n: Int = 0
-    do {
-      val ready = selector.select(conn.timeout * 1000)
-      if (ready == 0) throw new SocketTimeoutException(s"read timed out after ${conn.timeout} seconds")
+        if (key.isReadable) {
+          n = channel.read(buffer)
+          selector.selectedKeys.clear()
+          //println("Read " + n + " bytes")
+        }
+      } while (n > 0 && buffer.hasRemaining)
 
-      if (key.isReadable) {
-        n = channel.read(buffer)
-        selector.selectedKeys.clear()
-        //println("Read " + n + " bytes")
-      }
-    } while (n > 0 && buffer.hasRemaining)
+      if (n < 0) throw new RuntimeException("connection has been closed")  // TODO is this still valid in nonblocking mode?
 
-    selector.close()
+    } finally {
+      selector.close()
+    }
 
-    if (n < 0) throw new RuntimeException("connection has been closed")  // TODO is this still valid in nonblocking mode?
     utf8.decode({ buffer.flip(); buffer }).toString
   }
 
