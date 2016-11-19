@@ -1252,9 +1252,9 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       val elems = List(command, args mkString BackendSeparator)
       elems mkString " "
     case _ => throwArgumentExceptionMultipleSig(command, """
-      | cardId: CaptureCardId, sub @ ( "IS_RECORDING" | "GET_FRAMERATE" | "GET_FRAMES_WRITTEN" | "GET_FILE_POSITION |"
-      |                                "GET_MAX_BITRATE" | "GET_CURRENT_RECORDING" | "GET_RECORDING" | "FRONTEND_READY |"
-      |                                "STOP_LIVETV" | "PAUSE" | "FINISH_RECORDING" | "GET_INPUT" | "GET_COLOUR"
+      | cardId: CaptureCardId, sub @ ( "IS_RECORDING" | "GET_FRAMERATE" | "GET_FRAMES_WRITTEN" | "GET_FILE_POSITION" |
+      |                                "GET_MAX_BITRATE" | "GET_CURRENT_RECORDING" | "GET_RECORDING" | "FRONTEND_READY" |
+      |                                "STOP_LIVETV" | "PAUSE" | "FINISH_RECORDING" | "GET_INPUT" | "GET_COLOUR" |
       |                                "GET_CONTRAST"| "GET_BRIGHTNESS" | "GET_HUE" )
       | cardId: CaptureCardId, sub @ "GET_KEYFRAME_POS", desiredPos: VideoPositionFrame
       | cardId: CaptureCardId, sub @ ("FILL_POSITION_MAP" | "FILL_DURATION_MAP"), start: VideoPositionFrame, end: VideoPositionFrame
@@ -1878,7 +1878,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
     def recording: MythProtocolResult[QueryRecorderResult] = {
       val rec = deserialize[Recording](response.split)
-      if (rec.title.isEmpty && rec.chanId.id == 0) Left(MythProtocolFailureUnknown)
+      if (rec.title.isEmpty && rec.chanId.id == 0) Left(MythProtocolNoResult)
       else Right(QueryRecorderRecording(rec))
     }
 
@@ -1889,7 +1889,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     }
 
     def freeInputs: MythProtocolResult[QueryRecorderResult] = {
-      if (response.raw == "EMPTY_LIST") Left(MythProtocolFailureUnknown)
+      if (response.raw == "EMPTY_LIST") Left(MythProtocolFailureUnknown)  // TODO return Nil instead of error?
       else Try {
         val fieldCount = BackendCardInput.FIELD_ORDER.length
         val it = response.split.iterator grouped fieldCount withPartial false
@@ -1914,14 +1914,14 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     def nextProgramInfo: MythProtocolResult[QueryRecorderResult] =
       Try(QueryRecorderNextProgramInfo(deserialize[UpcomingProgram](response.split)))
 
-    if (response.raw == "bad") Left(MythProtocolFailureUnknown)
+    if (response.raw == "bad") Left(MythProtocolFailureMessage(response.raw))
     else {
       val subcommand = request.args(1).toString
       subcommand match {
         case "IS_RECORDING"               => boolean
         case "GET_FRAMERATE"              => frameRate
         case "GET_FRAMES_WRITTEN"         => frameCount
-        case "GET_FILE_POSITION"          => position    // TODO this may be byte position vs frame position
+        case "GET_FILE_POSITION"          => position    // TODO this is byte position vs frame position
         case "GET_MAX_BITRATE"            => bitrate
         case "GET_KEYFRAME_POS"           => position
         case "FILL_POSITION_MAP"          => positionMap
