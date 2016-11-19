@@ -66,19 +66,27 @@ object Markup extends LooseEnum {
   val TotalFrame    = Value(34)
 }
 
-// TODO add new RecType names, deprecate old names
 object RecType extends LooseEnum {
   type RecType = Value
   val NotRecording     = Value(0)
   val SingleRecord     = Value(1)
-  val TimeslotRecord   = Value(2)
+  val DailyRecord      = Value(2)
+  @deprecated("use DailyRecord + 'this time' filter", "MythTV 0.27")
+  val TimeslotRecord   = DailyRecord
+  @deprecated("use 'this channel' filter", "MythTV 0.27")
   val ChannelRecord    = Value(3)
   val AllRecord        = Value(4)
-  val WeekslotRecord   = Value(5)
-  val FindOneRecord    = Value(6)
+  val WeeklyRecord     = Value(5)
+  @deprecated("use WeeklyRecord + 'this day and time' filter", "MythTV 0.27")
+  val WeekslotRecord   = WeeklyRecord
+  val OneRecord        = Value(6)
+  @deprecated("", "")
+  val FindOneRecord    = OneRecord
   val OverrideRecord   = Value(7)
   val DontRecord       = Value(8)
+  @deprecated("", "MythTV 0.27")
   val FindDailyRecord  = Value(9)
+  @deprecated("", "MythTV 0.27")
   val FindWeeklyRecord = Value(10)
   val TemplateRecord   = Value(11)
 }

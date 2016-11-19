@@ -159,9 +159,9 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       RecType.NotRecording   -> "Not Recording",
       RecType.SingleRecord   -> "Single Record",
       RecType.AllRecord      -> "Record All",
-      RecType.FindOneRecord  -> "Record One",
-      RecType.TimeslotRecord -> "Record Daily",
-      RecType.WeekslotRecord -> "Record Weekly",
+      RecType.OneRecord      -> "Record One",
+      RecType.DailyRecord    -> "Record Daily",
+      RecType.WeeklyRecord   -> "Record Weekly",
       RecType.OverrideRecord -> "Override Recording",
       RecType.DontRecord     -> "Do not Record",
       RecType.TemplateRecord -> "Recording Template"
