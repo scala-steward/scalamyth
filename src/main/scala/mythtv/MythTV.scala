@@ -11,8 +11,8 @@ object MythTV {
   def frontend(host: String): MythFrontend = new MythFrontend(host)
   def backend(host: String): MythBackend = new MythBackend(host)
 
-  def service[A <: Service](host: String)(implicit provider: ServiceProvider[A]): A = provider.instance(host)
-  def service[A <: Service](host: String, port: Int)(implicit provider: ServiceProvider[A]): A = provider.instance(host, port)
+  def service[A <: Service](host: String)(implicit factory: ServiceFactory[A]): A = factory(host)
+  def service[A <: Service](host: String, port: Int)(implicit factory: ServiceFactory[A]): A = factory(host, port)
 
   private def parseHostNameFromServiceName(serviceName: String): String = {
     val pattern = """.+ on (.+)""".r
@@ -33,7 +33,7 @@ object MythTV {
   }
 
   def discoverMasterBackend: BackendInfo = {
-    import connection.http.json.JsonServiceProviders._
+    import connection.http.json.JsonServiceFactory._
 
     val backends = ServiceDiscovery.discoverBackends
     val trialBackend = backends.head // TODO check that we got some results
