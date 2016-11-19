@@ -8,8 +8,6 @@ import java.nio.channels.{ SelectionKey, Selector, SocketChannel }
 
 import scala.util.Try
 
-import MythProtocol.MythProtocolFailure
-
 private trait BackendCommandStream {
   final val HeaderSizeBytes = 8
 }
