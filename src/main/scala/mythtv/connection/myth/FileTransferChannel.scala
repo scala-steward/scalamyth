@@ -10,7 +10,7 @@ import EnumTypes.SeekWhence
 
 trait FileTransferChannel extends SeekableByteChannel with Seekable with FileTransfer
 
-private class FileTransferChannelImpl(controlChannel: FileTransferAPI, dataChannel: FileTransferConnection)
+private[myth] class FileTransferChannelImpl(controlChannel: FileTransferAPI, dataChannel: FileTransferConnection)
   extends FileTransferChannel {
   // A file transfer requires two (optionally three) channels:
   //   - control channel  (BackendConnection or BackendAPIConnection)
@@ -18,8 +18,8 @@ private class FileTransferChannelImpl(controlChannel: FileTransferAPI, dataChann
   // and optionally
   //   - event channel    (EventConnection)
 
-  @volatile protected[myth] var currentSize: Long = dataChannel.fileSize
-  protected[myth] var currentPosition: Long = 0L
+  @volatile protected var currentSize: Long = dataChannel.fileSize
+  protected var currentPosition: Long = 0L
   private[this] var openStatus: Boolean = true
 
   private def clamp(value: Long, min: Long, max: Long): Long =
