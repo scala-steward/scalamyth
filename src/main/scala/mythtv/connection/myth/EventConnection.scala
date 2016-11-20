@@ -88,8 +88,8 @@ private abstract class AbstractEventConnection(
 
   private def startEventLoop: Thread = {
     val eventQueue = new LinkedBlockingQueue[BackendEventResponse]
-    val monitorThread = new Thread(new EventMonitor(eventQueue))
-    val dispatchThread = new Thread(new EventDispatcher(eventQueue))
+    val monitorThread = new Thread(new EventMonitor(eventQueue), "Myth Event Monitor")
+    val dispatchThread = new Thread(new EventDispatcher(eventQueue), "Myth Event Dispatcher")
     dispatchThread.start()
     monitorThread.start()
     monitorThread
