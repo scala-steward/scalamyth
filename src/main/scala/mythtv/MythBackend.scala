@@ -45,6 +45,7 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
     conn.stopRecording(rec).toOption
   }
 
+  // TODO having an Option as a parameter is an awkward API
   def reschedule(recordId: Option[RecordRuleId], wait: Boolean): Unit = {
     val lock =
       if (wait) EventLock(eventConnection, _ == Event.ScheduleChangeEvent)

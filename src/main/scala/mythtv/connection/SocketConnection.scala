@@ -6,6 +6,8 @@ import java.nio.channels.SocketChannel
 
 import scala.util.DynamicVariable
 
+// TODO should we implement Closeable or AutoCloseable in SocketConnection? (slightly different semantics)
+
 trait SocketConnection extends NetworkConnection {
   def isConnected: Boolean
   def disconnect(graceful: Boolean = true): Unit

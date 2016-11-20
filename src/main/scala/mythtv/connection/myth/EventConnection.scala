@@ -51,6 +51,11 @@ private abstract class AbstractEventConnection(
     changeTimeout(0)
   }
 
+  // FIXME disconnect should probably clear all listeners and shut down any threads...
+  //   does the socket net get closed, I thought that would unblock select()
+  //   closing socket channel does not unblock select(), we need to close the
+  //   selector or cancel keys and then call wakeup() on the selector
+
   override def sendCommand(command: String, args: Any*): MythProtocolResult[_] = {
     if (hasAnnounced) Left(MythProtocolFailure.MythProtocolFailureUnknown)
     else super.sendCommand(command, args: _*)
@@ -76,6 +81,7 @@ private abstract class AbstractEventConnection(
   // blocking read to wait for the next event
   protected def readEvent(): BackendEventResponse = newEventResponse(reader.read())
 
+  // TODO test restarting the event loop after all listeners have been removed...
   private def isEventLoopRunning: Boolean =
     if (eventLoopThread eq null) false
     else eventLoopThread.isAlive
