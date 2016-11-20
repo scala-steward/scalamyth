@@ -89,7 +89,7 @@ private abstract class AbstractEventConnection(
     else eventLoopThread.isAlive
 
   private def startEventLoopOld: Thread = {
-    val thread = new Thread(new EventLoop)
+    val thread = new Thread(new EventLoop, "Myth Event Loop")
     thread.start()
     thread
   }
@@ -144,22 +144,19 @@ private abstract class AbstractEventConnection(
   }
 
   private class EventLoop extends Runnable {
-    // TODO : this approach has the disadvantage that event listener de-/registration
-    //   does not become visible until after the next event is received (which may not
-    //   be for some time)  Can we interrupt the blocked call to process?
     def run(): Unit = {
-      var myListeners = listeners
-      while (myListeners.nonEmpty && isConnected) {
+      while (listeners.nonEmpty && isConnected) {
         try {
           val eventResponse = readEvent()
           val event = eventResponse.parse
-          myListeners = listeners
+          val myListeners = listeners
           for (ear <- myListeners) {
             if (ear.listenFor(event))
               ear.handle(event)
           }
         } catch {
           case _: SocketException => ()
+          case _: InterruptedException => ()
         }
       }
     }
