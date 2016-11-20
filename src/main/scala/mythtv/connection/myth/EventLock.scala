@@ -8,6 +8,8 @@ import scala.concurrent.duration.Duration
 
 trait EventLock {
   def event: Option[Event]
+  def isCancelled: Boolean
+  def cancel(): Unit
   def waitFor(timeout: Duration = Duration.Inf): Unit
 }
 
@@ -26,6 +28,7 @@ object EventLock {
     private[this] val lock = new ReentrantLock
     private[this] val cond = lock.newCondition
 
+    @volatile private[this] var cancelled: Boolean = false
     @volatile private[this] var unlockEvent: Option[Event] = None
 
     eventConn.addListener(this)
@@ -34,6 +37,15 @@ object EventLock {
 
     def handle(event: Event): Unit = {
       unlockEvent = Some(event)
+      signalDone()
+    }
+
+    def cancel(): Unit = {
+      cancelled = true
+      signalDone()
+    }
+
+    private def signalDone(): Unit = {
       lock.lock()
       try cond.signalAll()
       finally lock.unlock()
@@ -42,15 +54,20 @@ object EventLock {
 
     def event: Option[Event] = unlockEvent
 
+    def isCancelled = cancelled
+
+    private def continueWaiting: Boolean =
+      unlockEvent.isEmpty && !cancelled
+
     def waitFor(timeout: Duration): Unit = {
       lock.lock()
       try {
         if (timeout.isFinite) {
           var nanos = timeout.toNanos
-          while (nanos > 0 && unlockEvent.isEmpty)
+          while (nanos > 0 && continueWaiting)
             nanos = cond.awaitNanos(nanos)
         } else {
-          while (unlockEvent.isEmpty)
+          while (continueWaiting)
             cond.await()
         }
       }
@@ -60,6 +77,8 @@ object EventLock {
 
   private object Empty extends EventLock {
     def event: Option[Event] = None
+    def isCancelled: Boolean = false
+    def cancel(): Unit = ()
     def waitFor(timeout: Duration): Unit = ()
   }
 }
