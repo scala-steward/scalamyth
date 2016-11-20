@@ -51,10 +51,10 @@ private abstract class AbstractEventConnection(
     changeTimeout(0)
   }
 
-  // FIXME disconnect should probably clear all listeners and shut down any threads...
-  //   does the socket net get closed, I thought that would unblock select()
-  //   closing socket channel does not unblock select(), we need to close the
-  //   selector or cancel keys and then call wakeup() on the selector
+  override def disconnect(graceful: Boolean): Unit = {
+    clearListeners()
+    super.disconnect(graceful)
+  }
 
   override def sendCommand(command: String, args: Any*): MythProtocolResult[_] = {
     if (hasAnnounced) Left(MythProtocolFailure.MythProtocolFailureUnknown)
@@ -75,6 +75,13 @@ private abstract class AbstractEventConnection(
       listenerSet = listenerSet - listener
       if (listenerSet.isEmpty && (eventLoopThread ne null))
         eventLoopThread.interrupt()
+    }
+  }
+
+  protected def clearListeners(): Unit = {
+    synchronized {
+      listenerSet = Set.empty
+      if (eventLoopThread ne null) eventLoopThread.interrupt()
     }
   }
 
