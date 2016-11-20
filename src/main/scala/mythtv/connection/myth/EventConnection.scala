@@ -103,8 +103,8 @@ private abstract class AbstractEventConnection(
           val eventResponse = readEvent()
           queue.put(eventResponse)
         } catch {
-          case e: SocketException => ()
-          case e: InterruptedException => ()  // force next iteration of loop to re-check listeners and connected
+          case _: SocketException => ()
+          case _: InterruptedException => ()  // force next iteration of loop to re-check listeners and connected
         }
       }
       // Tell dispatcher thread to shut down
@@ -151,7 +151,7 @@ private abstract class AbstractEventConnection(
               ear.handle(event)
           }
         } catch {
-          case ex: SocketException =>
+          case _: SocketException => ()
         }
       }
     }

@@ -110,7 +110,7 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
 
     if (conn.scanVideos.right.get) {
       val lock = EventLock(eventConnection, {
-        case e: VideoListChangeEvent => true
+        case _: VideoListChangeEvent => true
         case VideoListNoChangeEvent => true
         case _ => false
       })
