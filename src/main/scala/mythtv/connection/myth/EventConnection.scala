@@ -64,8 +64,10 @@ private abstract class AbstractEventConnection(
   def listeners: Set[EventListener] = synchronized { listenerSet }
 
   def addListener(listener: EventListener): Unit = {
-    synchronized { listenerSet = listenerSet + listener }
-    if (!isEventLoopRunning) eventLoopThread = startEventLoop  // TODO this probably needs synchronization too
+    synchronized {
+      listenerSet = listenerSet + listener
+      if (!isEventLoopRunning) eventLoopThread = startEventLoop
+    }
   }
 
   def removeListener(listener: EventListener): Unit = {
