@@ -52,7 +52,7 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
       else EventLock.empty
     if (recordId.isEmpty) conn.rescheduleRecordingsCheck(programId = "**any**")
     else conn.rescheduleRecordingsMatch(recordId = recordId.get)
-    lock.waitFor()
+    lock.await()
   }
 
   def isRecording(cardId: CaptureCardId): Boolean = conn.queryRecorderIsRecording(cardId).right.get
@@ -115,7 +115,7 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
         case VideoListNoChangeEvent => true
         case _ => false
       })
-      lock.waitFor()
+      lock.await()
 
       lock.event.get match {
         case VideoListChangeEvent(changeMap) => changeMap

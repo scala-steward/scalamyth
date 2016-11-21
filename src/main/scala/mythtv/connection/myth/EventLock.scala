@@ -10,7 +10,7 @@ trait EventLock {
   def event: Option[Event]
   def isCancelled: Boolean
   def cancel(): Unit
-  def waitFor(timeout: Duration = Duration.Inf): Unit
+  def await(timeout: Duration = Duration.Inf): Unit
 }
 
 object EventLock {
@@ -18,7 +18,7 @@ object EventLock {
     new Lock(eventConn, eventFilter)
 
   /**
-    * Returns an event lock object without an event; waitFor always returns
+    * Returns an event lock object without an event; await always returns
     * immediately and event is always None.
     */
   def empty: EventLock = Empty
@@ -59,7 +59,7 @@ object EventLock {
     private def continueWaiting: Boolean =
       unlockEvent.isEmpty && !cancelled
 
-    def waitFor(timeout: Duration): Unit = {
+    def await(timeout: Duration): Unit = {
       lock.lock()
       try {
         if (timeout.isFinite) {
@@ -79,6 +79,6 @@ object EventLock {
     def event: Option[Event] = None
     def isCancelled: Boolean = false
     def cancel(): Unit = ()
-    def waitFor(timeout: Duration): Unit = ()
+    def await(timeout: Duration): Unit = ()
   }
 }
