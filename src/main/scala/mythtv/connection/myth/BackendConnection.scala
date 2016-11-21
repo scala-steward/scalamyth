@@ -40,7 +40,7 @@ private class BackendCommandReader(channel: SocketChannel, conn: SocketConnectio
         }
       } while (n > 0 && buffer.hasRemaining)
 
-      if (n < 0) throw new RuntimeException("connection has been closed")  // TODO is this still valid in nonblocking mode?
+      if (n < 0) throw new RuntimeException("connection has been closed")  // TODO better exception
 
     } finally {
       selector.close()
