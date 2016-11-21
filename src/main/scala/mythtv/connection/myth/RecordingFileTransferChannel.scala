@@ -2,8 +2,12 @@ package mythtv
 package connection
 package myth
 
-import model.{ ChanId, Recording }
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
+
 import util.MythDateTime
+import model.{ ChanId, Recording }
+import Event.{ DoneRecordingEvent, RecordingListUpdateEvent, UpdateFileSizeEvent }
 
 trait RecordingTransferChannel extends FileTransferChannel {
   def recording: Recording
@@ -16,35 +20,78 @@ trait RecordingTransferChannel extends FileTransferChannel {
 // Otherwise use a CompletedRecordingTransferChannel.  Don't expose these
 // differences to clients; hide behind a RecordingTransferChannel trait.
 
-// TODO: also listen for DoneRecording/FileClosed event
-// TODO: listen for RecordingListUpdate event to update our copy of Recording object??
-
 private class InProgressRecordingTransferChannel(
   controlChannel: FileTransferAPI,
   dataChannel: FileTransferConnection,
   eventChannel: EventConnection,
-  rec: Recording
+  @volatile private[this] var rec: Recording
 ) extends EventingFileTransferChannel(controlChannel, dataChannel, eventChannel)
      with RecordingTransferChannel {
 
+  // Keep track of the cardId this recording is using, it will be overwritten by
+  // later updates to 'rec' by the RecordingListUpdate event
+  private[this] val usingCardId = rec.cardId
+
+  @volatile private[this] var inProgress = true
+
+  private[this] val lock = new ReentrantLock
+  private[this] val sizeChanged = lock.newCondition
+
   override def recording: Recording = rec
 
-  override def isRecordingInProgress = true // TODO not always true! just until we hear otherwise
+  override def isRecordingInProgress = inProgress
 
   override def listener: EventListener = updateListener
 
-  // TODO block read if the recording is still in progress but we hit EOF? (wait for the event to arrive...)
+  override protected def waitForMoreData(oldSize: Long): Boolean = {
+    if (inProgress) doWaitForMoreData(oldSize)
+    else false
+  }
+
+  private def doWaitForMoreData(oldSize: Long): Boolean = {
+    println("waiting for more data " + oldSize)
+    lock.lock()
+    try {
+      while (inProgress && currentSize <= oldSize)
+        sizeChanged.await(10, TimeUnit.MINUTES)  // TODO wait forever? probably a bad idea
+    }
+    finally lock.unlock()
+    true
+  }
+
+  private def signalSizeChanged(): Unit = {
+    lock.lock()
+    try sizeChanged.signalAll()
+    finally lock.unlock()
+  }
+
+  /* We listen for DoneRecording event rather than RecordingFinished bacause
+     the latter is a system event, and we are not guaranteed to receive system
+     events in all cases (they are only dispatched once per target host unless
+     you are registered as system-events-only.) */
 
   private[this] lazy val updateListener = new EventListener {
     override def listenFor(event: Event): Boolean = event match {
-      case e: Event.UpdateFileSizeEvent => true
+      case _: UpdateFileSizeEvent => true
+      case _: DoneRecordingEvent => true
+      case _: RecordingListUpdateEvent => true
       case _ => false
     }
 
     override def handle(event: Event): Unit = event match {
-      case Event.UpdateFileSizeEvent(chanId, startTime, newSize) =>
-        if (chanId == recording.chanId && startTime == recording.startTime)
+      case UpdateFileSizeEvent(chanId, recStartTs, newSize) =>
+        if (chanId == rec.chanId && recStartTs == rec.recStartTS) {
           currentSize = newSize.bytes
+          signalSizeChanged()
+        }
+      case RecordingListUpdateEvent(r: Recording) =>
+        if (r.chanId == rec.chanId && r.startTime == rec.startTime)
+          rec = r
+      case DoneRecordingEvent(cardId, _, _) =>
+        if (cardId == usingCardId) {
+          inProgress = false
+          signalSizeChanged()
+        }
       case _ => ()
     }
   }
@@ -61,8 +108,6 @@ private class CompletedRecordingTransferChannel(
 }
 
 object RecordingTransferChannel {
-  // TODO: method that takes a hostname vs control channel?
-
   def apply(api: BackendAPIConnection, chanId: ChanId, recStartTs: MythDateTime): RecordingTransferChannel = {
     val rec = api.queryRecording(chanId, recStartTs).right.get   // TODO check for failure/not found
     apply(api, rec)
