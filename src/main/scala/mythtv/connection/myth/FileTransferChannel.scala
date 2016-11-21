@@ -81,9 +81,21 @@ private[myth] class FileTransferChannelImpl(controlChannel: FileTransferAPI, dat
   // Actually, probably linux, combatting bufferbloat, see:
   //    cat /proc/sys/net/ipv4/tcp_limit_output_bytes
 
+  protected def waitForMoreData(oldSize: Long): Boolean = false
+
+  private def readableLength(len: Int, size: Long): Int =
+    clamp(len, 0, math.min(size - currentPosition, Int.MaxValue)).toInt
+
+  private def waitableReadableLength(len: Int): Int = {
+    val origSize = currentSize
+    val origLength = readableLength(len, origSize)
+    if (origLength == 0 && waitForMoreData(origSize)) readableLength(len, currentSize)
+    else origLength
+  }
+
   override def read(bb: ByteBuffer): Int = {
     if (!dataChannel.isReadable) throw new NonReadableChannelException
-    val length = clamp(bb.remaining, 0, math.min(currentSize - currentPosition, Int.MaxValue)).toInt
+    val length = waitableReadableLength(bb.remaining)
     if (length < bb.remaining) bb.limit(bb.position + length)
 
     var bytesRead: Int = 0
