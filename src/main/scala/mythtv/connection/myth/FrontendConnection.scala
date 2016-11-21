@@ -25,6 +25,7 @@ trait FrontendNetworkControl {
     * notification
     * exit
     */
+  def sendCommand(command: String): Try[String]
 }
 
 private class FrontendSocketReader(channel: SocketChannel, conn: SocketConnection)
@@ -103,12 +104,9 @@ private class FrontendSocketWriter(channel: SocketChannel, conn: SocketConnectio
   }
 }
 
-class FrontendConnection(host: String, port: Int, timeout: Int)
+private class FrontendConnectionImpl(host: String, port: Int, timeout: Int)
     extends AbstractSocketConnection[String](host, port, timeout)
-    with FrontendNetworkControl {
-
-  def this(host: String) = this(host, FrontendConnection.DefaultPort, FrontendConnection.DefaultTimeout)
-  def this(host: String, port: Int) = this(host, port, FrontendConnection.DefaultTimeout)
+       with FrontendConnection {
 
   protected def finishConnect(): Unit = {
     // TODO swallow up connection start returned data
@@ -135,7 +133,13 @@ class FrontendConnection(host: String, port: Int, timeout: Int)
   }
 }
 
+trait FrontendConnection extends SocketConnection with FrontendNetworkControl
+
 object FrontendConnection {
   final val DefaultPort: Int = 6546
   final val DefaultTimeout: Int = 10  // seconds
+
+  def apply(host: String, port: Int = DefaultPort, timeout: Int = DefaultTimeout): FrontendConnection = {
+    new FrontendConnectionImpl(host, port, timeout)
+  }
 }

@@ -12,7 +12,7 @@ import util.{ ByteCount, BinaryByteCount }
 class MythFrontend(val host: String) extends Frontend with FrontendOperations {
   import MythFrontend._
 
-  private[this] val conn = new FrontendConnection(host)
+  private[this] val conn = FrontendConnection(host)
 
   def close() = {
     conn.disconnect()
