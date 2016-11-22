@@ -71,7 +71,9 @@ trait BackendOperations {
   def fileHash(fileName: String, storageGroup: String, hostName: String = ""): MythFileHash
 //  def fileExists(fileName: String, storageGroup: String): Boolean
 
-  def reschedule(recordId: Option[RecordRuleId] = None, wait: Boolean = false): Unit
+  def reschedule(): Unit
+  def reschedule(wait: Boolean): Unit
+  def reschedule(recordId: RecordRuleId, wait: Boolean = false): Unit
 
   // These are MythXML methods in the Python bindings ...
 /*
