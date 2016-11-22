@@ -8,6 +8,24 @@ import java.time.{ Duration, Instant }
 import model.{ ChanId, ChannelNumber }
 import util.{ BinaryByteCount, ByteCount, MythDateTime }
 import MythFrontend.{ JumpPoint, KeyName }  // TODO TEMP relocate as appropriate
+import EnumTypes.PlaybackSpeed
+
+object PlaybackSpeed extends Enumeration {
+  type PlaybackSpeed = Value
+  val Normal    = Value("1x")
+  val OneHalf   = Value("1/2x")
+  val OneThird  = Value("1/3x")
+  val OneFourth = Value("1/4x")
+  val OneEighth = Value("1/8x")
+}
+
+trait FrontendJumper extends PartialFunction[JumpPoint, Boolean] {
+  def points: Map[String, String]
+}
+
+trait FrontendKeySender extends PartialFunction[KeyName, Boolean] {
+  def special: Set[KeyName]
+}
 
 trait FrontendNetworkControl {
   /*
@@ -25,13 +43,11 @@ trait FrontendNetworkControl {
     * exit
     */
 
-  def jump: PartialFunction[JumpPoint, Boolean]  // TODO extend to expose 'points'
-  def key: PartialFunction[KeyName, Boolean]     // TODO extend to expose 'special'
+  def jump: FrontendJumper
+  def key: FrontendKeySender
 
-  def sendMessage(message: String): Unit = ???
-  def sendNotification(message: String): Unit = ???
-
-  // TODO more API stuff, especially rich play XXXXX
+  def sendMessage(message: String): Unit
+  def sendNotification(message: String): Unit
 
   def playChannelUp(): Unit
   def playChannelDown(): Unit
@@ -47,16 +63,21 @@ trait FrontendNetworkControl {
   def playSeekBeginning(): Unit
   def playSeekBackward(): Unit
   def playSeekForward(): Unit
-  def playSeekTo(): Unit = ???   // TODO parameter is an HH:MM:SS offset
 
-  def playSpeed(): Unit = ???  // TODO various parameters (normal, 1/2, 1/3, 1/4, 1/8)
+  def playSeekTo(timeOffset: Duration): Unit
+  def playSeekTo(hours: Int = 0, minutes: Int = 0, seconds: Int = 0): Unit
+
+  def playSpeed(speed: PlaybackSpeed): Unit
+  def playSpeed(speed: Float): Unit
 
   def playPause(): Unit
   def playStop(): Unit
 
   def playVolume(volumePercent: Int): Unit
 
-  def playSubtitles(): Unit = ???  // TOOD: parameter one (or more?) subtitle track numbers
+  // TODO the track number necessary to supply here doesn't necessaily seem to align
+  // with those given in the response to query location
+  def playSubtitles(track: Int): Unit
 
   def queryLocation: String
   def queryVersion: String  // TODO parse result into separate components?
@@ -72,6 +93,14 @@ trait FrontendNetworkControlLike {
   self: FrontendProtocol with FrontendNetworkControl =>
 
   // TODO need error handling around return types
+
+  def sendMessage(message: String): Unit = {
+    sendCommand("message " + message)
+  }
+
+  def sendNotification(message: String): Unit = {
+    sendCommand("notification " + message)
+  }
 
   def playChannelUp(): Unit ={
     sendCommand("play channel up")
@@ -118,12 +147,40 @@ trait FrontendNetworkControlLike {
     sendCommand("play seek forward")
   }
 
+  def playSeekTo(timeOffset: Duration): Unit = {
+    val duration = """PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)(?:[.]\d+)?S)?""".r
+    val (hours, mins, secs) = timeOffset.toString match {
+      case duration(h, m, s) => (
+        if (h eq null) 0 else h.toInt,
+        if (m eq null) 0 else m.toInt,
+        if (s eq null) 0 else s.toInt
+      )
+    }
+    playSeekTo(hours, mins, secs)
+  }
+
+  def playSeekTo(hours: Int, minutes: Int, seconds: Int): Unit = {
+    sendCommand(f"play seek $hours%02d:$minutes%02d:$seconds%02d")
+  }
+
+  def playSpeed(speed: PlaybackSpeed): Unit = {
+    sendCommand("play speed " + speed)
+  }
+
+  def playSpeed(speed: Float): Unit = {
+    sendCommand("play speed " + speed + "x")
+  }
+
   def playPause(): Unit = {
     sendCommand("play speed pause")
   }
 
   def playStop(): Unit = {
     sendCommand("play stop")
+  }
+
+  def playSubtitles(track: Int): Unit = {
+    sendCommand("play subtitles " + track)
   }
 
   def playVolume(volumePercent: Int): Unit = {
@@ -168,16 +225,17 @@ trait FrontendNetworkControlLike {
     Duration.ofSeconds(res.toLong)
   }
 
-  def jump: PartialFunction[JumpPoint, Boolean] = Jumper
-  def key: PartialFunction[KeyName, Boolean] = KeySender
+  def jump: FrontendJumper = Jumper
 
-  private object Jumper extends PartialFunction[JumpPoint, Boolean] {
+  def key: FrontendKeySender = KeySender
+
+  private object Jumper extends FrontendJumper {
     lazy val points: Map[String, String] = retrieveJumpPoints
     private val helpPat = """(\w+)[ ]+- ([\w /,]+)""".r
 
-    def isDefinedAt(point: JumpPoint): Boolean = points contains point
+    override def isDefinedAt(point: JumpPoint): Boolean = points contains point
 
-    def apply(point: JumpPoint): Boolean = {
+    override def apply(point: JumpPoint): Boolean = {
       if (isDefinedAt(point)) sendCommand("jump " + point).getOrElse("") == "OK"
       else false
     }
@@ -188,16 +246,16 @@ trait FrontendNetworkControlLike {
     }
   }
 
-  private object KeySender extends PartialFunction[KeyName, Boolean] {
+  private object KeySender extends FrontendKeySender {
     lazy val special: Set[KeyName] = retrieveSpecialKeys
 
     private val alphanum: Map[String, Char] = (('0' to '9') ++ ('A' to 'Z') ++ ('a' to 'z')
       map (c => (String.valueOf(c), c))).toMap
 
-    def isDefinedAt(key: KeyName): Boolean =
+    override def isDefinedAt(key: KeyName): Boolean =
       (alphanum contains key) || (special contains key)
 
-    def apply(key: KeyName): Boolean = {
+    override def apply(key: KeyName): Boolean = {
       if (isDefinedAt(key)) sendCommand("key " + key).getOrElse("") == "OK"
       else false
     }
