@@ -46,7 +46,7 @@ trait CommonJsonProtocol {
   implicit object StringListJsonFormat extends MythJsonListFormat[String] {
     import DefaultJsonProtocol.StringJsonFormat
     def listFieldName = "StringList"
-    def convertElement(value: JsValue) = value.convertTo[String]
+    def convertElement(value: JsValue): String = value.convertTo[String]
     def elementToJson(elem: String): JsValue = jsonWriter[String].write(elem)
   }
 

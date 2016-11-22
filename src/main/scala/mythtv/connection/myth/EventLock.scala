@@ -54,7 +54,7 @@ object EventLock {
 
     def event: Option[Event] = unlockEvent
 
-    def isCancelled = cancelled
+    def isCancelled: Boolean = cancelled
 
     private def continueWaiting: Boolean =
       unlockEvent.isEmpty && !cancelled

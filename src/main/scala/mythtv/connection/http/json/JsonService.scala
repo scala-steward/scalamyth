@@ -3,6 +3,8 @@ package connection
 package http
 package json
 
+import spray.json.{ JsObject, JsValue }
+
 import services.Service
 
 abstract class JsonService(conn: JsonConnection)
@@ -19,9 +21,9 @@ abstract class JsonService(conn: JsonConnection)
   def requestStream(endpoint: String, params: Map[String, Any] = Map.empty): HttpStreamResponse =
     conn.requestStream(buildPath(endpoint, params))
 
-  def responseRoot(response: JsonResponse) =
+  def responseRoot(response: JsonResponse): JsObject =
     response.json.asJsObject
 
-  def responseRoot(response: JsonResponse, fieldName: String) =
+  def responseRoot(response: JsonResponse, fieldName: String): JsValue =
     response.json.asJsObject.fields(fieldName)
 }

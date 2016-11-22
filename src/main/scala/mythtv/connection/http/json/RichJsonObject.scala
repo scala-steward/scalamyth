@@ -57,43 +57,43 @@ private trait RichJsonObject extends Any {
 private object EmptyJsonObject extends RichJsonObject {
   def stringField(fieldName: String) = throw new NoSuchElementException(fieldName)
   def stringFieldOption(fieldName: String) = None
-  def stringFieldOption(fieldName: String, default: String): Option[String] = None
-  def stringFieldOrElse(fieldName: String, default: => String) = default
+  def stringFieldOption(fieldName: String, default: String) = None
+  def stringFieldOrElse(fieldName: String, default: => String): String = default
 
   def booleanField(fieldName: String) = throw new NoSuchElementException(fieldName)
   def booleanFieldOption(fieldName: String) = None
-  def booleanFieldOrElse(fieldName: String, default: => Boolean) = default
+  def booleanFieldOrElse(fieldName: String, default: => Boolean): Boolean = default
 
   def charField(fieldName: String) = throw new NoSuchElementException(fieldName)
   def charFieldOption(fieldName: String) = None
-  def charFieldOrElse(fieldName: String, default: => Char) = default
+  def charFieldOrElse(fieldName: String, default: => Char): Char = default
 
   def dateField(fieldName: String) = throw new NoSuchElementException(fieldName)
   def dateFieldOption(fieldName: String) = None
-  def dateFieldOrElse(fieldName: String, default: => LocalDate) = default
+  def dateFieldOrElse(fieldName: String, default: => LocalDate): LocalDate = default
 
   def dateTimeField(fieldName: String) = throw new NoSuchElementException(fieldName)
   def dateTimeFieldOption(fieldName: String) = None
-  def dateTimeFieldOrElse(fieldName: String, default: => MythDateTime) = default
+  def dateTimeFieldOrElse(fieldName: String, default: => MythDateTime): MythDateTime = default
 
   def doubleField(fieldName: String) = throw new NoSuchElementException(fieldName)
   def doubleFieldOption(fieldName: String) = None
   def doubleFieldOption(fieldName: String, default: Double) = None
-  def doubleFieldOrElse(fieldName: String, default: => Double) = default
+  def doubleFieldOrElse(fieldName: String, default: => Double): Double = default
 
   def intField(fieldName: String) = throw new NoSuchElementException(fieldName)
   def intFieldOption(fieldName: String) = None
   def intFieldOption(fieldName: String, default: Int) = None
-  def intFieldOrElse(fieldName: String, default: => Int) = default
+  def intFieldOrElse(fieldName: String, default: => Int): Int = default
 
   def longField(fieldName: String) = throw new NoSuchElementException(fieldName)
   def longFieldOption(fieldName: String) = None
-  def longFieldOrElse(fieldName: String, default: => Long) = default
+  def longFieldOrElse(fieldName: String, default: => Long): Long = default
 
   def timeField(fieldName: String) = throw new NoSuchElementException(fieldName)
   def timeFieldOption(fieldName: String) = None
   def timeFieldOption(fieldName: String, default: LocalTime) = None
-  def timeFieldOrElse(fieldName: String, default: => LocalTime) = default
+  def timeFieldOrElse(fieldName: String, default: => LocalTime): LocalTime = default
 }
 
 private object RichJsonObject {
@@ -123,9 +123,9 @@ private object RichJsonObject {
     def stringFieldOrElse(fieldName: String, default: => String): String =
       stringFieldOption(fieldName).getOrElse(default)
 
-    def booleanField(fieldName: String) = stringField(fieldName).toBoolean
-    def booleanFieldOption(fieldName: String) = stringFieldOption(fieldName) map (_.toBoolean)
-    def booleanFieldOrElse(fieldName: String, default: => Boolean) = booleanFieldOption(fieldName).getOrElse(default)
+    def booleanField(fieldName: String): Boolean = stringField(fieldName).toBoolean
+    def booleanFieldOption(fieldName: String): Option[Boolean] = stringFieldOption(fieldName) map (_.toBoolean)
+    def booleanFieldOrElse(fieldName: String, default: => Boolean): Boolean = booleanFieldOption(fieldName).getOrElse(default)
 
     def charField(fieldName: String): Char = stringField(fieldName).charAt(0)
     def charFieldOption(fieldName: String): Option[Char] = stringFieldOption(fieldName, "") map (_.charAt(0))

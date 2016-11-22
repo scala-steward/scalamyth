@@ -15,7 +15,7 @@ private[json] trait GenericJsonServiceFactory[S <: Service, C <: JsonConnection]
   def newConnection(host: String): C
   def newConnection(host: String, port: Int): C
   def apply(host: String): S = newInstance(newConnection(host))
-  def apply(host: String, port: Int) = newInstance(newConnection(host, port))
+  def apply(host: String, port: Int): S = newInstance(newConnection(host, port))
 }
 
 private[json] trait BackendJsonServiceFactory[S <: BackendService]

@@ -39,7 +39,7 @@ private class InProgressRecordingTransferChannel(
 
   override def recording: Recording = rec
 
-  override def isRecordingInProgress = inProgress
+  override def isRecordingInProgress: Boolean = inProgress
 
   override def listener: EventListener = updateListener
 
