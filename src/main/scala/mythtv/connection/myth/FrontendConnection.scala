@@ -10,21 +10,7 @@ import java.nio.charset.StandardCharsets
 
 import scala.util.Try
 
-trait FrontendNetworkControl {
-  /*
-    * Commands:
-    *
-    * help
-    * jump JUMPPOINT
-    * key { LETTER | NUMBER | CODE }
-    * play  < lots of subcommands >
-    * query < lots of subcommands >
-    * set { verbose MASK }
-    * screenshot [WxH]
-    * message
-    * notification
-    * exit
-    */
+trait FrontendProtocol {
   def sendCommand(command: String): Try[String]
 }
 
@@ -58,33 +44,34 @@ private class FrontendSocketReader(channel: SocketChannel, conn: SocketConnectio
     utf8.reset()
     buffer.clear()
 
-    do {
-      val ready = selector.select(conn.timeout * 1000)
-      if (ready == 0) throw new SocketTimeoutException(s"read timed out after ${conn.timeout} seconds")
+    try {
+      do {
+        val ready = selector.select(conn.timeout * 1000)
+        if (ready == 0) throw new SocketTimeoutException(s"read timed out after ${conn.timeout} seconds")
 
-      if (key.isReadable) {
-        val n = channel.read(buffer)
-        selector.selectedKeys.clear()
-        endOfInput = bufferEndsWith(promptBytes)
+        if (key.isReadable) {
+          val n = channel.read(buffer)
+          selector.selectedKeys.clear()
+          endOfInput = bufferEndsWith(promptBytes)
 
-        if (n >= 0) {
-          // decode UTF-8 bytes to charBuffer
-          utf8.decode({ buffer.flip(); buffer }, charBuffer, endOfInput)
-          if (endOfInput) utf8.flush(charBuffer)
+          if (n >= 0) {
+            // decode UTF-8 bytes to charBuffer
+            utf8.decode({ buffer.flip(); buffer }, charBuffer, endOfInput)
+            if (endOfInput) utf8.flush(charBuffer)
 
-          // drain the charBuffer into string builder
-          sb.append({ charBuffer.flip(); charBuffer })
-          charBuffer.clear()
+            // drain the charBuffer into string builder
+            sb.append({ charBuffer.flip(); charBuffer })
+            charBuffer.clear()
 
-          // get ready for next round, preserve any un-decoded bytes
-          if (buffer.hasRemaining) buffer.compact()
-          else                     buffer.clear()
+            // get ready for next round, preserve any un-decoded bytes
+            if (buffer.hasRemaining) buffer.compact()
+            else                     buffer.clear()
+          }
         }
-      }
-    } while (!endOfInput)
-
-    selector.close()
-
+      } while (!endOfInput)
+    } finally {
+      selector.close()
+    }
     // Don't include the trailing prompt string in our result
     sb.substring(0, sb.length - PromptString.length)
   }
@@ -118,14 +105,14 @@ private class FrontendConnectionImpl(host: String, port: Int, timeout: Int)
   protected def openReader(channel: SocketChannel): SocketReader[String] = new FrontendSocketReader(channel, this)
   protected def openWriter(channel: SocketChannel): SocketWriter[String] = new FrontendSocketWriter(channel, this)
 
-  def postCommand(command: String): Unit = {
+  protected def postCommand(command: String): Unit = {
     val message = s"$command\n"
     writer.write(message)
     // TODO: swallow any response (asynchronously?!)
   }
 
   def sendCommand(command: String): Try[String] = {
-    val message = s"$command\n"
+    val message = command + "\n"
     Try {
       writer.write(message)
       reader.read()
@@ -133,7 +120,7 @@ private class FrontendConnectionImpl(host: String, port: Int, timeout: Int)
   }
 }
 
-trait FrontendConnection extends SocketConnection with FrontendNetworkControl
+trait FrontendConnection extends SocketConnection with FrontendProtocol
 
 object FrontendConnection {
   final val DefaultPort: Int = 6546
