@@ -35,7 +35,7 @@ private[myth] trait MythProtocolLike extends MythProtocolSerializer {
         val _ = serialize(command, args)
         true
       } catch {
-        case ex: BackendCommandArgumentException => false
+        case _: BackendCommandArgumentException => false
       }
     }
     else false

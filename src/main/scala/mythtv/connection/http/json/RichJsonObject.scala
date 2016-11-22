@@ -134,13 +134,13 @@ private object RichJsonObject {
     def dateField(fieldName: String): LocalDate = LocalDate.parse(stringField(fieldName))
     def dateFieldOption(fieldName: String): Option[LocalDate] =
       try stringFieldOption(fieldName) map LocalDate.parse
-      catch { case e: DateTimeParseException => None }
+      catch { case _: DateTimeParseException => None }
     def dateFieldOrElse(fieldName: String, default: => LocalDate): LocalDate = dateFieldOption(fieldName).getOrElse(default)
 
     def dateTimeField(fieldName: String): MythDateTime = MythDateTime.fromIso(stringField(fieldName))
     def dateTimeFieldOption(fieldName: String): Option[MythDateTime] =
       try stringFieldOption(fieldName) map MythDateTime.fromIso
-      catch { case e: DateTimeParseException => None }
+      catch { case _: DateTimeParseException => None }
     def dateTimeFieldOrElse(fieldName: String, default: => MythDateTime): MythDateTime =
       dateTimeFieldOption(fieldName).getOrElse(default)
 
@@ -167,7 +167,7 @@ private object RichJsonObject {
     def timeField(fieldName: String): LocalTime = LocalTime.parse(stringField(fieldName))
     def timeFieldOption(fieldName: String): Option[LocalTime] =
       try stringFieldOption(fieldName) map LocalTime.parse
-      catch { case e: DateTimeParseException => None }
+      catch { case _: DateTimeParseException => None }
     def timeFieldOrElse(fieldName: String, default: => LocalTime): LocalTime = timeFieldOption(fieldName).getOrElse(default)
     def timeFieldOption(fieldName: String, default: LocalTime): Option[LocalTime] = timeFieldOption(fieldName) match {
       case Some(`default`) => None
