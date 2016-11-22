@@ -45,7 +45,7 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
     conn.stopRecording(rec).toOption
   }
 
-  def reschedule(): Unit = reschedule(None, false)
+  def reschedule(): Unit = reschedule(None, wait = false)
   def reschedule(wait: Boolean): Unit = reschedule(None, wait)
   def reschedule(recordId: RecordRuleId, wait: Boolean = false): Unit = reschedule(None, wait)
 

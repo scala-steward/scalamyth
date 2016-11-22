@@ -1530,8 +1530,10 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   protected def handleGetFreeRecorderList(request: BackendRequest, response: BackendResponse): MythProtocolResult[List[CaptureCardId]] = {
     Try {
       if (response.raw == "0") Nil
-      val cards = response.split map deserialize[CaptureCardId]
-      cards.toList
+      else {
+        val cards = response.split map deserialize[CaptureCardId]
+        cards.toList
+      }
     }
   }
 
