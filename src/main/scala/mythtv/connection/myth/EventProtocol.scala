@@ -35,6 +35,7 @@ object Event {
   case class  RecordingListUpdateEvent(rec: Recording) extends Event
   case object ScheduleChangeEvent extends Event
   case class  SignalEvent(cardId: CaptureCardId, values: Map[String, SignalMonitorValue]) extends Event
+  case class  SignalMessageEvent(cardId: CaptureCardId, message: String) extends Event
   case class  UpdateFileSizeEvent(chanId: ChanId, recStartTs: MythDateTime, size: ByteCount) extends Event
   case class  VideoListChangeEvent(changes: Map[String, Set[VideoId]]) extends Event
   case object VideoListNoChangeEvent extends Event
@@ -392,9 +393,13 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
   def parseSignal(name: String, split: Array[String]): Event = {
     val parts = split(1) split ' '
     val cardId = deserialize[CaptureCardId](parts(1))
-    val values = split.iterator drop 2 grouped 2 withPartial false map deserialize[SignalMonitorValue]
-    val valueMap = (values map { v => (v.name, v) }).toMap
-    SignalEvent(cardId, valueMap)
+    if (split(2) == "message") {
+      SignalMessageEvent(cardId, split(3))
+    } else {
+      val values = split.iterator drop 2 grouped 2 withPartial false map deserialize[SignalMonitorValue]
+      val valueMap = (values map { v => (v.name, v) }).toMap
+      SignalEvent(cardId, valueMap)
+    }
   }
 
   def parseUpdateFileSize(name: String, split: Array[String]): Event = {
@@ -613,6 +618,7 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
  */
 
 /*
+BACKEND_MESSAGE[]:[]SIGNAL 4[]:[]message[]:[]On known multiplex...
 
 2016-11-14T08:40:36.875 UnknownEvent(LIVETV_CHAIN,WrappedArray(LIVETV_CHAIN UPDATE live-mythtest-atom-2016-11-14T16:40:33Z, 1, 1391, 2016-11-14T16:40:39Z, 2016-11-14T17:00:00Z, 0, myth://192.168.1.123:6543/, DUMMY, 39-1, DVBInput))
 
