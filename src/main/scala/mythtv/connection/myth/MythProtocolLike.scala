@@ -214,7 +214,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *     result token for some errors:
      *       downloadfile_directory_not_found
      *       downloadfile_filename_dangerous
-     *     OK <storagegroup> <filename>      ??
+     *     OK       targetURI  (myth://...)
      *     ERROR                             only if synchronous & download method fails
      */
     "DOWNLOAD_FILE" -> ((serializeDownloadFile, handleDownloadFile)),

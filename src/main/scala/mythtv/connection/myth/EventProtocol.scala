@@ -22,8 +22,8 @@ object Event {
   case class  CommflagRequestEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
   case class  CommflagStartEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
   case class  DoneRecordingEvent(cardId: CaptureCardId, secondsSinceStart: Int, framesWritten: Long) extends Event
-  case class  DownloadFileFinishedEvent(url: URI, fileName: String, fileSize: ByteCount, errString: String, errCode: Int) extends Event
-  case class  DownloadFileUpdateEvent(url: URI, fileName: String, bytesReceived: ByteCount, bytesTotal: ByteCount) extends Event
+  case class  DownloadFileFinishedEvent(sourceUri: URI, targetUri: URI, fileSize: ByteCount, errString: String, errCode: Int) extends Event
+  case class  DownloadFileUpdateEvent(sourceUri: URI, targetUri: URI, bytesReceived: ByteCount, bytesTotal: ByteCount) extends Event
   case class  FileClosedEvent(fileName: String) extends Event
   case class  FileWrittenEvent(fileName: String, fileSize: ByteCount) extends Event
   case class  GeneratedPixmapEvent(chanId: ChanId, startTime: MythDateTime, message: String, finishTime: Instant, size: ByteCount, crc: Crc16, data: Base64String, tokens: List[String]) extends Event
@@ -286,14 +286,14 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
     split(1).substring(name.length + 1) match {
       case "FINISHED" => DownloadFileFinishedEvent(
         new URI(split(2)),
-        split(3),
+        new URI(split(3)),
         DecimalByteCount(deserialize[Long](split(4))),
         split(5),
         deserialize[Int](split(6))     // TODO last param may be empty, not convertible to int?
       )
       case "UPDATE" => DownloadFileUpdateEvent(
         new URI(split(2)),
-        split(3),
+        new URI(split(3)),
         DecimalByteCount(deserialize[Long](split(4))),
         DecimalByteCount(deserialize[Long](split(5)))
       )
