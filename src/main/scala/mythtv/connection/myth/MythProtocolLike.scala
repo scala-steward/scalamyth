@@ -1891,7 +1891,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     }
 
     def freeInputs: MythProtocolResult[QueryRecorderResult] = {
-      if (response.raw == "EMPTY_LIST") Left(MythProtocolFailureUnknown)  // TODO return Nil instead of error?
+      if (response.raw == "EMPTY_LIST") Right(QueryRecorderCardInputList(Nil))
       else Try {
         val fieldCount = BackendCardInput.FIELD_ORDER.length
         val it = response.split.iterator grouped fieldCount withPartial false
