@@ -2,9 +2,6 @@ package mythtv
 package connection
 package myth
 
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.ReentrantLock
-
 import util.MythDateTime
 import model.{ ChanId, Recording }
 import Event.{ DoneRecordingEvent, RecordingListUpdateEvent, UpdateFileSizeEvent }
@@ -14,58 +11,56 @@ trait RecordingTransferChannel extends FileTransferChannel {
   def isRecordingInProgress: Boolean
 }
 
-// Only use this (recording in progress) file channel if we have called
-// api.checkRecording(Recording) to verify that the recording is still in progress.
-
-// Otherwise use a CompletedRecordingTransferChannel.  Don't expose these
-// differences to clients; hide behind a RecordingTransferChannel trait.
-
-private class InProgressRecordingTransferChannel(
-  controlChannel: FileTransferAPI,
-  dataChannel: FileTransferConnection,
-  eventChannel: EventConnection,
-  @volatile private[this] var rec: Recording
-) extends EventingFileTransferChannel(controlChannel, dataChannel, eventChannel)
-     with RecordingTransferChannel {
+private class RecordingTransfer(api: BackendAPIConnection, @volatile private[this] var rec: Recording)
+  extends AutoCloseable { outer =>
+  @volatile private[this] var inProgress = true
 
   // Keep track of the cardId this recording is using, it will be overwritten by
   // later updates to 'rec' by the RecordingListUpdate event
   private[this] val usingCardId = rec.cardId
 
-  @volatile private[this] var inProgress = true
+  // TODO who is managing these opened connections??  Also, we have no re-use...
 
-  private[this] val lock = new ReentrantLock
-  private[this] val sizeChanged = lock.newCondition
+  private[this] val controlConn =
+    if (rec.hostname == api.host) api
+    else BackendAPIConnection(rec.hostname)
 
-  override def recording: Recording = rec
+  private[this] val dataConn = FileTransferConnection(
+    controlConn.host,
+    rec.filename,
+    rec.storageGroup,
+    port = controlConn.port,
+    useReadAhead = true
+  )
 
-  override def isRecordingInProgress: Boolean = inProgress
+  private[this] val xferChannel: TransferChannel = setupTransferChannel()
 
-  override def listener: EventListener = updateListener
+  private[this] val eventConn = EventConnection(controlConn.host, controlConn.port)
 
-  override protected def waitForMoreData(oldSize: Long): Boolean = {
-    if (inProgress) doWaitForMoreData(oldSize)
-    else false
+  eventConn.addListener(updateListener)
+  checkInProgress()   // NB must check *after* event listener is in place
+
+  override def close(): Unit = {
+    eventConn.removeListener(updateListener)
+    eventConn.close()  // TODO temporarary?  not necessary to remove listener here if we're calling close()
   }
 
-  private def doWaitForMoreData(oldSize: Long): Boolean = {
-    println("waiting for more data " + oldSize)
-    lock.lock()
-    try {
-      while (inProgress && currentSize <= oldSize)
-        sizeChanged.await(10, TimeUnit.MINUTES)  // TODO wait forever? probably a bad idea
-    }
-    finally lock.unlock()
-    true
+  // Only update inProgress status if checkRecording says false. We don't want to overwrite
+  // any updates we may have received from the event listener (which can only change the value
+  // of inProgress to false)
+  private def checkInProgress(): Unit = {
+    val p = api.checkRecording(rec).get
+    if (!p) inProgress = p
   }
 
-  private def signalSizeChanged(): Unit = {
-    lock.lock()
-    try sizeChanged.signalAll()
-    finally lock.unlock()
+  private def setupTransferChannel(): TransferChannel = {
+    val fto = MythFileTransferObject(controlConn, dataConn)
+    new TransferChannel(fto, dataConn)
   }
 
-  /* We listen for DoneRecording event rather than RecordingFinished bacause
+  final def transferChannel: RecordingTransferChannel = xferChannel
+
+  /* We listen for DoneRecording event rather than RecordingFinished because
      the latter is a system event, and we are not guaranteed to receive system
      events in all cases (they are only dispatched once per target host unless
      you are registered as system-events-only.) */
@@ -80,31 +75,42 @@ private class InProgressRecordingTransferChannel(
 
     override def handle(event: Event): Unit = event match {
       case UpdateFileSizeEvent(chanId, recStartTs, newSize) =>
-        if (chanId == rec.chanId && recStartTs == rec.recStartTS) {
-          currentSize = newSize.bytes
-          signalSizeChanged()
-        }
+        if (chanId == rec.chanId && recStartTs == rec.recStartTS)
+          xferChannel.updateSize(newSize.bytes)
       case RecordingListUpdateEvent(r: Recording) =>
         if (r.chanId == rec.chanId && r.startTime == rec.startTime)
           rec = r
       case DoneRecordingEvent(cardId, _, _) =>
         if (cardId == usingCardId) {
           inProgress = false
-          signalSizeChanged()
+          xferChannel.signalSizeChanged()
+          // TODO remove listener?
         }
       case _ => ()
     }
   }
-}
 
-private class CompletedRecordingTransferChannel(
-  controlChannel: FileTransferAPI,
-  dataChannel: FileTransferConnection,
-  rec: Recording
-) extends FileTransferChannelImpl(controlChannel, dataChannel)
-     with RecordingTransferChannel {
-  override def recording: Recording = rec
-  override def isRecordingInProgress = false
+  class TransferChannel(controlChannel: FileTransferAPI, dataChannel: FileTransferConnection)
+    extends FileTransferChannelImpl(controlChannel, dataChannel)
+       with WaitableFileTransferChannel
+       with RecordingTransferChannel {
+
+    override def close(): Unit = {
+      outer.close()
+      super.close()
+    }
+
+    final def updateSize(sz: Long): Unit = {
+      currentSize = sz
+      signalSizeChanged()
+    }
+
+    override final def isInProgress: Boolean = inProgress
+
+    final def isRecordingInProgress: Boolean = inProgress
+
+    final def recording: Recording = rec
+  }
 }
 
 object RecordingTransferChannel {
@@ -114,29 +120,6 @@ object RecordingTransferChannel {
   }
 
   def apply(api: BackendAPIConnection, rec: Recording): RecordingTransferChannel = {
-    val inProgress = api.checkRecording(rec).right.get
-
-    // TODO who is managing these opened connections??  Also, we have no re-use...
-
-    val controlChannel =
-      if (rec.hostname == api.host) api
-      else BackendAPIConnection(rec.hostname)
-
-    val dataChannel = FileTransferConnection(
-      controlChannel.host,
-      rec.filename,
-      rec.storageGroup,
-      port = controlChannel.port,
-      useReadAhead = true
-    )
-
-    val fto = MythFileTransferObject(controlChannel, dataChannel)
-
-    if (inProgress) {
-      val eventChannel = EventConnection(controlChannel.host, controlChannel.port)
-      new InProgressRecordingTransferChannel(fto, dataChannel, eventChannel, rec)
-    } else {
-      new CompletedRecordingTransferChannel(fto, dataChannel, rec)
-    }
+    new RecordingTransfer(api, rec).transferChannel
   }
 }

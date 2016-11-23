@@ -2,34 +2,108 @@ package mythtv
 package connection
 package myth
 
-// TODO what exactly is this class for?
-// Reading/writing(?) from a file that is being downloaded to the server using DOWNLOAD_FILE ?
-private class DownloadFileTransferChannel(
-  controlChannel: FileTransferAPI,
-  dataChannel: FileTransferConnection,
-  eventChannel: EventConnection
-) extends EventingFileTransferChannel(controlChannel, dataChannel, eventChannel) {
+import java.net.URI
 
-  import Event.{ DownloadFileFinishedEvent, DownloadFileUpdateEvent }
+import Event.{ DownloadFileFinishedEvent, DownloadFileUpdateEvent }
 
-  override protected def listener: EventListener = downloadListener
+private class DownloadTransfer(api: BackendAPIConnection, sourceUri: URI, storageGroup: String, fileName: String)
+  extends AutoCloseable { outer =>
+  @volatile private[this] var inProgress: Boolean = true
+  @volatile private[this] var channel: TransferChannel = _
+
+  private[this] val channelMonitor = new AnyRef
+
+  private[this] val eventConnection = EventConnection(api.host, api.port)
+  private[this] val targetUri = startDownload(sourceUri, storageGroup, fileName)
+
+  override def close(): Unit = {
+    eventConnection.close()
+  }
+
+  private def startDownload(uri: URI, sg: String, file: String): URI = {
+    eventConnection.addListener(downloadListener)
+    api.downloadFile(uri, sg, file).get
+  }
+
+  private def startTransfer(srcUri: URI, tgtUri: URI, sg: String, file: String): TransferChannel = {
+    val dataChannel = FileTransferConnection(api.host, file, sg, port = api.port)
+    val fto = MythFileTransferObject(api, dataChannel)
+    new TransferChannel(fto, dataChannel, srcUri, tgtUri)
+  }
+
+  private def setupChannel(): Unit = {
+    if (channel eq null) {
+      val xfer = startTransfer(sourceUri, targetUri, storageGroup, fileName)
+      channelMonitor.synchronized {
+        channel = xfer
+        channelMonitor.notifyAll()
+      }
+    }
+  }
+
+  final def waitForTransferChannel(): DownloadTransferChannel = {
+    channelMonitor.synchronized {
+      while (channel eq null)
+        channelMonitor.wait()
+      channel
+    }
+  }
 
   private[this] lazy val downloadListener = new EventListener {
     override def listenFor(event: Event): Boolean = event match {
-      case e: DownloadFileUpdateEvent => true
-      case e: DownloadFileFinishedEvent => true
+      case _: DownloadFileUpdateEvent => true
+      case _: DownloadFileFinishedEvent => true
       case _ => false
     }
 
     override def handle(event: Event): Unit = event match {
-      case DownloadFileUpdateEvent(url, fileName, received, total) =>
-        // TODO verify that the url/filename matches the file we're downloading
-        currentSize = received.bytes // TODO is this the update we want?
-      case DownloadFileFinishedEvent(url, fileName, fileSize, err, errCode) =>
-        // TODO verify that the url/filename matches the file we're downloading
-        currentSize = fileSize.bytes
-        // TODO initiate finalization of this object/mark as completed?
+      case DownloadFileUpdateEvent(srcUri, _, received, _) =>
+        if (srcUri == sourceUri) {
+          setupChannel()
+          channel.updateSize(received.bytes)
+        }
+      case DownloadFileFinishedEvent(srcUri, _, fileSize, _, _) =>
+        if (srcUri == sourceUri) {
+          setupChannel()
+          channel.updateSize(fileSize.bytes)
+          inProgress = false
+        }
       case _ => ()
     }
+  }
+
+  class TransferChannel(controlChannel: FileTransferAPI, dataChannel: FileTransferConnection,
+    val targetUri: URI, val sourceUri: URI)
+    extends FileTransferChannelImpl(controlChannel, dataChannel)
+       with WaitableFileTransferChannel
+       with DownloadTransferChannel {
+
+    override def close(): Unit = {
+      outer.close()
+      super.close()
+    }
+
+    final def updateSize(sz: Long): Unit = {
+      currentSize = sz
+      //println("SIZE UPDATED " + sz)
+      signalSizeChanged()
+    }
+
+    override final def isInProgress: Boolean = inProgress
+
+    final def isDownloadInProgress: Boolean = inProgress
+  }
+}
+
+trait DownloadTransferChannel extends FileTransferChannel {
+  def sourceUri: URI
+  def targetUri: URI
+  def isDownloadInProgress: Boolean
+}
+
+object DownloadTransferChannel {
+  def apply(api: BackendAPIConnection, sourceUri: URI, storageGroup: String, fileName: String): DownloadTransferChannel = {
+    val xfer = new DownloadTransfer(api, sourceUri, storageGroup, fileName)
+    xfer.waitForTransferChannel()
   }
 }

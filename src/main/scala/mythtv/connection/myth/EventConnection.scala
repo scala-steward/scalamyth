@@ -95,11 +95,13 @@ private abstract class AbstractEventConnection(
     if (eventLoopThread eq null) false
     else eventLoopThread.isAlive
 
+  /*
   private def startEventLoopOld: Thread = {
     val thread = new Thread(new EventLoop, "Myth Event Loop")
     thread.start()
     thread
   }
+  */
 
   private def startEventLoop: Thread = {
     val eventQueue = new LinkedBlockingQueue[BackendEventResponse]
@@ -111,6 +113,8 @@ private abstract class AbstractEventConnection(
   }
 
   // TODO is isConnected thread safe?
+  // TODO don't shut down event loop as long as connection is open, events still being sent
+  //      on the connection by the server but just get stuck in buffer...
   private class EventMonitor(queue: BlockingQueue[BackendEventResponse]) extends Runnable {
     def run(): Unit = {
       while (listeners.nonEmpty && isConnected) {
@@ -122,8 +126,16 @@ private abstract class AbstractEventConnection(
           case _: InterruptedException => ()  // force next iteration of loop to re-check listeners and connected
         }
       }
+
       // Tell dispatcher thread to shut down
-      queue.put(newEventResponse(MythProtocol.BackendSeparator + "NO_MORE_EVENTS"))
+      var stillRunning = true
+      while (stillRunning) {
+        try {
+          queue.put(newEventResponse(MythProtocol.BackendSeparator + "NO_MORE_EVENTS"))
+          stillRunning = false
+        }
+        catch { case _: InterruptedException => () }
+      }
     }
   }
 
