@@ -96,8 +96,8 @@ private class FrontendConnectionImpl(host: String, port: Int, timeout: Int)
        with FrontendConnection {
 
   protected def finishConnect(): Unit = {
-    // TODO swallow up connection start returned data
-    println(reader.read())
+    // swallow up connection start returned data
+    reader.read()
   }
 
   protected def gracefulDisconnect(): Unit = postCommand("exit")
