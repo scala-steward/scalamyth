@@ -3,8 +3,6 @@ package examples.eventmon
 import java.time.LocalDateTime
 
 import mythtv._
-import model._
-import util._
 import connection.myth._
 
 class Listener extends EventListener {
