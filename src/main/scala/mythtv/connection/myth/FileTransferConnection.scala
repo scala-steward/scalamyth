@@ -27,7 +27,8 @@ private abstract class AbstractFileTransferConnection(
   timeout: Int,
   val fileName: String,
   val storageGroup: String,
-  writeMode: Boolean
+  writeMode: Boolean,
+  useReadAhead: Boolean
 ) extends AbstractBackendConnection(host, port, timeout)
      with FileTransferConnection {
 
@@ -38,7 +39,7 @@ private abstract class AbstractFileTransferConnection(
 
   def announce(): Unit = {
     val localHost = NetworkUtil.myHostName
-    val (ftID, size) = announceFileTransfer(localHost, fileName, storageGroup).right.get
+    val (ftID, size) = announceFileTransfer(localHost, fileName, storageGroup, writeMode, useReadAhead).right.get
     this.ftId = ftID
     this.filesize = size.bytes
 
@@ -70,31 +71,31 @@ private abstract class AbstractFileTransferConnection(
 }
 
 private sealed trait FileTransferConnectionFactory {
-  def apply(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean): FileTransferConnection
+  def apply(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean, useReadAhead: Boolean): FileTransferConnection
 }
 
-private class FileTransferConnection75(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean)
-  extends AbstractFileTransferConnection(host, port, timeout, fileName, storageGroup, writeMode)
+private class FileTransferConnection75(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean, useReadAhead: Boolean)
+  extends AbstractFileTransferConnection(host, port, timeout, fileName, storageGroup, writeMode, useReadAhead)
      with MythProtocol75
      with BackendAPIConnection
      with BackendAPILike
      with AnnouncingConnection
 
 private object FileTransferConnection75 extends FileTransferConnectionFactory {
-  def apply(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean): FileTransferConnection =
-    new FileTransferConnection75(host, port, timeout, fileName, storageGroup, writeMode)
+  def apply(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean, useReadAhead: Boolean): FileTransferConnection =
+    new FileTransferConnection75(host, port, timeout, fileName, storageGroup, writeMode, useReadAhead)
 }
 
-private class FileTransferConnection77(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean)
-  extends AbstractFileTransferConnection(host, port, timeout, fileName, storageGroup, writeMode)
+private class FileTransferConnection77(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean, useReadAhead: Boolean)
+  extends AbstractFileTransferConnection(host, port, timeout, fileName, storageGroup, writeMode, useReadAhead)
      with MythProtocol77
      with BackendAPIConnection
      with BackendAPILike
      with AnnouncingConnection
 
 private object FileTransferConnection77 extends FileTransferConnectionFactory {
-  def apply(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean): FileTransferConnection =
-    new FileTransferConnection77(host, port, timeout, fileName, storageGroup, writeMode)
+  def apply(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean, useReadAhead: Boolean): FileTransferConnection =
+    new FileTransferConnection77(host, port, timeout, fileName, storageGroup, writeMode, useReadAhead)
 }
 
 object FileTransferConnection {
@@ -108,17 +109,18 @@ object FileTransferConnection {
     fileName: String,
     storageGroup: String,
     writeMode: Boolean = false,
+    useReadAhead: Boolean = false,
     port: Int = BackendConnection.DefaultPort,
     timeout: Int = BackendConnection.DefaultTimeout
   ): FileTransferConnection = {
     try {
       val factory = supportedVersions(BackendConnection.DefaultVersion)
-      factory(host, port, timeout, fileName, storageGroup, writeMode)
+      factory(host, port, timeout, fileName, storageGroup, writeMode, useReadAhead)
     } catch {
       case ex @ WrongMythProtocolException(requiredVersion) =>
         if (supportedVersions contains requiredVersion) {
           val factory = supportedVersions(requiredVersion)
-          factory(host, port, timeout, fileName, storageGroup, writeMode)
+          factory(host, port, timeout, fileName, storageGroup, writeMode, useReadAhead)
         }
         else throw new UnsupportedMythProtocolException(ex)
     }

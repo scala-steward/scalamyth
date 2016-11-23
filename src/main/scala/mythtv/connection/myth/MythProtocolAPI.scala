@@ -17,9 +17,8 @@ import MythProtocol.MythProtocolFailure
 trait MythProtocolAPI {
   def allowShutdown(): MythProtocolResult[Boolean]
   def announce(mode: String, hostName: String = "", eventMode: MythProtocolEventMode = MythProtocolEventMode.None): MythProtocolResult[Boolean]
-  // TODO: do we want default value of useReadAhead to be true or false?
   def announceFileTransfer(hostName: String, fileName: String, storageGroup: String,
-    writeMode: Boolean = false, useReadAhead: Boolean = true, timeout: Duration = Duration.ofSeconds(2)): MythProtocolResult[(FileTransferId, ByteCount)]
+    writeMode: Boolean = false, useReadAhead: Boolean = false, timeout: Duration = Duration.ofSeconds(2)): MythProtocolResult[(FileTransferId, ByteCount)]
   // TODO SlaveBackend announce (more complex)
   def blockShutdown(): MythProtocolResult[Boolean]
   def checkRecording(rec: Recording): MythProtocolResult[Boolean]

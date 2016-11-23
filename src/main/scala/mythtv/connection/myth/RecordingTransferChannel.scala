@@ -126,7 +126,8 @@ object RecordingTransferChannel {
       controlChannel.host,
       rec.filename,
       rec.storageGroup,
-      port = controlChannel.port
+      port = controlChannel.port,
+      useReadAhead = true
     )
 
     val fto = MythFileTransferObject(controlChannel, dataChannel)
