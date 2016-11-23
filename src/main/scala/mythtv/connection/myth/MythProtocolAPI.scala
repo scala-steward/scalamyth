@@ -121,7 +121,7 @@ trait MythProtocolAPI {
   def queryRecorderSetLiveRecording(cardId: CaptureCardId, recordingState: Int): Unit
   def queryRecorderSetSignalMonitoringRate(cardId: CaptureCardId, rate: Int, notifyFrontend: Boolean): MythProtocolResult[Boolean]
   def queryRecorderShouldSwitchCard(cardId: CaptureCardId, chanId: ChanId): MythProtocolResult[Boolean]
-  // TODO FIXME when I invoked spawnLiveTV during testing, it caused SIGABRT on the backend !!
+  // FIXME when I invoked spawnLiveTV during testing, it caused SIGABRT on the backend !!
   def queryRecorderSpawnLiveTV(cardId: CaptureCardId, usePiP: Boolean, channumStart: ChannelNumber): Unit
   def queryRecorderStopLiveTV(cardId: CaptureCardId): Unit
   def queryRecorderToggleChannelFavorite(cardId: CaptureCardId, channelGroup: String): Unit

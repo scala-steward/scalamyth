@@ -20,7 +20,7 @@ package object myth {
     def get: T = res match {
       case Right(result) => result
       case Left(fail) => fail match {
-        case MythProtocolNoResult => throw new RuntimeException("no result")              // TODO handle better
+        case MythProtocolNoResult => throw new NoSuchElementException("no result")        // TODO handle better
         case MythProtocolFailureUnknown => throw new RuntimeException("unknown failure")  // TODO handle better
         case MythProtocolFailureMessage(msg) => throw new RuntimeException(msg)           // TODO handle better
         case MythProtocolFailureThrowable(ex) => throw ex

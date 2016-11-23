@@ -122,7 +122,8 @@ private abstract class AbstractBackendConnection(host: String, port: Int, timeou
   protected def postCommandRaw(command: String): Unit = {
     // write the message
     writer.write(command)
-    // TODO: swallow any response (asynchronously?!?), but socket may be closed
+
+    // don't attempt to read any response; we aren't expecting one and socket may be closed
   }
 
   def sendCommand(command: String, args: Any*): MythProtocolResult[_] = {

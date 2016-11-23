@@ -5,8 +5,6 @@ import java.time.{ LocalDateTime, OffsetDateTime, Instant, ZoneId, ZoneOffset, Z
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
-// TODO: do we need to/from RFC format (RFC_1123_DATE_TIME) ?
-
 class MythDateTime(val instant: Instant) extends AnyVal {
   private def offsetDt = instant atOffset ZoneOffset.UTC
   private def truncated = instant truncatedTo ChronoUnit.SECONDS
@@ -39,14 +37,6 @@ class MythDateTime(val instant: Instant) extends AnyVal {
 object MythDateTime {
   final val FORMATTER_MYTH = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
 
-  // TODO define this implicit here or in util package object?
-  // Defining it here makes it hard to import on purpose, and prevents
-  // "enrichment" like LocalDateTime.toMythFormat from easily working.
-  /*
-  import scala.language.implicitConversions
-  implicit def javaInstant2MythDt(instant: Instant) = new MythDateTime(instant)
-  implicit def javaLocalDt2MythDt(dt: LocalDateTime) = new MythDateTime(dt)
-   */
   def apply(instant: Instant) = new MythDateTime(instant)
 
   def apply(year: Int, month: Int, day: Int, hour: Int, minute: Int, second: Int) =
