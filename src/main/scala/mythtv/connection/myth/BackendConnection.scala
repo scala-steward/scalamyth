@@ -40,7 +40,7 @@ private class BackendCommandReader(channel: SocketChannel, conn: SocketConnectio
         }
       } while (n > 0 && buffer.hasRemaining)
 
-      if (n < 0) throw new RuntimeException("connection has been closed")  // TODO better exception
+      if (n < 0) throw new ClosedConnectionException
 
     } finally {
       selector.close()
@@ -126,7 +126,7 @@ private abstract class AbstractBackendConnection(host: String, port: Int, timeou
   }
 
   def sendCommand(command: String, args: Any*): MythProtocolResult[_] = {
-    if (!isConnected) throw new IllegalStateException  // TODO attempt reconnection?
+    if (!isConnected) throw new ClosedConnectionException  // TODO attempt reconnection?
     if (commands contains command) {
       val (serialize, handle) = commands(command)
       val cmdstring = serialize(command, args)
