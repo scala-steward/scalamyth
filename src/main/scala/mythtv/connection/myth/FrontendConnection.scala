@@ -106,15 +106,13 @@ private class FrontendConnectionImpl(host: String, port: Int, timeout: Int)
   protected def openWriter(channel: SocketChannel): SocketWriter[String] = new FrontendSocketWriter(channel, this)
 
   protected def postCommand(command: String): Unit = {
-    val message = s"$command\n"
-    writer.write(message)
-    // TODO: swallow any response (asynchronously?!)
+    writer.write(command + "\n")
+    // don't attempt to read a response; we are not expecting one and socket may be closed
   }
 
   def sendCommand(command: String): Try[String] = {
-    val message = command + "\n"
     Try {
-      writer.write(message)
+      writer.write(command + "\n")
       reader.read()
     }
   }

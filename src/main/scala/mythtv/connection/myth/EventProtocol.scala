@@ -299,7 +299,7 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
         new URI(split(3)),
         DecimalByteCount(deserialize[Long](split(4))),
         split(5),
-        deserialize[Int](split(6))     // TODO last param may be empty, not convertible to int?
+        deserialize[Int](split(6))
       )
       case "UPDATE" => DownloadFileUpdateEvent(
         new URI(split(2)),

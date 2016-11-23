@@ -48,7 +48,7 @@ abstract class AbstractSocketConnection[A](val host: String, val port: Int, time
 
   def disconnect(graceful: Boolean): Unit = {
     if (connected) {
-      if (graceful) gracefulDisconnect()
+      if (graceful) gracefulDisconnect()  // TODO enclose in try block?
       connected = false
       channel.shutdownOutput()
       channel.close()

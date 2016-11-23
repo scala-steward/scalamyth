@@ -20,7 +20,6 @@ trait FileTransferConnection extends FileTransfer with SocketConnection {
   def write(buf: Array[Byte], off: Int, len: Int): Unit
 }
 
-// TODO are we expected to send "DONE" command when finished with a FileTransfer socket? Python bindings don't seem to.
 private abstract class AbstractFileTransferConnection(
   host: String,
   port: Int,
