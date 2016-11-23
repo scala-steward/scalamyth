@@ -77,7 +77,7 @@ private class FileTransferConnection75(host: String, port: Int, timeout: Int, fi
   extends AbstractFileTransferConnection(host, port, timeout, fileName, storageGroup, writeMode, useReadAhead)
      with MythProtocol75
      with BackendAPIConnection
-     with BackendAPILike
+     with MythProtocolAPILike
      with AnnouncingConnection
 
 private object FileTransferConnection75 extends FileTransferConnectionFactory {
@@ -89,7 +89,7 @@ private class FileTransferConnection77(host: String, port: Int, timeout: Int, fi
   extends AbstractFileTransferConnection(host, port, timeout, fileName, storageGroup, writeMode, useReadAhead)
      with MythProtocol77
      with BackendAPIConnection
-     with BackendAPILike
+     with MythProtocolAPILike
      with AnnouncingConnection
 
 private object FileTransferConnection77 extends FileTransferConnectionFactory {

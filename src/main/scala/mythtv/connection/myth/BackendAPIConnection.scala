@@ -40,7 +40,7 @@ private sealed trait BackendAPIConnectionFactory {
 private class BackendAPIConnection75(host: String, port: Int, timeout: Int)
     extends BackendConnection75(host, port, timeout)
     with BackendAPIConnection
-    with BackendAPILike
+    with MythProtocolAPILike
 
 private object BackendAPIConnection75 extends BackendAPIConnectionFactory {
   def apply(host: String, port: Int, timeout: Int) = new BackendAPIConnection75(host, port, timeout)
@@ -49,7 +49,7 @@ private object BackendAPIConnection75 extends BackendAPIConnectionFactory {
 private class BackendAPIConnection77(host: String, port: Int, timeout: Int)
     extends BackendConnection77(host, port, timeout)
     with BackendAPIConnection
-    with BackendAPILike
+    with MythProtocolAPILike
 
 private object BackendAPIConnection77 extends BackendAPIConnectionFactory {
   def apply(host: String, port: Int, timeout: Int) = new BackendAPIConnection77(host, port, timeout)

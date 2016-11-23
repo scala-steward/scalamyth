@@ -14,7 +14,7 @@ import MythProtocol.QueryRecorderResult._
 import MythProtocol.QueryRemoteEncoderResult._
 import MythProtocol.QueryFileTransferResult._
 
-private trait BackendAPILike {
+private[myth] trait MythProtocolAPILike {
   self: MythProtocolLike =>
 
   def allowShutdown(): MythProtocolResult[Boolean] = {
