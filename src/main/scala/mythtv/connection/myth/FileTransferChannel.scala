@@ -111,7 +111,7 @@ private[myth] class FileTransferChannelImpl(controlChannel: FileTransferAPI, dat
       if (allotedSize < 0) {
         // TODO failure; re-seek to current position and retry (a maximum number of times?)
       } else if (allotedSize == 0) {
-        canReadMore = false   // TODO is this the righ thing to do here?
+        canReadMore = false   // TODO is this the right thing to do here?
       } else {
         var bytesReadThisRequest: Int = 0
 
