@@ -58,6 +58,7 @@ private abstract class AbstractEventConnection(
   override def disconnect(graceful: Boolean): Unit = {
     clearListeners()
     super.disconnect(graceful)
+    if (eventLoopThread ne null) eventLoopThread.interrupt()
   }
 
   override def sendCommand(command: String, args: Any*): MythProtocolResult[_] = {
@@ -77,15 +78,12 @@ private abstract class AbstractEventConnection(
   def removeListener(listener: EventListener): Unit = {
     synchronized {
       listenerSet = listenerSet - listener
-      if (listenerSet.isEmpty && (eventLoopThread ne null))
-        eventLoopThread.interrupt()
     }
   }
 
   protected def clearListeners(): Unit = {
     synchronized {
       listenerSet = Set.empty
-      if (eventLoopThread ne null) eventLoopThread.interrupt()
     }
   }
 
@@ -94,7 +92,6 @@ private abstract class AbstractEventConnection(
   // blocking read to wait for the next event
   protected def readEvent(): BackendEventResponse = newEventResponse(reader.read())
 
-  // TODO test restarting the event loop after all listeners have been removed...
   private def isEventLoopRunning: Boolean =
     if (eventLoopThread eq null) false
     else eventLoopThread.isAlive
@@ -117,17 +114,15 @@ private abstract class AbstractEventConnection(
   }
 
   // TODO is isConnected thread safe?
-  // TODO don't shut down event loop as long as connection is open, events still being sent
-  //      on the connection by the server but just get stuck in buffer...
   private class EventMonitor(queue: BlockingQueue[BackendEventResponse]) extends Runnable {
     def run(): Unit = {
-      while (listeners.nonEmpty && isConnected) {
+      while (isConnected) {
         try {
           val eventResponse = readEvent()
           queue.put(eventResponse)
         } catch {
           case _: SocketException => ()
-          case _: InterruptedException => ()  // force next iteration of loop to re-check listeners and connected
+          case _: InterruptedException => ()  // force next iteration of loop to re-check connected status
         }
       }
 
@@ -168,7 +163,7 @@ private abstract class AbstractEventConnection(
 
   private class EventLoop extends Runnable {
     def run(): Unit = {
-      while (listeners.nonEmpty && isConnected) {
+      while (isConnected) {
         try {
           val eventResponse = readEvent()
           val event = eventResponse.parse
