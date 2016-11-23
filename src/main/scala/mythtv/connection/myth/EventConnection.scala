@@ -33,7 +33,8 @@ trait EventConnection extends SocketConnection { /* with EventProtocol ?? */
 private abstract class AbstractEventConnection(
   host: String,
   port: Int,
-  val eventMode: MythProtocolEventMode
+  val eventMode: MythProtocolEventMode,
+  initialListener: EventListener
 ) extends AbstractBackendConnection(host, port, BackendConnection.DefaultTimeout)
      with EventConnection {
 
@@ -49,6 +50,9 @@ private abstract class AbstractEventConnection(
 
     // use infinite timeout in event loop, but not for initial connection
     changeTimeout(0)
+
+    // add an initial event listener if one was specified
+    if (initialListener ne null) addListener(initialListener)
   }
 
   override def disconnect(graceful: Boolean): Unit = {
@@ -183,13 +187,13 @@ private abstract class AbstractEventConnection(
 }
 
 private sealed trait EventConnectionFactory {
-  def apply(host: String, port: Int, eventMode: MythProtocolEventMode): EventConnection
+  def apply(host: String, port: Int, eventMode: MythProtocolEventMode, listener: EventListener): EventConnection
 }
 
 // NB Important that AnnouncingConnection is listed last, for initialization order
 
-private class EventConnection75(host: String, port: Int, eventMode: MythProtocolEventMode)
- extends AbstractEventConnection(host, port, eventMode)
+private class EventConnection75(host: String, port: Int, eventMode: MythProtocolEventMode, listener: EventListener)
+ extends AbstractEventConnection(host, port, eventMode, listener)
     with MythProtocol75
     with AnnouncingConnection {
   private[this] val eventParser = new EventParserImpl
@@ -204,12 +208,12 @@ private class EventConnection75(host: String, port: Int, eventMode: MythProtocol
 }
 
 private object EventConnection75 extends EventConnectionFactory {
-  def apply(host: String, port: Int, eventMode: MythProtocolEventMode) =
-    new EventConnection75(host, port, eventMode)
+  def apply(host: String, port: Int, eventMode: MythProtocolEventMode, listener: EventListener) =
+    new EventConnection75(host, port, eventMode, listener)
 }
 
-private class EventConnection77(host: String, port: Int, eventMode: MythProtocolEventMode)
- extends AbstractEventConnection(host, port, eventMode)
+private class EventConnection77(host: String, port: Int, eventMode: MythProtocolEventMode, listener: EventListener)
+ extends AbstractEventConnection(host, port, eventMode, listener)
     with MythProtocol77
     with AnnouncingConnection {
   private[this] val eventParser = new EventParserImpl
@@ -224,8 +228,8 @@ private class EventConnection77(host: String, port: Int, eventMode: MythProtocol
 }
 
 private object EventConnection77 extends EventConnectionFactory {
-  def apply(host: String, port: Int, eventMode: MythProtocolEventMode) =
-    new EventConnection77(host, port, eventMode)
+  def apply(host: String, port: Int, eventMode: MythProtocolEventMode, listener: EventListener) =
+    new EventConnection77(host, port, eventMode, listener)
 }
 
 
@@ -238,16 +242,17 @@ object EventConnection {
   def apply(
     host: String,
     port: Int = BackendConnection.DefaultPort,
-    eventMode: MythProtocolEventMode = MythProtocolEventMode.Normal
+    eventMode: MythProtocolEventMode = MythProtocolEventMode.Normal,
+    listener: EventListener = null
   ): EventConnection = {
     try {
       val factory = supportedVersions(BackendConnection.DefaultVersion)
-      factory(host, port, eventMode)
+      factory(host, port, eventMode, listener)
     } catch {
       case ex @ WrongMythProtocolException(requiredVersion) =>
         if (supportedVersions contains requiredVersion) {
           val factory = supportedVersions(requiredVersion)
-          factory(host, port, eventMode)
+          factory(host, port, eventMode, listener)
         }
         else throw new UnsupportedMythProtocolException(ex)
     }
