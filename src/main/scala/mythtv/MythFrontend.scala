@@ -10,7 +10,7 @@ class MythFrontend(val host: String) extends Frontend with FrontendOperations {
   private[this] val conn = FrontendNetworkControlConnection(host)
 
   def close(): Unit = {
-    conn.disconnect()
+    conn.close()
   }
 
   def play(media: PlayableMedia): Boolean = media.playOnFrontend(this)

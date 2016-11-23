@@ -17,8 +17,8 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
   conn.announce("Monitor")
 
   def close(): Unit = {
-    if (eventConnMayBeNull ne null) eventConnMayBeNull.disconnect()
-    conn.disconnect()
+    if (eventConnMayBeNull ne null) eventConnMayBeNull.close()
+    conn.close()
   }
 
   private def eventConnection: EventConnection = synchronized {

@@ -30,7 +30,7 @@ private[myth] class FileTransferChannelImpl(controlChannel: FileTransferAPI, dat
   // close the file
   override def close(): Unit = {
     controlChannel.done()
-    dataChannel.disconnect()  // TODO close the data channel (how? just shut down the socket? call a close() method?)
+    dataChannel.close()
     openStatus = false
   }
 
