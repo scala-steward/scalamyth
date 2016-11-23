@@ -115,7 +115,7 @@ private abstract class AbstractBackendConnection(host: String, port: Int, timeou
   protected def sendCommandRaw(command: String): Try[BackendResponse] = {
     Try {
       writer.write(command)
-      Response(reader.read())
+      BackendResponse(reader.read())
     }
   }
 

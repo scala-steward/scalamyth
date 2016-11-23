@@ -7,7 +7,7 @@ trait BackendResponse extends Any {
   def split: Array[String] = raw split MythProtocol.SplitPattern
 }
 
-private object BackendResponse {
+private[myth] object BackendResponse {
   def apply(r: String): BackendResponse = Response(r)
 }
 
