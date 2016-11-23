@@ -13,7 +13,7 @@ private class DownloadTransfer(api: BackendAPIConnection, sourceUri: URI, storag
 
   private[this] val channelMonitor = new AnyRef
 
-  private[this] val eventConnection = EventConnection(api.host, api.port)
+  private[this] val eventConnection = EventConnection(api.host, api.port, listener = downloadListener)
   private[this] val targetUri = startDownload(sourceUri, storageGroup, fileName)
 
   override def close(): Unit = {
@@ -21,7 +21,6 @@ private class DownloadTransfer(api: BackendAPIConnection, sourceUri: URI, storag
   }
 
   private def startDownload(uri: URI, sg: String, file: String): URI = {
-    eventConnection.addListener(downloadListener)
     api.downloadFile(uri, sg, file).get
   }
 

@@ -35,14 +35,12 @@ private class RecordingTransfer(api: BackendAPIConnection, @volatile private[thi
 
   private[this] val xferChannel: TransferChannel = setupTransferChannel()
 
-  private[this] val eventConn = EventConnection(controlConn.host, controlConn.port)
+  private[this] val eventConn = EventConnection(controlConn.host, controlConn.port, listener = updateListener)
 
-  eventConn.addListener(updateListener)
   checkInProgress()   // NB must check *after* event listener is in place
 
   override def close(): Unit = {
-    eventConn.removeListener(updateListener)
-    eventConn.close()  // TODO temporarary?  not necessary to remove listener here if we're calling close()
+    eventConn.close()
   }
 
   // Only update inProgress status if checkRecording says false. We don't want to overwrite
