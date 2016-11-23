@@ -151,11 +151,11 @@ private[myth] class FileTransferChannelImpl(controlChannel: FileTransferAPI, dat
 object FileTransferChannel {  // TODO this doesn't specify read/write mode
   def apply(host: String, fileName: String, storageGroup: String): FileTransferChannel = {
     // TODO how will control channel get closed since it's embeedded here and FT doesn't know that it owns it...
-    val controlChannel = BackendAPIConnection(host)
+    val controlChannel = MythProtocolAPIConnection(host)
     apply(controlChannel, fileName, storageGroup)
   }
 
-  def apply(controlChannel: BackendAPIConnection, fileName: String, storageGroup: String): FileTransferChannel = {
+  def apply(controlChannel: MythProtocolAPIConnection, fileName: String, storageGroup: String): FileTransferChannel = {
     val dataChannel = FileTransferConnection(controlChannel.host, fileName, storageGroup, port = controlChannel.port)
     val fto = MythFileTransferObject(controlChannel, dataChannel)
     new FileTransferChannelImpl(fto, dataChannel)

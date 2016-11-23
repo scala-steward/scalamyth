@@ -3,7 +3,7 @@ package mythtv
 import java.time.Duration
 
 import model._
-import connection.myth.{ BackendAPIConnection, Event, EventConnection, EventLock }
+import connection.myth.{ Event, EventConnection, EventLock, MythProtocolAPIConnection }
 import util.{ ByteCount, ExpectedCountIterator, MythDateTime, MythFileHash }
 
 // TODO fix up all the .right.get non-error-handling (both in here and other files)
@@ -11,7 +11,7 @@ import util.{ ByteCount, ExpectedCountIterator, MythDateTime, MythFileHash }
 class MythBackend(val host: String) extends Backend with BackendOperations {
   def this(bi: BackendInfo) = this(bi.host)
 
-  private[this] val conn = BackendAPIConnection(host)
+  private[this] val conn = MythProtocolAPIConnection(host)
   @volatile private[this] var eventConnMayBeNull: EventConnection = _
 
   conn.announce("Monitor")

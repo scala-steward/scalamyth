@@ -11,7 +11,7 @@ trait RecordingTransferChannel extends FileTransferChannel {
   def isRecordingInProgress: Boolean
 }
 
-private class RecordingTransfer(api: BackendAPIConnection, @volatile private[this] var rec: Recording)
+private class RecordingTransfer(api: MythProtocolAPIConnection, @volatile private[this] var rec: Recording)
   extends AutoCloseable { outer =>
   @volatile private[this] var inProgress = true
 
@@ -23,7 +23,7 @@ private class RecordingTransfer(api: BackendAPIConnection, @volatile private[thi
 
   private[this] val controlConn =
     if (rec.hostname == api.host) api
-    else BackendAPIConnection(rec.hostname)
+    else MythProtocolAPIConnection(rec.hostname)
 
   private[this] val dataConn = FileTransferConnection(
     controlConn.host,
@@ -112,12 +112,12 @@ private class RecordingTransfer(api: BackendAPIConnection, @volatile private[thi
 }
 
 object RecordingTransferChannel {
-  def apply(api: BackendAPIConnection, chanId: ChanId, recStartTs: MythDateTime): RecordingTransferChannel = {
+  def apply(api: MythProtocolAPIConnection, chanId: ChanId, recStartTs: MythDateTime): RecordingTransferChannel = {
     val rec = api.queryRecording(chanId, recStartTs).right.get   // TODO check for failure/not found
     apply(api, rec)
   }
 
-  def apply(api: BackendAPIConnection, rec: Recording): RecordingTransferChannel = {
+  def apply(api: MythProtocolAPIConnection, rec: Recording): RecordingTransferChannel = {
     new RecordingTransfer(api, rec).transferChannel
   }
 }

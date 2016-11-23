@@ -76,7 +76,7 @@ private sealed trait FileTransferConnectionFactory {
 private class FileTransferConnection75(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean, useReadAhead: Boolean)
   extends AbstractFileTransferConnection(host, port, timeout, fileName, storageGroup, writeMode, useReadAhead)
      with MythProtocol75
-     with BackendAPIConnection
+     with MythProtocolAPIConnection
      with MythProtocolAPILike
      with AnnouncingConnection
 
@@ -88,7 +88,7 @@ private object FileTransferConnection75 extends FileTransferConnectionFactory {
 private class FileTransferConnection77(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean, useReadAhead: Boolean)
   extends AbstractFileTransferConnection(host, port, timeout, fileName, storageGroup, writeMode, useReadAhead)
      with MythProtocol77
-     with BackendAPIConnection
+     with MythProtocolAPIConnection
      with MythProtocolAPILike
      with AnnouncingConnection
 

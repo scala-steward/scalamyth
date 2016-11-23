@@ -8,6 +8,6 @@ private class MythFileTransferObject(
 ) extends FileTransferAPILike
 
 private object MythFileTransferObject {
-  def apply(controlChannel: BackendAPIConnection, dataChannel: FileTransferConnection) =
+  def apply(controlChannel: MythProtocolAPIConnection, dataChannel: FileTransferConnection) =
     new MythFileTransferObject(dataChannel.transferId, controlChannel)
 }
