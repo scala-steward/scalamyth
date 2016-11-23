@@ -141,7 +141,13 @@ private[myth] class FileTransferChannelImpl(controlChannel: FileTransferAPI, dat
   }
 }
 
-// TODO what happens if we specify a file that does not exist?
+/* TODO what happens if we specify a file that does not exist?  This:
+   Sending command ANN FileTransfer dove 0 0 2000[]:[]ittybitty.jpg[]:[]coverart
+   java.util.NoSuchElementException: Either.right.get on Left
+    at scala.util.Either$RightProjection.get(Either.scala:653)
+    at mythtv.connection.myth.AbstractFileTransferConnection.announce(FileTransferConnection.scala:42)
+ */
+
 object FileTransferChannel {  // TODO this doesn't specify read/write mode
   def apply(host: String, fileName: String, storageGroup: String): FileTransferChannel = {
     // TODO how will control channel get closed since it's embeedded here and FT doesn't know that it owns it...
