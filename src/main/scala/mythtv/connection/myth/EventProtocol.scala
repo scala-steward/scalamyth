@@ -101,6 +101,7 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
   private val ScreenCreatedPattern   = """CREATED (.+)""".r
   private val ScreenDestroyedPattern = """DESTROYED (.+)""".r
   private val ThemeInstalledPattern  = """PATH (.+)""".r
+  private val TuningTimeoutPattern   = """CARDID (.+)""".r
 
   def parse(rawEvent: BackendEventResponse): Event = {
     val split = rawEvent.split
@@ -161,7 +162,7 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
         case "SLAVE_CONNECTED"            => hostnameEvent(SlaveConnectedEvent, evt, body, sender)
         case "SLAVE_DISCONNECTED"         => hostnameEvent(SlaveDisconnectedEvent, evt, body, sender)
         case "THEME_INSTALLED"            => themeInstalledEvent(evt, body, sender)
-        //case "TUNING_SIGNAL_TIMEOUT"      =>  // TODO
+        case "TUNING_SIGNAL_TIMEOUT"      => tuningSignalTimeoutEvent(evt, body, sender)
         case _ => unknownSystemEvent(evt, body, sender)
       }
       case _ => unknownEvent(name, split)
@@ -249,6 +250,14 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
     else body match {
       case ThemeInstalledPattern(path) => ThemeInstalledEvent(path, sender)
       case _                           => unknownSystemEvent(evt, body, sender)
+    }
+  }
+
+  def tuningSignalTimeoutEvent(evt: String, body: String, sender: String): SystemEvent = {
+    if (body eq null) unknownSystemEvent(evt, body, sender)
+    else body match {
+      case TuningTimeoutPattern(cardId) => TuningSignalTimeoutEvent(deserialize[CaptureCardId](cardId), sender)
+      case _                            => unknownSystemEvent(evt, body, sender)
     }
   }
 
