@@ -1,7 +1,6 @@
 package mythtv
 package util
 
-// TODO can we specialize/limit this to integral types?
 sealed abstract class OptionalCount[+A] {
   def isEmpty: Boolean
   def isFinite: Boolean
@@ -13,7 +12,7 @@ sealed abstract class OptionalCount[+A] {
 final case class OptionalCountSome[+A](x: A) extends OptionalCount[A] {
   def isEmpty = false
   def isFinite = true
-  def get = x
+  def get: A = x
 }
 
 case object OptionalCountAll extends OptionalCount[Nothing] {
