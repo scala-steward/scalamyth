@@ -9,7 +9,7 @@ trait MythProtocolAPIConnection extends BackendConnection with MythProtocolAPI {
 
 object MythProtocolAPIConnection {
 
-  private val supportedVersions = Map[Int, BackendAPIConnectionFactory](
+  private val supportedVersions = Map[Int, MythProtocolAPIConnectionFactory](
     75 -> MythProtocolAPIConnection75,
     77 -> MythProtocolAPIConnection77
   )
@@ -33,7 +33,7 @@ object MythProtocolAPIConnection {
   }
 }
 
-private sealed trait BackendAPIConnectionFactory {
+private sealed trait MythProtocolAPIConnectionFactory {
   def apply(host: String, port: Int, timeout: Int): MythProtocolAPIConnection
 }
 
@@ -42,7 +42,7 @@ private class MythProtocolAPIConnection75(host: String, port: Int, timeout: Int)
      with MythProtocolAPIConnection
      with MythProtocolAPILike
 
-private object MythProtocolAPIConnection75 extends BackendAPIConnectionFactory {
+private object MythProtocolAPIConnection75 extends MythProtocolAPIConnectionFactory {
   def apply(host: String, port: Int, timeout: Int) = new MythProtocolAPIConnection75(host, port, timeout)
 }
 
@@ -51,6 +51,6 @@ private class MythProtocolAPIConnection77(host: String, port: Int, timeout: Int)
      with MythProtocolAPIConnection
      with MythProtocolAPILike
 
-private object MythProtocolAPIConnection77 extends BackendAPIConnectionFactory {
+private object MythProtocolAPIConnection77 extends MythProtocolAPIConnectionFactory {
   def apply(host: String, port: Int, timeout: Int) = new MythProtocolAPIConnection77(host, port, timeout)
 }
