@@ -79,7 +79,7 @@ object SystemEvent {
   case class UnknownSystemEvent(name: String, data: String, sender: String) extends SystemEvent
 }
 
-trait EventParser {
+private[myth] trait EventParser {
   def parse(rawEvent: BackendEventResponse): Event
 }
 

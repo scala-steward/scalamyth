@@ -9,7 +9,7 @@ import util.NetworkUtil
 import EnumTypes.MythProtocolEventMode
 import MythProtocol.MythProtocolFailure
 
-trait BackendEventResponse extends Any with BackendResponse {
+private[myth] trait BackendEventResponse extends Any with BackendResponse {
   def isSystemEvent: Boolean = raw.startsWith("SYSTEM_EVENT", 20)
   def isEventName(name: String): Boolean = raw.startsWith(name, 20)
   def parse: Event

@@ -2,7 +2,7 @@ package mythtv
 package connection
 package myth
 
-sealed trait BackendRequest {
+private[myth] sealed trait BackendRequest {
   def command: String
   def args: Seq[Any]
   def serialized: String

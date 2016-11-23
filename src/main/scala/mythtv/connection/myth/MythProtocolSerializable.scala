@@ -258,7 +258,7 @@ object MythProtocolSerializable {
   }
 }
 
-trait BackendTypeSerializer[T] {
+private[myth] trait BackendTypeSerializer[T] {
   def serialize(in: T): String
   def serialize(in: T, builder: StringBuilder): StringBuilder
 }

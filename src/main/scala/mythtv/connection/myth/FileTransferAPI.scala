@@ -20,7 +20,7 @@ trait FileTransferAPI {
   def writeBlock(blockSize: Int): MythProtocolResult[Int]
 }
 
-trait FileTransferAPILike extends FileTransferAPI {
+private[myth] trait FileTransferAPILike extends FileTransferAPI {
   def ftId: FileTransferId
   def protoApi: MythProtocolAPI
 

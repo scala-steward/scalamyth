@@ -2,7 +2,7 @@ package mythtv
 package connection
 package myth
 
-trait BackendResponse extends Any {
+private[myth] trait BackendResponse extends Any {
   def raw: String
   def split: Array[String] = raw split MythProtocol.SplitPattern
 }

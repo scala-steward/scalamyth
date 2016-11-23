@@ -17,12 +17,12 @@ import MythProtocol.{ AnnounceResult, MythProtocolFailure, QueryFileTransferResu
 import MythProtocolFailure._
 
 private[myth] trait MythProtocolLike extends MythProtocolSerializer {
-  type SerializeRequest = (String, Seq[Any]) => String
-  type HandleResponse = (BackendRequest, BackendResponse) => MythProtocolResult[_]
+  protected type SerializeRequest = (String, Seq[Any]) => String
+  protected type HandleResponse = (BackendRequest, BackendResponse) => MythProtocolResult[_]
 
   // FIXME we lose the type of the option going through the message dispatch map. is there a way around this?
 
-  def commands: Map[String, (SerializeRequest, HandleResponse)] = Map.empty
+  protected def commands: Map[String, (SerializeRequest, HandleResponse)] = Map.empty
 
   def sendCommand(command: String, args: Any*): MythProtocolResult[_]
 

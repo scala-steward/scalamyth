@@ -89,7 +89,7 @@ trait FrontendNetworkControl {
   def queryUptime: Duration
 }
 
-trait FrontendNetworkControlLike {
+private[myth] trait FrontendNetworkControlLike {
   self: FrontendProtocol with FrontendNetworkControl =>
 
   // TODO need error handling around return types
