@@ -283,14 +283,14 @@ private trait GenericBackendObjectSerializer[T, F <: GenericBackendObjectFactory
   def serialize(in: T): String = in match {
     case g: GenericBackendObject =>
       val factory = newFactory
-      factory.FIELD_ORDER map (g(_)) mkString MythProtocol.BackendSeparator
+      factory.FIELD_ORDER map (g(_)) mkString MythProtocol.Separator
     case _ => otherSerializer.serialize(in)
   }
 
   override def serialize(in: T, builder: StringBuilder): StringBuilder = in match {
     case g: GenericBackendObject =>
       val factory = newFactory
-      (factory.FIELD_ORDER map (g(_))).addString(builder, MythProtocol.BackendSeparator)
+      (factory.FIELD_ORDER map (g(_))).addString(builder, MythProtocol.Separator)
     case _ => otherSerializer.serialize(in, builder)
   }
 }

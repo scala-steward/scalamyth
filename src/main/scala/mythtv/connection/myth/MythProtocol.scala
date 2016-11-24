@@ -14,8 +14,8 @@ trait MythProtocol extends MythProtocolLike {
 }
 
 object MythProtocol extends MythProtocolSerializer {
-  final val BackendSeparator: String = "[]:[]"
-  final val SplitPattern: String = Pattern.quote(BackendSeparator)
+  final val Separator: String = "[]:[]"
+  final val SplitPattern: String = Pattern.quote(Separator)
 
   sealed trait MythProtocolFailure
   object MythProtocolFailure {

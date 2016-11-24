@@ -113,7 +113,7 @@ object MythVerboseLevel extends BitmaskEnum[Long] {
 }
 
 private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
-  import MythProtocol.BackendSeparator
+  import MythProtocol.Separator
 
   override def commands = commandMap
 
@@ -898,7 +898,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def serializeProgramInfo(command: String, args: Seq[Any]): String = args match {
     case Seq(rec: Recording) =>
-      val bldr = new StringBuilder(command).append(BackendSeparator)
+      val bldr = new StringBuilder(command).append(Separator)
       serialize(rec, bldr).toString
     case _ => throwArgumentExceptionType(command, "Recording")
   }
@@ -913,7 +913,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   protected def serializeCaptureCard(command: String, args: Seq[Any]): String = args match {
     case Seq(cardId: CaptureCardId) =>
       val elems = List(command, serialize(cardId))
-      elems mkString BackendSeparator
+      elems mkString Separator
     case _ => throwArgumentExceptionType(command, "CaptureCardId")
   }
 
@@ -932,21 +932,21 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     case Seq(mode @ "FileTransfer", clientHostName: String, fileName: String, storageGroup: String) =>
       val base = List(command, mode, clientHostName)
       val elems = List(base mkString " ", fileName, storageGroup)
-      elems mkString BackendSeparator
+      elems mkString Separator
     case Seq(mode @ "FileTransfer", clientHostName: String, writeMode: Boolean, fileName: String, storageGroup: String) =>
       val base = List(command, mode, clientHostName, serialize(writeMode))
       val elems = List(base mkString " ", fileName, storageGroup)
-      elems mkString BackendSeparator
+      elems mkString Separator
     case Seq(mode @ "FileTransfer", clientHostName: String, writeMode: Boolean, useReadAhead: Boolean,
       fileName: String, storageGroup: String) =>
       val base = List(command, mode, clientHostName, serialize(writeMode), serialize(useReadAhead))
       val elems = List(base mkString " ", fileName, storageGroup)
-      elems mkString BackendSeparator
+      elems mkString Separator
     case Seq(mode @ "FileTransfer", clientHostName: String, writeMode: Boolean, useReadAhead: Boolean, timeout: Duration,
       fileName: String, storageGroup: String) =>
       val base = List(command, mode, clientHostName, serialize(writeMode), serialize(useReadAhead), serialize(timeout.toMillis))
       val elems = List(base mkString " ", fileName, storageGroup)
-      elems mkString BackendSeparator
+      elems mkString Separator
     // TODO support checkFiles varargs on FileTransfer mode
     // TODO SlaveBackend is complex
     case _ => throwArgumentExceptionMultipleSig(command, """
@@ -963,14 +963,14 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     case Seq(message: String, extra @ _*) =>
       val extras = extra map (_.toString)
       val elems = List(command, message) ++ extras
-      elems mkString BackendSeparator
+      elems mkString Separator
     case _ => throwArgumentExceptionSignature(command, "message: String, extra @ _*")
   }
 
   protected def serializeDeleteFile(command: String, args: Seq[Any]): String = args match {
     case Seq(fileName: String, storageGroup: String) =>
       val elems = List(command, fileName, storageGroup)
-      elems mkString BackendSeparator
+      elems mkString Separator
     case _ => throwArgumentExceptionSignature(command, "fileName: String, storageGroup: String")
   }
 
@@ -1001,7 +1001,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   protected def serializeDownloadFile(command: String, args: Seq[Any]): String = args match {
     case Seq(srcUrl: URI, storageGroup: String, fileName: String) =>
       val elems = List(command, srcUrl, storageGroup, fileName)
-      elems mkString BackendSeparator
+      elems mkString Separator
     case _ => throwArgumentExceptionSignature(command, """
       | srcUrl: URI, storageGroup: String, fileName: String""")
   }
@@ -1009,7 +1009,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   protected def serializeFillProgramInfo(command: String, args: Seq[Any]): String = args match {
     case Seq(playbackHost: String, rec: Recording) =>
       val elems = List(command, playbackHost, serialize(rec))
-      elems mkString BackendSeparator
+      elems mkString Separator
     case _ => throwArgumentExceptionSignature(command, """
       | playbackHost: String, rec: Recording""")
   }
@@ -1024,13 +1024,13 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   protected def serializeGenPixmap2(command: String, args: Seq[Any]): String = args match {
     case Seq(token: String, rec: Recording) =>
       val elems = List(command, token, serialize(rec))
-      elems mkString BackendSeparator
+      elems mkString Separator
     case Seq(token: String, rec: Recording, timeFmt @ "s", time: VideoPositionSeconds, outputFile: String, width: Int, height: Int) =>
       val elems = List(command, token, serialize(rec), timeFmt, serialize(time), outputFile, serialize(width), serialize(height))
-      elems mkString BackendSeparator
+      elems mkString Separator
     case Seq(token: String, rec: Recording, timeFmt @ "f", time: VideoPositionFrame, outputFile: String, width: Int, height: Int) =>
       val elems = List(command, token, serialize(rec), timeFmt, serialize(time), outputFile, serialize(width), serialize(height))
-      elems mkString BackendSeparator
+      elems mkString Separator
     case _ => throwArgumentExceptionMultipleSig(command, """
       | token: String, rec: Recording
       | token: String, rec: Recording, timeFmt @ "s", time: VideoPositionSeconds, outputFile: String, width: Int, height: Int
@@ -1051,15 +1051,15 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     case Seq(sub @ "SET_VERBOSE", verboseMask: String) =>
       val args = List(sub, verboseMask)
       val elems = List(command, args mkString " ")
-      elems mkString BackendSeparator
+      elems mkString Separator
     case Seq(sub @ "SET_LOG_LEVEL", logLevel: MythLogLevel) =>
       val args = List(sub, logLevel.toString.toLowerCase)
       val elems = List(command, args mkString " ")
-      elems mkString BackendSeparator
+      elems mkString Separator
     case Seq(message: String, extra @ _*) =>
       val extras = extra map (_.toString)
       val elems = List(command, message) ++ extras
-      elems mkString BackendSeparator
+      elems mkString Separator
     case _ => throwArgumentExceptionMultipleSig(command, """
       | "SET_VERBOSE", verboseMask: String
       | "SET_LOG_LEVEL", logLevel: MythLogLevel
@@ -1076,17 +1076,17 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   protected def serializeQueryCheckFile(command: String, args: Seq[Any]): String = args match {
     case Seq(checkSlaves: Boolean, rec: Recording) =>
       val elems = List(command, serialize(checkSlaves), serialize(rec))
-      elems mkString BackendSeparator
+      elems mkString Separator
     case _ => throwArgumentExceptionSignature(command, "checkSlaves: Boolean, rec: Recording")
   }
 
   protected def serializeQueryFileExists(command: String, args: Seq[Any]): String = args match {
     case Seq(fileName: String, storageGroup: String) =>
       val elems = List(command, fileName, storageGroup)
-      elems mkString BackendSeparator
+      elems mkString Separator
     case Seq(fileName: String) =>
       val elems = List(command, fileName)
-      elems mkString BackendSeparator
+      elems mkString Separator
     case _ => throwArgumentExceptionMultipleSig(command, """
       | fileName: String, storageGroup: String
       | fileName: String""")
@@ -1095,10 +1095,10 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   protected def serializeQueryFileHash(command: String, args: Seq[Any]): String = args match {
     case Seq(fileName: String, storageGroup: String, hostName: String) =>
       val elems = List(command, fileName, storageGroup, hostName)
-      elems mkString BackendSeparator
+      elems mkString Separator
     case Seq(fileName: String, storageGroup: String) =>
       val elems = List(command, fileName, storageGroup)
-      elems mkString BackendSeparator
+      elems mkString Separator
     case _ => throwArgumentExceptionMultipleSig(command, """
       | fileName: String, storageGroup: String, hostName: String
       | fileName: String, storageGroup: String""")
@@ -1108,23 +1108,23 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     case Seq(ftId: FileTransferId, sub @ ("DONE" | "IS_OPEN" | "REQUEST_SIZE")) =>
       val prefix = List(command, serialize(ftId)) mkString " "
       val elems = List(prefix, sub)
-      elems mkString BackendSeparator
+      elems mkString Separator
     case Seq(ftId: FileTransferId, sub @ ("REQUEST_BLOCK" | "WRITE_BLOCK"), blockSize: Int) =>
       val prefix = List(command, serialize(ftId)) mkString " "
       val elems = List(prefix, sub, serialize(blockSize))
-      elems mkString BackendSeparator
+      elems mkString Separator
     case Seq(ftId: FileTransferId, sub @ "SEEK", pos: Long, whence: SeekWhence, curPos: Long) =>
       val prefix = List(command, serialize(ftId)) mkString " "
       val elems = List(prefix, sub, serialize(pos), serialize(whence), serialize(curPos))
-      elems mkString BackendSeparator
+      elems mkString Separator
     case Seq(ftId: FileTransferId, sub @ "REOPEN", newFileName: String) =>
       val prefix = List(command, serialize(ftId)) mkString " "
       val elems = List(prefix, sub, newFileName)
-      elems mkString BackendSeparator
+      elems mkString Separator
     case Seq(ftId: FileTransferId, sub @ "SET_TIMEOUT", fast: Boolean) =>
       val prefix = List(command, serialize(ftId)) mkString " "
       val elems = List(prefix, sub, serialize(fast))
-      elems mkString BackendSeparator
+      elems mkString Separator
     case _ => throwArgumentExceptionMultipleSig(command, """
       | ftId: FileTransferId, sub @ ("DONE" | "IS_OPEN" | "REQUEST_SIZE")
       | ftId: FileTransferId, sub @ ("REQUEST_BLOCK" | "WRITE_BLOCK"), blockSize: Int
@@ -1143,7 +1143,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   protected def serializeQueryIsActiveBackend(command: String, args: Seq[Any]): String = args match {
     case Seq(hostName: String) =>
       val elems = List(command, hostName)
-      elems mkString BackendSeparator
+      elems mkString Separator
     case _ => throwArgumentExceptionSignature(command, "hostName: String")
   }
 
@@ -1151,10 +1151,10 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     // TODO use StringBuilder for efficiency?
     case Seq(modifiedSince: MythDateTime, maxFileSize: Long, rec: Recording) =>
       val elems = List(command, serialize(modifiedSince), serialize(maxFileSize), serialize(rec))
-      elems mkString BackendSeparator
+      elems mkString Separator
     case Seq(maxFileSize: Long, rec: Recording) =>
       val elems = List(command, "-1", serialize(maxFileSize), serialize(rec))
-      elems mkString BackendSeparator
+      elems mkString Separator
     case _ => throwArgumentExceptionMultipleSig(command, """
       | modifiedSince: MythDateTime, maxFileSize: Long, rec: Recording
       | maxFileSize: Long, rec: Recording""")
@@ -1182,72 +1182,72 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
         | "GET_HUE"
         )) =>
       val args = List(serialize(cardId), sub)
-      val elems = List(command, args mkString BackendSeparator)
+      val elems = List(command, args mkString Separator)
       elems mkString " "
     case Seq(cardId: CaptureCardId, sub @ "GET_KEYFRAME_POS", desiredPos: VideoPositionFrame) =>
       val args = List(serialize(cardId), sub, serialize(desiredPos))
-      val elems = List(command, args mkString BackendSeparator)
+      val elems = List(command, args mkString Separator)
       elems mkString " "
     case Seq(cardId: CaptureCardId, sub @ ("FILL_POSITION_MAP" | "FILL_DURATION_MAP"),
       start: VideoPositionFrame, end: VideoPositionFrame) =>
       val args = List(serialize(cardId), sub, serialize(start), serialize(end))
-      val elems = List(command, args mkString BackendSeparator)
+      val elems = List(command, args mkString Separator)
       elems mkString " "
     case Seq(cardId: CaptureCardId, sub @ "CANCEL_NEXT_RECORDING", cancel: Boolean) =>
       val args = List(serialize(cardId), sub, serialize(cancel))
-      val elems = List(command, args mkString BackendSeparator)
+      val elems = List(command, args mkString Separator)
       elems mkString " "
     case Seq(cardId: CaptureCardId, sub @ ("SET_CHANNEL" | "CHECK_CHANNEL"), channum: ChannelNumber) =>
       val args = List(serialize(cardId), sub, serialize(channum))
-      val elems = List(command, args mkString BackendSeparator)
+      val elems = List(command, args mkString Separator)
       elems mkString " "
     case Seq(cardId: CaptureCardId, sub @ "CHECK_CHANNEL_PREFIX", channumPrefix: ChannelNumber) =>
       val args = List(serialize(cardId), sub, serialize(channumPrefix))
-      val elems = List(command, args mkString BackendSeparator)
+      val elems = List(command, args mkString Separator)
       elems mkString " "
     case Seq(cardId: CaptureCardId, sub @ "SET_INPUT", inputName: String) =>
       val args = List(serialize(cardId), sub, inputName)
-      val elems = List(command, args mkString BackendSeparator)
+      val elems = List(command, args mkString Separator)
       elems mkString " "
     case Seq(cardId: CaptureCardId, sub @ "GET_FREE_INPUTS", excludedCardIds @ _*) =>
       val excludedIds = excludedCardIds collect { case c: CaptureCardId => c } map serialize[CaptureCardId]
       val args = List(serialize(cardId), sub) ++ excludedIds
-      val elems = List(command, args mkString BackendSeparator)
+      val elems = List(command, args mkString Separator)
       elems mkString " "
     case Seq(cardId: CaptureCardId, sub @ ("GET_CHANNEL_INFO" | "SHOULD_SWITCH_CARD"), chanId: ChanId) =>
       val args = List(serialize(cardId), sub, serialize(chanId))
-      val elems = List(command, args mkString BackendSeparator)
+      val elems = List(command, args mkString Separator)
       elems mkString " "
     case Seq(cardId: CaptureCardId, sub @ "CHANGE_CHANNEL", dir: ChannelChangeDirection) =>
       val args = List(serialize(cardId), sub, serialize(dir.id))
-      val elems = List(command, args mkString BackendSeparator)
+      val elems = List(command, args mkString Separator)
       elems mkString " "
     case Seq(cardId: CaptureCardId, sub @ "TOGGLE_CHANNEL_FAVORITE", channelGroup: String) =>
       val args = List(serialize(cardId), sub, channelGroup)
-      val elems = List(command, args mkString BackendSeparator)
+      val elems = List(command, args mkString Separator)
       elems mkString " "
     case Seq(cardId: CaptureCardId, sub @ ("CHANGE_COLOUR" | "CHANGE_CONTRAST" | "CHANGE_BRIGHTNESS" | "CHANGE_HUE"),
       adjType: PictureAdjustType, up: Boolean) =>
       val args = List(serialize(cardId), sub, serialize(adjType.id), serialize(up))
-      val elems = List(command, args mkString BackendSeparator)
+      val elems = List(command, args mkString Separator)
       elems mkString " "
     case Seq(cardId: CaptureCardId, sub @ "GET_NEXT_PROGRAM_INFO", channum: ChannelNumber, chanId: ChanId,
       dir: ChannelBrowseDirection, startTime: MythDateTime) =>
       val channelId = if (chanId.id == 0) "" else serialize(chanId)
       val args = List(serialize(cardId), sub, serialize(channum), channelId, serialize(dir.id), startTime.toIsoFormat)
-      val elems = List(command, args mkString BackendSeparator)
+      val elems = List(command, args mkString Separator)
       elems mkString " "
     case Seq(cardId: CaptureCardId, sub @ "SET_SIGNAL_MONITORING_RATE", rate: Int, notifyFrontend: Boolean) =>
       val args = List(serialize(cardId), sub, serialize(rate), serialize(notifyFrontend))
-      val elems = List(command, args mkString BackendSeparator)
+      val elems = List(command, args mkString Separator)
       elems mkString " "
     case Seq(cardId: CaptureCardId, sub @ "SPAWN_LIVETV", usePiP: Boolean, channumStart: ChannelNumber) =>
       val args = List(serialize(cardId), sub, serialize(usePiP), serialize(channumStart))
-      val elems = List(command, args mkString BackendSeparator)
+      val elems = List(command, args mkString Separator)
       elems mkString " "
     case Seq(cardId: CaptureCardId, sub @ "SET_LIVE_RECORDING", recordingState: Int) =>
       val args = List(serialize(cardId), sub, serialize(recordingState))
-      val elems = List(command, args mkString BackendSeparator)
+      val elems = List(command, args mkString Separator)
       elems mkString " "
     case _ => throwArgumentExceptionMultipleSig(command, """
       | cardId: CaptureCardId, sub @ ( "IS_RECORDING" | "GET_FRAMERATE" | "GET_FRAMES_WRITTEN" | "GET_FILE_POSITION" |
@@ -1298,28 +1298,28 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
         | "IS_BUSY"
         )) =>
       val args = List(serialize(cardId), sub)
-      val elems = List(command, args mkString BackendSeparator)
+      val elems = List(command, args mkString Separator)
       elems mkString " "
     case Seq(cardId: CaptureCardId, sub @ "IS_BUSY", timeBufferSeconds: Int) =>
       val args = List(serialize(cardId), sub, serialize(timeBufferSeconds))
-      val elems = List(command, args mkString BackendSeparator)
+      val elems = List(command, args mkString Separator)
       elems mkString " "
     case Seq(cardId: CaptureCardId, sub @ ("MATCHES_RECORDING" | "START_RECORDING"), rec: Recording) =>
       val args = List(serialize(cardId), sub, serialize(rec))
-      val elems = List(command, args mkString BackendSeparator)
+      val elems = List(command, args mkString Separator)
       elems mkString " "
     case Seq(cardId: CaptureCardId, sub @ "RECORD_PENDING", secsLeft: Int, hasLater: Boolean, rec: Recording) =>
       val args = List(serialize(cardId), sub, serialize(secsLeft), serialize(hasLater), serialize(rec))
-      val elems = List(command, args mkString BackendSeparator)
+      val elems = List(command, args mkString Separator)
       elems mkString " "
     case Seq(cardId: CaptureCardId, sub @ "CANCEL_NEXT_RECORDING", cancel: Boolean) =>
       val args = List(serialize(cardId), sub, serialize(cancel))
-      val elems = List(command, args mkString BackendSeparator)
+      val elems = List(command, args mkString Separator)
       elems mkString " "
     case Seq(cardId: CaptureCardId, sub @ "GET_FREE_INPUTS", excludedCardIds @ _*) =>
       val excludedIds = excludedCardIds collect { case c: CaptureCardId => c } map serialize[CaptureCardId]
       val args = List(serialize(cardId), sub) ++ excludedIds
-      val elems = List(command, args mkString BackendSeparator)
+      val elems = List(command, args mkString Separator)
       elems mkString " "
     case _ => throwArgumentExceptionMultipleSig(command, """
       | cardId: CaptureCardId, sub @ ( "GET_STATE" | "GET_SLEEPSTATUS" | "GET_FLAGS" | "GET_RECORDING_STATUS" |
@@ -1341,7 +1341,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   protected def serializeQuerySGFileQuery(command: String, args: Seq[Any]): String = args match {
     case Seq(hostName: String, storageGroup: String, fileName: String) =>
       val elems = List(command, hostName, storageGroup, fileName)
-      elems mkString BackendSeparator
+      elems mkString Separator
     case _ => throwArgumentExceptionSignature(command, """
       | hostName: String, storageGroup: String, fileName: String""")
   }
@@ -1349,10 +1349,10 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   protected def serializeQuerySGGetFileList(command: String, args: Seq[Any]): String = args match {
     case Seq(hostName: String, storageGroup: String, path: String) =>
       val elems = List(command, hostName, storageGroup, path)
-      elems mkString BackendSeparator
+      elems mkString Separator
     case Seq(hostName: String, storageGroup: String, path: String, fileNamesOnly: Boolean) =>
       val elems = List(command, hostName, storageGroup, path, serialize(fileNamesOnly))
-      elems mkString BackendSeparator
+      elems mkString Separator
     case _ => throwArgumentExceptionMultipleSig(command, """
       | hostName: String, storageGroup: String, path: String
       | hostName: String, storageGroup: String, path: String, fileNamesOnly: Boolean""")
@@ -1369,21 +1369,21 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     case Seq(sub @ "MATCH", recordId: RecordRuleId, sourceId: ListingSourceId, mplexId: MultiplexId, reason: String) =>
       val args = List(sub, serialize(recordId), serialize(sourceId), serialize(mplexId), "-", reason)
       val elems = List(command, args mkString " ")
-      elems mkString BackendSeparator
+      elems mkString Separator
     case Seq(sub @ "MATCH", recordId: RecordRuleId, sourceId: ListingSourceId, mplexId: MultiplexId,
       maxStartTime: MythDateTime, reason: String) =>
       val args = List(sub, serialize(recordId), serialize(sourceId), serialize(mplexId), maxStartTime.toIsoFormat, reason)
       val elems = List(command, args mkString " ")
-      elems mkString BackendSeparator
+      elems mkString Separator
     case Seq(sub @ "CHECK", recStatus: RecStatus, recordId: RecordRuleId, findId: Int, reason: String,
       title: String, subtitle: String, description: String, programId: String) =>
       val args = List(sub, serialize(recStatus), serialize(recordId), serialize(findId), reason)
       val elems = List(command, args mkString " ", title, subtitle, description, programId)
-      elems mkString BackendSeparator
+      elems mkString Separator
     case Seq(sub @ "PLACE", reason: String) =>
       val args = List(sub, reason)
       val elems = List(command, args mkString " ")
-      elems mkString BackendSeparator
+      elems mkString Separator
     case _ => throwArgumentExceptionMultipleSig(command, """
       | "MATCH", recordId: RecordRuleId, sourceId: ListingSourceId, mplexId: MultiplexId, reason: String
       | "MATCH", recordId: RecordRuleId, sourceId: ListingSourceId, mplexId: MultiplexId, maxStartTime: MythDateTime, reason: String
@@ -1422,7 +1422,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     case Seq(chanId: ChanId, startTime: MythDateTime) =>
       val start: MythDateTimeString = startTime
       val elems = List(command, serialize(chanId), serialize(start))
-      elems mkString BackendSeparator
+      elems mkString Separator
     case _ => throwArgumentExceptionMultipleSig(command, """
       | rec: Recording
       | chanId: ChanId, startTime: MythDateTime""")

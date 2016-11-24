@@ -131,7 +131,7 @@ private abstract class AbstractEventConnection(
       var stillRunning = true
       while (stillRunning) {
         try {
-          queue.put(newEventResponse(MythProtocol.BackendSeparator + "NO_MORE_EVENTS"))
+          queue.put(newEventResponse(MythProtocol.Separator + "NO_MORE_EVENTS"))
           stillRunning = false
         }
         catch { case _: InterruptedException => () }
