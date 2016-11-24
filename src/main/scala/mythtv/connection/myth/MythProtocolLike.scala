@@ -1452,7 +1452,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     val mode = request.args match { case Seq(mode: String, _*) => mode }
     if (mode == "FileTransfer") {
       val items = response.split
-      if (items(0) != "OK") Left(MythProtocolFailureUnknown)
+      if (items(0) != "OK") Left(MythProtocolFailureMessage(items mkString " "))
       else {
         val ftId = deserialize[FileTransferId](items(1))
         val fileSize = DecimalByteCount(deserialize[Long](items(2)))
