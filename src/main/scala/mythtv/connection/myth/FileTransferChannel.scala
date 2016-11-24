@@ -111,7 +111,7 @@ private[myth] class FileTransferChannelImpl(controlChannel: FileTransferAPI, dat
       if (allotedSize < 0) {
         // TODO failure; re-seek to current position and retry (a maximum number of times?)
       } else if (allotedSize == 0) {
-        canReadMore = false   // TODO is this the right thing to do here?
+        canReadMore = false
       } else {
         var bytesReadThisRequest: Int = 0
 
@@ -131,7 +131,7 @@ private[myth] class FileTransferChannelImpl(controlChannel: FileTransferAPI, dat
     if (!dataChannel.isWritable) throw new NonWritableChannelException
     // TODO is there a limit on how much data I can write here at once?
     val bytesWritten = dataChannel.write(bb)  // TODO may need to loop here...
-    controlChannel.writeBlock(bytesWritten)  // TODO utilize result value? or is it just parroted back to us?
+    controlChannel.writeBlock(bytesWritten)   // TODO utilize result value? or is it just parroted back to us?
     currentPosition = math.max(currentPosition + bytesWritten, currentSize)
     bytesWritten
   }
@@ -141,13 +141,6 @@ private[myth] class FileTransferChannelImpl(controlChannel: FileTransferAPI, dat
     this
   }
 }
-
-/* TODO what happens if we specify a file that does not exist?  This:
-   Sending command ANN FileTransfer dove 0 0 2000[]:[]ittybitty.jpg[]:[]coverart
-   java.util.NoSuchElementException: Either.right.get on Left
-    at scala.util.Either$RightProjection.get(Either.scala:653)
-    at mythtv.connection.myth.AbstractFileTransferConnection.announce(FileTransferConnection.scala:42)
- */
 
 object FileTransferChannel {
   def apply(

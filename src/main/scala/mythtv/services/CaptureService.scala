@@ -18,8 +18,6 @@ trait CaptureService extends BackendService {
 
   def updateCaptureCard(cardId: CaptureCardId, setting: String, value: String): Boolean
 
-
-  // TODO we don't have enough details in CardInput trait currently to support addCardInput
   def addCardInput(cardInput: CardInput): InputId
 
   def removeCardInput(inputId: InputId): Boolean

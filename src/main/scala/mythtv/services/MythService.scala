@@ -79,10 +79,6 @@ trait MythService extends BackendService {
   /**
     * Changes password stored at HTTP/Protected/Password, used for some services? URLs,
     * specified by HTTP/Protected/Urls ? See libs/libmythupnp/httprequest.cpp for more info.
-    * @param userName
-    * @param oldPassword
-    * @param newPassword
-    * @return
     */
   def changePassword(userName: String, oldPassword: String, newPassword: String): Boolean
 

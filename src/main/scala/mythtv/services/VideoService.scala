@@ -18,7 +18,7 @@ trait VideoService extends BackendService {
   def getBluray(path: String): BlurayInfo
 
   /*
-     TODO LookupVideo seems to fail or return unexpected results often on my 0.27 setup,
+     TODO UPSTREAM LookupVideo seems to fail or return unexpected results often on my 0.27 setup,
      epescially for movies. Try looking for "Juno" or "Gravity" and see if we get any results.
      Is there a problem with the TMDB grabber or processing its output? A query for Title=Gravity
      with the grabber directly fails with KeyError=25, while Juno returns results with the grabber

@@ -24,7 +24,7 @@ trait ByteCount extends Any {
 
   protected def toString(units: Array[String], thresholds: Array[Long]): String = {
     val pairs = (units zip thresholds).reverse
-    val chosen = pairs find { case (u, t) => t <= bytes }
+    val chosen = pairs find { case (_, t) => t <= bytes }
     val r = chosen map {
       case (u, t) if t == 0 => bytes + " " + u
       case (u, t) => (bytes / t.toDouble) + " " + u  // TODO control precision of output

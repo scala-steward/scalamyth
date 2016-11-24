@@ -3,7 +3,7 @@ package connection
 package myth
 
 import java.net.URI
-import java.time.{ Duration, Instant, LocalDate, ZoneOffset }
+import java.time.{ Duration, Instant, ZoneOffset }
 
 import scala.util.{ Try, Success, Failure }
 
@@ -405,7 +405,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *                E MythSocketThread(56) mythsocket.cpp:694 (WriteStringListReal) MythSocket(27f1540:56):
      *                      WriteStringList: Error, joined null string.
      *           ----> Same problem as above if pass wrong number of arguments
-     *           TODO File bug/pull request with MythTV upstream
+     *           TODO UPSTREAM File bug/pull request with MythTV upstream
      *      %s  hash of the file (currently 64-bit, so 16 hex characters)
      *     "NULL" if file was zero-length or did not exist (any other conditions?)
      * NB storageGroup parameter seems to be a hint at most, specifying a non-existing or
@@ -544,8 +544,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      * QUERY_IS_ACTIVE_BACKEND [] [%s]   [<hostname>]
      *  @responds sometimes; only if tokenCount == 1
      *  @returns "TRUE" or "FALSE"
-     * TODO may case NPE if hostname is not passed?
-     *      what does QtStringList array index out of bounds do?
+     * TODO UPSTREAM causes NPE on backend if hostname is not passed
      */
     "QUERY_IS_ACTIVE_BACKEND" -> ((serializeQueryIsActiveBackend, handleQueryIsActiveBackend)),
 
@@ -688,7 +687,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *   | GET_CURRENT_RECORDING
      *   | GET_FREE_INPUTS [%d {, %d}*]  <excludeCardId...>
      * ]
-     *  @responds TODO
+     *  @responds Sometimes, only if tokenCount == 2
      `  @returns  "-1" on encoder not found error, but this can be a legitimate value for some other queries
      */
     "QUERY_REMOTEENCODER" -> ((serializeQueryRemoteEncoder, handleQueryRemoteEncoder)),
@@ -764,7 +763,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *  but have no behavioral effect.
      *
      *  Looks like some special sentinel values may be used:
-     *       -      for maxStartTime =  QDateTime::fromString("-", Qt::ISODate) ? invalid?  TODO
+     *       -      for maxStartTime =  QDateTime::fromString("-", Qt::ISODate) ? invalid?
      *    **any**   for programId =  special value set in ProgLister::DeleteOldSeries()
      *
      *  All parameters to MATCH are optional, used if nonzero (or date is valid)
@@ -808,7 +807,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     /*
      * SET_NEXT_LIVETV_DIR %d %s  <encoder#> <dir>
      *  @responds sometimes; only if tokenCount == 3
-     *  @returns "OK or "bad" if encoder nor found
+     *  @returns "OK or "bad" if encoder not found
      */
     "SET_NEXT_LIVETV_DIR" -> ((serializeNOP, handleNOP)),
 
@@ -987,7 +986,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       builder.toString
     }
     args match {
-      case Seq(rec: Recording) => serializeProgramInfo(command, args) // TODO this will pattern match again
+      case Seq(_: Recording) => serializeProgramInfo(command, args)
       case Seq(chanId: ChanId, startTime: MythDateTime) => ser(chanId, startTime, None, None)
       case Seq(chanId: ChanId, startTime: MythDateTime, forceOpt: String) => ser(chanId, startTime, Some(forceOpt), None)
       case Seq(chanId: ChanId, startTime: MythDateTime, forceOpt: String, forgetOpt: String) =>
@@ -1420,7 +1419,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def serializeUndeleteRecording(command: String, args: Seq[Any]): String = args match {
-    case Seq(rec: Recording) => serializeProgramInfo(command, args) // TODO this will pattern match again
+    case Seq(_: Recording) => serializeProgramInfo(command, args)
     case Seq(chanId: ChanId, startTime: MythDateTime) =>
       val start: MythDateTimeString = startTime
       val elems = List(command, serialize(chanId), serialize(start))
@@ -1936,7 +1935,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
         case "IS_RECORDING"               => boolean
         case "GET_FRAMERATE"              => frameRate
         case "GET_FRAMES_WRITTEN"         => frameCount
-        case "GET_FILE_POSITION"          => position    // TODO this is byte position vs frame position
+        case "GET_FILE_POSITION"          => position
         case "GET_MAX_BITRATE"            => bitrate
         case "GET_KEYFRAME_POS"           => position
         case "FILL_POSITION_MAP"          => positionMap

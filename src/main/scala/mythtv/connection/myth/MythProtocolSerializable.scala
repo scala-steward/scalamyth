@@ -46,11 +46,9 @@ object MythProtocolSerializable {
 
   implicit object BooleanSerializer extends MythProtocolSerializable[Boolean] {
     def deserialize(in: String): Boolean = {
-      try {
-        in.toBoolean   // handles "True" and "False" (case-insensitive)
-      } catch {
-        // TODO if this fails, what exception to return to the caller?
-        case _: IllegalArgumentException => in.toInt != 0   // handles "1" / "0"
+      try in.toInt != 0  // handles "1" / "0"
+      catch {
+        case _: NumberFormatException => in.toBoolean // handles "True" and "False" (case-insensitive)
       }
     }
     def serialize(in: Boolean): String = if (in) "1" else "0"
@@ -198,15 +196,12 @@ object MythProtocolSerializable {
   }
 
   implicit object MythDateTimeSerializer extends MythProtocolSerializable[MythDateTime] {
-    // FIXME eliminate this pyramid of doom. Also what exception to keep if they all fail?
     def deserialize(in: String): MythDateTime = {
-      try {
-        MythDateTime.fromTimestamp(in.toLong)
-      } catch {
+      try MythDateTime.fromTimestamp(in.toLong)
+      catch {
         case _ : NumberFormatException =>
-          try {
-            MythDateTime.fromNaiveIso(in)
-          } catch {
+          try MythDateTime.fromNaiveIso(in)
+          catch {
             case _ : java.time.format.DateTimeParseException =>
               MythDateTime.fromNaiveIsoLoose(in)
           }

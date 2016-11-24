@@ -9,7 +9,6 @@ import model._
 import model.EnumTypes._
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythFileHash, NetworkUtil }
 import EnumTypes.{ MythLogLevel, MythProtocolEventMode, SeekWhence }
-import MythProtocol.MythProtocolFailure
 import MythProtocol.QueryRecorderResult._
 import MythProtocol.QueryRemoteEncoderResult._
 import MythProtocol.QueryFileTransferResult._
@@ -680,7 +679,6 @@ private[myth] trait MythProtocolAPILike {
   }
 
   def scanVideos: MythProtocolResult[Boolean] = {
-    // TODO this may need a longer timeout, may take some time? Is this true?
     val result = sendCommand("SCAN_VIDEOS")
     result map { case r: Boolean => r }
   }

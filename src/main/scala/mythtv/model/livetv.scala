@@ -16,7 +16,7 @@ trait LiveTvChain {
   def chanNum: ChannelNumber
   def inputName: String
 
-  // TODO these are not serialized in the event protocol?
+  // these are in the DB but not serialized in the event protocol
   //def watching: Boolean  //  is this used by anything? doesn't appear to be
   //def chainPos: Int      // this get translated (sort of) to/from maxpos in serialization
 }

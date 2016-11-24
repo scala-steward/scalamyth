@@ -161,5 +161,4 @@ trait MythProtocolAPI {
   def stopRecording(rec: Recording): MythProtocolResult[CaptureCardId]
   def undeleteRecording(rec: Recording): MythProtocolResult[Boolean]
   def undeleteRecording(chanId: ChanId, startTime: MythDateTime): MythProtocolResult[Boolean]
-  // TODO more methods
 }

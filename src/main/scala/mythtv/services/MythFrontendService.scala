@@ -21,14 +21,14 @@ trait MythFrontendService extends FrontendService {
 
   // action methods
 
-  // TODO seems to be a bug in MythTV that if the frontend is not at playbackbox,
+  // TODO UPSTREAM seems to be a bug in MythTV that if the frontend is not at playbackbox,
   // then playRecording just jumps there and doesn't play. Sending the messsage
   // again will cause playback, but it will restart upon exit (guess cause we
   // send the message twice?)  I think the same buf may affect other control
   // avenues as well.
   def playRecording(chanId: ChanId, startTime: MythDateTime): Boolean
 
-  // FIXME upstream BUG? if UseBookmark=true, then dialog still pops up about bookmark
+  // FIXME UPSTREAM BUG? if UseBookmark=true, then dialog still pops up about bookmark
   def playVideo(id: VideoId, useBookmark: Boolean = false): Boolean
 
   def sendAction(action: Action, value: String = ""): Boolean

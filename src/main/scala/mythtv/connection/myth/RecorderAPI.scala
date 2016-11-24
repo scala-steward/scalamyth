@@ -51,7 +51,6 @@ trait RecorderAPI {
   def setLiveRecording(recordingState: Int): Unit
   def setSignalMonitoringRate(rate: Int, notifyFrontend: Boolean): MythProtocolResult[Boolean]
   def shouldSwitchCard(chanId: ChanId): MythProtocolResult[Boolean]
-  // FIXME when I invoked spawnLiveTV during testing, it caused SIGABRT on the backend !!
   def spawnLiveTV(usePiP: Boolean, channumStart: ChannelNumber): Unit
   def stopLiveTV(): Unit
   def toggleChannelFavorite(channelGroup: String): Unit
