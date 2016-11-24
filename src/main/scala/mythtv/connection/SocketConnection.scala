@@ -26,7 +26,7 @@ abstract class AbstractSocketConnection[A](val host: String, val port: Int, time
 
   finishConnect()
 
-  def isConnected: Boolean = connected  // TODO also check channel.isConnected ?
+  def isConnected: Boolean = connected && channel.isConnected
 
   private def connectSocketChannel(): SocketChannel = {
     val newChannel = SocketChannel.open(new InetSocketAddress(host, port))
