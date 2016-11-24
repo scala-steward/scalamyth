@@ -129,6 +129,7 @@ private[myth] class FileTransferChannelImpl(controlChannel: FileTransferAPI, dat
 
   override def write(bb: ByteBuffer): Int = {
     if (!dataChannel.isWritable) throw new NonWritableChannelException
+    // TODO is there a limit on how much data I can write here at once?
     val bytesWritten = dataChannel.write(bb)  // TODO may need to loop here...
     controlChannel.writeBlock(bytesWritten)  // TODO utilize result value? or is it just parroted back to us?
     currentPosition = math.max(currentPosition + bytesWritten, currentSize)
@@ -148,15 +149,22 @@ private[myth] class FileTransferChannelImpl(controlChannel: FileTransferAPI, dat
     at mythtv.connection.myth.AbstractFileTransferConnection.announce(FileTransferConnection.scala:42)
  */
 
-object FileTransferChannel {  // TODO this doesn't specify read/write mode
-  def apply(host: String, fileName: String, storageGroup: String): FileTransferChannel = {
-    // TODO how will control channel get closed since it's embeedded here and FT doesn't know that it owns it...
-    val controlChannel = MythProtocolAPIConnection(host)
-    apply(controlChannel, fileName, storageGroup)
-  }
-
-  def apply(controlChannel: MythProtocolAPIConnection, fileName: String, storageGroup: String): FileTransferChannel = {
-    val dataChannel = FileTransferConnection(controlChannel.host, fileName, storageGroup, port = controlChannel.port)
+object FileTransferChannel {
+  def apply(
+    controlChannel: MythProtocolAPIConnection,
+    fileName: String,
+    storageGroup: String,
+    writeMode: Boolean = false,
+    useReadAhead: Boolean = false
+  ): FileTransferChannel = {
+    val dataChannel = FileTransferConnection(
+      controlChannel.host,
+      fileName,
+      storageGroup,
+      writeMode,
+      useReadAhead,
+      controlChannel.port
+    )
     val fto = MythFileTransferObject(controlChannel, dataChannel)
     new FileTransferChannelImpl(fto, dataChannel)
   }
