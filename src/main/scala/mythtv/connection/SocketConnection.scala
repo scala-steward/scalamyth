@@ -22,8 +22,6 @@ abstract class AbstractSocketConnection[A](val host: String, val port: Int, time
   private[this] var socketReader: SocketReader[A] = openReader(channel)
   private[this] var socketWriter: SocketWriter[A] = openWriter(channel)
 
-  // TODO management of reader/writer lifecycle
-
   finishConnect()
 
   def isConnected: Boolean = connected && channel.isConnected
@@ -62,7 +60,11 @@ abstract class AbstractSocketConnection[A](val host: String, val port: Int, time
     connect()
   }
 
-  override def close(): Unit = disconnect()
+  override def close(): Unit = {
+    writer.close()
+    reader.close()
+    disconnect()
+  }
 
   protected def openReader(channel: SocketChannel): SocketReader[A]
 

@@ -5,12 +5,14 @@ import java.net.SocketTimeoutException
 import java.nio.channels.{ SelectionKey, Selector, SocketChannel }
 import java.nio.charset.{ CharsetEncoder, CodingErrorAction, StandardCharsets }
 
-trait SocketWriter[A] {
+trait SocketWriter[A] extends AutoCloseable {
   def write(data: A): Unit
 }
 
 abstract class AbstractSocketWriter[A](channel: SocketChannel, conn: SocketConnection)
   extends SocketWriter[A] {
+
+  override def close(): Unit = ()
 
   // UTF-8 charset encoder
   protected val utf8: CharsetEncoder = (

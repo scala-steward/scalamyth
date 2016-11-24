@@ -4,12 +4,14 @@ package connection
 import java.nio.channels.SocketChannel
 import java.nio.charset.{ CharsetDecoder, CodingErrorAction, StandardCharsets }
 
-trait SocketReader[A] {
+trait SocketReader[A] extends AutoCloseable {
   def read(): A
 }
 
 abstract class AbstractSocketReader[A](channel: SocketChannel, conn: SocketConnection)
   extends SocketReader[A] {
+
+  override def close(): Unit = ()
 
   // UTF-8 charset decoder
   protected val utf8: CharsetDecoder = (
