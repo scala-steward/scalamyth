@@ -19,6 +19,7 @@ trait MythProtocolAPI {
   def announceFileTransfer(hostName: String, fileName: String, storageGroup: String,
     writeMode: Boolean = false, useReadAhead: Boolean = false, timeout: Duration = Duration.ofSeconds(2)): MythProtocolResult[(FileTransferId, ByteCount)]
   // TODO SlaveBackend announce (more complex)
+  def backendMessage(message: String, extra: String*): MythProtocolResult[Boolean]
   def blockShutdown(): MythProtocolResult[Boolean]
   def checkRecording(rec: Recording): MythProtocolResult[Boolean]
   def deleteFile(fileName: String, storageGroup: String): MythProtocolResult[Boolean]

@@ -38,6 +38,12 @@ private[myth] trait MythProtocolAPILike {
     result map { case AnnounceFileTransfer(ftID, fileSize) => (ftID, fileSize) }
   }
 
+  def backendMessage(message: String, extra: String*): MythProtocolResult[Boolean] = {
+    val args = List(message) ++ extra
+    val result = sendCommand("BACKEND_MESSAGE", args: _*)
+    result map { case r: Boolean => r }
+  }
+
   def blockShutdown(): MythProtocolResult[Boolean] = {
     val result = sendCommand("BLOCK_SHUTDOWN")
     result map { case r: Boolean => r }
