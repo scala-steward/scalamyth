@@ -2,12 +2,17 @@ package mythtv
 package connection
 package myth
 
-private trait AnnouncingConnection {
+private[myth] trait AnnouncingConnection {
+  self: BackendConnection =>
+
   private[this] var announced = false
 
   def announce(): Unit
   def hasAnnounced: Boolean = announced
 
-  announce()
-  announced = true
+  try {
+    announce()
+    announced = true
+  }
+  finally if (!announced) disconnect()
 }
