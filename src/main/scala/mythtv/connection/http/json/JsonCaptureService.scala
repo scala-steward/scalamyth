@@ -30,30 +30,30 @@ class JsonCaptureService(conn: BackendJsonConnection)
 
   def addCaptureCard(card: CaptureCard): CaptureCardId = {
     val params: Map[String, Any] = Map(
-      "VideoDevice"    -> card.videoDevice.getOrElse(""),
-      "AudioDevice"    -> card.audioDevice.getOrElse(""),
-      "VBIDevice"      -> card.vbiDevice.getOrElse(""),
-      "CardType"       -> card.cardType.getOrElse(""),
-      "AudioRateLimit" -> card.audioRateLimit.getOrElse(0),
-      "HostName"       -> card.hostName,
-      "DVBSWFilter"    -> card.dvbSwFilter.getOrElse(0),
-      "DVBSatType"     -> card.dvbSatType.getOrElse(0),
+      "VideoDevice"        -> card.videoDevice.getOrElse(""),
+      "AudioDevice"        -> card.audioDevice.getOrElse(""),
+      "VBIDevice"          -> card.vbiDevice.getOrElse(""),
+      "CardType"           -> card.cardType.getOrElse(""),
+      "AudioRateLimit"     -> card.audioRateLimit.getOrElse(0),
+      "HostName"           -> card.hostName,
+      "DVBSWFilter"        -> card.dvbSwFilter.getOrElse(0),
+      "DVBSatType"         -> card.dvbSatType.getOrElse(0),
       "DVBWaitForSeqStart" -> card.dvbWaitForSeqStart,
-      "SkipBTAudio"    -> card.skipBtAudio,
-      "DVBOnDemand"    -> card.dvbOnDemand,
-      "DVBDiSEqCType"  -> card.dvbDiseqcType.getOrElse(0),
-      "FirewireSpeed"  -> card.firewireSpeed.getOrElse(0),
-      "FirewireModel"  -> card.firewireModel.getOrElse(""),  // TODO s/b NULL not ""
+      "SkipBTAudio"        -> card.skipBtAudio,
+      "DVBOnDemand"        -> card.dvbOnDemand,
+      "DVBDiSEqCType"      -> card.dvbDiseqcType.getOrElse(0),
+      "FirewireSpeed"      -> card.firewireSpeed.getOrElse(0),
+      "FirewireModel"      -> card.firewireModel.getOrElse(""),  // TODO s/b NULL not ""
       "FirewireConnection" -> card.firewireConnection.getOrElse(0),
-      "SignalTimeout"  -> card.signalTimeout,
-      "ChannelTimeout" -> card.channelTimeout,
-      "DVBTuningDelay" -> card.dvbTuningDelay,
-      "Contrast"       -> card.contrast,
-      "Brightness"     -> card.brightness,
-      "Colour"         -> card.colour,
-      "Hue"            -> card.hue,
-      "DiSEqCId"       -> card.diseqcId.getOrElse(0),  // TODO s/b NULL not 0 ??
-      "DVBEITScan"     -> card.dvbEitScan
+      "SignalTimeout"      -> card.signalTimeout,
+      "ChannelTimeout"     -> card.channelTimeout,
+      "DVBTuningDelay"     -> card.dvbTuningDelay,
+      "Contrast"           -> card.contrast,
+      "Brightness"         -> card.brightness,
+      "Colour"             -> card.colour,
+      "Hue"                -> card.hue,
+      "DiSEqCId"           -> card.diseqcId.getOrElse(0),  // TODO s/b NULL not 0 ??
+      "DVBEITScan"         -> card.dvbEitScan
     )
     val response = post("AddCaptureCard", params)
     CaptureCardId(0)  // TODO implement
@@ -76,7 +76,6 @@ class JsonCaptureService(conn: BackendJsonConnection)
     val root = responseRoot(response)
     root.booleanField("bool")  // TODO test
   }
-
 
   // TODO we don't have enough details in CardInput trait currently to support addCardInput
   def addCardInput(input: CardInput): InputId = {
