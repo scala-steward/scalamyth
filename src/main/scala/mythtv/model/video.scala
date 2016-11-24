@@ -63,7 +63,7 @@ trait VideoLookup {
   def tmsRef: Option[String]
   def artwork: List[ArtworkItem]
 
-  // TODO override toString
+  override def toString: String = s"<VideoLookup $title $inetRef>"
 }
 
 trait BlurayInfo {
