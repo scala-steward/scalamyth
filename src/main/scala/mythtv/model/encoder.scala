@@ -5,11 +5,14 @@ import EnumTypes.{ TvState, SleepStatus }
 
 final case class CaptureCardId(id: Int) extends AnyVal with IntegerIdentifier
 
-trait CaptureCard {
+trait Tuner {
   def cardId: CaptureCardId
   def videoDevice: Option[String]
   def audioDevice: Option[String]
   def vbiDevice: Option[String]
+}
+
+trait CaptureCard extends Tuner {
   def cardType: Option[String]
   def audioRateLimit: Option[Int]
   def hostName: String    // TODO can this really be nullable as the DB schema says?

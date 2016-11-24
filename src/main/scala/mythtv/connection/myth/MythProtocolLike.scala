@@ -319,7 +319,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *       or  [-2, "", "", ""]  if tuner is already locked
      *       or  [-1, "", "", ""]  if no tuner found to lock
      */
-    "LOCK_TUNER" -> ((serializeLockTuner, handleNOP)),
+    "LOCK_TUNER" -> ((serializeLockTuner, handleLockTuner)),
 
     /*
      * MESSAGE [] [ %s {, %s }* ]        [<message> <extra...>]
@@ -1572,6 +1572,19 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def handleGoToSleep(request: BackendRequest, response: BackendResponse): MythProtocolResult[Boolean] = {
     Either.cond(response.raw == "OK", true, MythProtocolFailureMessage(response.raw))
+  }
+
+  protected def handleLockTuner(request: BackendRequest, response: BackendResponse): MythProtocolResult[Tuner] = {
+    val items = response.split
+    if      (items(0) == "-1") Left(MythProtocolNoResult)
+    else if (items(0) == "-2") Left(MythProtocolFailureMessage("tuner already locked"))
+    else Try {
+      val cardId = deserialize[CaptureCardId](items(0))
+      val videoDevice = if (items(1).isEmpty) None else Some(items(1))
+      val audioDevice = if (items(2).isEmpty) None else Some(items(2))
+      val vbiDevice   = if (items(3).isEmpty) None else Some(items(3))
+      BackendTuner(cardId, videoDevice, audioDevice, vbiDevice)
+    }
   }
 
   protected def handleMessage(request: BackendRequest, response: BackendResponse): MythProtocolResult[Boolean] = {

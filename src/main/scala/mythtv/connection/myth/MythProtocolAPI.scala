@@ -9,7 +9,6 @@ import model._
 import model.EnumTypes._
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythFileHash }
 import EnumTypes.{ MythLogLevel, MythProtocolEventMode, SeekWhence }
-import MythProtocol.MythProtocolFailure
 
 /**
   * A strongly-typed, thin API wrapper over the MythProtocol commands.
@@ -40,8 +39,8 @@ trait MythProtocolAPI {
   def getRecorderFromNum(cardId: CaptureCardId): MythProtocolResult[RemoteEncoder]
   def getRecorderNum(rec: Recording): MythProtocolResult[RemoteEncoder]
   def goToSleep(): MythProtocolResult[Boolean]
-  def lockTuner(): Any // TODO capture the appropriate return type
-  def lockTuner(cardId: CaptureCardId): Any // see above for return type
+  def lockTuner(): MythProtocolResult[Tuner]
+  def lockTuner(cardId: CaptureCardId): MythProtocolResult[Tuner]
   def message(message: String, extra: String*): MythProtocolResult[Boolean]
   def messageSetLogLevel(logLevel: MythLogLevel): MythProtocolResult[Boolean]
   def messageSetVerbose(verboseMask: String): MythProtocolResult[Boolean]

@@ -136,8 +136,15 @@ private[myth] trait MythProtocolAPILike {
     result map { case r: Boolean => r }
   }
 
-  def lockTuner(): Any = ??? // TODO capture the appropriate return type
-  def lockTuner(cardId: CaptureCardId): Any = ??? // see above for return type
+  def lockTuner(): MythProtocolResult[Tuner] = {
+    val result = sendCommand("LOCK_TUNER")
+    result map { case t: Tuner => t }
+  }
+
+  def lockTuner(cardId: CaptureCardId): MythProtocolResult[Tuner] = {
+    val result = sendCommand("LOCK_TUNER", cardId)
+    result map { case t: Tuner => t }
+  }
 
   def message(message: String, extra: String*): MythProtocolResult[Boolean] = {
     val args = List(message) ++ extra
