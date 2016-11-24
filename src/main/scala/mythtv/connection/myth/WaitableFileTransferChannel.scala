@@ -5,6 +5,8 @@ package myth
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 
+import scala.concurrent.duration.Duration
+
 private[myth] trait WaitableFileTransferChannel extends FileTransferChannel {
   self: FileTransferChannelImpl =>
 
@@ -12,6 +14,8 @@ private[myth] trait WaitableFileTransferChannel extends FileTransferChannel {
   private[this] val sizeChanged = lock.newCondition
 
   def isInProgress: Boolean
+
+  def waitTimeout: Duration = Duration(10, TimeUnit.MINUTES)  // TODO how long to wait?
 
   protected abstract override def waitForMoreData(oldSize: Long): Boolean = {
     if (isInProgress) doWaitForMoreData(oldSize)
@@ -25,7 +29,7 @@ private[myth] trait WaitableFileTransferChannel extends FileTransferChannel {
       // TODO also have an absolute deadline in the invariant so that this
       //      won't wait forever if we never get any event updates
       while (isInProgress && currentSize <= oldSize)
-        sizeChanged.await(10, TimeUnit.MINUTES)  // TODO how long to wait?
+        sizeChanged.awaitNanos(waitTimeout.toNanos)
     }
     finally lock.unlock()
     true

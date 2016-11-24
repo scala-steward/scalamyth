@@ -12,8 +12,7 @@ import util._
 import model._
 import model.EnumTypes._
 import EnumTypes.{ MythLogLevel, MythProtocolEventMode, SeekWhence }
-import MythProtocol.{ AnnounceResult, MythProtocolFailure, QueryFileTransferResult,
-  QueryRecorderResult, QueryRemoteEncoderResult }
+import MythProtocol._
 import MythProtocolFailure._
 
 private[myth] trait MythProtocolLike extends MythProtocolSerializer {

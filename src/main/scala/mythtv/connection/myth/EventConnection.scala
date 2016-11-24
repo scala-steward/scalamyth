@@ -114,6 +114,7 @@ private abstract class AbstractEventConnection(
   }
 
   // TODO is isConnected thread safe?
+  // TODO need to catch ClosedConnectionException thrown by readEvent()
   private class EventMonitor(queue: BlockingQueue[BackendEventResponse]) extends Runnable {
     def run(): Unit = {
       while (isConnected) {
