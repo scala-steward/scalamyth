@@ -4,7 +4,7 @@ package connection
 import java.net.InetSocketAddress
 import java.nio.channels.SocketChannel
 
-import scala.util.DynamicVariable
+import scala.util.{ DynamicVariable, Try }
 
 trait SocketConnection extends NetworkConnection with AutoCloseable {
   def isConnected: Boolean
@@ -48,7 +48,7 @@ abstract class AbstractSocketConnection[A](val host: String, val port: Int, time
 
   def disconnect(graceful: Boolean): Unit = {
     if (connected) {
-      if (graceful) gracefulDisconnect()  // TODO enclose in try block?
+      Try(if (graceful) gracefulDisconnect())
       connected = false
       channel.shutdownOutput()
       channel.close()
