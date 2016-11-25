@@ -1,11 +1,12 @@
 package mythtv
 package connection
 
+import java.io.Closeable
 import java.net.SocketTimeoutException
 import java.nio.channels.{ SelectionKey, Selector, SocketChannel }
 import java.nio.charset.{ CharsetEncoder, CodingErrorAction, StandardCharsets }
 
-trait SocketWriter[A] extends AutoCloseable {
+trait SocketWriter[A] extends Closeable {
   def write(data: A): Unit
 }
 

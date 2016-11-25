@@ -1,10 +1,11 @@
 package mythtv
 package connection
 
+import java.io.Closeable
 import java.nio.channels.SocketChannel
 import java.nio.charset.{ CharsetDecoder, CodingErrorAction, StandardCharsets }
 
-trait SocketReader[A] extends AutoCloseable {
+trait SocketReader[A] extends Closeable {
   def read(): A
 }
 

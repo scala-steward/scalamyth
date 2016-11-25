@@ -2,6 +2,8 @@ package mythtv
 package connection
 package myth
 
+import java.io.Closeable
+
 import util.MythDateTime
 import model.{ ChanId, Recording }
 import Event.{ DoneRecordingEvent, RecordingListUpdateEvent, UpdateFileSizeEvent }
@@ -12,7 +14,7 @@ trait RecordingTransferChannel extends FileTransferChannel {
 }
 
 private class RecordingTransfer(api: MythProtocolAPIConnection, @volatile private[this] var rec: Recording)
-  extends AutoCloseable { outer =>
+  extends Closeable { outer =>
   @volatile private[this] var inProgress = true
 
   // Keep track of the cardId this recording is using, it will be overwritten by

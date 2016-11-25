@@ -1,12 +1,13 @@
 package mythtv
 package connection
 
+import java.io.Closeable
 import java.net.InetSocketAddress
 import java.nio.channels.SocketChannel
 
 import scala.util.{ DynamicVariable, Try }
 
-trait SocketConnection extends NetworkConnection with AutoCloseable {
+trait SocketConnection extends NetworkConnection with Closeable {
   def isConnected: Boolean
   def disconnect(graceful: Boolean = true): Unit
   def reconnect(graceful: Boolean = true): Unit

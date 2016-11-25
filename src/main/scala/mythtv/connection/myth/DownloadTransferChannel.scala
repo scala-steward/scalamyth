@@ -2,12 +2,13 @@ package mythtv
 package connection
 package myth
 
+import java.io.Closeable
 import java.net.URI
 
 import Event.{ DownloadFileFinishedEvent, DownloadFileUpdateEvent }
 
 private class DownloadTransfer(api: MythProtocolAPIConnection, sourceUri: URI, storageGroup: String, fileName: String)
-  extends AutoCloseable { outer =>
+  extends Closeable { outer =>
   @volatile private[this] var inProgress: Boolean = true
   @volatile private[this] var channel: TransferChannel = _
 
