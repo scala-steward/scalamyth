@@ -13,6 +13,7 @@ class FileTransferInputStream private[myth](channel: FileTransferChannel) extend
   override def storageGroup: String = channel.storageGroup
 
   override def fileSize: Long = channel.fileSize
+  override def close(): Unit = channel.close()
 
   // Horribly inefficient implementation, but nobody should be using it ...
   override def read(): Int = {
