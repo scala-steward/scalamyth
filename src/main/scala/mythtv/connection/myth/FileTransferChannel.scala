@@ -2,9 +2,10 @@ package mythtv
 package connection
 package myth
 
-import java.io.IOException
+import java.io.{ IOException, InputStream, OutputStream }
 import java.nio.ByteBuffer
-import java.nio.channels.{ NonReadableChannelException, NonWritableChannelException, SeekableByteChannel }
+import java.nio.channels.{ Channels, SeekableByteChannel }
+import java.nio.channels.{ NonReadableChannelException, NonWritableChannelException }
 
 import EnumTypes.SeekWhence
 
@@ -180,4 +181,8 @@ object FileTransferChannel {
     val fto = MythFileTransferObject(controlConn, dataConn)
     new FileTransferChannelImpl(fto, dataConn)
   }
+
+  def newInputStream(channel: FileTransferChannel): InputStream = new FileTransferInputStream(channel)
+
+  def newOutputStream(channel: FileTransferChannel): OutputStream = Channels.newOutputStream(channel)
 }
