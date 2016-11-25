@@ -129,11 +129,30 @@ private[myth] class FileTransferChannelImpl(controlConn: FileTransferAPI, dataCo
 
   override def write(bb: ByteBuffer): Int = {
     if (!dataConn.isWritable) throw new NonWritableChannelException
-    // TODO is there a limit on how much data I can write here at once?
-    val bytesWritten = dataConn.write(bb)  // TODO may need to loop here...
-    controlConn.writeBlock(bytesWritten)   // TODO utilize result value? or is it just parroted back to us?
-    currentPosition = math.max(currentPosition + bytesWritten, currentSize)
-    bytesWritten
+
+    var bytesWritten = 0
+    while (bb.hasRemaining) {
+      // TODO is there a limit or guideline on how much data I can write here at once?
+      // dataConn has a blocking socket, so no need to select for waitable here
+      val n = dataConn.write(bb)
+      bytesWritten += n
+    }
+
+    var serverWritten = 0
+    if (bytesWritten > 0) {
+      serverWritten = controlConn.writeBlock(bytesWritten).get  // TODO may throw exception
+      if (serverWritten < 0) {
+        // the write failed on the server (after reading from the socket)
+        // we don't really have enough info to be able to recover
+        throw new IOException("write failed on backend")
+      }
+      else {
+        currentPosition = math.max(currentPosition + serverWritten, currentSize)
+        if (serverWritten != bytesWritten) println("WARN: server wrote fewer bytes than we sent")  // TODO
+      }
+    }
+
+    serverWritten
   }
 
   override def truncate(size: Long): SeekableByteChannel = {
