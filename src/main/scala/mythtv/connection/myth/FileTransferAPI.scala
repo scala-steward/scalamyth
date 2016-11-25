@@ -3,7 +3,6 @@ package connection
 package myth
 
 import EnumTypes.SeekWhence
-import MythProtocol.MythProtocolFailure
 
 /**
   * The API in use over the control channel during Myth protocol file transfers

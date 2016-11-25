@@ -1,11 +1,7 @@
 package mythtv
 package model
 
-import java.time.{ LocalDate, Year }
-
-import model._
-import model.EnumTypes._
-import util.{ ByteCount, DecimalByteCount, MythDateTime }
+import util.{ DecimalByteCount, MythDateTime }
 
 class DummyRecording extends Recording {
   def title             = ""

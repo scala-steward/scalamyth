@@ -4,8 +4,6 @@ package myth
 
 import model._
 import model.EnumTypes._
-import util.MythDateTime
-import MythProtocol.MythProtocolFailure
 
 // TODO Factor out commonality with RecorderAPI ?
 //  (cancelNextRecording, getMaxBitrate, getCurrentRecording, getFreeInputs)

@@ -5,7 +5,6 @@ package myth
 import model._
 import model.EnumTypes._
 import util.MythDateTime
-import MythProtocol.MythProtocolFailure
 
 trait RecorderAPI {
   def cancelNextRecording(cancel: Boolean): Unit
