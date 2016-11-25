@@ -1454,6 +1454,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       else {
         val ftId = deserialize[FileTransferId](items(1))
         val fileSize = DecimalByteCount(deserialize[Long](items(2)))
+        // TODO may include one or more filenames here from checkfiles (if given)
         Right(AnnounceFileTransfer(ftId, fileSize))
       }
     }

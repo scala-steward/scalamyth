@@ -133,7 +133,7 @@ private[myth] class FileTransferChannelImpl(controlConn: FileTransferAPI, dataCo
 
     var bytesWritten = 0
     while (bb.hasRemaining) {
-      // TODO is there a limit or guideline on how much data I can write here at once?
+      // TODO is there a limit or guideline on how much data I can write here at once? 128k seems to be a good idea
       // dataConn has a blocking socket, so no need to select for waitable here
       val n = dataConn.write(bb)
       bytesWritten += n
