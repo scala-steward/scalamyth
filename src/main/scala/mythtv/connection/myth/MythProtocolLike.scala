@@ -34,14 +34,14 @@ private[myth] trait MythProtocolLike extends MythProtocolSerializer {
         val _ = serialize(command, args)
         true
       } catch {
-        case _: BackendCommandArgumentException => false
+        case _: MythProtocolArgumentException => false
       }
     }
     else false
   }
 }
 
-final case class BackendCommandArgumentException(command: String, message: String)
+final case class MythProtocolArgumentException(command: String, message: String)
     extends IllegalArgumentException("for " + command + ", expecting " + message) {
   def this(command: String) = this(command, "valid argument list")
 }
@@ -875,17 +875,17 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
    */
 
   protected def throwArgumentException(command: String, message: String) =
-    throw BackendCommandArgumentException(command, message)
+    throw MythProtocolArgumentException(command, message)
 
   protected def throwArgumentExceptionType(command: String, typeName: String) =
-    throw BackendCommandArgumentException(command, s"a `$typeName` argument")
+    throw MythProtocolArgumentException(command, s"a `$typeName` argument")
 
   protected def throwArgumentExceptionSignature(command: String, signature: String) =
-    throw BackendCommandArgumentException(command, "the following argument signature:\n "
+    throw MythProtocolArgumentException(command, "the following argument signature:\n "
       + signature.trim.stripMargin)
 
   protected def throwArgumentExceptionMultipleSig(command: String, signatures: String) =
-    throw BackendCommandArgumentException(command, "one of the following argument signatures:"
+    throw MythProtocolArgumentException(command, "one of the following argument signatures:"
       + signatures.stripMargin)
 
 
