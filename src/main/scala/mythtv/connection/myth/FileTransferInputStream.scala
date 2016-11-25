@@ -5,14 +5,9 @@ package myth
 import java.io.{ IOException, InputStream }
 import java.nio.ByteBuffer
 
-class FileTransferInputStream private[myth](channel: FileTransferChannel) extends InputStream with FileTransfer {
+class FileTransferInputStream private[myth](channel: FileTransferChannel) extends InputStream {
   private[this] var markPosition: Long = -1L
 
-  override def fileName: String = channel.fileName
-
-  override def storageGroup: String = channel.storageGroup
-
-  override def fileSize: Long = channel.fileSize
   override def close(): Unit = channel.close()
 
   // Horribly inefficient implementation, but nobody should be using it ...
