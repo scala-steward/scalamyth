@@ -10,15 +10,15 @@ import EnumTypes.SeekWhence
 
 trait FileTransferChannel extends SeekableByteChannel with Seekable with FileTransfer
 
-private[myth] class FileTransferChannelImpl(controlChannel: FileTransferAPI, dataChannel: FileTransferConnection)
+private[myth] class FileTransferChannelImpl(controlConn: FileTransferAPI, dataConn: FileTransferConnection)
   extends FileTransferChannel {
-  // A file transfer requires two (optionally three) channels:
-  //   - control channel  (BackendConnection or BackendAPIConnection)
-  //   - data channel     (FileTransferConnection)
+  // A file transfer requires two (optionally three) connections:
+  //   - control connection  (BackendConnection or BackendAPIConnection)
+  //   - data connection     (FileTransferConnection)
   // and optionally
-  //   - event channel    (EventConnection)
+  //   - event connection    (EventConnection)
 
-  @volatile protected var currentSize: Long = dataChannel.fileSize
+  @volatile protected var currentSize: Long = dataConn.fileSize
   protected var currentPosition: Long = 0L
   private[this] var openStatus: Boolean = true
 
@@ -29,16 +29,16 @@ private[myth] class FileTransferChannelImpl(controlChannel: FileTransferAPI, dat
 
   // close the file
   override def close(): Unit = {
-    controlChannel.done()
-    dataChannel.close()
+    controlConn.done()
+    dataConn.close()
     openStatus = false
   }
 
-  override def fileName: String = dataChannel.fileName
+  override def fileName: String = dataConn.fileName
 
-  override def storageGroup: String = dataChannel.storageGroup
+  override def storageGroup: String = dataConn.storageGroup
 
-  override def fileSize: Long = dataChannel.fileSize
+  override def fileSize: Long = dataConn.fileSize
 
   override def size: Long = currentSize
 
@@ -65,7 +65,7 @@ private[myth] class FileTransferChannelImpl(controlChannel: FileTransferAPI, dat
       case SeekWhence.End     => clamp(offset, -currentSize, 0L) + currentSize
     }
     val adjWhence = if (whence == SeekWhence.End) SeekWhence.Begin else whence
-    val newPos: Long = controlChannel.seek(adjOffset, adjWhence, currentPosition).right.get
+    val newPos: Long = controlConn.seek(adjOffset, adjWhence, currentPosition).right.get
     if (newPos < 0) throw new IOException("failed seek")
     currentPosition = newPos
   }
@@ -94,7 +94,7 @@ private[myth] class FileTransferChannelImpl(controlChannel: FileTransferAPI, dat
   }
 
   override def read(bb: ByteBuffer): Int = {
-    if (!dataChannel.isReadable) throw new NonReadableChannelException
+    if (!dataConn.isReadable) throw new NonReadableChannelException
     val length = waitableReadableLength(bb.remaining)
     if (length < bb.remaining) bb.limit(bb.position + length)
 
@@ -103,7 +103,7 @@ private[myth] class FileTransferChannelImpl(controlChannel: FileTransferAPI, dat
 
     while (bb.hasRemaining && canReadMore) {
       val requestSize = length - bytesRead
-      val allotedSize = controlChannel.requestBlock(requestSize).right.get
+      val allotedSize = controlConn.requestBlock(requestSize).right.get
       assert(requestSize == bb.remaining)
 
       if (allotedSize != requestSize) {}  // TODO do I want to take some action here?
@@ -116,7 +116,7 @@ private[myth] class FileTransferChannelImpl(controlChannel: FileTransferAPI, dat
         var bytesReadThisRequest: Int = 0
 
         while (bytesReadThisRequest < allotedSize && canReadMore) {
-          val n = dataChannel.read(bb)
+          val n = dataConn.read(bb)
           if (n <= 0) canReadMore = false
           bytesReadThisRequest += n
         }
@@ -128,10 +128,10 @@ private[myth] class FileTransferChannelImpl(controlChannel: FileTransferAPI, dat
   }
 
   override def write(bb: ByteBuffer): Int = {
-    if (!dataChannel.isWritable) throw new NonWritableChannelException
+    if (!dataConn.isWritable) throw new NonWritableChannelException
     // TODO is there a limit on how much data I can write here at once?
-    val bytesWritten = dataChannel.write(bb)  // TODO may need to loop here...
-    controlChannel.writeBlock(bytesWritten)   // TODO utilize result value? or is it just parroted back to us?
+    val bytesWritten = dataConn.write(bb)  // TODO may need to loop here...
+    controlConn.writeBlock(bytesWritten)   // TODO utilize result value? or is it just parroted back to us?
     currentPosition = math.max(currentPosition + bytesWritten, currentSize)
     bytesWritten
   }
@@ -144,21 +144,21 @@ private[myth] class FileTransferChannelImpl(controlChannel: FileTransferAPI, dat
 
 object FileTransferChannel {
   def apply(
-    controlChannel: MythProtocolAPIConnection,
+    controlConn: MythProtocolAPIConnection,
     fileName: String,
     storageGroup: String,
     writeMode: Boolean = false,
     useReadAhead: Boolean = false
   ): FileTransferChannel = {
-    val dataChannel = FileTransferConnection(
-      controlChannel.host,
+    val dataConn = FileTransferConnection(
+      controlConn.host,
       fileName,
       storageGroup,
       writeMode,
       useReadAhead,
-      controlChannel.port
+      controlConn.port
     )
-    val fto = MythFileTransferObject(controlChannel, dataChannel)
-    new FileTransferChannelImpl(fto, dataChannel)
+    val fto = MythFileTransferObject(controlConn, dataConn)
+    new FileTransferChannelImpl(fto, dataConn)
   }
 }
