@@ -17,3 +17,7 @@ class ExpectedCountIterator[+A](val expectedCount: Int, underlying: Iterator[A])
     underlying.toString + s" of $expectedCount $items" + remain
   }
 }
+
+object ExpectedCountIterator {
+  val empty: ExpectedCountIterator[Nothing] = new ExpectedCountIterator[Nothing](0, Iterator.empty)
+}
