@@ -1620,43 +1620,53 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def handleQueryCommBreak(request: BackendRequest, response: BackendResponse): MythProtocolResult[List[VideoSegment]] = {
     val items = response.split
-    val count = deserialize[Int](items(0))
-    assert(count % 2 == 0)  // TODO FIXME not guaranteed to be true!?
+    Try {
+      val count = deserialize[Int](items(0))
+      assert(count % 2 == 0)  // TODO FIXME not guaranteed to be true!?
 
-    // we also assume that the number of start/end marks are balanced and in sorted order
-    val marks = items.iterator drop 1 grouped 2 withPartial false map deserialize[RecordedMarkup]
-    val segments = marks grouped 2 map {
-      case Seq(start: RecordedMarkup, end: RecordedMarkup) =>
-        assert(start.tag == Markup.CommStart)
-        assert(end.tag == Markup.CommEnd)
-        BackendVideoSegment(start.position, end.position)
+      if (count == 0) Nil
+      else {
+        // we also assume that the number of start/end marks are balanced and in sorted order
+        val marks = items.iterator drop 1 grouped 2 withPartial false map deserialize[RecordedMarkup]
+        val segments = marks grouped 2 map {
+          case Seq(start: RecordedMarkup, end: RecordedMarkup) =>
+            assert(start.tag == Markup.CommStart)
+            assert(end.tag == Markup.CommEnd)
+            BackendVideoSegment(start.position, end.position)
+          }
+        segments.toList
+      }
     }
-    Right(segments.toList)
   }
 
   protected def handleQueryCutList(request: BackendRequest, response: BackendResponse): MythProtocolResult[List[VideoSegment]] = {
     val items = response.split
-    val count = deserialize[Int](items(0))
-    assert(count % 2 == 0)  // TODO FIXME not guaranteed to be true!?
+    Try {
+      val count = deserialize[Int](items(0))
+      assert(count % 2 == 0)  // TODO FIXME not guaranteed to be true!?
 
-    // we also assume that the number of start/end marks are balanced and in sorted order
-    val marks = items.iterator drop 1 grouped 2 withPartial false map deserialize[RecordedMarkup]
-    val segments = marks grouped 2 map {
-      case Seq(start: RecordedMarkup, end: RecordedMarkup) =>
-        assert(start.tag == Markup.CutStart)
-        assert(end.tag == Markup.CutEnd)
-        BackendVideoSegment(start.position, end.position)
+      if (count == 0) Nil
+      else {
+        // we also assume that the number of start/end marks are balanced and in sorted order
+        val marks = items.iterator drop 1 grouped 2 withPartial false map deserialize[RecordedMarkup]
+        val segments = marks grouped 2 map {
+          case Seq(start: RecordedMarkup, end: RecordedMarkup) =>
+            assert(start.tag == Markup.CutStart)
+            assert(end.tag == Markup.CutEnd)
+            BackendVideoSegment(start.position, end.position)
+          }
+        segments.toList
+      }
     }
-    Right(segments.toList)
   }
 
   protected def handleQueryFileExists(request: BackendRequest, response: BackendResponse): MythProtocolResult[(String, FileStats)] = {
     val items = response.split
     val statusCode = deserialize[Int](items(0))
-    if (statusCode > 0) {
+    if (statusCode > 0) Try {
       val fullName = items(1)
       val stats = deserialize[FileStats](items.view(2, 2 + 13))  // TODO hardcoded size of # file stats fields
-      Right((fullName, stats))
+      (fullName, stats)
     }
     else Left(MythProtocolFailureUnknown)
   }
