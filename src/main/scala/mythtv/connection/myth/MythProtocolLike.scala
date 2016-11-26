@@ -1741,46 +1741,54 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def handleQueryGetAllPending(request: BackendRequest, response: BackendResponse): MythProtocolResult[ExpectedCountIterator[Recording]] = {
     val recs = response.split
-    val hasConflicts = deserialize[Boolean](recs(0))  // TODO return this also?
-    val expectedCount = deserialize[Int](recs(1))
-    if (expectedCount == 0) Left(MythProtocolFailureUnknown)
-    else Try {
-      val fieldCount = BackendProgram.FIELD_ORDER.length
-      val it = recs.iterator drop 2 grouped fieldCount withPartial false
-      new ExpectedCountIterator(expectedCount, it map deserialize[Recording])
+    Try {
+      val hasConflicts = deserialize[Boolean](recs(0))  // TODO return this also?
+      val expectedCount = deserialize[Int](recs(1))
+      if (expectedCount == 0) ExpectedCountIterator.empty
+      else {
+        val fieldCount = BackendProgram.FIELD_ORDER.length
+        val it = recs.iterator drop 2 grouped fieldCount withPartial false
+        new ExpectedCountIterator(expectedCount, it map deserialize[Recording])
+      }
     }
   }
 
   protected def handleQueryGetAllScheduled(request: BackendRequest, response: BackendResponse): MythProtocolResult[ExpectedCountIterator[Recording]] = {
     val recs = response.split
-    val expectedCount = deserialize[Int](recs(0))
-    if (expectedCount == 0) Left(MythProtocolFailureUnknown)
-    else Try {
-      val fieldCount = BackendProgram.FIELD_ORDER.length
-      val it = recs.iterator drop 1 grouped fieldCount withPartial false
-      new ExpectedCountIterator(expectedCount, it map deserialize[Recording])
+    Try {
+      val expectedCount = deserialize[Int](recs(0))
+      if (expectedCount == 0) ExpectedCountIterator.empty
+      else {
+        val fieldCount = BackendProgram.FIELD_ORDER.length
+        val it = recs.iterator drop 1 grouped fieldCount withPartial false
+        new ExpectedCountIterator(expectedCount, it map deserialize[Recording])
+      }
     }
   }
 
   protected def handleQueryGetConflicting(request: BackendRequest, response: BackendResponse): MythProtocolResult[ExpectedCountIterator[Recording]] = {
     val recs = response.split
-    val expectedCount = deserialize[Int](recs(0))
-    if (expectedCount == 0) Left(MythProtocolFailureUnknown)
-    else Try {
-      val fieldCount = BackendProgram.FIELD_ORDER.length
-      val it = recs.iterator drop 1 grouped fieldCount withPartial false
-      new ExpectedCountIterator(expectedCount, it map deserialize[Recording])
+    Try {
+      val expectedCount = deserialize[Int](recs(0))
+      if (expectedCount == 0) ExpectedCountIterator.empty
+      else {
+        val fieldCount = BackendProgram.FIELD_ORDER.length
+        val it = recs.iterator drop 1 grouped fieldCount withPartial false
+        new ExpectedCountIterator(expectedCount, it map deserialize[Recording])
+      }
     }
   }
 
   protected def handleQueryGetExpiring(request: BackendRequest, response: BackendResponse): MythProtocolResult[ExpectedCountIterator[Recording]] = {
     val recs = response.split
-    val expectedCount = deserialize[Int](recs(0))
-    if (expectedCount == 0) Left(MythProtocolFailureUnknown)
-    else Try {
-      val fieldCount = BackendProgram.FIELD_ORDER.length
-      val it = recs.iterator drop 1 grouped fieldCount withPartial false
-      new ExpectedCountIterator(expectedCount, it map deserialize[Recording])
+    Try {
+      val expectedCount = deserialize[Int](recs(0))
+      if (expectedCount == 0) ExpectedCountIterator.empty
+      else {
+        val fieldCount = BackendProgram.FIELD_ORDER.length
+        val it = recs.iterator drop 1 grouped fieldCount withPartial false
+        new ExpectedCountIterator(expectedCount, it map deserialize[Recording])
+      }
     }
   }
 
@@ -1982,12 +1990,14 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def handleQueryRecordings(request: BackendRequest, response: BackendResponse): MythProtocolResult[Iterator[Recording]] = {
     val recs = response.split
-    val expectedCount = deserialize[Int](recs(0))
-    if (expectedCount == 0) Left(MythProtocolFailureUnknown)
-    else Try {
-      val fieldCount = BackendProgram.FIELD_ORDER.length
-      val it = recs.iterator drop 1 grouped fieldCount withPartial false
-      new ExpectedCountIterator(expectedCount, it map deserialize[Recording])
+    Try {
+      val expectedCount = deserialize[Int](recs(0))
+      if (expectedCount == 0) ExpectedCountIterator.empty
+      else {
+        val fieldCount = BackendProgram.FIELD_ORDER.length
+        val it = recs.iterator drop 1 grouped fieldCount withPartial false
+        new ExpectedCountIterator(expectedCount, it map deserialize[Recording])
+      }
     }
   }
 
