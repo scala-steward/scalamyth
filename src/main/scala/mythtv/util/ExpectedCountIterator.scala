@@ -3,7 +3,7 @@ package util
 
 import scala.collection.AbstractIterator
 
-class ExpectedCountIterator[+A](val expectedCount: Int, underlying: Iterator[A])
+class ExpectedCountIterator[+A] private[mythtv](val expectedCount: Int, underlying: Iterator[A])
     extends AbstractIterator[A] {
   private[this] var remainingCount: Int = expectedCount
 
