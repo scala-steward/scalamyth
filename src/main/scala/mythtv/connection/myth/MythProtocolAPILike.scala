@@ -678,7 +678,7 @@ private[myth] trait MythProtocolAPILike {
     result map { case r: Boolean => r }
   }
 
-  def scanVideos: MythProtocolResult[Boolean] = {
+  def scanVideos(): MythProtocolResult[Boolean] = {
     val result = sendCommand("SCAN_VIDEOS")
     result map { case r: Boolean => r }
   }

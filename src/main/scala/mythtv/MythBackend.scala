@@ -112,7 +112,7 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
   def scanVideos(): Map[String, Set[VideoId]] = {
     import connection.myth.Event.{ VideoListChangeEvent, VideoListNoChangeEvent }
 
-    if (conn.scanVideos.right.get) {
+    if (conn.scanVideos().right.get) {
       val lock = EventLock(eventConnection, {
         case _: VideoListChangeEvent => true
         case VideoListNoChangeEvent => true

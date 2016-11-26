@@ -154,7 +154,7 @@ trait MythProtocolAPI {
   def rescheduleRecordingsMatch(recordId: RecordRuleId = RecordRuleId(0), sourceId: ListingSourceId = ListingSourceId(0),
     mplexId: MultiplexId = MultiplexId(0), maxStartTime: Option[MythDateTime] = None, reason: String = "Scala"): MythProtocolResult[Boolean]
   def rescheduleRecordingsPlace(reason: String = "Scala"): MythProtocolResult[Boolean]
-  def scanVideos: MythProtocolResult[Boolean]
+  def scanVideos(): MythProtocolResult[Boolean]
   def setBookmark(chanId: ChanId, startTime: MythDateTime, pos: VideoPositionFrame): MythProtocolResult[Boolean]
   def setSetting(hostName: String, settingName: String, value: String): MythProtocolResult[Boolean]
   def shutdownNow(haltCommand: String = ""): Unit
