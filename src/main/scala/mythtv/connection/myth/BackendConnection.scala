@@ -6,7 +6,9 @@ import java.net.SocketTimeoutException
 import java.nio.ByteBuffer
 import java.nio.channels.{ SelectionKey, Selector, SocketChannel }
 
-import scala.util.Try
+import scala.util.{ Try, Success, Failure }
+
+import MythProtocol.MythProtocolFailure._
 
 private trait BackendCommandStream {
   final val HeaderSizeBytes = 8
@@ -132,8 +134,10 @@ private abstract class AbstractBackendConnection(host: String, port: Int, timeou
       val (serialize, handle) = commands(command)
       val cmdstring = serialize(command, args)
       val request = BackendRequest(command, args, cmdstring)
-      val response = sendCommandRaw(cmdstring).get
-      handle(request, response)
+      sendCommandRaw(cmdstring) match {
+        case Success(response) => handle(request, response)
+        case Failure(ex) => Left(MythProtocolFailureThrowable(ex))
+      }
     }
     else throw UnsupportedBackendCommandException(command, ProtocolVersion)
   }
