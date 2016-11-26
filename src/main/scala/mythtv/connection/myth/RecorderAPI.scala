@@ -7,9 +7,9 @@ import model.EnumTypes._
 import util.MythDateTime
 
 trait RecorderAPI {
-  def cancelNextRecording(cancel: Boolean): Unit
+  def cancelNextRecording(cancel: Boolean): MythProtocolResult[Unit]
   def changeBrightness(adjType: PictureAdjustType, up: Boolean): MythProtocolResult[Int]
-  def changeChannel(dir: ChannelChangeDirection): Unit
+  def changeChannel(dir: ChannelChangeDirection): MythProtocolResult[Unit]
   def changeColour(adjType: PictureAdjustType, up: Boolean): MythProtocolResult[Int]
   def changeContrast(adjType: PictureAdjustType, up: Boolean): MythProtocolResult[Int]
   def changeHue(adjType: PictureAdjustType, up: Boolean): MythProtocolResult[Int]
@@ -22,8 +22,8 @@ trait RecorderAPI {
   // This returns a map from frame number to file byte offset
   def fillPositionMap(start: VideoPositionFrame, end: VideoPositionFrame): MythProtocolResult[Map[VideoPositionFrame, Long]]
 
-  def finishRecording(): Unit
-  def frontendReady(): Unit
+  def finishRecording(): MythProtocolResult[Unit]
+  def frontendReady(): MythProtocolResult[Unit]
   def getBrightness: MythProtocolResult[Int]
   def getChannelInfo(chanId: ChanId): MythProtocolResult[Channel]
   def getColour: MythProtocolResult[Int]
@@ -42,30 +42,30 @@ trait RecorderAPI {
   def getNextProgramInfo(channum: ChannelNumber, dir: ChannelBrowseDirection, startTime: MythDateTime): MythProtocolResult[UpcomingProgram]
   def getRecording: MythProtocolResult[Recording]
   def isRecording: MythProtocolResult[Boolean]
-  def pause(): Unit
+  def pause(): MythProtocolResult[Unit]
   // NB Must call pause before setChannel
-  def setChannel(channum: ChannelNumber): Unit
+  def setChannel(channum: ChannelNumber): MythProtocolResult[Unit]
   def setInput(inputName: String): MythProtocolResult[String]
   // NB the recordingState parameter is ignored by the backend implementation
-  def setLiveRecording(recordingState: Int): Unit
+  def setLiveRecording(recordingState: Int): MythProtocolResult[Unit]
   def setSignalMonitoringRate(rate: Int, notifyFrontend: Boolean): MythProtocolResult[Boolean]
   def shouldSwitchCard(chanId: ChanId): MythProtocolResult[Boolean]
-  def spawnLiveTV(usePiP: Boolean, channumStart: ChannelNumber): Unit
-  def stopLiveTV(): Unit
-  def toggleChannelFavorite(channelGroup: String): Unit
+  def spawnLiveTV(usePiP: Boolean, channumStart: ChannelNumber): MythProtocolResult[Unit]
+  def stopLiveTV(): MythProtocolResult[Unit]
+  def toggleChannelFavorite(channelGroup: String): MythProtocolResult[Unit]
 }
 
 // Forwarders to implementation in MythProtocolAPI
 trait RecorderAPILike extends RemoteEncoder with RecorderAPI {
   protected def protoApi: MythProtocolAPI
 
-  def cancelNextRecording(cancel: Boolean): Unit =
+  def cancelNextRecording(cancel: Boolean): MythProtocolResult[Unit] =
     protoApi.queryRecorderCancelNextRecording(cardId, cancel)
 
   def changeBrightness(adjType: PictureAdjustType, up: Boolean): MythProtocolResult[Int] =
     protoApi.queryRecorderChangeBrightness(cardId, adjType, up)
 
-  def changeChannel(dir: ChannelChangeDirection): Unit =
+  def changeChannel(dir: ChannelChangeDirection): MythProtocolResult[Unit] =
     protoApi.queryRecorderChangeChannel(cardId, dir)
 
   def changeColour(adjType: PictureAdjustType, up: Boolean): MythProtocolResult[Int] =
@@ -89,10 +89,10 @@ trait RecorderAPILike extends RemoteEncoder with RecorderAPI {
   def fillPositionMap(start: VideoPositionFrame, end: VideoPositionFrame): MythProtocolResult[Map[VideoPositionFrame, Long]] =
     protoApi.queryRecorderFillPositionMap(cardId, start, end)
 
-  def finishRecording(): Unit =
+  def finishRecording(): MythProtocolResult[Unit] =
     protoApi.queryRecorderFinishRecording(cardId)
 
-  def frontendReady(): Unit =
+  def frontendReady(): MythProtocolResult[Unit] =
     protoApi.queryRecorderFrontendReady(cardId)
 
   def getBrightness: MythProtocolResult[Int] =
@@ -146,16 +146,16 @@ trait RecorderAPILike extends RemoteEncoder with RecorderAPI {
   def isRecording: MythProtocolResult[Boolean] =
     protoApi.queryRecorderIsRecording(cardId)
 
-  def pause(): Unit =
+  def pause(): MythProtocolResult[Unit] =
     protoApi.queryRecorderPause(cardId)
 
-  def setChannel(channum: ChannelNumber): Unit =
+  def setChannel(channum: ChannelNumber): MythProtocolResult[Unit] =
     protoApi.queryRecorderSetChannel(cardId, channum)
 
   def setInput(inputName: String): MythProtocolResult[String] =
     protoApi.queryRecorderSetInput(cardId, inputName)
 
-  def setLiveRecording(recordingState: Int): Unit =
+  def setLiveRecording(recordingState: Int): MythProtocolResult[Unit] =
     protoApi.queryRecorderSetLiveRecording(cardId, recordingState)
 
   def setSignalMonitoringRate(rate: Int, notifyFrontend: Boolean): MythProtocolResult[Boolean] =
@@ -164,12 +164,12 @@ trait RecorderAPILike extends RemoteEncoder with RecorderAPI {
   def shouldSwitchCard(chanId: ChanId): MythProtocolResult[Boolean] =
     protoApi.queryRecorderShouldSwitchCard(cardId, chanId)
 
-  def spawnLiveTV(usePiP: Boolean, channumStart: ChannelNumber): Unit =
+  def spawnLiveTV(usePiP: Boolean, channumStart: ChannelNumber): MythProtocolResult[Unit] =
     protoApi.queryRecorderSpawnLiveTV(cardId, usePiP, channumStart)
 
-  def stopLiveTV(): Unit =
+  def stopLiveTV(): MythProtocolResult[Unit] =
     protoApi.queryRecorderStopLiveTV(cardId)
 
-  def toggleChannelFavorite(channelGroup: String): Unit =
+  def toggleChannelFavorite(channelGroup: String): MythProtocolResult[Unit] =
     protoApi.queryRecorderToggleChannelFavorite(cardId, channelGroup)
 }

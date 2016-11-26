@@ -79,9 +79,9 @@ trait MythProtocolAPI {
   def queryPixmapGetIfModified(maxFileSize: Long, rec: Recording): MythProtocolResult[(MythDateTime, Option[PixmapInfo])]
   def queryPixmapGetIfModified(modifiedSince: MythDateTime, maxFileSize: Long, rec: Recording): MythProtocolResult[(MythDateTime, Option[PixmapInfo])]
   def queryPixmapLastModified(rec: Recording): MythProtocolResult[MythDateTime]
-  def queryRecorderCancelNextRecording(cardId: CaptureCardId, cancel: Boolean): Unit
+  def queryRecorderCancelNextRecording(cardId: CaptureCardId, cancel: Boolean): MythProtocolResult[Unit]
   def queryRecorderChangeBrightness(cardId: CaptureCardId, adjType: PictureAdjustType, up: Boolean): MythProtocolResult[Int]
-  def queryRecorderChangeChannel(cardId: CaptureCardId, dir: ChannelChangeDirection): Unit
+  def queryRecorderChangeChannel(cardId: CaptureCardId, dir: ChannelChangeDirection): MythProtocolResult[Unit]
   def queryRecorderChangeColour(cardId: CaptureCardId, adjType: PictureAdjustType, up: Boolean): MythProtocolResult[Int]
   def queryRecorderChangeContrast(cardId: CaptureCardId, adjType: PictureAdjustType, up: Boolean): MythProtocolResult[Int]
   def queryRecorderChangeHue(cardId: CaptureCardId, adjType: PictureAdjustType, up: Boolean): MythProtocolResult[Int]
@@ -91,8 +91,8 @@ trait MythProtocolAPI {
   def queryRecorderFillDurationMap(cardId: CaptureCardId, start: VideoPositionFrame, end: VideoPositionFrame): MythProtocolResult[Map[VideoPositionFrame, Long]]
   // This returns a map from frame number to file byte offset
   def queryRecorderFillPositionMap(cardId: CaptureCardId, start: VideoPositionFrame, end: VideoPositionFrame): MythProtocolResult[Map[VideoPositionFrame, Long]]
-  def queryRecorderFinishRecording(cardId: CaptureCardId): Unit
-  def queryRecorderFrontendReady(cardId: CaptureCardId): Unit
+  def queryRecorderFinishRecording(cardId: CaptureCardId): MythProtocolResult[Unit]
+  def queryRecorderFrontendReady(cardId: CaptureCardId): MythProtocolResult[Unit]
   def queryRecorderGetBrightness(cardId: CaptureCardId): MythProtocolResult[Int]
   def queryRecorderGetChannelInfo(cardId: CaptureCardId, chanId: ChanId): MythProtocolResult[Channel]
   def queryRecorderGetColour(cardId: CaptureCardId): MythProtocolResult[Int]
@@ -113,22 +113,22 @@ trait MythProtocolAPI {
     startTime: MythDateTime): MythProtocolResult[UpcomingProgram]
   def queryRecorderGetRecording(cardId: CaptureCardId): MythProtocolResult[Recording]
   def queryRecorderIsRecording(cardId: CaptureCardId): MythProtocolResult[Boolean]
-  def queryRecorderPause(cardId: CaptureCardId): Unit
+  def queryRecorderPause(cardId: CaptureCardId): MythProtocolResult[Unit]
   // NB Must call queryRecorderPause before queryRecorderSetChannel
-  def queryRecorderSetChannel(cardId: CaptureCardId, channum: ChannelNumber): Unit
+  def queryRecorderSetChannel(cardId: CaptureCardId, channum: ChannelNumber): MythProtocolResult[Unit]
   def queryRecorderSetInput(cardId: CaptureCardId, inputName: String): MythProtocolResult[String]
   // NB the recordingState parameter is ignored by the backend implementation
-  def queryRecorderSetLiveRecording(cardId: CaptureCardId, recordingState: Int): Unit
+  def queryRecorderSetLiveRecording(cardId: CaptureCardId, recordingState: Int): MythProtocolResult[Unit]
   def queryRecorderSetSignalMonitoringRate(cardId: CaptureCardId, rate: Int, notifyFrontend: Boolean): MythProtocolResult[Boolean]
   def queryRecorderShouldSwitchCard(cardId: CaptureCardId, chanId: ChanId): MythProtocolResult[Boolean]
   // FIXME when I invoked spawnLiveTV during testing, it caused SIGABRT on the backend !!
-  def queryRecorderSpawnLiveTV(cardId: CaptureCardId, usePiP: Boolean, channumStart: ChannelNumber): Unit
-  def queryRecorderStopLiveTV(cardId: CaptureCardId): Unit
-  def queryRecorderToggleChannelFavorite(cardId: CaptureCardId, channelGroup: String): Unit
+  def queryRecorderSpawnLiveTV(cardId: CaptureCardId, usePiP: Boolean, channumStart: ChannelNumber): MythProtocolResult[Unit]
+  def queryRecorderStopLiveTV(cardId: CaptureCardId): MythProtocolResult[Unit]
+  def queryRecorderToggleChannelFavorite(cardId: CaptureCardId, channelGroup: String): MythProtocolResult[Unit]
   def queryRecording(pathName: String): MythProtocolResult[Recording]
   def queryRecording(chanId: ChanId, startTime: MythDateTime): MythProtocolResult[Recording]
   def queryRecordings(specifier: String = "Unsorted"): MythProtocolResult[ExpectedCountIterator[Recording]]
-  def queryRemoteEncoderCancelNextRecording(cardId: CaptureCardId, cancel: Boolean): Unit
+  def queryRemoteEncoderCancelNextRecording(cardId: CaptureCardId, cancel: Boolean): MythProtocolResult[Unit]
   def queryRemoteEncoderGetCurrentRecording(cardId: CaptureCardId): MythProtocolResult[Recording]
   def queryRemoteEncoderGetFreeInputs(cardId: CaptureCardId, excludedCards: CaptureCardId*): MythProtocolResult[List[CardInput]]
   def queryRemoteEncoderGetMaxBitrate(cardId: CaptureCardId): MythProtocolResult[Long]
@@ -139,9 +139,9 @@ trait MythProtocolAPI {
   def queryRemoteEncoderIsBusy(cardId: CaptureCardId): MythProtocolResult[(Boolean, Option[CardInput], Option[ChanId])]
   def queryRemoteEncoderIsBusy(cardId: CaptureCardId, timeBufferSeconds: Int): MythProtocolResult[(Boolean, Option[CardInput], Option[ChanId])]
   def queryRemoteEncoderMatchesRecording(cardId: CaptureCardId, rec: Recording): MythProtocolResult[Boolean]
-  def queryRemoteEncoderRecordPending(cardId: CaptureCardId, secondsLeft: Int, hasLaterShowing: Boolean, rec: Recording): Unit
+  def queryRemoteEncoderRecordPending(cardId: CaptureCardId, secondsLeft: Int, hasLaterShowing: Boolean, rec: Recording): MythProtocolResult[Unit]
   def queryRemoteEncoderStartRecording(cardId: CaptureCardId, rec: Recording): MythProtocolResult[RecStatus]
-  def queryRemoteEncoderStopRecording(cardId: CaptureCardId): Unit
+  def queryRemoteEncoderStopRecording(cardId: CaptureCardId): MythProtocolResult[Unit]
   def querySetting(hostName: String, settingName: String): MythProtocolResult[String]
   def querySGGetFileList(hostName: String, storageGroup: String, path: String): MythProtocolResult[List[String]]
   def querySGGetFileList(hostName: String, storageGroup: String, path: String, fileNamesOnly: Boolean): MythProtocolResult[List[String]]

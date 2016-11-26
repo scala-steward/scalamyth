@@ -353,8 +353,9 @@ private[myth] trait MythProtocolAPILike {
     result map { case d: MythDateTime => d }
   }
 
-  def queryRecorderCancelNextRecording(cardId: CaptureCardId, cancel: Boolean): Unit = {
+  def queryRecorderCancelNextRecording(cardId: CaptureCardId, cancel: Boolean): MythProtocolResult[Unit] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "CANCEL_NEXT_RECORDING", cancel)
+    result map { case QueryRecorderAcknowledgement => () }
   }
 
   def queryRecorderChangeBrightness(cardId: CaptureCardId, adjType: PictureAdjustType, up: Boolean): MythProtocolResult[Int] = {
@@ -362,8 +363,9 @@ private[myth] trait MythProtocolAPILike {
     result map { case QueryRecorderPictureAttribute(a) => a }
   }
 
-  def queryRecorderChangeChannel(cardId: CaptureCardId, dir: ChannelChangeDirection): Unit = {
+  def queryRecorderChangeChannel(cardId: CaptureCardId, dir: ChannelChangeDirection): MythProtocolResult[Unit] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "CHANGE_CHANNEL", dir)
+    result map { case QueryRecorderAcknowledgement => () }
   }
 
   def queryRecorderChangeColour(cardId: CaptureCardId, adjType: PictureAdjustType, up: Boolean): MythProtocolResult[Int] = {
@@ -405,12 +407,14 @@ private[myth] trait MythProtocolAPILike {
     result map { case QueryRecorderPositionMap(m) => m }
   }
 
-  def queryRecorderFinishRecording(cardId: CaptureCardId): Unit = {
+  def queryRecorderFinishRecording(cardId: CaptureCardId): MythProtocolResult[Unit] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "FINISH_RECORDING")
+    result map { case QueryRecorderAcknowledgement => () }
   }
 
-  def queryRecorderFrontendReady(cardId: CaptureCardId): Unit = {
+  def queryRecorderFrontendReady(cardId: CaptureCardId): MythProtocolResult[Unit] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "FRONTEND_READY")
+    result map { case QueryRecorderAcknowledgement => () }
   }
 
   def queryRecorderGetBrightness(cardId: CaptureCardId): MythProtocolResult[Int] = {
@@ -501,12 +505,14 @@ private[myth] trait MythProtocolAPILike {
     result map { case QueryRecorderBoolean(b) => b }
   }
 
-  def queryRecorderPause(cardId: CaptureCardId): Unit = {
+  def queryRecorderPause(cardId: CaptureCardId): MythProtocolResult[Unit] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "PAUSE")
+    result map { case QueryRecorderAcknowledgement => () }
   }
 
-  def queryRecorderSetChannel(cardId: CaptureCardId, channum: ChannelNumber): Unit = {
+  def queryRecorderSetChannel(cardId: CaptureCardId, channum: ChannelNumber): MythProtocolResult[Unit] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "SET_CHANNEL", channum)
+    result map { case QueryRecorderAcknowledgement => () }
   }
 
   def queryRecorderSetInput(cardId: CaptureCardId, inputName: String): MythProtocolResult[String] = {
@@ -514,8 +520,9 @@ private[myth] trait MythProtocolAPILike {
     result map { case QueryRecorderInput(input) => input }
   }
 
-  def queryRecorderSetLiveRecording(cardId: CaptureCardId, recordingState: Int): Unit = {
+  def queryRecorderSetLiveRecording(cardId: CaptureCardId, recordingState: Int): MythProtocolResult[Unit] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "SET_LIVE_RECORDING", recordingState)
+    result map { case QueryRecorderAcknowledgement => () }
   }
 
   def queryRecorderSetSignalMonitoringRate(cardId: CaptureCardId, rate: Int, notifyFrontend: Boolean): MythProtocolResult[Boolean] = {
@@ -528,16 +535,19 @@ private[myth] trait MythProtocolAPILike {
     result map { case QueryRecorderBoolean(b) => b }
   }
 
-  def queryRecorderSpawnLiveTV(cardId: CaptureCardId, usePiP: Boolean, channumStart: ChannelNumber): Unit = {
+  def queryRecorderSpawnLiveTV(cardId: CaptureCardId, usePiP: Boolean, channumStart: ChannelNumber): MythProtocolResult[Unit] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "SPAWN_LIVETV", usePiP, channumStart)
+    result map { case QueryRecorderAcknowledgement => () }
   }
 
-  def queryRecorderStopLiveTV(cardId: CaptureCardId): Unit = {
+  def queryRecorderStopLiveTV(cardId: CaptureCardId): MythProtocolResult[Unit] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "STOP_LIVETV")
+    result map { case QueryRecorderAcknowledgement => () }
   }
 
-  def queryRecorderToggleChannelFavorite(cardId: CaptureCardId, channelGroup: String): Unit = {
+  def queryRecorderToggleChannelFavorite(cardId: CaptureCardId, channelGroup: String): MythProtocolResult[Unit] = {
     val result = sendCommand("QUERY_RECORDER", cardId, "TOGGLE_CHANNEL_FAVORITE", channelGroup)
+    result map { case QueryRecorderAcknowledgement => () }
   }
 
   def queryRecording(pathName: String): MythProtocolResult[Recording] = {
@@ -555,8 +565,9 @@ private[myth] trait MythProtocolAPILike {
     result map { case it: ExpectedCountIterator[_] => it.asInstanceOf[ExpectedCountIterator[Recording]] }
   }
 
-  def queryRemoteEncoderCancelNextRecording(cardId: CaptureCardId, cancel: Boolean): Unit = {
+  def queryRemoteEncoderCancelNextRecording(cardId: CaptureCardId, cancel: Boolean): MythProtocolResult[Unit] = {
     val result = sendCommand("QUERY_REMOTEENCODER", cardId, "CANCEL_NEXT_RECORDING", cancel)
+    result map { case QueryRemoteEncoderAcknowledgement => () }
   }
 
   def queryRemoteEncoderGetCurrentRecording(cardId: CaptureCardId): MythProtocolResult[Recording] = {
@@ -610,8 +621,9 @@ private[myth] trait MythProtocolAPILike {
     result map { case QueryRemoteEncoderBoolean(r) => r }
   }
 
-  def queryRemoteEncoderRecordPending(cardId: CaptureCardId, secondsLeft: Int, hasLaterShowing: Boolean, rec: Recording): Unit = {
+  def queryRemoteEncoderRecordPending(cardId: CaptureCardId, secondsLeft: Int, hasLaterShowing: Boolean, rec: Recording): MythProtocolResult[Unit] = {
     val result = sendCommand("QUERY_REMOTEENCODER", cardId, "RECORD_PENDING", secondsLeft, hasLaterShowing, rec)
+    result map { case QueryRemoteEncoderAcknowledgement => () }
   }
 
   def queryRemoteEncoderStartRecording(cardId: CaptureCardId, rec: Recording): MythProtocolResult[RecStatus] = {
@@ -619,8 +631,9 @@ private[myth] trait MythProtocolAPILike {
     result map { case QueryRemoteEncoderRecStatus(s) => s }
   }
 
-  def queryRemoteEncoderStopRecording(cardId: CaptureCardId): Unit = {
+  def queryRemoteEncoderStopRecording(cardId: CaptureCardId): MythProtocolResult[Unit] = {
     val result = sendCommand("QUERY_REMOTEENCODER", cardId, "STOP_RECORDING")
+    result map { case QueryRemoteEncoderAcknowledgement => () }
   }
 
   def querySGGetFileList(hostName: String, storageGroup: String, path: String): MythProtocolResult[List[String]] = {

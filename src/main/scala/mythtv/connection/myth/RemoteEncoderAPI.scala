@@ -9,7 +9,7 @@ import model.EnumTypes._
 //  (cancelNextRecording, getMaxBitrate, getCurrentRecording, getFreeInputs)
 
 trait RemoteEncoderAPI {
-  def cancelNextRecording(cancel: Boolean): Unit
+  def cancelNextRecording(cancel: Boolean): MythProtocolResult[Unit]
   def getCurrentRecording: MythProtocolResult[Recording]
   def getFreeInputs(excludedCards: CaptureCardId*): MythProtocolResult[List[CardInput]]
   def getMaxBitrate: MythProtocolResult[Long]
@@ -23,16 +23,16 @@ trait RemoteEncoderAPI {
   def isBusy(timeBufferSeconds: Int): MythProtocolResult[(Boolean, Option[CardInput], Option[ChanId])]
   def matchesRecording(rec: Recording): MythProtocolResult[Boolean]
   // TODO arguments to recordPending and startRecording should probably be Recordable?
-  def recordPending(secondsLeft: Int, hasLaterShowing: Boolean, rec: Recording): Unit
+  def recordPending(secondsLeft: Int, hasLaterShowing: Boolean, rec: Recording): MythProtocolResult[Unit]
   def startRecording(rec: Recording): MythProtocolResult[RecStatus]
-  def stopRecording(): Unit
+  def stopRecording(): MythProtocolResult[Unit]
 }
 
 
 trait RemoteEncoderAPILike extends RemoteEncoder with RemoteEncoderAPI {
   protected def protoApi: MythProtocolAPI
 
-  def cancelNextRecording(cancel: Boolean): Unit =
+  def cancelNextRecording(cancel: Boolean): MythProtocolResult[Unit] =
     protoApi.queryRemoteEncoderCancelNextRecording(cardId, cancel)
 
   def getCurrentRecording: MythProtocolResult[Recording] =
@@ -65,12 +65,12 @@ trait RemoteEncoderAPILike extends RemoteEncoder with RemoteEncoderAPI {
   def matchesRecording(rec: Recording): MythProtocolResult[Boolean] =
     protoApi.queryRemoteEncoderMatchesRecording(cardId, rec)
 
-  def recordPending(secondsLeft: Int, hasLaterShowing: Boolean, rec: Recording): Unit =
+  def recordPending(secondsLeft: Int, hasLaterShowing: Boolean, rec: Recording): MythProtocolResult[Unit] =
     protoApi.queryRemoteEncoderRecordPending(cardId, secondsLeft, hasLaterShowing, rec)
 
   def startRecording(rec: Recording): MythProtocolResult[RecStatus] =
     protoApi.queryRemoteEncoderStartRecording(cardId, rec)
 
-  def stopRecording(): Unit =
+  def stopRecording(): MythProtocolResult[Unit] =
     protoApi.queryRemoteEncoderStopRecording(cardId)
 }
