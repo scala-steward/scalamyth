@@ -69,7 +69,7 @@ trait BackendOperations {
    * Storage group file operations
    */
   def fileHash(fileName: String, storageGroup: String, hostName: String = ""): MythFileHash
-//  def fileExists(fileName: String, storageGroup: String): Boolean
+  def fileExists(fileName: String, storageGroup: String): Boolean
 
   def reschedule(): Unit
   def reschedule(wait: Boolean): Unit

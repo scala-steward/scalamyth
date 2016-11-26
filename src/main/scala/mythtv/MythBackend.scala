@@ -98,7 +98,8 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
   def fileHash(fileName: String, storageGroup: String, hostName: String): MythFileHash =
     conn.queryFileHash(fileName, storageGroup, hostName).right.get
 
-//  def fileExists(fileName: String, storageGroup: String): Boolean
+  def fileExists(fileName: String, storageGroup: String): Boolean =
+    conn.queryFileExists(fileName, storageGroup).isRight
 
   def uptime: Duration = conn.queryUptime.right.get
   def loadAverages: (Double, Double, Double) = conn.queryLoad.right.get
