@@ -36,14 +36,16 @@ trait CaptureCard extends Tuner {
   def dvbEitScan: Boolean
   // field 'defaultinput' from the DB capturecard table is excluded here
 
-  override def toString: String
-    = s"<CaptureCard $cardId $hostName ${cardType.getOrElse("")} ${videoDevice.getOrElse("")}>"
+  override def toString: String =
+    s"<CaptureCard $cardId $hostName ${cardType.getOrElse("")} ${videoDevice.getOrElse("")}>"
 }
 
 trait RemoteEncoder {
   def cardId: CaptureCardId
   def host: String
   def port: Int
+
+  override def toString: String = s"<RemoteEncoder $cardId $host $port>"
 }
 
 // this does not seem to include "port" data, though, hmm...
@@ -54,6 +56,8 @@ trait RemoteEncoderState extends RemoteEncoder {
   def state: TvState
   def sleepStatus: SleepStatus
   def currentRecording: Option[Recording]
+
+  override def toString: String = s"<RemoteEncoderState $cardId $host $state>"
 }
 
 final case class InputId(id: Int) extends AnyVal with IntegerIdentifier
