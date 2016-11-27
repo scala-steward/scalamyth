@@ -24,7 +24,7 @@ class JsonMythService(conn: BackendJsonConnection)
     for {
       response <- post("GetConnectionInfo", params)
       root     <- responseRoot(response, "ConnectionInfo")
-      result   <- Try( root.convertTo[ConnectionInfo] )
+      result   <- Try(root.convertTo[ConnectionInfo])
     } yield result
   }
 
@@ -33,7 +33,7 @@ class JsonMythService(conn: BackendJsonConnection)
     for {
       response <- request("GetHostName")
       root     <- responseRoot(response, "String")
-      result   <- Try( root.convertTo[String] )
+      result   <- Try(root.convertTo[String])
     } yield result
   }
 
@@ -41,7 +41,7 @@ class JsonMythService(conn: BackendJsonConnection)
     for {
       response <- request("GetHosts")
       root     <- responseRoot(response)
-      result   <- Try( root.convertTo[List[String]] )
+      result   <- Try(root.convertTo[List[String]])
     } yield result
   }
 
@@ -49,7 +49,7 @@ class JsonMythService(conn: BackendJsonConnection)
     for {
       response <- request("GetKeys")
       root     <- responseRoot(response)
-      result   <- Try( root.convertTo[List[String]] )
+      result   <- Try(root.convertTo[List[String]])
     } yield result
   }
 
@@ -60,7 +60,7 @@ class JsonMythService(conn: BackendJsonConnection)
     for {
       response <- request("GetSetting", params)
       root     <- responseRoot(response, "SettingList")
-      result   <- Try( root.convertTo[Settings] )
+      result   <- Try(root.convertTo[Settings])
     } yield result
   }
 
@@ -71,7 +71,7 @@ class JsonMythService(conn: BackendJsonConnection)
     for {
       response <- request("GetStorageGroupDirs", params)
       root     <- responseRoot(response, "StorageGroupDirList")
-      result   <- Try( root.convertTo[List[StorageGroupDir]] )
+      result   <- Try(root.convertTo[List[StorageGroupDir]])
     } yield result
   }
 
@@ -79,7 +79,7 @@ class JsonMythService(conn: BackendJsonConnection)
     for {
       response <- request("GetTimeZone")
       root     <- responseRoot(response, "TimeZoneInfo")
-      result   <- Try( root.convertTo[TimeZoneInfo] )
+      result   <- Try(root.convertTo[TimeZoneInfo])
     } yield result
   }
 
@@ -113,7 +113,7 @@ class JsonMythService(conn: BackendJsonConnection)
     for {
       response <- request("GetLogs", params)
       root     <- responseRoot(response, "LogMessageList") // TODO ???
-      result   <- Try( ??? )
+      result   <- Try(???)
     } yield result
   }
 
@@ -128,7 +128,7 @@ class JsonMythService(conn: BackendJsonConnection)
     for {
       response <- post("AddStorageGroupDir", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -141,7 +141,7 @@ class JsonMythService(conn: BackendJsonConnection)
     for {
       response <- post("RemoveStorageGroupDir", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -154,7 +154,7 @@ class JsonMythService(conn: BackendJsonConnection)
     for {
       response <- post("PutSetting", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -167,7 +167,7 @@ class JsonMythService(conn: BackendJsonConnection)
     for {
       response <- post("ChangePassword", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )  // TODO test
+      result   <- Try(root.booleanField("bool"))  // TODO test
     } yield result
   }
 
@@ -182,7 +182,7 @@ class JsonMythService(conn: BackendJsonConnection)
     for {
       response <- post("TestDBSettings", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -194,7 +194,7 @@ class JsonMythService(conn: BackendJsonConnection)
     for {
       response <- post("SendMessage", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -204,7 +204,7 @@ class JsonMythService(conn: BackendJsonConnection)
     for {
       response <- post("BackupDatabase")
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -214,7 +214,7 @@ class JsonMythService(conn: BackendJsonConnection)
     for {
       response <- post("CheckDatabase", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -222,7 +222,7 @@ class JsonMythService(conn: BackendJsonConnection)
     for {
       response <- post("ProfileSubmit")
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )  // TODO test
+      result   <- Try(root.booleanField("bool"))  // TODO test
     } yield result
   }
 
@@ -230,7 +230,7 @@ class JsonMythService(conn: BackendJsonConnection)
     for {
       response <- post("ProfileDelete")
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )  // TODO test
+      result   <- Try(root.booleanField("bool"))  // TODO test
     } yield result
   }
 

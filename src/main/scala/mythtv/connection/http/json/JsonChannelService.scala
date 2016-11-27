@@ -19,7 +19,7 @@ class JsonChannelService(conn: BackendJsonConnection)
     for {
       response <- request("GetChannelInfo", params)
       root     <- responseRoot(response, "ChannelInfo")
-      result   <- Try( root.convertTo[ChannelDetails] )
+      result   <- Try(root.convertTo[ChannelDetails])
     } yield result
   }
 
@@ -28,7 +28,7 @@ class JsonChannelService(conn: BackendJsonConnection)
     for {
       response <- request("GetChannelInfoList", params)
       root     <- responseRoot(response, "ChannelInfoList")
-      result   <- Try( root.convertTo[MythJsonPagedObjectList[ChannelDetails]] )
+      result   <- Try(root.convertTo[MythJsonPagedObjectList[ChannelDetails]])
     } yield result
   }
 
@@ -37,7 +37,7 @@ class JsonChannelService(conn: BackendJsonConnection)
     for {
       response <- request("GetVideoSource", params)
       root     <- responseRoot(response, "VideoSource")
-      result   <- Try( root.convertTo[ListingSource] )
+      result   <- Try(root.convertTo[ListingSource])
     } yield result
   }
 
@@ -45,7 +45,7 @@ class JsonChannelService(conn: BackendJsonConnection)
     for {
       response <- request("GetVideoSourceList")
       root     <- responseRoot(response, "VideoSourceList")
-      result   <- Try( root.convertTo[MythJsonObjectList[ListingSource]] )
+      result   <- Try(root.convertTo[MythJsonObjectList[ListingSource]])
     } yield result.data
   }
 
@@ -54,7 +54,7 @@ class JsonChannelService(conn: BackendJsonConnection)
     for {
       response <- request("GetVideoMultiplex", params)
       root     <- responseRoot(response, "VideoMultiplex")
-      result   <- Try( root.convertTo[VideoMultiplex] )
+      result   <- Try(root.convertTo[VideoMultiplex])
     } yield result
   }
 
@@ -64,7 +64,7 @@ class JsonChannelService(conn: BackendJsonConnection)
     for {
       response <- request("GetVideoMultiplexList", params)
       root     <- responseRoot(response, "VideoMultiplexList")
-      result   <- Try( root.convertTo[MythJsonPagedObjectList[VideoMultiplex]] )
+      result   <- Try(root.convertTo[MythJsonPagedObjectList[VideoMultiplex]])
     } yield result
   }
 
@@ -73,7 +73,7 @@ class JsonChannelService(conn: BackendJsonConnection)
     for {
       response <- request("GetXMLTVIdList", params)
       root     <- responseRoot(response)
-      result   <- Try( root.convertTo[List[String]] )
+      result   <- Try(root.convertTo[List[String]])
     } yield result
   }
 
@@ -83,7 +83,7 @@ class JsonChannelService(conn: BackendJsonConnection)
     for {
       response <- post("GetDDLineupList", params)
       root     <- responseRoot(response, "LineupList")
-      result   <- Try( root.convertTo[List[Lineup]] )
+      result   <- Try(root.convertTo[List[Lineup]])
     } yield result
   }
 
@@ -111,7 +111,7 @@ class JsonChannelService(conn: BackendJsonConnection)
     for {
       response <- post("AddDBChannel", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -120,7 +120,7 @@ class JsonChannelService(conn: BackendJsonConnection)
     for {
       response <- post("RemoveDBChannel", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -146,7 +146,7 @@ class JsonChannelService(conn: BackendJsonConnection)
     for {
       response <- post("UpdateDBChannel", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -165,7 +165,7 @@ class JsonChannelService(conn: BackendJsonConnection)
     )
     for {
       response <- post("AddVideoSource", params)
-      result   <- Try( ListingSourceId(0) ) // TODO
+      result   <- Try(ListingSourceId(0)) // TODO
     } yield result
   }
 
@@ -174,7 +174,7 @@ class JsonChannelService(conn: BackendJsonConnection)
     for {
       response <- post("RemoveVideoSource", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -194,7 +194,7 @@ class JsonChannelService(conn: BackendJsonConnection)
     for {
       response <- post("UpdateVideoSource", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -207,8 +207,7 @@ class JsonChannelService(conn: BackendJsonConnection)
     if (waitForFinish) params += "WaitForFinish" -> waitForFinish
     for {
       response <- post("FetchChannelsFromSource", params)
-      result   <- Try( 0 )  // TODO
+      result   <- Try(0)  // TODO
     } yield result
   }
-
 }

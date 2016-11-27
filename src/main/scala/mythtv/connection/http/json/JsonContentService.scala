@@ -21,7 +21,7 @@ class JsonContentService(conn: BackendJsonConnection)
     for {
       response <- request("GetFileList", params)
       root     <- responseRoot(response)
-      result   <- Try( root.convertTo[List[String]] )
+      result   <- Try(root.convertTo[List[String]])
     } yield result
   }
 
@@ -32,7 +32,7 @@ class JsonContentService(conn: BackendJsonConnection)
     for {
       response <- request("GetHash", params)
       root     <- responseRoot(response, "String")
-      result   <- Try( new MythFileHash(root.convertTo[String]) )
+      result   <- Try(new MythFileHash(root.convertTo[String]))
     } yield result
   }
 
@@ -41,7 +41,7 @@ class JsonContentService(conn: BackendJsonConnection)
     for {
       response <- request("GetLiveStream", params)
       root     <- responseRoot(response, "LiveStreamInfo")
-      result   <- Try( root.convertTo[LiveStream] )
+      result   <- Try(root.convertTo[LiveStream])
     } yield result
   }
 
@@ -51,7 +51,7 @@ class JsonContentService(conn: BackendJsonConnection)
     for {
       response <- request("GetLiveStreamList", params)
       root     <- responseRoot(response, "LiveStreamInfoList")
-      result   <- Try( root.convertTo[List[LiveStream]] )
+      result   <- Try(root.convertTo[List[LiveStream]])
     } yield result
   }
 
@@ -125,7 +125,7 @@ class JsonContentService(conn: BackendJsonConnection)
     for {
       response <- request("GetRecordingArtworkList", params)
       root     <- responseRoot(response, "ArtworkInfoList")
-      result   <- Try( root.convertTo[List[ArtworkInfo]] )
+      result   <- Try(root.convertTo[List[ArtworkInfo]])
     } yield result
   }
 
@@ -137,7 +137,7 @@ class JsonContentService(conn: BackendJsonConnection)
     for {
       response <- request("GetProgramArtworkList", params)
       root     <- responseRoot(response, "ArtworkInfoList")
-      result   <- Try( root.convertTo[List[ArtworkInfo]] )
+      result   <- Try(root.convertTo[List[ArtworkInfo]])
     } yield result
   }
 
@@ -149,7 +149,7 @@ class JsonContentService(conn: BackendJsonConnection)
     for {
       response <- post("DownloadFile", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -169,7 +169,7 @@ class JsonContentService(conn: BackendJsonConnection)
     for {
       response <- post("AddLiveStream", params)
       root     <- responseRoot(response, "LiveStreamInfo")
-      result   <- Try( root.convertTo[LiveStream] )
+      result   <- Try(root.convertTo[LiveStream])
     } yield result
   }
 
@@ -188,7 +188,7 @@ class JsonContentService(conn: BackendJsonConnection)
     for {
       response <- post("AddRecordingLiveStream", params)
       root     <- responseRoot(response, "LiveStreamInfo")
-      result   <- Try( root.convertTo[LiveStream] )
+      result   <- Try(root.convertTo[LiveStream])
     } yield result
   }
 
@@ -204,7 +204,7 @@ class JsonContentService(conn: BackendJsonConnection)
     for {
       response <- post("AddVideoLiveStream", params)
       root     <- responseRoot(response, "LiveStreamInfo")
-      result   <- Try( root.convertTo[LiveStream] )
+      result   <- Try(root.convertTo[LiveStream])
     } yield result
   }
 
@@ -213,7 +213,7 @@ class JsonContentService(conn: BackendJsonConnection)
     for {
       response <- post("StopLiveStream", params)
       root     <- responseRoot(response, "LiveStreamInfo")
-      result   <- Try( root.convertTo[LiveStream] )
+      result   <- Try(root.convertTo[LiveStream])
     } yield result
   }
 
@@ -222,7 +222,7 @@ class JsonContentService(conn: BackendJsonConnection)
     for {
       response <- post("RemoveLiveStream", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 }

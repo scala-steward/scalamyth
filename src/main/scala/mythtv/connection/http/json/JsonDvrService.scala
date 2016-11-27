@@ -30,7 +30,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- request("GetRecorded", params)
       root     <- responseRoot(response, "Program")
-      result   <- Try( root.convertTo[Recording] )
+      result   <- Try(root.convertTo[Recording])
     } yield result
   }
 
@@ -40,7 +40,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- request("GetRecordedList", params)
       root     <- responseRoot(response, "ProgramList")
-      result   <- Try( root.convertTo[MythJsonPagedObjectList[Recording]] )
+      result   <- Try(root.convertTo[MythJsonPagedObjectList[Recording]])
     } yield result
   }
 
@@ -49,7 +49,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- request("GetExpiringList", params)
       root     <- responseRoot(response, "ProgramList")
-      result   <- Try( root.convertTo[MythJsonPagedObjectList[Recording]] )
+      result   <- Try(root.convertTo[MythJsonPagedObjectList[Recording]])
     } yield result
   }
 
@@ -59,7 +59,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- request("GetUpcomingList", params)
       root     <- responseRoot(response, "ProgramList")
-      result   <- Try( root.convertTo[MythJsonPagedObjectList[Recordable]] )
+      result   <- Try(root.convertTo[MythJsonPagedObjectList[Recordable]])
     } yield result
   }
 
@@ -68,7 +68,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- request("GetConflictList", params)
       root     <- responseRoot(response, "ProgramList")
-      result   <- Try( root.convertTo[MythJsonPagedObjectList[Recordable]] )
+      result   <- Try(root.convertTo[MythJsonPagedObjectList[Recordable]])
     } yield result
   }
 
@@ -76,7 +76,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- request("GetEncoderList")
       root     <- responseRoot(response, "EncoderList")
-      result   <- Try( root.convertTo[List[RemoteEncoderState]] )
+      result   <- Try(root.convertTo[List[RemoteEncoderState]])
     } yield result
   }
 
@@ -85,7 +85,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- request("GetRecordScheduleList", params)
       root     <- responseRoot(response, "RecRuleList")
-      result   <- Try( root.convertTo[MythJsonPagedObjectList[RecordRule]] )
+      result   <- Try(root.convertTo[MythJsonPagedObjectList[RecordRule]])
     } yield result
   }
 
@@ -94,7 +94,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- request("GetRecordSchedule", params)
       root     <- responseRoot(response, "RecRule")
-      result   <- Try( root.convertTo[RecordRule] )
+      result   <- Try(root.convertTo[RecordRule])
     } yield result
   }
 
@@ -102,7 +102,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- request("GetRecGroupList")
       root     <- responseRoot(response)
-      result   <- Try( root.convertTo[List[String]] )
+      result   <- Try(root.convertTo[List[String]])
     } yield result
   }
 
@@ -110,7 +110,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- request("GetTitleList")
       root     <- responseRoot(response)
-      result   <- Try( root.convertTo[List[String]] )
+      result   <- Try(root.convertTo[List[String]])
     } yield result
   }
 
@@ -118,7 +118,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- request("GetTitleInfoList")
       root     <- responseRoot(response, "TitleInfoList")
-      result   <- Try( root.convertTo[List[TitleInfo]] )
+      result   <- Try(root.convertTo[List[TitleInfo]])
     } yield result
   }
 
@@ -132,7 +132,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- post("RemoveRecorded", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -183,7 +183,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- post("UpdateRecordSchedule", params)
       root     <- responseRoot(response)
-      result   <- Try( RecordRuleId(0) ) // FIXME
+      result   <- Try(RecordRuleId(0)) // FIXME
     } yield result
   }
 
@@ -234,7 +234,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- post("UpdateRecordSchedule", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -243,7 +243,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- post("RemoveRecordSchedule", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -252,7 +252,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- post("DisableRecordSchedule", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -261,7 +261,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- post("EnableRecordSchedule", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -274,8 +274,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- post("UpdateRecordedWatchedStatus", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
-
 }

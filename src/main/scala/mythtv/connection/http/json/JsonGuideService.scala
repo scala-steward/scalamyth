@@ -32,7 +32,7 @@ class JsonGuideService(conn: BackendJsonConnection)
     for {
       response <- request("GetProgramGuide", params)
       root     <- responseRoot(response, "ProgramGuide")
-      result   <- Try( root.convertTo[Guide[Channel, Program]] )
+      result   <- Try(root.convertTo[Guide[Channel, Program]])
     } yield result
   }
 
@@ -48,7 +48,7 @@ class JsonGuideService(conn: BackendJsonConnection)
     for {
       response <- request("GetProgramDetails", params)
       root     <- responseRoot(response, "Program")
-      result   <- Try( root.convertTo[Program] )
+      result   <- Try(root.convertTo[Program])
     } yield result
   }
 

@@ -18,7 +18,7 @@ class JsonCaptureService(conn: BackendJsonConnection)
     for {
       response <- request("GetCaptureCard", params)
       root     <- responseRoot(response, "CaptureCard")
-      result   <- Try( root.convertTo[CaptureCard] )
+      result   <- Try(root.convertTo[CaptureCard])
     } yield result
   }
 
@@ -29,7 +29,7 @@ class JsonCaptureService(conn: BackendJsonConnection)
     for {
       response <- request("GetCaptureCardList", params)
       root     <- responseRoot(response, "CaptureCardList")
-      result   <- Try( root.convertTo[List[CaptureCard]] )
+      result   <- Try(root.convertTo[List[CaptureCard]])
     } yield result
   }
 
@@ -64,7 +64,7 @@ class JsonCaptureService(conn: BackendJsonConnection)
     )
     for {
       response <- post("AddCaptureCard", params)
-      result   <- Try( CaptureCardId(0) ) // TODO implement
+      result   <- Try(CaptureCardId(0)) // TODO implement
     } yield result
   }
 
@@ -73,7 +73,7 @@ class JsonCaptureService(conn: BackendJsonConnection)
     for {
       response <- post("RemoveCaptureCard", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") ) // TODO test
+      result   <- Try(root.booleanField("bool")) // TODO test
     } yield result
   }
 
@@ -86,7 +86,7 @@ class JsonCaptureService(conn: BackendJsonConnection)
     for {
       response <- post("UpdateCaptureCard", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") ) // TODO test
+      result   <- Try(root.booleanField("bool")) // TODO test
     } yield result
   }
 
@@ -111,7 +111,7 @@ class JsonCaptureService(conn: BackendJsonConnection)
     )
     for {
       response <- post("AddCardInput", params)
-      result   <- Try( InputId(0) )  // TODO
+      result   <- Try(InputId(0))  // TODO
     } yield result
   }
 
@@ -120,7 +120,7 @@ class JsonCaptureService(conn: BackendJsonConnection)
     for {
       response <- post("RemoveCardInput", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") ) // TODO test
+      result   <- Try(root.booleanField("bool")) // TODO test
     } yield result
   }
 
@@ -133,8 +133,7 @@ class JsonCaptureService(conn: BackendJsonConnection)
     for {
       response <- post("UpdateCardInput", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") ) // TODO test
+      result   <- Try(root.booleanField("bool")) // TODO test
     } yield result
   }
-
 }

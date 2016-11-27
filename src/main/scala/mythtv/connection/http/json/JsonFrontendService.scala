@@ -30,7 +30,7 @@ class JsonMythFrontendService(conn: FrontendJsonConnection)
     for {
       response <- request("GetActionList", params)
       root     <- responseRoot(response, "FrontendActionList")
-      result   <- Try( root.convertTo[FrontendActionMap] )
+      result   <- Try(root.convertTo[FrontendActionMap])
     } yield result
   }
 
@@ -38,7 +38,7 @@ class JsonMythFrontendService(conn: FrontendJsonConnection)
     for {
       response <- request("GetContextList")
       root     <- responseRoot(response)
-      result   <- Try( root.convertTo[List[String]] )
+      result   <- Try(root.convertTo[List[String]])
     } yield result
   }
 
@@ -46,7 +46,7 @@ class JsonMythFrontendService(conn: FrontendJsonConnection)
     for {
       response <- request("GetStatus")
       root     <- responseRoot(response, "FrontendStatus")
-      result   <- Try( root.convertTo[FrontendStatus] )
+      result   <- Try(root.convertTo[FrontendStatus])
     } yield result
   }
 
@@ -66,7 +66,7 @@ class JsonMythFrontendService(conn: FrontendJsonConnection)
     for {
       response <- post("PlayRecording", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -76,7 +76,7 @@ class JsonMythFrontendService(conn: FrontendJsonConnection)
     for {
       response <- post("PlayVideo", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -87,7 +87,7 @@ class JsonMythFrontendService(conn: FrontendJsonConnection)
     for {
       response <- post("SendAction", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -97,7 +97,7 @@ class JsonMythFrontendService(conn: FrontendJsonConnection)
     for {
       response <- post("SendMessage", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -129,7 +129,7 @@ class JsonMythFrontendService(conn: FrontendJsonConnection)
     for {
       response <- post("SendNotification", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 }

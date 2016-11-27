@@ -19,7 +19,7 @@ class JsonVideoService(conn: BackendJsonConnection)
     for {
       response <- request("GetVideo", params)
       root     <- responseRoot(response, "VideoMetadataInfo")
-      result   <- Try( root.convertTo[Video] )
+      result   <- Try(root.convertTo[Video])
     } yield result
   }
 
@@ -28,7 +28,7 @@ class JsonVideoService(conn: BackendJsonConnection)
     for {
       response <- request("GetVideoByFileName", params)
       root     <- responseRoot(response, "VideoMetadataInfo")
-      result   <- Try( root.convertTo[Video] )
+      result   <- Try(root.convertTo[Video])
     } yield result
   }
 
@@ -38,7 +38,7 @@ class JsonVideoService(conn: BackendJsonConnection)
     for {
       response <- request("GetVideoList", params)
       root     <- responseRoot(response, "VideoMetadataInfoList")
-      result   <- Try( root.convertTo[MythJsonPagedObjectList[Video]] )
+      result   <- Try(root.convertTo[MythJsonPagedObjectList[Video]])
     } yield result
   }
 
@@ -47,7 +47,7 @@ class JsonVideoService(conn: BackendJsonConnection)
     for {
       response <- request("GetBluray", params)
       root     <- responseRoot(response, "BlurayInfo")
-      result   <- Try( root.convertTo[BlurayInfo] )
+      result   <- Try(root.convertTo[BlurayInfo])
     } yield result
   }
 
@@ -64,7 +64,7 @@ class JsonVideoService(conn: BackendJsonConnection)
     for {
       response <- request("LookupVideo", params)
       root     <- responseRoot(response, "VideoLookupList")
-      result   <- Try( root.convertTo[MythJsonObjectList[VideoLookup]] )
+      result   <- Try(root.convertTo[MythJsonObjectList[VideoLookup]])
     } yield result.data
   }
 
@@ -78,7 +78,7 @@ class JsonVideoService(conn: BackendJsonConnection)
     for {
       response <- post("AddVideo", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -87,7 +87,7 @@ class JsonVideoService(conn: BackendJsonConnection)
     for {
       response <- post("RemoveVideoFromDB", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -97,7 +97,7 @@ class JsonVideoService(conn: BackendJsonConnection)
     for {
       response <- post("UpdateVideoWatchedStatus", params)
       root     <- responseRoot(response)
-      result   <- Try( root.booleanField("bool") )  // TODO test
+      result   <- Try(root.booleanField("bool"))  // TODO test
     } yield result
   }
 }
