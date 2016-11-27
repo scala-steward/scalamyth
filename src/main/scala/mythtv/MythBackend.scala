@@ -106,7 +106,7 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
 
   def isActiveBackend(hostname: String): Boolean = conn.queryIsActiveBackend(hostname).right.get
 
-  def isActive: Boolean = isActiveBackend(host)   // TODO does this only work in master backends?
+  def isActive: Boolean = isActiveBackend(host)
 
   def guideDataThrough: MythDateTime = conn.queryGuideDataThrough.right.get
 
