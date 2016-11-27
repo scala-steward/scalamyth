@@ -24,8 +24,9 @@ abstract class AbstractHttpConnection(val protocol: String, val host: String, va
     url.openConnection() match {
       case conn: HttpURLConnection =>
         setupConnection(conn)
+        val code = conn.getResponseCode
         val stream = conn.getInputStream  // TODO this may fail with java.net.UnknownHostException
-        HttpStreamResponse(conn.getResponseCode, conn.getHeaderFields.asScala.toMap, stream)
+        HttpStreamResponse(code, conn.getHeaderFields.asScala.toMap, stream)
     }
   }
 
@@ -47,8 +48,9 @@ abstract class AbstractHttpConnection(val protocol: String, val host: String, va
         writer.close()
 
         // TODO check response code?
+        val code = conn.getResponseCode
         val stream = conn.getInputStream
-        HttpStreamResponse(conn.getResponseCode, conn.getHeaderFields.asScala.toMap, stream)
+        HttpStreamResponse(code, conn.getHeaderFields.asScala.toMap, stream)
     }
   }
 }
