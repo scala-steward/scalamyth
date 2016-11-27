@@ -12,6 +12,7 @@ case class JsonResponse(statusCode: Int, headers: HttpHeaders, json: JsValue) ex
 
 trait JsonConnection extends AbstractHttpConnection {
   override def setupConnection(conn: HttpURLConnection): Unit = {
+    super.setupConnection(conn)
     conn.setRequestProperty("Accept", "application/json")
   }
 

@@ -11,6 +11,7 @@ case class XmlResponse(statusCode: Int, headers: HttpHeaders, root: scala.xml.El
 
 trait XmlConnection extends AbstractHttpConnection {
   override def setupConnection(conn: HttpURLConnection): Unit = {
+    super.setupConnection(conn)
     conn.setRequestProperty("Accept", "text/xml, application/xml")
   }
 
