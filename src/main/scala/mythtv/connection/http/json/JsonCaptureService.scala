@@ -16,8 +16,8 @@ class JsonCaptureService(conn: BackendJsonConnection)
   def getCaptureCard(cardId: CaptureCardId): ServiceResult[CaptureCard] = {
     val params: Map[String, Any] = Map("CardId" -> cardId.id)
     for {
-      response <- Try( request("GetCaptureCard", params) )
-      root     <- Try( responseRoot(response, "CaptureCard") )
+      response <- request("GetCaptureCard", params)
+      root     <- responseRoot(response, "CaptureCard")
       result   <- Try( root.convertTo[CaptureCard] )
     } yield result
   }
@@ -27,8 +27,8 @@ class JsonCaptureService(conn: BackendJsonConnection)
     if (hostName.nonEmpty) params += "HostName" -> hostName
     if (cardType.nonEmpty) params += "CardType" -> cardType
     for {
-      response <- Try( request("GetCaptureCardList", params) )
-      root     <- Try( responseRoot(response, "CaptureCardList") )
+      response <- request("GetCaptureCardList", params)
+      root     <- responseRoot(response, "CaptureCardList")
       result   <- Try( root.convertTo[List[CaptureCard]] )
     } yield result
   }
@@ -63,7 +63,7 @@ class JsonCaptureService(conn: BackendJsonConnection)
       "DVBEITScan"         -> card.dvbEitScan
     )
     for {
-      response <- Try( post("AddCaptureCard", params) )
+      response <- post("AddCaptureCard", params)
       result   <- Try( CaptureCardId(0) ) // TODO implement
     } yield result
   }
@@ -71,8 +71,8 @@ class JsonCaptureService(conn: BackendJsonConnection)
   def removeCaptureCard(cardId: CaptureCardId): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map("CardId" -> cardId.id)
     for {
-      response <- Try( post("RemoveCaptureCard", params) )
-      root     <- Try( responseRoot(response) )
+      response <- post("RemoveCaptureCard", params)
+      root     <- responseRoot(response)
       result   <- Try( root.booleanField("bool") ) // TODO test
     } yield result
   }
@@ -84,8 +84,8 @@ class JsonCaptureService(conn: BackendJsonConnection)
       "Value"   -> value
     )
     for {
-      response <- Try( post("UpdateCaptureCard", params) )
-      root     <- Try( responseRoot(response) )
+      response <- post("UpdateCaptureCard", params)
+      root     <- responseRoot(response)
       result   <- Try( root.booleanField("bool") ) // TODO test
     } yield result
   }
@@ -110,7 +110,7 @@ class JsonCaptureService(conn: BackendJsonConnection)
       "LiveTVOrder"     -> input.liveTvOrder
     )
     for {
-      response <- Try( post("AddCardInput", params) )
+      response <- post("AddCardInput", params)
       result   <- Try( InputId(0) )  // TODO
     } yield result
   }
@@ -118,8 +118,8 @@ class JsonCaptureService(conn: BackendJsonConnection)
   def removeCardInput(inputId: InputId): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map("CardInputId" -> inputId.id)
     for {
-      response <- Try( post("RemoveCardInput", params) )
-      root     <- Try( responseRoot(response) )
+      response <- post("RemoveCardInput", params)
+      root     <- responseRoot(response)
       result   <- Try( root.booleanField("bool") ) // TODO test
     } yield result
   }
@@ -131,8 +131,8 @@ class JsonCaptureService(conn: BackendJsonConnection)
       "Value"       -> value
     )
     for {
-      response <- Try( post("UpdateCardInput", params) )
-      root     <- Try( responseRoot(response) )
+      response <- post("UpdateCardInput", params)
+      root     <- responseRoot(response)
       result   <- Try( root.booleanField("bool") ) // TODO test
     } yield result
   }

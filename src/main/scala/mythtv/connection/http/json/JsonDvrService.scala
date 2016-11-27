@@ -28,8 +28,8 @@ class JsonDvrService(conn: BackendJsonConnection)
   def getRecorded(chanId: ChanId, startTime: MythDateTime): ServiceResult[Recording] = {
     val params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
     for {
-      response <- Try( request("GetRecorded", params) )
-      root     <- Try( responseRoot(response, "Program") )
+      response <- request("GetRecorded", params)
+      root     <- responseRoot(response, "Program")
       result   <- Try( root.convertTo[Recording] )
     } yield result
   }
@@ -38,8 +38,8 @@ class JsonDvrService(conn: BackendJsonConnection)
     var params = buildStartCountParams(startIndex, count)
     if (descending) params += "Descending" -> descending
     for {
-      response <- Try( request("GetRecordedList", params) )
-      root     <- Try( responseRoot(response, "ProgramList") )
+      response <- request("GetRecordedList", params)
+      root     <- responseRoot(response, "ProgramList")
       result   <- Try( root.convertTo[MythJsonPagedObjectList[Recording]] )
     } yield result
   }
@@ -47,8 +47,8 @@ class JsonDvrService(conn: BackendJsonConnection)
   def getExpiringList(startIndex: Int, count: OptionalCount[Int]): ServiceResult[PagedList[Recording]] = {
     val params = buildStartCountParams(startIndex, count)
     for {
-      response <- Try( request("GetExpiringList", params) )
-      root     <- Try( responseRoot(response, "ProgramList") )
+      response <- request("GetExpiringList", params)
+      root     <- responseRoot(response, "ProgramList")
       result   <- Try( root.convertTo[MythJsonPagedObjectList[Recording]] )
     } yield result
   }
@@ -57,8 +57,8 @@ class JsonDvrService(conn: BackendJsonConnection)
     var params = buildStartCountParams(startIndex, count)
     if (showAll) params += "ShowAll" -> showAll
     for {
-      response <- Try( request("GetUpcomingList", params) )
-      root     <- Try( responseRoot(response, "ProgramList") )
+      response <- request("GetUpcomingList", params)
+      root     <- responseRoot(response, "ProgramList")
       result   <- Try( root.convertTo[MythJsonPagedObjectList[Recordable]] )
     } yield result
   }
@@ -66,16 +66,16 @@ class JsonDvrService(conn: BackendJsonConnection)
   def getConflictList(startIndex: Int, count: OptionalCount[Int]): ServiceResult[PagedList[Recordable]] = {
     val params = buildStartCountParams(startIndex, count)
     for {
-      response <- Try( request("GetConflictList", params) )
-      root     <- Try( responseRoot(response, "ProgramList") )
+      response <- request("GetConflictList", params)
+      root     <- responseRoot(response, "ProgramList")
       result   <- Try( root.convertTo[MythJsonPagedObjectList[Recordable]] )
     } yield result
   }
 
   def getEncoderList: ServiceResult[List[RemoteEncoderState]] = {
     for {
-      response <- Try( request("GetEncoderList") )
-      root     <- Try( responseRoot(response, "EncoderList") )
+      response <- request("GetEncoderList")
+      root     <- responseRoot(response, "EncoderList")
       result   <- Try( root.convertTo[List[RemoteEncoderState]] )
     } yield result
   }
@@ -83,8 +83,8 @@ class JsonDvrService(conn: BackendJsonConnection)
   def getRecordScheduleList(startIndex: Int, count: OptionalCount[Int]): ServiceResult[PagedList[RecordRule]] = {
     val params = buildStartCountParams(startIndex, count)
     for {
-      response <- Try( request("GetRecordScheduleList", params) )
-      root     <- Try(  responseRoot(response, "RecRuleList") )
+      response <- request("GetRecordScheduleList", params)
+      root     <- responseRoot(response, "RecRuleList")
       result   <- Try( root.convertTo[MythJsonPagedObjectList[RecordRule]] )
     } yield result
   }
@@ -92,32 +92,32 @@ class JsonDvrService(conn: BackendJsonConnection)
   def getRecordSchedule(recordId: RecordRuleId): ServiceResult[RecordRule] = {
     val params: Map[String, Any] = Map("RecordId" -> recordId.id)
     for {
-      response <- Try( request("GetRecordSchedule", params) )
-      root     <- Try( responseRoot(response, "RecRule") )
+      response <- request("GetRecordSchedule", params)
+      root     <- responseRoot(response, "RecRule")
       result   <- Try( root.convertTo[RecordRule] )
     } yield result
   }
 
   def getRecGroupList: ServiceResult[List[String]] = {
     for {
-      response <- Try( request("GetRecGroupList") )
-      root     <- Try( responseRoot(response) )
+      response <- request("GetRecGroupList")
+      root     <- responseRoot(response)
       result   <- Try( root.convertTo[List[String]] )
     } yield result
   }
 
   def getTitleList: ServiceResult[List[String]] = {
     for {
-      response <- Try( request("GetTitleList") )
-      root     <- Try( responseRoot(response) )
+      response <- request("GetTitleList")
+      root     <- responseRoot(response)
       result   <- Try( root.convertTo[List[String]] )
     } yield result
   }
 
   def getTitleInfoList: ServiceResult[List[TitleInfo]] = {
     for {
-      response <- Try( request("GetTitleInfoList") )
-      root     <- Try( responseRoot(response, "TitleInfoList") )
+      response <- request("GetTitleInfoList")
+      root     <- responseRoot(response, "TitleInfoList")
       result   <- Try( root.convertTo[List[TitleInfo]] )
     } yield result
   }
@@ -130,8 +130,8 @@ class JsonDvrService(conn: BackendJsonConnection)
       "StartTime" -> startTime.toIsoFormat
     )
     for {
-      response <- Try( post("RemoveRecorded", params) )
-      root     <- Try( responseRoot(response) )
+      response <- post("RemoveRecorded", params)
+      root     <- responseRoot(response)
       result   <- Try( root.booleanField("bool") )
     } yield result
   }
@@ -181,8 +181,8 @@ class JsonDvrService(conn: BackendJsonConnection)
       "Transcoder"     -> rule.transcoder.getOrElse(0)
     )
     for {
-      response <- Try( post("UpdateRecordSchedule", params) )
-      root     <- Try( responseRoot(response) )
+      response <- post("UpdateRecordSchedule", params)
+      root     <- responseRoot(response)
       result   <- Try( RecordRuleId(0) ) // FIXME
     } yield result
   }
@@ -232,8 +232,8 @@ class JsonDvrService(conn: BackendJsonConnection)
       "Transcoder"     -> rule.transcoder.getOrElse(0)
     )
     for {
-      response <- Try( post("UpdateRecordSchedule", params) )
-      root     <- Try( responseRoot(response) )
+      response <- post("UpdateRecordSchedule", params)
+      root     <- responseRoot(response)
       result   <- Try( root.booleanField("bool") )
     } yield result
   }
@@ -241,8 +241,8 @@ class JsonDvrService(conn: BackendJsonConnection)
   def removeRecordSchedule(recordId: RecordRuleId): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map("RecordId" -> recordId.id)
     for {
-      response <- Try( post("RemoveRecordSchedule", params) )
-      root     <- Try( responseRoot(response) )
+      response <- post("RemoveRecordSchedule", params)
+      root     <- responseRoot(response)
       result   <- Try( root.booleanField("bool") )
     } yield result
   }
@@ -250,8 +250,8 @@ class JsonDvrService(conn: BackendJsonConnection)
   def disableRecordSchedule(recordId: RecordRuleId): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map("RecordId" -> recordId.id)
     for {
-      response <- Try( post("DisableRecordSchedule", params) )
-      root     <- Try( responseRoot(response) )
+      response <- post("DisableRecordSchedule", params)
+      root     <- responseRoot(response)
       result   <- Try( root.booleanField("bool") )
     } yield result
   }
@@ -259,8 +259,8 @@ class JsonDvrService(conn: BackendJsonConnection)
   def enableRecordSchedule(recordId: RecordRuleId): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map("RecordId" -> recordId.id)
     for {
-      response <- Try( post("EnableRecordSchedule", params) )
-      root     <- Try( responseRoot(response) )
+      response <- post("EnableRecordSchedule", params)
+      root     <- responseRoot(response)
       result   <- Try( root.booleanField("bool") )
     } yield result
   }
@@ -272,8 +272,8 @@ class JsonDvrService(conn: BackendJsonConnection)
       "Watched" -> watched
     )
     for {
-      response <- Try( post("UpdateRecordedWatchedStatus", params) )
-      root     <- Try( responseRoot(response) )
+      response <- post("UpdateRecordedWatchedStatus", params)
+      root     <- responseRoot(response)
       result   <- Try( root.booleanField("bool") )
     } yield result
   }

@@ -17,8 +17,8 @@ class JsonChannelService(conn: BackendJsonConnection)
   def getChannelInfo(chanId: ChanId): ServiceResult[ChannelDetails] = {
     val params: Map[String, Any] = Map("ChanID" -> chanId.id)
     for {
-      response <- Try( request("GetChannelInfo", params) )
-      root     <- Try( responseRoot(response, "ChannelInfo") )
+      response <- request("GetChannelInfo", params)
+      root     <- responseRoot(response, "ChannelInfo")
       result   <- Try( root.convertTo[ChannelDetails] )
     } yield result
   }
@@ -26,8 +26,8 @@ class JsonChannelService(conn: BackendJsonConnection)
   def getChannelInfoList(sourceId: ListingSourceId): ServiceResult[PagedList[ChannelDetails]] = {
     val params: Map[String, Any] = Map("SourceID" -> sourceId.id)
     for {
-      response <- Try( request("GetChannelInfoList", params) )
-      root     <- Try( responseRoot(response, "ChannelInfoList") )
+      response <- request("GetChannelInfoList", params)
+      root     <- responseRoot(response, "ChannelInfoList")
       result   <- Try( root.convertTo[MythJsonPagedObjectList[ChannelDetails]] )
     } yield result
   }
@@ -35,16 +35,16 @@ class JsonChannelService(conn: BackendJsonConnection)
   def getVideoSource(sourceId: ListingSourceId): ServiceResult[ListingSource] = {
     val params: Map[String, Any] = Map("SourceID" -> sourceId.id)
     for {
-      response <- Try( request("GetVideoSource", params) )
-      root     <- Try( responseRoot(response, "VideoSource") )
+      response <- request("GetVideoSource", params)
+      root     <- responseRoot(response, "VideoSource")
       result   <- Try( root.convertTo[ListingSource] )
     } yield result
   }
 
   def getVideoSourceList: ServiceResult[List[ListingSource]] = {
     for {
-      response <- Try( request("GetVideoSourceList") )
-      root     <- Try( responseRoot(response, "VideoSourceList") )
+      response <- request("GetVideoSourceList")
+      root     <- responseRoot(response, "VideoSourceList")
       result   <- Try( root.convertTo[MythJsonObjectList[ListingSource]] )
     } yield result.data
   }
@@ -52,8 +52,8 @@ class JsonChannelService(conn: BackendJsonConnection)
   def getVideoMultiplex(mplexId: MultiplexId): ServiceResult[VideoMultiplex] = {
     val params: Map[String, Any] = Map("MplexID" -> mplexId.id)
     for {
-      response <- Try( request("GetVideoMultiplex", params) )
-      root     <- Try( responseRoot(response, "VideoMultiplex") )
+      response <- request("GetVideoMultiplex", params)
+      root     <- responseRoot(response, "VideoMultiplex")
       result   <- Try( root.convertTo[VideoMultiplex] )
     } yield result
   }
@@ -62,8 +62,8 @@ class JsonChannelService(conn: BackendJsonConnection)
   ): ServiceResult[PagedList[VideoMultiplex]] = {
     val params = buildStartCountParams(startIndex, count) + ("SourceID" -> sourceId.id)
     for {
-      response <- Try( request("GetVideoMultiplexList", params) )
-      root     <- Try( responseRoot(response, "VideoMultiplexList") )
+      response <- request("GetVideoMultiplexList", params)
+      root     <- responseRoot(response, "VideoMultiplexList")
       result   <- Try( root.convertTo[MythJsonPagedObjectList[VideoMultiplex]] )
     } yield result
   }
@@ -71,8 +71,8 @@ class JsonChannelService(conn: BackendJsonConnection)
   def getXmltvIdList(sourceId: ListingSourceId): ServiceResult[List[String]] = {
     val params: Map[String, Any] = Map("SourceID" -> sourceId.id)
     for {
-      response <- Try( request("GetXMLTVIdList", params) )
-      root     <- Try( responseRoot(response) )
+      response <- request("GetXMLTVIdList", params)
+      root     <- responseRoot(response)
       result   <- Try( root.convertTo[List[String]] )
     } yield result
   }
@@ -81,8 +81,8 @@ class JsonChannelService(conn: BackendJsonConnection)
     var params: Map[String, Any] = Map("UserId" -> userName, "Password" -> password)
     if (provider.nonEmpty) params += "Source" -> provider
     for {
-      response <- Try( post("GetDDLineupList", params) )
-      root     <- Try( responseRoot(response, "LineupList") )
+      response <- post("GetDDLineupList", params)
+      root     <- responseRoot(response, "LineupList")
       result   <- Try( root.convertTo[List[Lineup]] )
     } yield result
   }
@@ -109,8 +109,8 @@ class JsonChannelService(conn: BackendJsonConnection)
       "DefaultAuthority" -> channel.defaultAuthority.getOrElse("")
     )
     for {
-      response <- Try( post("AddDBChannel", params) )
-      root     <- Try( responseRoot(response) )
+      response <- post("AddDBChannel", params)
+      root     <- responseRoot(response)
       result   <- Try( root.booleanField("bool") )
     } yield result
   }
@@ -118,8 +118,8 @@ class JsonChannelService(conn: BackendJsonConnection)
   def removeDbChannel(chanId: ChanId): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map("ChannelId" -> chanId.id)
     for {
-      response <- Try( post("RemoveDBChannel", params) )
-      root     <- Try( responseRoot(response) )
+      response <- post("RemoveDBChannel", params)
+      root     <- responseRoot(response)
       result   <- Try( root.booleanField("bool") )
     } yield result
   }
@@ -144,8 +144,8 @@ class JsonChannelService(conn: BackendJsonConnection)
       "DefaultAuthority" -> channel.defaultAuthority.getOrElse("")
     )
     for {
-      response <- Try( post("UpdateDBChannel", params) )
-      root     <- Try( responseRoot(response) )
+      response <- post("UpdateDBChannel", params)
+      root     <- responseRoot(response)
       result   <- Try( root.booleanField("bool") )
     } yield result
   }
@@ -164,7 +164,7 @@ class JsonChannelService(conn: BackendJsonConnection)
       "NITId"      -> source.dvbNitId.getOrElse(-1)
     )
     for {
-      response <- Try( post("AddVideoSource", params) )
+      response <- post("AddVideoSource", params)
       result   <- Try( ListingSourceId(0) ) // TODO
     } yield result
   }
@@ -172,8 +172,8 @@ class JsonChannelService(conn: BackendJsonConnection)
   def removeVideoSource(sourceId: ListingSourceId): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map("SourceID" -> sourceId.id)
     for {
-      response <- Try( post("RemoveVideoSource", params) )
-      root     <- Try( responseRoot(response) )
+      response <- post("RemoveVideoSource", params)
+      root     <- responseRoot(response)
       result   <- Try( root.booleanField("bool") )
     } yield result
   }
@@ -192,8 +192,8 @@ class JsonChannelService(conn: BackendJsonConnection)
       "NITId"      -> source.dvbNitId.getOrElse(-1)
     )
     for {
-      response <- Try( post("UpdateVideoSource", params) )
-      root     <- Try( responseRoot(response) )
+      response <- post("UpdateVideoSource", params)
+      root     <- responseRoot(response)
       result   <- Try( root.booleanField("bool") )
     } yield result
   }
@@ -206,7 +206,7 @@ class JsonChannelService(conn: BackendJsonConnection)
     var params: Map[String, Any] = Map("SourceId" -> sourceId.id, "CardId" -> cardId.id)
     if (waitForFinish) params += "WaitForFinish" -> waitForFinish
     for {
-      response <- Try( post("FetchChannelsFromSource", params) )
+      response <- post("FetchChannelsFromSource", params)
       result   <- Try( 0 )  // TODO
     } yield result
   }

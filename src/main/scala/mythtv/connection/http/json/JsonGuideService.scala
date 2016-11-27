@@ -30,8 +30,8 @@ class JsonGuideService(conn: BackendJsonConnection)
       case _ => ()
     }
     for {
-      response <- Try( request("GetProgramGuide", params) )
-      root     <- Try( responseRoot(response, "ProgramGuide") )
+      response <- request("GetProgramGuide", params)
+      root     <- responseRoot(response, "ProgramGuide")
       result   <- Try( root.convertTo[Guide[Channel, Program]] )
     } yield result
   }
@@ -46,8 +46,8 @@ class JsonGuideService(conn: BackendJsonConnection)
   def getProgramDetails(chanId: ChanId, startTime: MythDateTime): ServiceResult[Program] = {
     val params: Map[String, Any] = Map("StartTime" -> startTime.toIsoFormat, "ChanId" -> chanId.id)
     for {
-      response <- Try( request("GetProgramDetails", params) )
-      root     <- Try( responseRoot(response, "Program") )
+      response <- request("GetProgramDetails", params)
+      root     <- responseRoot(response, "Program")
       result   <- Try( root.convertTo[Program] )
     } yield result
   }

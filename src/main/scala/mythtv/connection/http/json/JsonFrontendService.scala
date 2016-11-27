@@ -28,24 +28,24 @@ class JsonMythFrontendService(conn: FrontendJsonConnection)
     var params: Map[String, Any] = Map.empty
     if (context.nonEmpty) params += "Context" -> context
     for {
-      response <- Try( request("GetActionList", params) )
-      root     <- Try( responseRoot(response, "FrontendActionList") )
+      response <- request("GetActionList", params)
+      root     <- responseRoot(response, "FrontendActionList")
       result   <- Try( root.convertTo[FrontendActionMap] )
     } yield result
   }
 
   def getContextList: ServiceResult[List[String]] = {
     for {
-      response <- Try( request("GetContextList") )
-      root     <- Try( responseRoot(response) )
+      response <- request("GetContextList")
+      root     <- responseRoot(response)
       result   <- Try( root.convertTo[List[String]] )
     } yield result
   }
 
   def getStatus: ServiceResult[FrontendStatus] = {
     for {
-      response <- Try( request("GetStatus") )
-      root     <- Try( responseRoot(response, "FrontendStatus") )
+      response <- request("GetStatus")
+      root     <- responseRoot(response, "FrontendStatus")
       result   <- Try( root.convertTo[FrontendStatus] )
     } yield result
   }
@@ -64,8 +64,8 @@ class JsonMythFrontendService(conn: FrontendJsonConnection)
     val params: Map[String, Any] = Map(
       "ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
     for {
-      response <- Try( post("PlayRecording", params) )
-      root     <- Try( responseRoot(response) )
+      response <- post("PlayRecording", params)
+      root     <- responseRoot(response)
       result   <- Try( root.booleanField("bool") )
     } yield result
   }
@@ -74,8 +74,8 @@ class JsonMythFrontendService(conn: FrontendJsonConnection)
     var params: Map[String, Any] = Map("Id" -> id.id)
     if (useBookmark) params += "UseBookmark" -> useBookmark
     for {
-      response <- Try( post("PlayVideo", params) )
-      root     <- Try( responseRoot(response) )
+      response <- post("PlayVideo", params)
+      root     <- responseRoot(response)
       result   <- Try( root.booleanField("bool") )
     } yield result
   }
@@ -85,8 +85,8 @@ class JsonMythFrontendService(conn: FrontendJsonConnection)
     var params: Map[String, Any] = Map("Action" -> action)
     if (value.nonEmpty) params += "Value" -> value
     for {
-      response <- Try( post("SendAction", params) )
-      root     <- Try( responseRoot(response) )
+      response <- post("SendAction", params)
+      root     <- responseRoot(response)
       result   <- Try( root.booleanField("bool") )
     } yield result
   }
@@ -95,8 +95,8 @@ class JsonMythFrontendService(conn: FrontendJsonConnection)
     var params: Map[String, Any] = Map("Message" -> message)
     if (!timeout.isZero) params += "Timeout" -> timeout.getSeconds
     for {
-      response <- Try( post("SendMessage", params) )
-      root     <- Try( responseRoot(response) )
+      response <- post("SendMessage", params)
+      root     <- responseRoot(response)
       result   <- Try( root.booleanField("bool") )
     } yield result
   }
@@ -127,8 +127,8 @@ class JsonMythFrontendService(conn: FrontendJsonConnection)
     if (visibility != NotificationVisibility.All) params += "Visibility" -> visibility.id
 
     for {
-      response <- Try( post("SendNotification", params) )
-      root     <- Try( responseRoot(response) )
+      response <- post("SendNotification", params)
+      root     <- responseRoot(response)
       result   <- Try( root.booleanField("bool") )
     } yield result
   }

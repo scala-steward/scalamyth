@@ -17,8 +17,8 @@ class JsonVideoService(conn: BackendJsonConnection)
   def getVideo(videoId: VideoId): ServiceResult[Video] = {
     val params: Map[String, Any] = Map("Id" -> videoId.id)
     for {
-      response <- Try( request("GetVideo", params) )
-      root     <- Try( responseRoot(response, "VideoMetadataInfo") )
+      response <- request("GetVideo", params)
+      root     <- responseRoot(response, "VideoMetadataInfo")
       result   <- Try( root.convertTo[Video] )
     } yield result
   }
@@ -26,8 +26,8 @@ class JsonVideoService(conn: BackendJsonConnection)
   def getVideoByFileName(fileName: String): ServiceResult[Video] = {
     val params: Map[String, Any] = Map("FileName" -> fileName)
     for {
-      response <- Try( request("GetVideoByFileName", params) )
-      root     <- Try( responseRoot(response, "VideoMetadataInfo") )
+      response <- request("GetVideoByFileName", params)
+      root     <- responseRoot(response, "VideoMetadataInfo")
       result   <- Try( root.convertTo[Video] )
     } yield result
   }
@@ -36,8 +36,8 @@ class JsonVideoService(conn: BackendJsonConnection)
     var params = buildStartCountParams(startIndex, count)
     if (descending) params += "Descending" -> descending
     for {
-      response <- Try( request("GetVideoList", params) )
-      root     <- Try( responseRoot(response, "VideoMetadataInfoList") )
+      response <- request("GetVideoList", params)
+      root     <- responseRoot(response, "VideoMetadataInfoList")
       result   <- Try( root.convertTo[MythJsonPagedObjectList[Video]] )
     } yield result
   }
@@ -45,8 +45,8 @@ class JsonVideoService(conn: BackendJsonConnection)
   def getBluray(path: String): ServiceResult[BlurayInfo] = {
     val params: Map[String, Any] = Map("Path" -> path)
     for {
-      response <- Try( request("GetBluray", params) )
-      root     <- Try( responseRoot(response, "BlurayInfo") )
+      response <- request("GetBluray", params)
+      root     <- responseRoot(response, "BlurayInfo")
       result   <- Try( root.convertTo[BlurayInfo] )
     } yield result
   }
@@ -62,8 +62,8 @@ class JsonVideoService(conn: BackendJsonConnection)
     if (grabberType.nonEmpty) params += "GrabberType" -> grabberType
     if (allowGeneric)      params += "AllowGeneric" -> allowGeneric
     for {
-      response <- Try( request("LookupVideo", params) )
-      root     <- Try( responseRoot(response, "VideoLookupList") )
+      response <- request("LookupVideo", params)
+      root     <- responseRoot(response, "VideoLookupList")
       result   <- Try( root.convertTo[MythJsonObjectList[VideoLookup]] )
     } yield result.data
   }
@@ -76,8 +76,8 @@ class JsonVideoService(conn: BackendJsonConnection)
       "HostName" -> hostName
     )
     for {
-      response <- Try( post("AddVideo", params) )
-      root     <- Try(  responseRoot(response) )
+      response <- post("AddVideo", params)
+      root     <- responseRoot(response)
       result   <- Try( root.booleanField("bool") )
     } yield result
   }
@@ -85,8 +85,8 @@ class JsonVideoService(conn: BackendJsonConnection)
   def removeVideoFromDb(videoId: VideoId): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map("Id" -> videoId.id)
     for {
-      response <- Try( post("RemoveVideoFromDB", params) )
-      root     <- Try( responseRoot(response) )
+      response <- post("RemoveVideoFromDB", params)
+      root     <- responseRoot(response)
       result   <- Try( root.booleanField("bool") )
     } yield result
   }
@@ -95,8 +95,8 @@ class JsonVideoService(conn: BackendJsonConnection)
   def updateVideoWatchedStatus(videoId: VideoId, watched: Boolean): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map("Id" -> videoId.id, "Watched" -> watched)
     for {
-      response <- Try( post("UpdateVideoWatchedStatus", params) )
-      root     <- Try( responseRoot(response) )
+      response <- post("UpdateVideoWatchedStatus", params)
+      root     <- responseRoot(response)
       result   <- Try( root.booleanField("bool") )  // TODO test
     } yield result
   }
