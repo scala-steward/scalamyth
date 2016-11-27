@@ -10,12 +10,12 @@ trait LogMessage // TODO temporary
 trait MythService extends BackendService {
   def serviceName: String = "Myth"
 
-  def getConnectionInfo(pin: String): ConnectionInfo
+  def getConnectionInfo(pin: String): ServiceResult[ConnectionInfo]
 
-  def getHostName: String
+  def getHostName: ServiceResult[String]
 
-  def getHosts: List[String]
-  def getKeys: List[String]
+  def getHosts: ServiceResult[List[String]]
+  def getKeys: ServiceResult[List[String]]
 
   /**
     * Query a global MythTV setting.
@@ -25,21 +25,21 @@ trait MythService extends BackendService {
     * @param key the key name of the global setting to query
     * @return the value of the setting, or None if not found
     */
-  def getSetting(key: String): Option[String] = {
+  def getSetting(key: String): ServiceResult[Option[String]] = {
     require(key.nonEmpty)
-    getSettings("", key).settings.get(key)
+    getSettings("", key) map (_.settings.get(key))
   }
 
-  def getSetting(hostname: String, key: String): Option[String] = {
+  def getSetting(hostname: String, key: String): ServiceResult[Option[String]] = {
     require(key.nonEmpty)
-    getSettings(hostname, key).settings.get(key)
+    getSettings(hostname, key) map (_.settings.get(key))
   }
 
-  def getSettings(hostName: String = "", key: String = ""): Settings
+  def getSettings(hostName: String = "", key: String = ""): ServiceResult[Settings]
 
-  def getTimeZone: TimeZoneInfo
+  def getTimeZone: ServiceResult[TimeZoneInfo]
 
-  def getStorageGroupDirs(hostName: String = "", groupName: String = ""): List[StorageGroupDir]
+  def getStorageGroupDirs(hostName: String = "", groupName: String = ""): ServiceResult[List[StorageGroupDir]]
 
   /**
     * Retrieve log entries from the database.
@@ -63,53 +63,53 @@ trait MythService extends BackendService {
     toTime: Instant = Instant.MIN,
     level: String = "",
     msgContains: String = ""
-  ): List[LogMessage]
+  ): ServiceResult[List[LogMessage]]
 
   /* mutating POST methods */
 
-  def addStorageGroupDir(storageGroup: String, dirName: String, hostName: String): Boolean
+  def addStorageGroupDir(storageGroup: String, dirName: String, hostName: String): ServiceResult[Boolean]
 
-  def removeStorageGroupDir(storageGroup: String, dirName: String, hostName: String): Boolean
+  def removeStorageGroupDir(storageGroup: String, dirName: String, hostName: String): ServiceResult[Boolean]
 
-  def removeStorageGroupDir(dir: StorageGroupDir): Boolean =
+  def removeStorageGroupDir(dir: StorageGroupDir): ServiceResult[Boolean] =
     removeStorageGroupDir(dir.groupName, dir.dirName, dir.hostName)
 
-  def putSetting(hostName: String, key: String, value: String): Boolean
+  def putSetting(hostName: String, key: String, value: String): ServiceResult[Boolean]
 
   /**
     * Changes password stored at HTTP/Protected/Password, used for some services? URLs,
     * specified by HTTP/Protected/Urls ? See libs/libmythupnp/httprequest.cpp for more info.
     */
-  def changePassword(userName: String, oldPassword: String, newPassword: String): Boolean
+  def changePassword(userName: String, oldPassword: String, newPassword: String): ServiceResult[Boolean]
 
-  def testDbSettings(hostName: String, userName: String, password: String, dbName: String = "", dbPort: Int = 0): Boolean
+  def testDbSettings(hostName: String, userName: String, password: String, dbName: String = "", dbPort: Int = 0): ServiceResult[Boolean]
 
   // NB the 'address' parameter must be an IP address (not a hostname) if given
   // NB broadcast address doesn't seem to be picked up by frontends? The packet is visible on bigbertha in wireshark.
   //    It turns out the frontends were listening on 192.168.1.255 but not 255.255.255.255.  Wonder why? Investigate.
   //    mythudplistener in libmythui ; uses ServerPool::DefaultBroadcast from libmythbase
   //    The bug seems to be in the backend service; should use subnet broadcast address rather than global?
-  def sendMessage(message: String, address: String = "", udpPort: Int = 0, timeout: Duration = Duration.ZERO): Boolean
+  def sendMessage(message: String, address: String = "", udpPort: Int = 0, timeout: Duration = Duration.ZERO): ServiceResult[Boolean]
 
   //def sendNotification(....): Boolean
 
   // This causes a database backup to be performed synchronously, so may not return for some time.
-  def backupDatabase(): Boolean
+  def backupDatabase(): ServiceResult[Boolean]
 
   // This causes a database check to be performed synchronously, so may not return for some time.
-  def checkDatabase(repair: Boolean = false): Boolean
+  def checkDatabase(repair: Boolean = false): ServiceResult[Boolean]
 
 
-  def profileSubmit(): Boolean
+  def profileSubmit(): ServiceResult[Boolean]
 
-  def profileDelete(): Boolean
+  def profileDelete(): ServiceResult[Boolean]
 
 // TODO are the three below GET methods?
 
-  def profileUrl: String
+  def profileUrl: ServiceResult[String]
 
-  def profileUpdated: String
+  def profileUpdated: ServiceResult[String]
 
-  def profileText: String
+  def profileText: ServiceResult[String]
 
 }

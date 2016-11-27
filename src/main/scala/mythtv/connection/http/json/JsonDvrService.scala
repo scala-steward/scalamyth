@@ -5,9 +5,11 @@ package json
 
 import java.time.LocalTime
 
+import scala.util.Try
+
 import model._
 import util.{ MythDateTime, OptionalCount }
-import services.{ DvrService, PagedList }
+import services.{ DvrService, PagedList, ServiceResult }
 import RichJsonObject._
 
 class JsonDvrService(conn: BackendJsonConnection)
@@ -23,94 +25,118 @@ class JsonDvrService(conn: BackendJsonConnection)
      The root cause for this discrepancy seems to be that in ProgramInfo::LoadProgramFromRecorded,
      the programflags field is not initialized, and the ProgramInfo variable is allocated on the stack
      at the call site. Compare this to the implementation of LoadFromRecorded */
-  def getRecorded(chanId: ChanId, startTime: MythDateTime): Recording = {
+  def getRecorded(chanId: ChanId, startTime: MythDateTime): ServiceResult[Recording] = {
     val params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
-    val response = request("GetRecorded", params)
-    val root = responseRoot(response, "Program")
-    root.convertTo[Recording]
+    for {
+      response <- Try( request("GetRecorded", params) )
+      root     <- Try( responseRoot(response, "Program") )
+      result   <- Try( root.convertTo[Recording] )
+    } yield result
   }
 
-  def getRecordedList(startIndex: Int, count: OptionalCount[Int], descending: Boolean): PagedList[Recording] = {
+  def getRecordedList(startIndex: Int, count: OptionalCount[Int], descending: Boolean): ServiceResult[PagedList[Recording]] = {
     var params = buildStartCountParams(startIndex, count)
     if (descending) params += "Descending" -> descending
-    val response = request("GetRecordedList", params)
-    val root = responseRoot(response, "ProgramList")
-    root.convertTo[MythJsonPagedObjectList[Recording]]
+    for {
+      response <- Try( request("GetRecordedList", params) )
+      root     <- Try( responseRoot(response, "ProgramList") )
+      result   <- Try( root.convertTo[MythJsonPagedObjectList[Recording]] )
+    } yield result
   }
 
-  def getExpiringList(startIndex: Int, count: OptionalCount[Int]): PagedList[Recording] = {
+  def getExpiringList(startIndex: Int, count: OptionalCount[Int]): ServiceResult[PagedList[Recording]] = {
     val params = buildStartCountParams(startIndex, count)
-    val response = request("GetExpiringList", params)
-    val root = responseRoot(response, "ProgramList")
-    root.convertTo[MythJsonPagedObjectList[Recording]]
+    for {
+      response <- Try( request("GetExpiringList", params) )
+      root     <- Try( responseRoot(response, "ProgramList") )
+      result   <- Try( root.convertTo[MythJsonPagedObjectList[Recording]] )
+    } yield result
   }
 
-  def getUpcomingList(startIndex: Int, count: OptionalCount[Int], showAll: Boolean): PagedList[Recordable] = {
+  def getUpcomingList(startIndex: Int, count: OptionalCount[Int], showAll: Boolean): ServiceResult[PagedList[Recordable]] = {
     var params = buildStartCountParams(startIndex, count)
     if (showAll) params += "ShowAll" -> showAll
-    val response = request("GetUpcomingList", params)
-    val root = responseRoot(response, "ProgramList")
-    root.convertTo[MythJsonPagedObjectList[Recordable]]
+    for {
+      response <- Try( request("GetUpcomingList", params) )
+      root     <- Try( responseRoot(response, "ProgramList") )
+      result   <- Try( root.convertTo[MythJsonPagedObjectList[Recordable]] )
+    } yield result
   }
 
-  def getConflictList(startIndex: Int, count: OptionalCount[Int]): PagedList[Recordable] = {
+  def getConflictList(startIndex: Int, count: OptionalCount[Int]): ServiceResult[PagedList[Recordable]] = {
     val params = buildStartCountParams(startIndex, count)
-    val response = request("GetConflictList", params)
-    val root = responseRoot(response, "ProgramList")
-    root.convertTo[MythJsonPagedObjectList[Recordable]]
+    for {
+      response <- Try( request("GetConflictList", params) )
+      root     <- Try( responseRoot(response, "ProgramList") )
+      result   <- Try( root.convertTo[MythJsonPagedObjectList[Recordable]] )
+    } yield result
   }
 
-  def getEncoderList: List[RemoteEncoderState] = {
-    val response = request("GetEncoderList")
-    val root = responseRoot(response, "EncoderList")
-    root.convertTo[List[RemoteEncoderState]]
+  def getEncoderList: ServiceResult[List[RemoteEncoderState]] = {
+    for {
+      response <- Try( request("GetEncoderList") )
+      root     <- Try( responseRoot(response, "EncoderList") )
+      result   <- Try( root.convertTo[List[RemoteEncoderState]] )
+    } yield result
   }
 
-  def getRecordScheduleList(startIndex: Int, count: OptionalCount[Int]): PagedList[RecordRule] = {
+  def getRecordScheduleList(startIndex: Int, count: OptionalCount[Int]): ServiceResult[PagedList[RecordRule]] = {
     val params = buildStartCountParams(startIndex, count)
-    val response = request("GetRecordScheduleList", params)
-    val root = responseRoot(response, "RecRuleList")
-    root.convertTo[MythJsonPagedObjectList[RecordRule]]
+    for {
+      response <- Try( request("GetRecordScheduleList", params) )
+      root     <- Try(  responseRoot(response, "RecRuleList") )
+      result   <- Try( root.convertTo[MythJsonPagedObjectList[RecordRule]] )
+    } yield result
   }
 
-  def getRecordSchedule(recordId: RecordRuleId): RecordRule = {
+  def getRecordSchedule(recordId: RecordRuleId): ServiceResult[RecordRule] = {
     val params: Map[String, Any] = Map("RecordId" -> recordId.id)
-    val response = request("GetRecordSchedule", params)
-    val root = responseRoot(response, "RecRule")
-    root.convertTo[RecordRule]
+    for {
+      response <- Try( request("GetRecordSchedule", params) )
+      root     <- Try( responseRoot(response, "RecRule") )
+      result   <- Try( root.convertTo[RecordRule] )
+    } yield result
   }
 
-  def getRecGroupList: List[String] = {
-    val response = request("GetRecGroupList")
-    val root = responseRoot(response)
-    root.convertTo[List[String]]
+  def getRecGroupList: ServiceResult[List[String]] = {
+    for {
+      response <- Try( request("GetRecGroupList") )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.convertTo[List[String]] )
+    } yield result
   }
 
-  def getTitleList: List[String] = {
-    val response = request("GetTitleList")
-    val root = responseRoot(response)
-    root.convertTo[List[String]]
+  def getTitleList: ServiceResult[List[String]] = {
+    for {
+      response <- Try( request("GetTitleList") )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.convertTo[List[String]] )
+    } yield result
   }
 
-  def getTitleInfoList: List[TitleInfo] = {
-    val response = request("GetTitleInfoList")
-    val root = responseRoot(response, "TitleInfoList")
-    root.convertTo[List[TitleInfo]]
+  def getTitleInfoList: ServiceResult[List[TitleInfo]] = {
+    for {
+      response <- Try( request("GetTitleInfoList") )
+      root     <- Try( responseRoot(response, "TitleInfoList") )
+      result   <- Try( root.convertTo[List[TitleInfo]] )
+    } yield result
   }
 
   /* POST methods */
 
-  def removeRecorded(chanId: ChanId, startTime: MythDateTime): Boolean = {
+  def removeRecorded(chanId: ChanId, startTime: MythDateTime): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map(
       "ChanId" -> chanId.id,
       "StartTime" -> startTime.toIsoFormat
     )
-    val response = post("RemoveRecorded", params)
-    val root = responseRoot(response)
-    root.booleanField("bool")
+    for {
+      response <- Try( post("RemoveRecorded", params) )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.booleanField("bool") )
+    } yield result
   }
 
-  def addRecordSchedule(rule: RecordRule): RecordRuleId = {
+  def addRecordSchedule(rule: RecordRule): ServiceResult[RecordRuleId] = {
     val params: Map[String, Any] = Map(
       "Title"          -> rule.title,
       "Subtitle"       -> rule.subtitle,
@@ -154,12 +180,14 @@ class JsonDvrService(conn: BackendJsonConnection)
       "AutoUserJob4"   -> rule.autoUserJob4,
       "Transcoder"     -> rule.transcoder.getOrElse(0)
     )
-    val response = post("UpdateRecordSchedule", params)
-    val root = responseRoot(response)
-    RecordRuleId(0) // FIXME
+    for {
+      response <- Try( post("UpdateRecordSchedule", params) )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( RecordRuleId(0) ) // FIXME
+    } yield result
   }
 
-  def updateRecordSchedule(rule: RecordRule): Boolean = {
+  def updateRecordSchedule(rule: RecordRule): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map(
       "RecordId"       -> rule.id,
       "Title"          -> rule.title,
@@ -203,41 +231,51 @@ class JsonDvrService(conn: BackendJsonConnection)
       "AutoUserJob4"   -> rule.autoUserJob4,
       "Transcoder"     -> rule.transcoder.getOrElse(0)
     )
-    val response = post("UpdateRecordSchedule", params)
-    val root = responseRoot(response)
-    root.booleanField("bool")
+    for {
+      response <- Try( post("UpdateRecordSchedule", params) )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.booleanField("bool") )
+    } yield result
   }
 
-  def removeRecordSchedule(recordId: RecordRuleId): Boolean = {
+  def removeRecordSchedule(recordId: RecordRuleId): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map("RecordId" -> recordId.id)
-    val response = post("RemoveRecordSchedule", params)
-    val root = responseRoot(response)
-    root.booleanField("bool")
+    for {
+      response <- Try( post("RemoveRecordSchedule", params) )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.booleanField("bool") )
+    } yield result
   }
 
-  def disableRecordSchedule(recordId: RecordRuleId): Boolean = {
+  def disableRecordSchedule(recordId: RecordRuleId): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map("RecordId" -> recordId.id)
-    val response = post("DisableRecordSchedule", params)
-    val root = responseRoot(response)
-    root.booleanField("bool")
+    for {
+      response <- Try( post("DisableRecordSchedule", params) )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.booleanField("bool") )
+    } yield result
   }
 
-  def enableRecordSchedule(recordId: RecordRuleId): Boolean = {
+  def enableRecordSchedule(recordId: RecordRuleId): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map("RecordId" -> recordId.id)
-    val response = post("EnableRecordSchedule", params)
-    val root = responseRoot(response)
-    root.booleanField("bool")
+    for {
+      response <- Try( post("EnableRecordSchedule", params) )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.booleanField("bool") )
+    } yield result
   }
 
-  def updateRecordedWatchedStatus(chanId: ChanId, startTime: MythDateTime, watched: Boolean): Boolean = {
+  def updateRecordedWatchedStatus(chanId: ChanId, startTime: MythDateTime, watched: Boolean): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map(
       "ChanId" -> chanId.id,
       "StartTime" -> startTime.toIsoFormat,
       "Watched" -> watched
     )
-    val response = post("UpdateRecordedWatchedStatus", params)
-    val root = responseRoot(response)
-    root.booleanField("bool")
+    for {
+      response <- Try( post("UpdateRecordedWatchedStatus", params) )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.booleanField("bool") )
+    } yield result
   }
 
 }

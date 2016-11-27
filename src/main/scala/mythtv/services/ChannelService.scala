@@ -8,38 +8,38 @@ import util.OptionalCount
 trait ChannelService extends BackendService {
   def serviceName: String = "Channel"
 
-  def getChannelInfo(chanId: ChanId): ChannelDetails
-  def getChannelInfoList(sourceId: ListingSourceId): PagedList[ChannelDetails]
+  def getChannelInfo(chanId: ChanId): ServiceResult[ChannelDetails]
+  def getChannelInfoList(sourceId: ListingSourceId): ServiceResult[PagedList[ChannelDetails]]
 
-  def getVideoSource(sourceId: ListingSourceId): ListingSource
-  def getVideoSourceList: List[ListingSource]
+  def getVideoSource(sourceId: ListingSourceId): ServiceResult[ListingSource]
+  def getVideoSourceList: ServiceResult[List[ListingSource]]
 
-  def getVideoMultiplex(mplexId: MultiplexId): VideoMultiplex
+  def getVideoMultiplex(mplexId: MultiplexId): ServiceResult[VideoMultiplex]
   def getVideoMultiplexList(
     sourceId: ListingSourceId,
     startIndex: Int = 0,
     count: OptionalCount[Int] = OptionalCount.all
-  ): PagedList[VideoMultiplex]
+  ): ServiceResult[PagedList[VideoMultiplex]]
 
-  def getXmltvIdList(sourceId: ListingSourceId): List[String]
+  def getXmltvIdList(sourceId: ListingSourceId): ServiceResult[List[String]]
 
   /* mutating POST methods */
 
-  def addDbChannel(channel: ChannelDetails): Boolean
+  def addDbChannel(channel: ChannelDetails): ServiceResult[Boolean]
 
-  def removeDbChannel(chanId: ChanId): Boolean
+  def removeDbChannel(chanId: ChanId): ServiceResult[Boolean]
 
-  def updateDbChannel(channel: ChannelDetails): Boolean
-
-
-  def addVideoSource(source: ListingSource): ListingSourceId
-
-  def removeVideoSource(sourceId: ListingSourceId): Boolean
-
-  def updateVideoSource(source: ListingSource): Boolean
+  def updateDbChannel(channel: ChannelDetails): ServiceResult[Boolean]
 
 
-  def getDDLineupList(userName: String, password: String, provider: String = ""): List[Lineup]
+  def addVideoSource(source: ListingSource): ServiceResult[ListingSourceId]
 
-  def fetchChannelsFromSource(sourceId: ListingSourceId, cardId: CaptureCardId, waitForFinish: Boolean): Int
+  def removeVideoSource(sourceId: ListingSourceId): ServiceResult[Boolean]
+
+  def updateVideoSource(source: ListingSource): ServiceResult[Boolean]
+
+
+  def getDDLineupList(userName: String, password: String, provider: String = ""): ServiceResult[List[Lineup]]
+
+  def fetchChannelsFromSource(sourceId: ListingSourceId, cardId: CaptureCardId, waitForFinish: Boolean): ServiceResult[Int]
 }

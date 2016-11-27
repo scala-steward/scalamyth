@@ -6,21 +6,21 @@ import model.{ CaptureCardId, CaptureCard, CardInput, InputId }
 trait CaptureService extends BackendService {
   def serviceName: String = "Capture"
 
-  def getCaptureCard(cardId: CaptureCardId): CaptureCard
+  def getCaptureCard(cardId: CaptureCardId): ServiceResult[CaptureCard]
 
-  def getCaptureCardList(hostName: String = "", cardType: String = ""): List[CaptureCard]
+  def getCaptureCardList(hostName: String = "", cardType: String = ""): ServiceResult[List[CaptureCard]]
 
   /* mutating POST methods */
 
-  def addCaptureCard(card: CaptureCard): CaptureCardId
+  def addCaptureCard(card: CaptureCard): ServiceResult[CaptureCardId]
 
-  def removeCaptureCard(cardId: CaptureCardId): Boolean
+  def removeCaptureCard(cardId: CaptureCardId): ServiceResult[Boolean]
 
-  def updateCaptureCard(cardId: CaptureCardId, setting: String, value: String): Boolean
+  def updateCaptureCard(cardId: CaptureCardId, setting: String, value: String): ServiceResult[Boolean]
 
-  def addCardInput(cardInput: CardInput): InputId
+  def addCardInput(cardInput: CardInput): ServiceResult[InputId]
 
-  def removeCardInput(inputId: InputId): Boolean
+  def removeCardInput(inputId: InputId): ServiceResult[Boolean]
 
-  def updateCardInput(inputId: InputId, setting: String, value: String): Boolean
+  def updateCardInput(inputId: InputId, setting: String, value: String): ServiceResult[Boolean]
 }

@@ -7,59 +7,59 @@ import util.{ MythDateTime, OptionalCount }
 trait DvrService extends BackendService {
   def serviceName: String = "Dvr"
 
-  def getRecorded(chanId: ChanId, startTime: MythDateTime): Recording
+  def getRecorded(chanId: ChanId, startTime: MythDateTime): ServiceResult[Recording]
 
   def getRecordedList(
     startIndex: Int = 0,
     count: OptionalCount[Int] = OptionalCount.all,
     descending: Boolean = false
-  ): PagedList[Recording]
+  ): ServiceResult[PagedList[Recording]]
 
   def getExpiringList(
     startIndex: Int = 0,
     count: OptionalCount[Int] = OptionalCount.all
-  ): PagedList[Recording]
+  ): ServiceResult[PagedList[Recording]]
 
   def getUpcomingList(
     startIndex: Int = 0,
     count: OptionalCount[Int] = OptionalCount.all,
     showAll: Boolean = false
-  ): PagedList[Recordable]
+  ): ServiceResult[PagedList[Recordable]]
 
   def getConflictList(
     startIndex: Int = 0,
     count: OptionalCount[Int] = OptionalCount.all
-  ): PagedList[Recordable]
+  ): ServiceResult[PagedList[Recordable]]
 
-  def getEncoderList: List[RemoteEncoderState]
+  def getEncoderList: ServiceResult[List[RemoteEncoderState]]
 
   def getRecordScheduleList(
     startIndex: Int = 0,
     count: OptionalCount[Int] = OptionalCount.all
-  ): PagedList[RecordRule]
+  ): ServiceResult[PagedList[RecordRule]]
 
-  def getRecordSchedule(recordId: RecordRuleId): RecordRule
+  def getRecordSchedule(recordId: RecordRuleId): ServiceResult[RecordRule]
 
-  def getRecGroupList: List[String]
+  def getRecGroupList: ServiceResult[List[String]]
 
-  def getTitleList: List[String]
+  def getTitleList: ServiceResult[List[String]]
 
-  def getTitleInfoList: List[TitleInfo]
+  def getTitleInfoList: ServiceResult[List[TitleInfo]]
 
   /* mutating POST methods */
 
-  def removeRecorded(chanId: ChanId, startTime: MythDateTime): Boolean
+  def removeRecorded(chanId: ChanId, startTime: MythDateTime): ServiceResult[Boolean]
 
-  def addRecordSchedule(rule: RecordRule): RecordRuleId
+  def addRecordSchedule(rule: RecordRule): ServiceResult[RecordRuleId]
 
-  def updateRecordSchedule(rule: RecordRule): Boolean
+  def updateRecordSchedule(rule: RecordRule): ServiceResult[Boolean]
 
-  def removeRecordSchedule(recordId: RecordRuleId): Boolean
+  def removeRecordSchedule(recordId: RecordRuleId): ServiceResult[Boolean]
 
-  def disableRecordSchedule(recordId: RecordRuleId): Boolean
+  def disableRecordSchedule(recordId: RecordRuleId): ServiceResult[Boolean]
 
-  def enableRecordSchedule(recordId: RecordRuleId): Boolean
+  def enableRecordSchedule(recordId: RecordRuleId): ServiceResult[Boolean]
 
   /* Added to API on 6 Apr 2016 */
-  def updateRecordedWatchedStatus(chanId: ChanId, startTime: MythDateTime, watched: Boolean): Boolean
+  def updateRecordedWatchedStatus(chanId: ChanId, startTime: MythDateTime, watched: Boolean): ServiceResult[Boolean]
 }

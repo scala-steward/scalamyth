@@ -3,9 +3,11 @@ package connection
 package http
 package json
 
+import scala.util.Try
+
 import spray.json.DefaultJsonProtocol
 
-import services.ContentService
+import services.{ ContentService, ServiceResult }
 import model.{ ArtworkInfo, ChanId, LiveStreamId, LiveStream, VideoId }
 import util.{ MythFileHash, MythDateTime }
 import RichJsonObject._
@@ -13,35 +15,44 @@ import RichJsonObject._
 class JsonContentService(conn: BackendJsonConnection)
   extends JsonBackendService(conn)
      with ContentService {
-  def getFileList(storageGroup: String): List[String] = {
+
+  def getFileList(storageGroup: String): ServiceResult[List[String]] = {
     val params: Map[String, Any] = Map("StorageGroup" -> storageGroup)
-    val response = request("GetFileList", params)
-    val root = responseRoot(response)
-    root.convertTo[List[String]]
+    for {
+      response <- Try( request("GetFileList", params) )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.convertTo[List[String]] )
+    } yield result
   }
 
   // TODO handle error conditions, such as file not existing...
-  def getHash(storageGroup: String, fileName: String): MythFileHash = {
+  def getHash(storageGroup: String, fileName: String): ServiceResult[MythFileHash] = {
     import DefaultJsonProtocol.StringJsonFormat
     val params: Map[String, Any] = Map("StorageGroup" -> storageGroup, "FileName" -> fileName)
-    val response = request("GetHash", params)
-    val root = responseRoot(response, "String")
-    new MythFileHash(root.convertTo[String])
+    for {
+      response <- Try( request("GetHash", params) )
+      root     <- Try( responseRoot(response, "String") )
+      result   <- Try( new MythFileHash(root.convertTo[String]) )
+    } yield result
   }
 
-  def getLiveStream(id: LiveStreamId): LiveStream = {
+  def getLiveStream(id: LiveStreamId): ServiceResult[LiveStream] = {
     val params: Map[String, Any] = Map("Id" -> id.id)
-    val response = request("GetLiveStream", params)
-    val root = responseRoot(response, "LiveStreamInfo")
-    root.convertTo[LiveStream]
+    for {
+      response <- Try( request("GetLiveStream", params) )
+      root     <- Try( responseRoot(response, "LiveStreamInfo") )
+      result   <- Try( root.convertTo[LiveStream] )
+    } yield result
   }
 
-  def getLiveStreamList(fileName: String): List[LiveStream] = {
+  def getLiveStreamList(fileName: String): ServiceResult[List[LiveStream]] = {
     var params: Map[String, Any] = Map.empty
     if (fileName.nonEmpty) params += "FileName" -> fileName
-    val response = request("GetLiveStreamList", params)
-    val root = responseRoot(response, "LiveStreamInfoList")
-    root.convertTo[List[LiveStream]]
+    for {
+      response <- Try( request("GetLiveStreamList", params) )
+      root     <- Try( responseRoot(response, "LiveStreamInfoList") )
+      result   <- Try( root.convertTo[List[LiveStream]] )
+    } yield result
   }
 
   def getFile(storageGroup: String, fileName: String): HttpStreamResponse = {
@@ -106,38 +117,44 @@ class JsonContentService(conn: BackendJsonConnection)
     requestStream("GetRecordingArtwork", params)
   }
 
-  def getRecordingArtworkList(chanId: ChanId, startTime: MythDateTime): List[ArtworkInfo] = {
+  def getRecordingArtworkList(chanId: ChanId, startTime: MythDateTime): ServiceResult[List[ArtworkInfo]] = {
     val params: Map[String, Any] = Map(
       "ChanId" -> chanId.id,
       "StartTime" -> startTime.toIsoFormat
     )
-    val response = request("GetRecordingArtworkList", params)
-    val root = responseRoot(response, "ArtworkInfoList")
-    root.convertTo[List[ArtworkInfo]]
+    for {
+      response <- Try( request("GetRecordingArtworkList", params) )
+      root     <- Try( responseRoot(response, "ArtworkInfoList") )
+      result   <- Try( root.convertTo[List[ArtworkInfo]] )
+    } yield result
   }
 
-  def getProgramArtworkList(inetRef: String, season: Int): List[ArtworkInfo] = {
+  def getProgramArtworkList(inetRef: String, season: Int): ServiceResult[List[ArtworkInfo]] = {
     val params: Map[String, Any] = Map(
       "Inetref" -> inetRef,
       "Season" -> season
     )
-    val response = request("GetProgramArtworkList", params)
-    val root = responseRoot(response, "ArtworkInfoList")
-    root.convertTo[List[ArtworkInfo]]
+    for {
+      response <- Try( request("GetProgramArtworkList", params) )
+      root     <- Try( responseRoot(response, "ArtworkInfoList") )
+      result   <- Try( root.convertTo[List[ArtworkInfo]] )
+    } yield result
   }
 
-  def downloadFile(url: String, storageGroup: String): Boolean = {
+  def downloadFile(url: String, storageGroup: String): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map(
       "URL" -> url,
       "StorageGroup" -> storageGroup
     )
-    val response = post("DownloadFile", params)
-    val root = responseRoot(response)
-    root.booleanField("bool")
+    for {
+      response <- Try( post("DownloadFile", params) )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.booleanField("bool") )
+    } yield result
   }
 
   def addLiveStream(storageGroup: String, fileName: String, hostName: String, maxSegments: Int,
-    width: Int, height: Int, bitrate: Int, audioBitrate: Int, sampleRate: Int): LiveStream = {
+    width: Int, height: Int, bitrate: Int, audioBitrate: Int, sampleRate: Int): ServiceResult[LiveStream] = {
     var params: Map[String, Any] = Map(
       "StorageGroup" -> storageGroup,
       "FileName"     -> fileName
@@ -149,13 +166,15 @@ class JsonContentService(conn: BackendJsonConnection)
     if (bitrate != 0)      params += "Bitrate"      -> bitrate
     if (audioBitrate != 0) params += "AudioBitrate" -> audioBitrate
     if (sampleRate != 0)   params += "SampleRate"   -> sampleRate
-    val response = post("AddLiveStream", params)
-    val root = responseRoot(response, "LiveStreamInfo")
-    root.convertTo[LiveStream]
+    for {
+      response <- Try( post("AddLiveStream", params) )
+      root     <- Try( responseRoot(response, "LiveStreamInfo") )
+      result   <- Try( root.convertTo[LiveStream] )
+    } yield result
   }
 
   def addRecordingLiveStream(chanId: ChanId, startTime: MythDateTime, maxSegments: Int,
-    width: Int, height: Int, bitrate: Int, audioBitrate: Int, sampleRate: Int): LiveStream = {
+    width: Int, height: Int, bitrate: Int, audioBitrate: Int, sampleRate: Int): ServiceResult[LiveStream] = {
     var params: Map[String, Any] = Map(
       "ChanId"       -> chanId.id,
       "StartTime"    -> startTime.toIsoFormat
@@ -166,13 +185,15 @@ class JsonContentService(conn: BackendJsonConnection)
     if (bitrate != 0)      params += "Bitrate"      -> bitrate
     if (audioBitrate != 0) params += "AudioBitrate" -> audioBitrate
     if (sampleRate != 0)   params += "SampleRate"   -> sampleRate
-    val response = post("AddRecordingLiveStream", params)
-    val root = responseRoot(response, "LiveStreamInfo")
-    root.convertTo[LiveStream]
+    for {
+      response <- Try( post("AddRecordingLiveStream", params) )
+      root     <- Try( responseRoot(response, "LiveStreamInfo") )
+      result   <- Try( root.convertTo[LiveStream] )
+    } yield result
   }
 
   def addVideoLiveStream(videoId: VideoId, maxSegments: Int,
-    width: Int, height: Int, bitrate: Int, audioBitrate: Int, sampleRate: Int): LiveStream = {
+    width: Int, height: Int, bitrate: Int, audioBitrate: Int, sampleRate: Int): ServiceResult[LiveStream] = {
     var params: Map[String, Any] = Map("Id" -> videoId.id)
     if (maxSegments != 0)  params += "MaxSegments"  -> maxSegments
     if (width != 0)        params += "Width"        -> width
@@ -180,22 +201,28 @@ class JsonContentService(conn: BackendJsonConnection)
     if (bitrate != 0)      params += "Bitrate"      -> bitrate
     if (audioBitrate != 0) params += "AudioBitrate" -> audioBitrate
     if (sampleRate != 0)   params += "SampleRate"   -> sampleRate
-    val response = post("AddVideoLiveStream", params)
-    val root = responseRoot(response, "LiveStreamInfo")
-    root.convertTo[LiveStream]
+    for {
+      response <- Try( post("AddVideoLiveStream", params) )
+      root     <- Try( responseRoot(response, "LiveStreamInfo") )
+      result   <- Try( root.convertTo[LiveStream] )
+    } yield result
   }
 
-  def stopLiveStream(id: LiveStreamId): LiveStream = {
+  def stopLiveStream(id: LiveStreamId): ServiceResult[LiveStream] = {
     val params: Map[String, Any] = Map("Id" -> id.id)
-    val response = post("StopLiveStream", params)
-    val root = responseRoot(response, "LiveStreamInfo")
-    root.convertTo[LiveStream]
+    for {
+      response <- Try( post("StopLiveStream", params) )
+      root     <- Try( responseRoot(response, "LiveStreamInfo") )
+      result   <- Try( root.convertTo[LiveStream] )
+    } yield result
   }
 
-  def removeLiveStream(id: LiveStreamId): Boolean = {
+  def removeLiveStream(id: LiveStreamId): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map("Id" -> id.id)
-    val response = post("RemoveLiveStream", params)
-    val root = responseRoot(response)
-    root.booleanField("bool")
+    for {
+      response <- Try( post("RemoveLiveStream", params) )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.booleanField("bool") )
+    } yield result
   }
 }

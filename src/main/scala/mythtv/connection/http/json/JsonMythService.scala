@@ -5,9 +5,11 @@ package json
 
 import java.time.{ Duration, Instant }
 
+import scala.util.Try
+
 import spray.json.DefaultJsonProtocol
 
-import services.MythService
+import services.{ MythService, ServiceResult }
 import model.{ ConnectionInfo, Settings, StorageGroupDir, TimeZoneInfo }
 import RichJsonObject._
 
@@ -17,54 +19,68 @@ class JsonMythService(conn: BackendJsonConnection)
   extends JsonBackendService(conn)
      with MythService {
 
-  def getConnectionInfo(pin: String): ConnectionInfo = {
+  def getConnectionInfo(pin: String): ServiceResult[ConnectionInfo] = {
     val params: Map[String, Any] = Map("Pin" -> pin)
-    val response = post("GetConnectionInfo", params)
-    val root = responseRoot(response, "ConnectionInfo")
-    root.convertTo[ConnectionInfo]
+    for {
+      response <- Try( post("GetConnectionInfo", params) )
+      root     <- Try( responseRoot(response, "ConnectionInfo") )
+      result   <- Try( root.convertTo[ConnectionInfo] )
+    } yield result
   }
 
-  def getHostName: String = {
+  def getHostName: ServiceResult[String] = {
     import DefaultJsonProtocol.StringJsonFormat
-    val response = request("GetHostName")
-    val root = responseRoot(response, "String")
-    root.convertTo[String]
+    for {
+      response <- Try( request("GetHostName") )
+      root     <- Try( responseRoot(response, "String") )
+      result   <- Try( root.convertTo[String] )
+    } yield result
   }
 
-  def getHosts: List[String] = {
-    val response = request("GetHosts")
-    val root = responseRoot(response)
-    root.convertTo[List[String]]
+  def getHosts: ServiceResult[List[String]] = {
+    for {
+      response <- Try( request("GetHosts") )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.convertTo[List[String]] )
+    } yield result
   }
 
-  def getKeys: List[String] = {
-    val response = request("GetKeys")
-    val root = responseRoot(response)
-    root.convertTo[List[String]]
+  def getKeys: ServiceResult[List[String]] = {
+    for {
+      response <- Try( request("GetKeys") )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.convertTo[List[String]] )
+    } yield result
   }
 
-  def getSettings(hostName: String, key: String): Settings = {
+  def getSettings(hostName: String, key: String): ServiceResult[Settings] = {
     var params: Map[String, Any] = Map.empty
     if (hostName.nonEmpty) params += "HostName" -> hostName
     if (key.nonEmpty)      params += "Key" -> key
-    val response = request("GetSetting", params)
-    val root = responseRoot(response, "SettingList")
-    root.convertTo[Settings]
+    for {
+      response <- Try( request("GetSetting", params) )
+      root     <- Try( responseRoot(response, "SettingList") )
+      result   <- Try( root.convertTo[Settings] )
+    } yield result
   }
 
-  def getStorageGroupDirs(hostName: String, groupName: String): List[StorageGroupDir] = {
+  def getStorageGroupDirs(hostName: String, groupName: String): ServiceResult[List[StorageGroupDir]] = {
     var params: Map[String, Any] = Map.empty
     if (hostName.nonEmpty) params += "HostName" -> hostName
     if (groupName.nonEmpty) params += "GroupName" -> groupName
-    val response = request("GetStorageGroupDirs", params)
-    val root = responseRoot(response, "StorageGroupDirList")
-    root.convertTo[List[StorageGroupDir]]
+    for {
+      response <- Try( request("GetStorageGroupDirs", params) )
+      root     <- Try( responseRoot(response, "StorageGroupDirList") )
+      result   <- Try( root.convertTo[List[StorageGroupDir]] )
+    } yield result
   }
 
-  def getTimeZone: TimeZoneInfo = {
-    val response = request("GetTimeZone")
-    val root = responseRoot(response, "TimeZoneInfo")
-    root.convertTo[TimeZoneInfo]
+  def getTimeZone: ServiceResult[TimeZoneInfo] = {
+    for {
+      response <- Try( request("GetTimeZone") )
+      root     <- Try( responseRoot(response, "TimeZoneInfo") )
+      result   <- Try( root.convertTo[TimeZoneInfo] )
+    } yield result
   }
 
   def getLogs(
@@ -80,7 +96,7 @@ class JsonMythService(conn: BackendJsonConnection)
     toTime: Instant,
     level: String,
     msgContains: String
-  ): List[LogMessage] = {
+  ): ServiceResult[List[LogMessage]] = {
     var params: Map[String, Any] = Map.empty
     if (hostName.nonEmpty)       params += "HostName" -> hostName
     if (application.nonEmpty)    params += "Application" -> application
@@ -94,58 +110,68 @@ class JsonMythService(conn: BackendJsonConnection)
     if (toTime != Instant.MIN)   params += "ToTime" -> toTime
     if (level.nonEmpty)          params += "Level" -> level
     if (msgContains.nonEmpty)    params += "MsgContains" -> msgContains
-    val response = request("GetLogs", params)
-    val root = responseRoot(response, "LogMessageList") // TODO ???
-    ???
+    for {
+      response <- Try( request("GetLogs", params) )
+      root     <- Try( responseRoot(response, "LogMessageList") ) // TODO ???
+      result   <- Try( ??? )
+    } yield result
   }
 
   /* mutating POST methods */
 
-  def addStorageGroupDir(storageGroup: String, dirName: String, hostName: String): Boolean = {
+  def addStorageGroupDir(storageGroup: String, dirName: String, hostName: String): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map(
       "GroupName" -> storageGroup,
       "DirName"   -> dirName,
       "HostName"  -> hostName
     )
-    val response = post("AddStorageGroupDir", params)
-    val root = responseRoot(response)
-    root.booleanField("bool")
+    for {
+      response <- Try( post("AddStorageGroupDir", params) )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.booleanField("bool") )
+    } yield result
   }
 
-  def removeStorageGroupDir(storageGroup: String, dirName: String, hostName: String): Boolean = {
+  def removeStorageGroupDir(storageGroup: String, dirName: String, hostName: String): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map(
       "GroupName" -> storageGroup,
       "DirName"   -> dirName,
       "HostName"  -> hostName
     )
-    val response = post("RemoveStorageGroupDir", params)
-    val root = responseRoot(response)
-    root.booleanField("bool")
+    for {
+      response <- Try( post("RemoveStorageGroupDir", params) )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.booleanField("bool") )
+    } yield result
   }
 
-  def putSetting(hostName: String, key: String, value: String): Boolean = {
+  def putSetting(hostName: String, key: String, value: String): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map(
       "HostName" -> hostName,
       "Key"      -> key,
       "Value"    -> value
     )
-    val response = post("PutSetting", params)
-    val root = responseRoot(response)
-    root.booleanField("bool")
+    for {
+      response <- Try( post("PutSetting", params) )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.booleanField("bool") )
+    } yield result
   }
 
-  def changePassword(userName: String, oldPassword: String, newPassword: String): Boolean = {
+  def changePassword(userName: String, oldPassword: String, newPassword: String): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map(
       "UserName"    -> userName,
       "OldPassword" -> oldPassword,
       "NewPassword" -> newPassword
     )
-    val response = post("ChangePassword", params)
-    val root = responseRoot(response)
-    root.booleanField("bool")   // TODO test
+    for {
+      response <- Try( post("ChangePassword", params) )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.booleanField("bool") )  // TODO test
+    } yield result
   }
 
-  def testDbSettings(hostName: String, userName: String, password: String, dbName: String, dbPort: Int): Boolean = {
+  def testDbSettings(hostName: String, userName: String, password: String, dbName: String, dbPort: Int): ServiceResult[Boolean] = {
     var params: Map[String, Any] = Map(
       "HostName" -> hostName,
       "UserName" -> userName,
@@ -153,54 +179,66 @@ class JsonMythService(conn: BackendJsonConnection)
     )
     if (dbName.nonEmpty) params += "DBName" -> dbName
     if (dbPort != 0)     params += "dbPort" -> dbPort
-    val response = post("TestDBSettings", params)
-    val root = responseRoot(response)
-    root.booleanField("bool")
+    for {
+      response <- Try( post("TestDBSettings", params) )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.booleanField("bool") )
+    } yield result
   }
 
-  def sendMessage(message: String, address: String, udpPort: Int, timeout: Duration): Boolean = {
+  def sendMessage(message: String, address: String, udpPort: Int, timeout: Duration): ServiceResult[Boolean] = {
     var params: Map[String, Any] = Map("Message" -> message)
     if (address.nonEmpty) params += "Address" -> address
     if (udpPort != 0)     params += "udpPort" -> udpPort
     if (!timeout.isZero)  params += "Timeout" -> timeout.getSeconds
-    val response = post("SendMessage", params)
-    val root = responseRoot(response)
-    root.booleanField("bool")
+    for {
+      response <- Try( post("SendMessage", params) )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.booleanField("bool") )
+    } yield result
   }
 
   //def sendNotification(....): Boolean = ???
 
-  def backupDatabase(): Boolean = {
-    val response = post("BackupDatabase")
-    val root = responseRoot(response)
-    root.booleanField("bool")
+  def backupDatabase(): ServiceResult[Boolean] = {
+    for {
+      response <- Try( post("BackupDatabase") )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.booleanField("bool") )
+    } yield result
   }
 
-  def checkDatabase(repair: Boolean): Boolean = {
+  def checkDatabase(repair: Boolean): ServiceResult[Boolean] = {
     var params: Map[String, Any] = Map.empty
     if (repair) params += "Repair" -> repair
-    val response = post("CheckDatabase", params)
-    val root = responseRoot(response)
-    root.booleanField("bool")
+    for {
+      response <- Try( post("CheckDatabase", params) )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.booleanField("bool") )
+    } yield result
   }
 
-  def profileSubmit(): Boolean = {
-    val response = post("ProfileSubmit")
-    val root = responseRoot(response)
-    root.booleanField("bool")   // TODO test
+  def profileSubmit(): ServiceResult[Boolean] = {
+    for {
+      response <- Try( post("ProfileSubmit") )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.booleanField("bool") )  // TODO test
+    } yield result
   }
 
-  def profileDelete(): Boolean = {
-    val response = post("ProfileDelete")
-    val root = responseRoot(response)
-    root.booleanField("bool")   // TODO test
+  def profileDelete(): ServiceResult[Boolean] = {
+    for {
+      response <- Try( post("ProfileDelete") )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.booleanField("bool") )  // TODO test
+    } yield result
   }
 
 // TODO are the three below GET methods?
 
-  def profileUrl: String = ???
+  def profileUrl: ServiceResult[String] = ???
 
-  def profileUpdated: String = ???
+  def profileUpdated: ServiceResult[String] = ???
 
-  def profileText: String = ???
+  def profileText: ServiceResult[String] = ???
 }

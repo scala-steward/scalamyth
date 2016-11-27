@@ -8,12 +8,12 @@ import connection.http.HttpStreamResponse
 trait ContentService extends BackendService {
   def serviceName: String = "Content"
 
-  def getFileList(storageGroup: String): List[String]
-  def downloadFile(url: String, storageGroup: String): Boolean
-  def getHash(storageGroup: String, fileName: String): MythFileHash
+  def getFileList(storageGroup: String): ServiceResult[List[String]]
+  def downloadFile(url: String, storageGroup: String): ServiceResult[Boolean]
+  def getHash(storageGroup: String, fileName: String): ServiceResult[MythFileHash]
 
-  def getRecordingArtworkList(chanId: ChanId, startTime: MythDateTime): List[ArtworkInfo]
-  def getProgramArtworkList(inetRef: String, season: Int): List[ArtworkInfo]
+  def getRecordingArtworkList(chanId: ChanId, startTime: MythDateTime): ServiceResult[List[ArtworkInfo]]
+  def getProgramArtworkList(inetRef: String, season: Int): ServiceResult[List[ArtworkInfo]]
 
   def getMusic(id: Int): HttpStreamResponse
 
@@ -43,7 +43,7 @@ trait ContentService extends BackendService {
     bitrate: Int = LiveStream.DefaultBitrate,
     audioBitrate: Int = LiveStream.DefaultAudioBitrate,
     sampleRate: Int = LiveStream.DefaultSampleRate
-  ): LiveStream
+  ): ServiceResult[LiveStream]
 
   def addRecordingLiveStream(
     chanId: ChanId,
@@ -54,7 +54,7 @@ trait ContentService extends BackendService {
     bitrate: Int = LiveStream.DefaultBitrate,
     audioBitrate: Int = LiveStream.DefaultAudioBitrate,
     sampleRate: Int = LiveStream.DefaultSampleRate
-  ): LiveStream
+  ): ServiceResult[LiveStream]
 
   def addVideoLiveStream(
     videoId: VideoId,
@@ -64,13 +64,13 @@ trait ContentService extends BackendService {
     bitrate: Int = LiveStream.DefaultBitrate,
     audioBitrate: Int = LiveStream.DefaultAudioBitrate,
     sampleRate: Int = LiveStream.DefaultSampleRate
-  ): LiveStream
+  ): ServiceResult[LiveStream]
 
-  def getLiveStream(id: LiveStreamId): LiveStream
+  def getLiveStream(id: LiveStreamId): ServiceResult[LiveStream]
 
-  def getLiveStreamList(fileName: String = ""): List[LiveStream]
+  def getLiveStreamList(fileName: String = ""): ServiceResult[List[LiveStream]]
 
-  def stopLiveStream(id: LiveStreamId): LiveStream
+  def stopLiveStream(id: LiveStreamId): ServiceResult[LiveStream]
 
-  def removeLiveStream(id: LiveStreamId): Boolean
+  def removeLiveStream(id: LiveStreamId): ServiceResult[Boolean]
 }

@@ -14,9 +14,9 @@ trait GuideService extends BackendService {
     startChanId: ChanId = ChanId(0),
     numChannels: OptionalCount[Int] = OptionalCount.all,
     details: Boolean = false
-  ): Guide[Channel, Program]
+  ): ServiceResult[Guide[Channel, Program]]
 
-  def getProgramDetails(chanId: ChanId, startTime: MythDateTime): Program
+  def getProgramDetails(chanId: ChanId, startTime: MythDateTime): ServiceResult[Program]
 
   def getChannelIcon(chanId: ChanId, width: Int = 0, height: Int = 0): HttpStreamResponse
 }

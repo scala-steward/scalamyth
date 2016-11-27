@@ -2,7 +2,10 @@ package mythtv
 package connection
 package http
 
-import services.Service
+import scala.util.{ Failure, Success, Try }
+
+import services.{ Service, ServiceResult }
+import Service.ServiceFailure.ServiceFailureThrowable
 import util.{ OptionalCount, OptionalCountSome }
 
 trait MythServiceProtocol {
@@ -27,6 +30,12 @@ trait MythServiceProtocol {
     }
     if (startIndex != 0) params += "StartIndex" -> startIndex
     params
+  }
+
+  import scala.language.implicitConversions
+  implicit def try2Result[T](t: Try[T]): ServiceResult[T] = t match {
+    case Success(value) => Right(value)
+    case Failure(ex) => Left(ServiceFailureThrowable(ex))
   }
 }
 

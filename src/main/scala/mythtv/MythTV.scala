@@ -42,9 +42,8 @@ object MythTV {
     val port = trialBackend.port
     val myth = service[MythService](host, port)
 
-    // TODO will slave backends process services requests properly?
-    val masterIp = myth.getSetting("MasterServerIP").get
-    val masterPort = myth.getSetting("MasterServerPort").map(_.toInt).get
+    val masterIp = myth.getSetting("MasterServerIP").right.get.get
+    val masterPort = myth.getSetting("MasterServerPort").right.get.map(_.toInt).get
 
     val masterAddr = InetAddress.getByName(masterIp)
     val discoveredMaster = backends find (_.addresses contains masterAddr)

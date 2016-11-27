@@ -13,9 +13,9 @@ trait MythFrontendService extends FrontendService {
 
   // query methods
 
-  def getActionList(context: String = ""): FrontendActionMap
-  def getContextList: List[String]
-  def getStatus: FrontendStatus
+  def getActionList(context: String = ""): ServiceResult[FrontendActionMap]
+  def getContextList: ServiceResult[List[String]]
+  def getStatus: ServiceResult[FrontendStatus]
 
   def getScreenshot(format: ScreenshotFormat = ScreenshotFormat.Png, width: Int = 0, height: Int = 0): HttpStreamResponse
 
@@ -26,14 +26,14 @@ trait MythFrontendService extends FrontendService {
   // again will cause playback, but it will restart upon exit (guess cause we
   // send the message twice?)  I think the same buf may affect other control
   // avenues as well.
-  def playRecording(chanId: ChanId, startTime: MythDateTime): Boolean
+  def playRecording(chanId: ChanId, startTime: MythDateTime): ServiceResult[Boolean]
 
   // FIXME UPSTREAM BUG? if UseBookmark=true, then dialog still pops up about bookmark
-  def playVideo(id: VideoId, useBookmark: Boolean = false): Boolean
+  def playVideo(id: VideoId, useBookmark: Boolean = false): ServiceResult[Boolean]
 
-  def sendAction(action: Action, value: String = ""): Boolean
+  def sendAction(action: Action, value: String = ""): ServiceResult[Boolean]
 
-  def sendMessage(message: String, timeout: Duration = Duration.ZERO): Boolean
+  def sendMessage(message: String, timeout: Duration = Duration.ZERO): ServiceResult[Boolean]
 
   /* The implementation of notifications through services seems to be a bit buggy
      still in 0.27. If visibility is set, then the message text may be invisible.
@@ -52,5 +52,5 @@ trait MythFrontendService extends FrontendService {
     notifyType: NotificationType = NotificationType.New,
     priority: NotificationPriority = NotificationPriority.Default,
     visibility: NotificationVisibility = NotificationVisibility.All
-  ): Boolean
+  ): ServiceResult[Boolean]
 }

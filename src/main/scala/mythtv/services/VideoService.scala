@@ -7,15 +7,15 @@ import util.OptionalCount
 trait VideoService extends BackendService {
   def serviceName: String = "Video"
 
-  def getVideo(id: VideoId): Video
-  def getVideoByFileName(fileName: String): Video
+  def getVideo(id: VideoId): ServiceResult[Video]
+  def getVideoByFileName(fileName: String): ServiceResult[Video]
   def getVideoList(
     startIndex: Int = 0,
     count: OptionalCount[Int] = OptionalCount.all,
     descending: Boolean = false
-  ): PagedList[Video]
+  ): ServiceResult[PagedList[Video]]
 
-  def getBluray(path: String): BlurayInfo
+  def getBluray(path: String): ServiceResult[BlurayInfo]
 
   /*
      TODO UPSTREAM LookupVideo seems to fail or return unexpected results often on my 0.27 setup,
@@ -35,7 +35,7 @@ trait VideoService extends BackendService {
     episode: Int = 0,
     grabberType: String = "",
     allowGeneric: Boolean = false
-  ): List[VideoLookup]
+  ): ServiceResult[List[VideoLookup]]
 
   def lookupVideoTitle(
     title: String,
@@ -45,7 +45,7 @@ trait VideoService extends BackendService {
     inetRef: String = "",
     grabberType: String = "",
     allowGeneric: Boolean = false
-  ): List[VideoLookup] =
+  ): ServiceResult[List[VideoLookup]] =
     lookupVideo(title, subtitle, inetRef, season, episode, grabberType, allowGeneric)
 
   def lookupVideoInetref(
@@ -56,15 +56,15 @@ trait VideoService extends BackendService {
     subtitle: String = "",
     grabberType: String = "",
     allowGeneric: Boolean = false
-  ): List[VideoLookup] =
+  ): ServiceResult[List[VideoLookup]] =
     lookupVideo(title, subtitle, inetRef, season, episode, grabberType, allowGeneric)
 
   /* mutating POST methods */
 
-  def addVideo(fileName: String, hostName: String): Boolean
+  def addVideo(fileName: String, hostName: String): ServiceResult[Boolean]
 
-  def removeVideoFromDb(videoId: VideoId): Boolean
+  def removeVideoFromDb(videoId: VideoId): ServiceResult[Boolean]
 
   /* Added to API on 6 Apr 2016 */
-  def updateVideoWatchedStatus(videoId: VideoId, watched: Boolean): Boolean
+  def updateVideoWatchedStatus(videoId: VideoId, watched: Boolean): ServiceResult[Boolean]
 }

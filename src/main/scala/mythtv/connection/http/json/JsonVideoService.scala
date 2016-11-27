@@ -3,45 +3,56 @@ package connection
 package http
 package json
 
+import scala.util.Try
+
 import util.OptionalCount
-import services.{ VideoService, PagedList }
+import services.{ VideoService, PagedList, ServiceResult }
 import model.{ BlurayInfo, Video, VideoId, VideoLookup }
 import RichJsonObject._
 
 class JsonVideoService(conn: BackendJsonConnection)
   extends JsonBackendService(conn)
      with VideoService {
-  def getVideo(videoId: VideoId): Video = {
+
+  def getVideo(videoId: VideoId): ServiceResult[Video] = {
     val params: Map[String, Any] = Map("Id" -> videoId.id)
-    val response = request("GetVideo", params)
-    val root = responseRoot(response, "VideoMetadataInfo")
-    root.convertTo[Video]
+    for {
+      response <- Try( request("GetVideo", params) )
+      root     <- Try( responseRoot(response, "VideoMetadataInfo") )
+      result   <- Try( root.convertTo[Video] )
+    } yield result
   }
 
-  def getVideoByFileName(fileName: String): Video = {
+  def getVideoByFileName(fileName: String): ServiceResult[Video] = {
     val params: Map[String, Any] = Map("FileName" -> fileName)
-    val response = request("GetVideoByFileName", params)
-    val root = responseRoot(response, "VideoMetadataInfo")
-    root.convertTo[Video]
+    for {
+      response <- Try( request("GetVideoByFileName", params) )
+      root     <- Try( responseRoot(response, "VideoMetadataInfo") )
+      result   <- Try( root.convertTo[Video] )
+    } yield result
   }
 
-  def getVideoList(startIndex: Int, count: OptionalCount[Int], descending: Boolean): PagedList[Video] = {
+  def getVideoList(startIndex: Int, count: OptionalCount[Int], descending: Boolean): ServiceResult[PagedList[Video]] = {
     var params = buildStartCountParams(startIndex, count)
     if (descending) params += "Descending" -> descending
-    val response = request("GetVideoList", params)
-    val root = responseRoot(response, "VideoMetadataInfoList")
-    root.convertTo[MythJsonPagedObjectList[Video]]
+    for {
+      response <- Try( request("GetVideoList", params) )
+      root     <- Try( responseRoot(response, "VideoMetadataInfoList") )
+      result   <- Try( root.convertTo[MythJsonPagedObjectList[Video]] )
+    } yield result
   }
 
-  def getBluray(path: String): BlurayInfo = {
+  def getBluray(path: String): ServiceResult[BlurayInfo] = {
     val params: Map[String, Any] = Map("Path" -> path)
-    val response = request("GetBluray", params)
-    val root = responseRoot(response, "BlurayInfo")
-    root.convertTo[BlurayInfo]
+    for {
+      response <- Try( request("GetBluray", params) )
+      root     <- Try( responseRoot(response, "BlurayInfo") )
+      result   <- Try( root.convertTo[BlurayInfo] )
+    } yield result
   }
 
   def lookupVideo(title: String, subtitle: String, inetRef: String, season: Int, episode: Int,
-    grabberType: String, allowGeneric: Boolean): List[VideoLookup] = {
+    grabberType: String, allowGeneric: Boolean): ServiceResult[List[VideoLookup]] = {
     var params: Map[String, Any] = Map.empty
     if (title.nonEmpty)    params += "Title" -> title
     if (subtitle.nonEmpty) params += "Subtitle" -> subtitle
@@ -50,36 +61,43 @@ class JsonVideoService(conn: BackendJsonConnection)
     if (episode != 0)      params += "Episode" -> episode
     if (grabberType.nonEmpty) params += "GrabberType" -> grabberType
     if (allowGeneric)      params += "AllowGeneric" -> allowGeneric
-    val response = request("LookupVideo", params)
-    val root = responseRoot(response, "VideoLookupList")
-    val list = root.convertTo[MythJsonObjectList[VideoLookup]]
-    list.data
+    for {
+      response <- Try( request("LookupVideo", params) )
+      root     <- Try( responseRoot(response, "VideoLookupList") )
+      result   <- Try( root.convertTo[MythJsonObjectList[VideoLookup]] )
+    } yield result.data
   }
 
   /* mutating POST methods */
 
-  def addVideo(fileName: String, hostName: String): Boolean = {
+  def addVideo(fileName: String, hostName: String): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map(
       "FileName" -> fileName,
       "HostName" -> hostName
     )
-    val response = post("AddVideo", params)
-    val root = responseRoot(response)
-    root.booleanField("bool")
+    for {
+      response <- Try( post("AddVideo", params) )
+      root     <- Try(  responseRoot(response) )
+      result   <- Try( root.booleanField("bool") )
+    } yield result
   }
 
-  def removeVideoFromDb(videoId: VideoId): Boolean = {
+  def removeVideoFromDb(videoId: VideoId): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map("Id" -> videoId.id)
-    val response = post("RemoveVideoFromDB", params)
-    val root = responseRoot(response)
-    root.booleanField("bool")
+    for {
+      response <- Try( post("RemoveVideoFromDB", params) )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.booleanField("bool") )
+    } yield result
   }
 
   /* Added to API on 6 Apr 2016 */
-  def updateVideoWatchedStatus(videoId: VideoId, watched: Boolean): Boolean = {
+  def updateVideoWatchedStatus(videoId: VideoId, watched: Boolean): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map("Id" -> videoId.id, "Watched" -> watched)
-    val response = post("UpdateVideoWatchedStatus", params)
-    val root = responseRoot(response)
-    root.booleanField("bool")   // TODO test
+    for {
+      response <- Try( post("UpdateVideoWatchedStatus", params) )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.booleanField("bool") )  // TODO test
+    } yield result
   }
 }

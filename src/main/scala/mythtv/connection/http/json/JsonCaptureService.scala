@@ -3,32 +3,39 @@ package connection
 package http
 package json
 
-import services.CaptureService
+import scala.util.Try
+
+import services.{ CaptureService, ServiceResult }
 import model.{ CaptureCard, CaptureCardId, CardInput, InputId }
 import RichJsonObject._
 
 class JsonCaptureService(conn: BackendJsonConnection)
   extends JsonBackendService(conn)
      with CaptureService {
-  def getCaptureCard(cardId: CaptureCardId): CaptureCard = {
+
+  def getCaptureCard(cardId: CaptureCardId): ServiceResult[CaptureCard] = {
     val params: Map[String, Any] = Map("CardId" -> cardId.id)
-    val response = request("GetCaptureCard", params)
-    val root = responseRoot(response, "CaptureCard")
-    root.convertTo[CaptureCard]
+    for {
+      response <- Try( request("GetCaptureCard", params) )
+      root     <- Try( responseRoot(response, "CaptureCard") )
+      result   <- Try( root.convertTo[CaptureCard] )
+    } yield result
   }
 
-  def getCaptureCardList(hostName: String, cardType: String): List[CaptureCard] = {
+  def getCaptureCardList(hostName: String, cardType: String): ServiceResult[List[CaptureCard]] = {
     var params: Map[String, Any] = Map.empty
     if (hostName.nonEmpty) params += "HostName" -> hostName
     if (cardType.nonEmpty) params += "CardType" -> cardType
-    val response = request("GetCaptureCardList", params)
-    val root = responseRoot(response, "CaptureCardList")
-    root.convertTo[List[CaptureCard]]
+    for {
+      response <- Try( request("GetCaptureCardList", params) )
+      root     <- Try( responseRoot(response, "CaptureCardList") )
+      result   <- Try( root.convertTo[List[CaptureCard]] )
+    } yield result
   }
 
   /* mutating POST methods */
 
-  def addCaptureCard(card: CaptureCard): CaptureCardId = {
+  def addCaptureCard(card: CaptureCard): ServiceResult[CaptureCardId] = {
     val params: Map[String, Any] = Map(
       "VideoDevice"        -> card.videoDevice.getOrElse(""),
       "AudioDevice"        -> card.audioDevice.getOrElse(""),
@@ -55,30 +62,36 @@ class JsonCaptureService(conn: BackendJsonConnection)
       "DiSEqCId"           -> card.diseqcId.getOrElse(0),  // TODO s/b NULL not 0 ??
       "DVBEITScan"         -> card.dvbEitScan
     )
-    val response = post("AddCaptureCard", params)
-    CaptureCardId(0)  // TODO implement
+    for {
+      response <- Try( post("AddCaptureCard", params) )
+      result   <- Try( CaptureCardId(0) ) // TODO implement
+    } yield result
   }
 
-  def removeCaptureCard(cardId: CaptureCardId): Boolean = {
+  def removeCaptureCard(cardId: CaptureCardId): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map("CardId" -> cardId.id)
-    val response = post("RemoveCaptureCard", params)
-    val root = responseRoot(response)
-    root.booleanField("bool")  // TODO test
+    for {
+      response <- Try( post("RemoveCaptureCard", params) )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.booleanField("bool") ) // TODO test
+    } yield result
   }
 
-  def updateCaptureCard(cardId: CaptureCardId, setting: String, value: String): Boolean = {
+  def updateCaptureCard(cardId: CaptureCardId, setting: String, value: String): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map(
       "CardId"  -> cardId.id,
       "Setting" -> setting,
       "Value"   -> value
     )
-    val response = post("UpdateCaptureCard", params)
-    val root = responseRoot(response)
-    root.booleanField("bool")  // TODO test
+    for {
+      response <- Try( post("UpdateCaptureCard", params) )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.booleanField("bool") ) // TODO test
+    } yield result
   }
 
   // TODO we don't have enough details in CardInput trait currently to support addCardInput
-  def addCardInput(input: CardInput): InputId = {
+  def addCardInput(input: CardInput): ServiceResult[InputId] = {
     val params: Map[String, Any] = Map(
       "CardId"          -> input.cardInputId.id,
       "SourceId"        -> input.sourceId.id,
@@ -96,26 +109,32 @@ class JsonCaptureService(conn: BackendJsonConnection)
       "SchedOrder"      -> ???,
       "LiveTVOrder"     -> input.liveTvOrder
     )
-    val response = post("AddCardInput", params)
-    InputId(0)   // TODO
+    for {
+      response <- Try( post("AddCardInput", params) )
+      result   <- Try( InputId(0) )  // TODO
+    } yield result
   }
 
-  def removeCardInput(inputId: InputId): Boolean = {
+  def removeCardInput(inputId: InputId): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map("CardInputId" -> inputId.id)
-    val response = post("RemoveCardInput", params)
-    val root = responseRoot(response)
-    root.booleanField("bool")  // TODO test
+    for {
+      response <- Try( post("RemoveCardInput", params) )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.booleanField("bool") ) // TODO test
+    } yield result
   }
 
-  def updateCardInput(inputId: InputId, setting: String, value: String): Boolean = {
+  def updateCardInput(inputId: InputId, setting: String, value: String): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map(
       "CardInputId" -> inputId.id,
       "Setting"     -> setting,
       "Value"       -> value
     )
-    val response = post("UpdateCardInput", params)
-    val root = responseRoot(response)
-    root.booleanField("bool")  // TODO test
+    for {
+      response <- Try( post("UpdateCardInput", params) )
+      root     <- Try( responseRoot(response) )
+      result   <- Try( root.booleanField("bool") ) // TODO test
+    } yield result
   }
 
 }
