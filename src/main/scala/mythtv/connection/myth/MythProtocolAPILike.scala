@@ -33,7 +33,9 @@ private[myth] trait MythProtocolAPILike {
   def announceFileTransfer(hostName: String, fileName: String, storageGroup: String,
     writeMode: Boolean, useReadAhead: Boolean, timeout: Duration): MythProtocolResult[(FileTransferId, ByteCount)] = {
     import MythProtocol.AnnounceResult._
-    val result = sendCommand("ANN", "FileTransfer", hostName, writeMode, useReadAhead, timeout, fileName, storageGroup)
+    val result =
+      if (writeMode) sendCommand("ANN", "FileTransfer", hostName, writeMode, fileName, storageGroup)
+      else           sendCommand("ANN", "FileTransfer", hostName, writeMode, useReadAhead, timeout, fileName, storageGroup)
     result map { case AnnounceFileTransfer(ftID, fileSize) => (ftID, fileSize) }
   }
 
