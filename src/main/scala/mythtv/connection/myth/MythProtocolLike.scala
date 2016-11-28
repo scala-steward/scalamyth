@@ -794,14 +794,15 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      * SET_CHANNEL_INFO [] [%d, %d, %d, %d, %d, %d, %d]
      *                     <ChanId> <sourceid> <oldcnum> <callsign> <channum> <channame> <xmltv>
      *  @responds always
-     *  @returns "1" for successful otherwise "0"
+     *  @returns "1" for all recorders successfully handled; otherwise "0"
+     *           will return "0" if there are any non-local recorders configured, so not too useful.
      *
      *  NB Implementation iterates over all (local) recorders
      *  Writes channel info to the channel table in databae!
      *   Updates { callsign, channum, name, xmltvId } keyed by (chanId, sourceId)
      *  Used by OSD channel editor (tv_play.cpp)
      */
-    "SET_CHANNEL_INFO" -> ((serializeNOP, handleNOP)),
+    "SET_CHANNEL_INFO" -> ((serializeSetChannelInfo, handleSetChannelInfo)),
 
     /*
      * SET_NEXT_LIVETV_DIR %d %s  <encoder#> <dir>
@@ -1397,6 +1398,16 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       elems mkString " "
     case _ => throwArgumentExceptionSignature(command, """
       | chanId: ChanId, startTime: MythDateTime, position: VideoPositionFrame""")
+  }
+
+  protected def serializeSetChannelInfo(command: String, args: Seq[Any]): String = args match {
+    case Seq(chanId: ChanId, sourceId: ListingSourceId, oldChanNum: ChannelNumber, callsign: String,
+      channum: ChannelNumber, name: String, xmltvId: String) =>
+      val elems = List(command, serialize(chanId), serialize(sourceId), serialize(oldChanNum),
+        callsign, serialize(channum), name, xmltvId)
+      elems mkString Separator
+    case _ => throwArgumentExceptionSignature(command, """
+      | chanId: ChanId, sourceId: ListingSourceId, oldChanNum: ChannelNumber, callsign: String, channum: ChannelNumber, name: String, xmltvId: String""")
   }
 
   protected def serializeSetSetting(command: String, args: Seq[Any]): String = args match {
@@ -2160,6 +2171,10 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def handleSetBookmark(request: BackendRequest, response: BackendResponse): MythProtocolResult[Boolean] = {
     Either.cond(response.raw == "OK", true, MythProtocolFailureMessage(response.raw))
+  }
+
+  protected def handleSetChannelInfo(request: BackendRequest, response: BackendResponse): MythProtocolResult[Boolean] = {
+    Try(deserialize[Boolean](response.raw))
   }
 
   protected def handleSetSetting(request: BackendRequest, response: BackendResponse): MythProtocolResult[Boolean] = {

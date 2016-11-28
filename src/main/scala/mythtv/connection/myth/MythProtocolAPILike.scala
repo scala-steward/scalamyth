@@ -703,6 +703,12 @@ private[myth] trait MythProtocolAPILike {
     result map { case r: Boolean => r }
   }
 
+  def setChannelInfo(chanId: ChanId, sourceId: ListingSourceId, oldChanNum: ChannelNumber, callsign: String,
+    channum: ChannelNumber, name: String, xmltvId: String): MythProtocolResult[Boolean] = {
+    val result = sendCommand("SET_CHANNEL_INFO", chanId, sourceId, oldChanNum, callsign, channum, name, xmltvId)
+    result map { case r: Boolean => r }
+  }
+
   def setSetting(hostName: String, settingName: String, value: String): MythProtocolResult[Boolean] = {
     val result = sendCommand("SET_SETTING", hostName, settingName, value)
     result map { case r: Boolean => r }
