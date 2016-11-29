@@ -215,7 +215,8 @@ class JsonChannelService(conn: BackendJsonConnection)
     if (waitForFinish) params += "WaitForFinish" -> waitForFinish
     for {
       response <- post("FetchChannelsFromSource", params)
-      result   <- Try(0)  // TODO
+      root     <- responseRoot(response)
+      result   <- Try(root.intField("int"))
     } yield result
   }
 }
