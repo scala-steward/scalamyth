@@ -104,16 +104,16 @@ trait Recording extends Recordable {
   // TODO get this working w/out calling .id
   def programType: ProgramType = ProgramType.applyOrUnknown((ProgramFlags.ProgramType.id & programFlags.id) >> 16)
 
-  def isInUsePlaying: Boolean = programFlags contains ProgramFlags.InUsePlaying
+  def isInUsePlaying: Boolean   = programFlags contains ProgramFlags.InUsePlaying
   def isCommercialFree: Boolean = programFlags contains ProgramFlags.ChanCommFree
-  def hasCutList: Boolean = programFlags contains ProgramFlags.CutList
-  def hasBookmark: Boolean = programFlags contains ProgramFlags.Bookmark
-  def isWatched: Boolean = programFlags contains ProgramFlags.Watched
-  def isAutoExpirable: Boolean = programFlags contains ProgramFlags.AutoExpire
-  def isPreserved: Boolean = programFlags contains ProgramFlags.Preserved
-  def isDuplicate: Boolean = programFlags contains ProgramFlags.Duplicate
-  def isReactivated: Boolean = programFlags contains ProgramFlags.Reactivate
-  def isDeletePending: Boolean = programFlags contains ProgramFlags.DeletePending
+  def hasCutList: Boolean       = programFlags contains ProgramFlags.CutList
+  def hasBookmark: Boolean      = programFlags contains ProgramFlags.Bookmark
+  def isWatched: Boolean        = programFlags contains ProgramFlags.Watched
+  def isAutoExpirable: Boolean  = programFlags contains ProgramFlags.AutoExpire
+  def isPreserved: Boolean      = programFlags contains ProgramFlags.Preserved
+  def isDuplicate: Boolean      = programFlags contains ProgramFlags.Duplicate
+  def isReactivated: Boolean    = programFlags contains ProgramFlags.Reactivate
+  def isDeletePending: Boolean  = programFlags contains ProgramFlags.DeletePending
 
   def isDummy: Boolean = title.isEmpty && chanId.id == 0
 }
