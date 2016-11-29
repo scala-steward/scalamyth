@@ -187,6 +187,21 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     )
   }
 
+  implicit object MythLogLevelJsonFormat extends EnumDescriptionFormat[MythLogLevel] {
+    val id2Description: Map[MythLogLevel, String] = Map(
+      MythLogLevel.Any     -> "any" ,
+      MythLogLevel.Emerg   -> "emerg",
+      MythLogLevel.Alert   -> "alert",
+      MythLogLevel.Crit    -> "crit",
+      MythLogLevel.Err     -> "err",
+      MythLogLevel.Warning -> "warning",
+      MythLogLevel.Notice  -> "notice",
+      MythLogLevel.Info    -> "info",
+      MythLogLevel.Debug   -> "debug",
+      MythLogLevel.Unknown -> "unknown"
+    )
+  }
+
   implicit object ArtworkInfoJsonFormat extends RootJsonFormat[ArtworkInfo] {
     def write(a: ArtworkInfo): JsValue = JsObject(Map(
       "URL"          -> JsString(a.url),
@@ -1413,7 +1428,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def lineNum     = obj.intField("Line")
         def function    = obj.stringField("Function")
         def messageTime = obj.dateTimeField("Time").toInstant
-        def level       = obj.stringField("Level")
+        def level       = obj.fields("Level").convertTo[MythLogLevel]
         def message     = obj.stringField("Message")
       }
     }
