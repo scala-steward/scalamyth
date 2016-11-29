@@ -7,7 +7,7 @@ import java.time.Instant
 
 import model._
 import model.EnumTypes.RecStatus
-import util.{ Base64String, ByteCount, Crc16, DecimalByteCount, MythDateTime }
+import util.{ Base64String, ByteCount, Crc16, DecimalByteCount, MythDateTime, URIFactory }
 import data.BackendLiveTvChain
 
 sealed trait Event
@@ -295,15 +295,15 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
   def parseDownloadFile(name: String, split: Array[String]): Event = {
     split(1).substring(name.length + 1) match {
       case "FINISHED" => DownloadFileFinishedEvent(
-        new URI(split(2)),
-        new URI(split(3)),
+        URIFactory(split(2)),
+        URIFactory(split(3)),
         DecimalByteCount(deserialize[Long](split(4))),
         split(5),
         deserialize[Int](split(6))
       )
       case "UPDATE" => DownloadFileUpdateEvent(
-        new URI(split(2)),
-        new URI(split(3)),
+        URIFactory(split(2)),
+        URIFactory(split(3)),
         DecimalByteCount(deserialize[Long](split(4))),
         DecimalByteCount(deserialize[Long](split(5)))
       )
