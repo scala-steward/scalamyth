@@ -7,7 +7,7 @@ import util.MythFileHash
 
 final case class VideoId(id: Int) extends AnyVal with IntegerIdentifier
 
-trait Video extends ProgramAndVideoBase with InternetMetadata {
+trait Video extends ProgramVideoBase with InternetMetadata {
   def id: VideoId
   def director: String
   // TODO more

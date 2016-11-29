@@ -6,7 +6,7 @@ import java.time.{ LocalDate, Year }
 import EnumTypes._
 import util.{ ByteCount, MythDateTime }
 
-trait ProgramAndVideoBase {   /// TODO need a better name for this trait.
+trait ProgramVideoBase {
   def title: String
   def subtitle: String
   def description: String
@@ -25,7 +25,7 @@ trait InternetMetadata {
   def episode: Option[Int]
 }
 
-trait Program extends ProgramAndVideoBase {
+trait Program extends ProgramVideoBase {
   def syndicatedEpisode: String
   def category: String
   def categoryType: Option[CategoryType]   // only really seems to be populated in program guide stuff
