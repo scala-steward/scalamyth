@@ -193,7 +193,7 @@ class JsonDvrService(conn: BackendJsonConnection)
 
   def updateRecordSchedule(rule: RecordRule): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map(
-      "RecordId"       -> rule.id,
+      "RecordId"       -> rule.id.id,
       "Title"          -> rule.title,
       "Subtitle"       -> rule.subtitle,
       "Description"    -> rule.description,
