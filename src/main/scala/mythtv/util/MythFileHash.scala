@@ -73,13 +73,16 @@ object MythFileHash {
       val bb = ByteBuffer.allocate(ChunkSize).order(ByteOrder.LITTLE_ENDIAN)
 
       channel.position(0)
-      val nRead = channel.read({ bb.clear(); bb })  // TODO check # bytes read was sufficient
+      bb.position(0)
+      bb.limit(math.min(bb.capacity, totalSize).toInt)
+      while (bb.hasRemaining) channel.read(bb)
       hash = chunk({ bb.flip(); bb }, hash)
 
       val repos = totalSize - ChunkSize
       if (repos >= 0) {
+        bb.clear()
         channel.position(repos)
-        val nRead = channel.read({ bb.clear(); bb }) // TODO check # bytes read was sufficient
+        while (bb.hasRemaining) channel.read(bb)
         hash = chunk({ bb.flip(); bb }, hash)
       }
 
