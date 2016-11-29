@@ -42,6 +42,8 @@ trait JsonConnection extends AbstractHttpConnection {
       if (line != null) writer.write(line)
     } while (line != null)
 
+    stream.close()
+
     JsonParser(writer.toString)
   }
 }
