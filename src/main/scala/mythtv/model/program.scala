@@ -119,5 +119,5 @@ trait Recording extends Recordable {
 }
 
 trait PreviousRecording {
-  // TODO  what's available here? a subset of Recording?
+  // TODO what's available here? a subset of Recording?
 }

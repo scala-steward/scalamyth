@@ -2052,7 +2052,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     }
   }
 
-  // TODO returns "-1" on error but that could also be a legitimate value  Not really much we can do here...
+  // returns "-1" on error but that could also be a legitimate value  Not really much we can do here...
   protected def handleQuerySetting(request: BackendRequest, response: BackendResponse): MythProtocolResult[String] = {
     Right(response.raw)
   }

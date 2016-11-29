@@ -42,7 +42,7 @@ private class BackendCommandReader(channel: SocketChannel, conn: SocketConnectio
         }
       } while (n > 0 && buffer.hasRemaining)
 
-      if (n < 0) throw new ClosedConnectionException
+      if (n < 0) throw new ClosedConnectionException  // TODO this is really end-of-stream exception?
 
     } finally {
       selector.close()
