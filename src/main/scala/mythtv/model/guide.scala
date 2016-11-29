@@ -1,8 +1,8 @@
 package mythtv
 package model
 
-import EnumTypes.{ ListingSourceType, RecStatus }
 import util.MythDateTime
+import EnumTypes.ListingSourceType
 
 // This structure optimized for channel-based access rather than time-based access.
 // This mirrors what is returned by the Services API GetProgramGuide
@@ -17,31 +17,25 @@ trait Guide[Chan <: Channel, +Prog <: Program] {
 
 trait ProgramGuideEntry extends Program {
   // Fields not originally written here but in the program table
-  def audioprop: Set[Any]      // TODO enum set -- called audioProps in Program
-  def videoprop: Set[Any]      // TODO enum set -- called videoProps in Program
-  def subtitletypes: Set[Any]  // TODO enum set -- called subtitleType in Program
 
-  // These fields are not present (at least not directly) in Program object
+  // These fields from the 'program' DB table are not directly present in Program object
   /*
-  def stereo: Boolean            // These are bound into Audio/Video properties bitmask in Program?
+  def stereo: Boolean
   def subtitled: Boolean
   def hdtv: Boolean
   def closeCaptioned: Boolean
   */
 
-  def titlePronounce: String  // TODO what is this?
-//  def categoryType: String
-  def previouslyShown: Boolean
+  def titlePronounce: String    // only populated if lang="ja_JP@kana" on a program listing
+  def previouslyShown: Boolean  // captured in ProgramFlags.Repeat in Program
   def showType: String
   def colorCode: String
-  def manualId: Int  // TODO what is this?
-  def generic: Int   // TODO what is this?
+  def manualId: RecordRuleId    // used by manual search recording rules?
   def listingSource: ListingSourceType
-  def first: Int     // TODO what is this?
-  def last: Int      // TODO what is this?
 
-// Computed/queried...
-  def recStatus: RecStatus
+  // { generic, first, last } are computed by mythfilldatabase
 
-  // TODO : what else?
+  def generic: Boolean  // generic episode info for this program, rather than a particular episode
+  def first: Boolean    // first showing of this episode (in current listings window)
+  def last: Boolean     // last showing of this episode (in current listings window)
 }
