@@ -714,10 +714,9 @@ private[myth] trait MythProtocolAPILike {
     result map { case r: Boolean => r }
   }
 
-  // TODO do we need to post this message rather than send it?
   def shutdownNow(haltCommand: String): Unit = {
     if (haltCommand == "") sendCommand("SHUTDOWN_NOW")
-    else sendCommand("SHUTDOWN_NOW", haltCommand)
+    else postCommand("SHUTDOWN_NOW", haltCommand)
   }
 
   def stopRecording(rec: Recording): MythProtocolResult[CaptureCardId] = {
