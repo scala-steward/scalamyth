@@ -11,12 +11,12 @@ import scala.util.Try
 import model._
 import util.{ MythDateTime, OptionalCount }
 import services.{ DvrService, PagedList, ServiceResult }
+import services.Service.ServiceFailure.ServiceNoResult
 import RichJsonObject._
 
 class JsonDvrService(conn: BackendJsonConnection)
   extends JsonBackendService(conn)
      with DvrService {
-  // TODO catch when we get bogus data back and don't return an object?
 
   private def timeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
 
@@ -28,14 +28,16 @@ class JsonDvrService(conn: BackendJsonConnection)
 
      The root cause for this discrepancy seems to be that in ProgramInfo::LoadProgramFromRecorded,
      the programflags field is not initialized, and the ProgramInfo variable is allocated on the stack
-     at the call site. Compare this to the implementation of LoadFromRecorded */
+     at the call site. Compare this to the implementation of LoadFromRecorded FIXME UPSTREAM */
   def getRecorded(chanId: ChanId, startTime: MythDateTime): ServiceResult[Recording] = {
     val params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
-    for {
+    val recTry = for {
       response <- request("GetRecorded", params)
       root     <- responseRoot(response, "Program")
       result   <- Try(root.convertTo[Recording])
     } yield result
+    if (recTry.isSuccess && recTry.get.isDummy) Left(ServiceNoResult)
+    else recTry
   }
 
   def getRecordedList(startIndex: Int, count: OptionalCount[Int], descending: Boolean): ServiceResult[PagedList[Recording]] = {
