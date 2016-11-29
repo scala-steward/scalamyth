@@ -25,6 +25,8 @@ private[myth] trait MythProtocolLike extends MythProtocolSerializer {
 
   def sendCommand(command: String, args: Any*): MythProtocolResult[_]
 
+  private[myth] def postCommand(command: String, args: Any*): Unit
+
   def supports(command: String): Boolean = commands contains command
 
   def supports(command: String, args: Any*): Boolean = {

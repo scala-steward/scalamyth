@@ -142,6 +142,16 @@ private abstract class AbstractBackendConnection(host: String, port: Int, timeou
     else throw UnsupportedBackendCommandException(command, ProtocolVersion)
   }
 
+  private[myth] def postCommand(command: String, args: Any*): Unit = {
+    if (!isConnected) throw new ClosedConnectionException
+    if (commands contains command) {
+      val (serialize, _) = commands(command)
+      val cmdstring = serialize(command, args)
+      postCommandRaw(cmdstring)
+    }
+    else throw UnsupportedBackendCommandException(command, ProtocolVersion)
+  }
+
   def checkVersion(): Boolean = checkVersion(ProtocolVersion, ProtocolToken)
 
   def checkVersion(version: Int, token: String): Boolean = {
