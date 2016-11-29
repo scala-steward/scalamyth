@@ -32,10 +32,6 @@ trait Video extends ProgramAndVideoBase with InternetMetadata {
 
   def artworkInfo: List[ArtworkInfo]  // TODO probably belongs in a different, HasArtworkInfo (?) trait
 
-  def combinedTitle: String = combinedTitle(": ")
-  def combinedTitle(sep: String): String =
-    if (subtitle.nonEmpty) title + sep + subtitle
-    else title
   override def toString: String = s"<Video $id $combinedTitle>"
 }
 

@@ -11,6 +11,11 @@ trait ProgramAndVideoBase {   /// TODO need a better name for this trait.
   def subtitle: String
   def description: String
   def year: Option[Year]      // NB called 'airdate' in program table
+
+  def combinedTitle: String = combinedTitle(": ")
+  def combinedTitle(sep: String): String =
+    if (subtitle.nonEmpty) title + sep + subtitle
+    else title
 }
 
 /* metadata acquired from the internet (e.g. TheTVDB.com or TheMovieDB.org (TMDb) or IMDb(?)) */
