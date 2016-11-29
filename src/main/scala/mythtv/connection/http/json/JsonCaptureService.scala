@@ -97,6 +97,7 @@ class JsonCaptureService(conn: BackendJsonConnection)
       "CardId"          -> input.cardId.id,        // required
       "SourceId"        -> input.sourceId.id,      // required
       "InputName"       -> input.name,             // required
+      /*
       "ExternalCommand" -> ???,
       "ChangerDevice"   -> ???,
       "ChangerModel"    -> ???,
@@ -108,6 +109,7 @@ class JsonCaptureService(conn: BackendJsonConnection)
       "RecPriority"     -> ???,
       "Quicktune"       -> ???,
       "SchedOrder"      -> ???,
+      */
       "LiveTVOrder"     -> input.liveTvOrder
     )
     for {
