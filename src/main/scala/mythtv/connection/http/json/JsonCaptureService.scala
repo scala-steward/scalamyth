@@ -111,7 +111,8 @@ class JsonCaptureService(conn: BackendJsonConnection)
     )
     for {
       response <- post("AddCardInput", params)
-      result   <- Try(InputId(0))  // TODO
+      root     <- responseRoot(response)
+      result   <- Try(InputId(root.intField("int")))
     } yield result
   }
 
