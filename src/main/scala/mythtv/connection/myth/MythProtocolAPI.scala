@@ -8,7 +8,7 @@ import java.time.Duration
 import model._
 import model.EnumTypes._
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythFileHash }
-import EnumTypes.{ MythLogLevel, MythProtocolEventMode, SeekWhence }
+import EnumTypes.{ MythProtocolEventMode, SeekWhence }
 
 /**
   * A strongly-typed, thin API wrapper over the MythProtocol commands.

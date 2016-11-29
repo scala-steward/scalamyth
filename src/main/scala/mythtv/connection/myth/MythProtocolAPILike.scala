@@ -8,7 +8,7 @@ import java.time.Duration
 import model._
 import model.EnumTypes._
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythFileHash, NetworkUtil }
-import EnumTypes.{ MythLogLevel, MythProtocolEventMode, SeekWhence }
+import EnumTypes.{ MythProtocolEventMode, SeekWhence }
 import MythProtocol.QueryRecorderResult._
 import MythProtocol.QueryRemoteEncoderResult._
 import MythProtocol.QueryFileTransferResult._
