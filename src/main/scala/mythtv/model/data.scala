@@ -67,28 +67,6 @@ trait Settings {
   override def toString: String = s"<Settings for $hostName (${settings.size})>"
 }
 
-trait ArtworkInfo {
-  def url: String
-  def fileName: String
-  def storageGroup: String
-  def artworkType: String
-
-  override def toString: String =
-    if (url.nonEmpty) url
-    else s"$storageGroup:$fileName"
-}
-
-// included in VideoService.lookupVideo results
-trait ArtworkItem {
-  def url: String
-  def thumbnail: String
-  def artworkType: String
-  def width: Option[Int]
-  def height: Option[Int]
-
-  override def toString: String = s"$artworkType: $url"
-}
-
 trait TimeZoneInfo {
   def tzName: String
   def offset: ZoneOffset
