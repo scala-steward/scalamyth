@@ -4,6 +4,7 @@ package http
 package json
 
 import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 import scala.util.Try
 
@@ -16,6 +17,9 @@ class JsonDvrService(conn: BackendJsonConnection)
   extends JsonBackendService(conn)
      with DvrService {
   // TODO catch when we get bogus data back and don't return an object?
+
+  private def timeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
+
   /* NB the 'ProgramFlags' field that we get back from GetRecorded seems to be wacky, whereas the same
      field for the same program in GetRecordedList seems to be correct. For an example, see the recording
      Martha Bakes: Bake it Dark, where flags are 0x2ff0f004 vs 0x1004
@@ -149,7 +153,7 @@ class JsonDvrService(conn: BackendJsonConnection)
       "ChanId"         -> rule.chanId.map(_.id).getOrElse(0),
       "Station"        -> rule.callsign,
       "FindDay"        -> rule.findDay,
-      "FindTime"       -> rule.findTime.getOrElse(LocalTime.MIN),
+      "FindTime"       -> rule.findTime.getOrElse(LocalTime.MIN).format(timeFormatter),
       "ParentId"       -> rule.parentId.map(_.id).getOrElse(0),
       "Inactive"       -> rule.inactive,
       "Season"         -> rule.season.getOrElse(0),
@@ -201,7 +205,7 @@ class JsonDvrService(conn: BackendJsonConnection)
       "ChanId"         -> rule.chanId.map(_.id).getOrElse(0),
       "Station"        -> rule.callsign,
       "FindDay"        -> rule.findDay,
-      "FindTime"       -> rule.findTime.getOrElse(LocalTime.MIN),
+      "FindTime"       -> rule.findTime.getOrElse(LocalTime.MIN).format(timeFormatter),
       "Inactive"       -> rule.inactive,
       "Season"         -> rule.season.getOrElse(0),
       "Episode"        -> rule.episode.getOrElse(0),
