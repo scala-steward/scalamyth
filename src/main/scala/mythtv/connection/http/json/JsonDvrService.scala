@@ -142,6 +142,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     } yield result
   }
 
+  // All parameters are technically optional and will be filled in with defaults?
   def addRecordSchedule(rule: RecordRule): ServiceResult[RecordRuleId] = {
     val params: Map[String, Any] = Map(
       "Title"          -> rule.title,
@@ -189,7 +190,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- post("AddRecordSchedule", params)
       root     <- responseRoot(response)
-      result   <- Try(RecordRuleId(0)) // FIXME
+      result   <- Try(RecordRuleId(root.intField("uint")))
     } yield result
   }
 
