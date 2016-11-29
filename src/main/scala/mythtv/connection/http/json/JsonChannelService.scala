@@ -155,7 +155,6 @@ class JsonChannelService(conn: BackendJsonConnection)
     } yield result
   }
 
-
   def addVideoSource(source: ListingSource): ServiceResult[ListingSourceId] = {
     val params: Map[String, Any] = Map(
       "SourceName" -> source.name,
@@ -168,10 +167,14 @@ class JsonChannelService(conn: BackendJsonConnection)
       "ConfigPath" -> source.configPath.getOrElse(""),
       "NITId"      -> source.dvbNitId.getOrElse(-1)
     )
-    for {
+    // returns -1 on error/key already exists?
+    val idTry = for {
       response <- post("AddVideoSource", params)
-      result   <- Try(ListingSourceId(0)) // TODO
+      root     <- responseRoot(response)
+      result   <- Try(ListingSourceId(root.intField("int")))
     } yield result
+    if (idTry.isSuccess && idTry.get.id < 0) Left(ServiceFailureUnknown)
+    else idTry
   }
 
   def removeVideoSource(sourceId: ListingSourceId): ServiceResult[Boolean] = {
