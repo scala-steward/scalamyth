@@ -36,8 +36,8 @@ trait Program extends ProgramAndVideoBase {
   def programId: String
   def stars: Option[Double]
   def originalAirDate: Option[LocalDate]
-  def audioProps: AudioProperties  // TODO do we only know this after recording?, in program table
-  def videoProps: VideoProperties  // TODO do we only know this after recording?, in program table
+  def audioProps: AudioProperties
+  def videoProps: VideoProperties
   def subtitleType: SubtitleType   // TODO do we only know this after recording?, in program table
   def partNumber: Option[Int]
   def partTotal: Option[Int]
@@ -45,8 +45,15 @@ trait Program extends ProgramAndVideoBase {
 
   def stereo: Boolean    = audioProps contains AudioProperties.Stereo
   def subtitled: Boolean = subtitleType != SubtitleType.Unknown
-  def hdtv: Boolean      = videoProps contains VideoProperties.Hdtv  // TODO might need to check Hd1080 and Hd720 also
-  def closeCaptioned: Boolean = ???  // Do we use audioProps or subtitleType (or both?)
+
+  def hdtv: Boolean =   // TODO need a BitmaskEnum.containsSome(Mask) method!
+    videoProps.contains(VideoProperties.Hdtv) ||
+    videoProps.contains(VideoProperties.Hd720) ||
+    videoProps.contains(VideoProperties.Hd1080)
+
+  def closeCaptioned: Boolean =
+    (subtitleType contains SubtitleType.HardHear) ||
+      (audioProps contains AudioProperties.HardHear)
 
   def isRepeat: Boolean = programFlags contains ProgramFlags.Repeat
 }
