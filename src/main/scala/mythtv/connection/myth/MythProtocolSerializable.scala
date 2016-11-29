@@ -200,6 +200,16 @@ object MythProtocolSerializable {
     def serialize(in: Option[String]): String = if (in.isEmpty) "" else in.get
   }
 
+  trait IntegerIdentifierOptionSerializer[T <: IntegerIdentifier] extends MythProtocolSerializable[Option[T]] {
+    def factory: (Int) => T
+    def deserialize(in: String): Option[T] = { Try(in.toInt) filter (_ != 0) }.toOption map factory
+    def serialize(in: Option[T]): String = if (in.isEmpty) "0" else in.get.id.toString
+  }
+
+  implicit object RecordRuleIdOptionSerializer extends IntegerIdentifierOptionSerializer[RecordRuleId] {
+    def factory = RecordRuleId.apply
+  }
+
   implicit object MythDateTimeSerializer extends MythProtocolSerializable[MythDateTime] {
     def deserialize(in: String): MythDateTime = {
       try MythDateTime.fromTimestamp(in.toLong)

@@ -46,7 +46,7 @@ class DummyRecording extends Recording {
   def chanName          = ""
   def outputFilters     = ""
   def recPriority2      = 0
-  def parentId          = 0
+  def parentId          = None
   def filename          = ""
   def filesize          = DecimalByteCount(0)
   def season            = None

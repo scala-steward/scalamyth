@@ -69,7 +69,7 @@ private[myth] class BackendProgram(data: Seq[String], fieldOrder: IndexedSeq[Str
   def originalAirDate: Option[LocalDate] = Try(LocalDate.parse(fields("originalAirDate"))).toOption
   def playGroup: String = fields("playGroup")
   def recPriority2: Int = fields("recPriority2").toInt
-  def parentId: Int = fields("parentId").toInt   // TODO is this an Int or String? (or a RecordRuleId?)
+  def parentId: Option[RecordRuleId] = optionalNonZeroIntField("parentId") map RecordRuleId
   def storageGroup: String = fields("storageGroup")
   def audioProps: AudioProperties = AudioProperties(fields("audioProps").toInt)
   def videoProps: VideoProperties = VideoProperties(fields("videoProps").toInt)

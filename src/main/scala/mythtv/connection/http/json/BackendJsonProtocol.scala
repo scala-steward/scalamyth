@@ -314,7 +314,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def storageGroup            = rec.stringField("StorageGroup")
         def playGroup               = rec.stringField("PlayGroup")
         def recPriority2            = 0 //???
-        def parentId                = 0 //???
+        def parentId                = None
         def lastModified            = obj.dateTimeField("LastModified")
         def chanNum                 = ChannelNumber(channel.stringFieldOrElse("ChanNum", ""))
         def callsign                = channel.stringFieldOrElse("CallSign", "")
@@ -417,7 +417,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def storageGroup            = rec.stringField("StorageGroup")
         def playGroup               = rec.stringField("PlayGroup")
         def recPriority2            = 0 //???
-        def parentId                = 0 //???
+        def parentId                = None
         def lastModified            = obj.dateTimeField("LastModified")
         def chanNum                 = ChannelNumber(channel.stringFieldOrElse("ChanNum", ""))
         def callsign                = channel.stringFieldOrElse("CallSign", "")

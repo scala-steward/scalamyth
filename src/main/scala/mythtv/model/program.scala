@@ -87,9 +87,9 @@ trait Recordable extends Program {
   def callsign: String
   def chanName: String
   def outputFilters: String
+  def parentId: Option[RecordRuleId]
 
   def recPriority2: Int            // TODO only surfaced by MythProtocol? Is it useful to be here?
-  def parentId: Int                // TODO what is this? the parent RecordRuleId?
 }
 
 trait Recording extends Recordable with InternetMetadata {
