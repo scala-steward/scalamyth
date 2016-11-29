@@ -129,7 +129,7 @@ private abstract class AbstractBackendConnection(host: String, port: Int, timeou
   }
 
   def sendCommand(command: String, args: Any*): MythProtocolResult[_] = {
-    if (!isConnected) throw new ClosedConnectionException  // TODO attempt reconnection?
+    if (!isConnected) throw new ClosedConnectionException
     if (commands contains command) {
       val (serialize, handle) = commands(command)
       val cmdstring = serialize(command, args)

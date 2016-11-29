@@ -32,6 +32,8 @@ object MythTV {
     })
   }
 
+  // If there is more than one master backend advertised via mDNS, this may find
+  // either of them; which one is undefined.
   def discoverMasterBackend: BackendInfo = {
     import connection.http.json.JsonServiceFactory._
 

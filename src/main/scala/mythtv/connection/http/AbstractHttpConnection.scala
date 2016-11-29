@@ -16,10 +16,11 @@ abstract class AbstractHttpConnection(val protocol: String, val host: String, va
   import AbstractHttpConnection._
 
   def setupConnection(conn: HttpURLConnection): Unit = {
-    conn.setConnectTimeout(10000)  // TODO
-    conn.setReadTimeout(10000)     // TODO
+    conn.setConnectTimeout(10000)  // TODO where to specify? properties file?
+    conn.setReadTimeout(10000)     // TODO where to specify? properties file?
   }
 
+  // TODO do we need to pick up errorStream and read it out?
   def request(path: String): HttpResponse = {
     val url = new URL(protocol, host, port, path)
     url.openConnection() match {
