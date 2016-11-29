@@ -112,7 +112,3 @@ trait Recording extends Recordable with InternetMetadata {
 
   def isDummy: Boolean = title.isEmpty && chanId.id == 0
 }
-
-trait PreviousRecording {
-  // TODO what's available here? a subset of Recording?
-}
