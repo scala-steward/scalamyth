@@ -41,5 +41,6 @@ trait ChannelService extends BackendService {
 
   def getDDLineupList(userName: String, password: String, provider: String = ""): ServiceResult[List[Lineup]]
 
+  // Runs mythfilldatabase --only-update-channels --sourceid ${sourceId} --cardType ${cardType of cardId}
   def fetchChannelsFromSource(sourceId: ListingSourceId, cardId: CaptureCardId, waitForFinish: Boolean): ServiceResult[Int]
 }
