@@ -32,6 +32,7 @@ object EnumTypes {
   type SleepStatus = model.SleepStatus.Value
   type SubtitleType = model.SubtitleType.Base
   type TvState = model.TvState.Value
+  type VideoContentType = model.VideoContentType.Value
   type VideoProperties = model.VideoProperties.Base
 }
 
@@ -468,4 +469,14 @@ object MythVerboseLevel extends BitmaskEnum[Long] {
   val GPUAudio   = Value(0x0000008000000000L)
   val GPUVideo   = Value(0x0000010000000000L)
   val RefCount   = Value(0x0000020000000000L)
+}
+
+object VideoContentType extends Enumeration {
+  type VideoContentType = VideoContentType.Value
+  val Unknown    = Value("UNKNOWN")
+  val Movie      = Value("MOVIE")
+  val Television = Value("TELEVISION")
+  val Adult      = Value("ADULT")
+  val MusicVideo = Value("MUSICVIDEO")
+  val HomeVideo  = Value("HOMEVIDEO")
 }

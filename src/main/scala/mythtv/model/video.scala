@@ -4,6 +4,7 @@ package model
 import java.time.{ Duration, Instant, LocalDate }
 
 import util.MythFileHash
+import EnumTypes.VideoContentType
 
 final case class VideoId(id: Int) extends AnyVal with IntegerIdentifier
 
@@ -20,7 +21,7 @@ trait Video extends ProgramVideoBase with InternetMetadata {
   def hash: MythFileHash
   def visible: Boolean
   def fileName: String
-  def contentType: String  // TODO enum? MOVIE, TELEVISION, ADULT, MUSICVIDEO, HOMEVIDEO
+  def contentType: VideoContentType  // TODO enum? MOVIE, TELEVISION, ADULT, MUSICVIDEO, HOMEVIDEO
   def hostName: String
   def addedDate: Option[Instant]  // database stores timestamp; VideoService returns valid date portion only
   def watched: Boolean

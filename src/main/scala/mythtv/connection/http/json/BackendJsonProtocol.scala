@@ -5,7 +5,7 @@ package json
 
 import java.time.{ Duration, Instant, LocalTime, ZoneOffset }
 
-import scala.util.DynamicVariable
+import scala.util.{ DynamicVariable, Try }
 
 import spray.json.{ JsonFormat, RootJsonFormat, jsonWriter }
 import spray.json.{ JsObject, JsString, JsValue }
@@ -1014,7 +1014,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       "Hash"             -> JsString(v.hash.toString),
       "Visible"          -> JsString(v.visible.toString),
       "FileName"         -> JsString(v.fileName),
-      "ContentType"      -> JsString(v.contentType),
+      "ContentType"      -> JsString(v.contentType.toString),
       "HostName"         -> JsString(v.hostName),
       "AddDate"          -> JsString(v.addedDate.map(_.toString).getOrElse("")),
       "Watched"          -> JsString(v.watched.toString),
@@ -1044,7 +1044,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def hash            = new MythFileHash(obj.stringField("Hash"))
         def visible         = obj.booleanField("Visible")
         def fileName        = obj.stringField("FileName")
-        def contentType     = obj.stringField("ContentType")
+        def contentType     = Try(VideoContentType.withName(obj.stringField("ContentType"))) getOrElse VideoContentType.Unknown
         def hostName        = obj.stringField("HostName")
         def addedDate       = obj.dateTimeFieldOption("AddDate") map (_.toInstant)
         def watched         = obj.booleanField("Watched")
