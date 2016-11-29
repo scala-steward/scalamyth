@@ -25,14 +25,17 @@ class JsonContentService(conn: BackendJsonConnection)
     } yield result
   }
 
-  // TODO handle error conditions, such as file not existing...
   def getHash(storageGroup: String, fileName: String): ServiceResult[MythFileHash] = {
     import DefaultJsonProtocol.StringJsonFormat
     val params: Map[String, Any] = Map("StorageGroup" -> storageGroup, "FileName" -> fileName)
     for {
       response <- request("GetHash", params)
       root     <- responseRoot(response, "String")
-      result   <- Try(new MythFileHash(root.convertTo[String]))
+      result   <- Try {
+        // Services API translates hash of "NULL" to empty string, so we translate it back
+        val hash = root.convertTo[String]
+        new MythFileHash(if (hash.nonEmpty) hash else "NULL")
+      }
     } yield result
   }
 
