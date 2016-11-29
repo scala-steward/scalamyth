@@ -10,10 +10,8 @@ import scala.util.Try
 import spray.json.DefaultJsonProtocol
 
 import services.{ MythService, ServiceResult }
-import model.{ ConnectionInfo, Settings, StorageGroupDir, TimeZoneInfo }
+import model.{ ConnectionInfo, LogMessage, Settings, StorageGroupDir, TimeZoneInfo }
 import RichJsonObject._
-
-import services.LogMessage // TODO temporary
 
 class JsonMythService(conn: BackendJsonConnection)
   extends JsonBackendService(conn)
@@ -90,7 +88,7 @@ class JsonMythService(conn: BackendJsonConnection)
     tid: Int,
     thread: String,
     filename: String,
-    line: Int,
+    lineNumber: Int,
     function: String,
     fromTime: Instant,
     toTime: Instant,
@@ -104,7 +102,7 @@ class JsonMythService(conn: BackendJsonConnection)
     if (tid != 0)                params += "TID" -> tid
     if (thread.nonEmpty)         params += "Thread" -> thread
     if (filename.nonEmpty)       params += "Filename" -> filename
-    if (line != 0)               params += "Line" -> line
+    if (lineNumber != 0)         params += "Line" -> lineNumber
     if (function.nonEmpty)       params += "Function" -> function
     if (fromTime != Instant.MAX) params += "FromTime" -> fromTime
     if (toTime != Instant.MIN)   params += "ToTime" -> toTime
@@ -112,8 +110,8 @@ class JsonMythService(conn: BackendJsonConnection)
     if (msgContains.nonEmpty)    params += "MsgContains" -> msgContains
     for {
       response <- request("GetLogs", params)
-      root     <- responseRoot(response, "LogMessageList") // TODO ???
-      result   <- Try(???)
+      root     <- responseRoot(response, "LogMessageList")
+      result   <- Try(root.convertTo[List[LogMessage]])
     } yield result
   }
 

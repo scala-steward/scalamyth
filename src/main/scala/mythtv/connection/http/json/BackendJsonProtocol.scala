@@ -1398,4 +1398,31 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       }
     }
   }
+
+  implicit object LogMessageJsonFormat extends JsonFormat[LogMessage] {
+    def write(m: LogMessage): JsValue = ???
+    def read(value: JsValue): LogMessage = {
+      val obj = value.asJsObject
+      new LogMessage {
+        def hostName    = obj.stringField("HostName")
+        def application = obj.stringField("Application")
+        def pid         = obj.intField("PID")
+        def tid         = obj.intField("TID")
+        def thread      = obj.stringField("Thread")
+        def fileName    = obj.stringField("Filename")
+        def lineNum     = obj.intField("Line")
+        def function    = obj.stringField("Function")
+        def messageTime = obj.dateTimeField("Time").toInstant
+        def level       = obj.stringField("Level")
+        def message     = obj.stringField("Message")
+      }
+    }
+  }
+
+  implicit object LogMessageJsonListFormat extends MythJsonListFormat[LogMessage] {
+    def listFieldName = "LogMessages"
+    def convertElement(value: JsValue): LogMessage = value.convertTo[LogMessage]
+    def elementToJson(elem: LogMessage): JsValue = jsonWriter[LogMessage].write(elem)
+  }
+
 }

@@ -3,9 +3,7 @@ package services
 
 import java.time.{ Duration, Instant }
 
-import model.{ ConnectionInfo, Settings, StorageGroupDir, TimeZoneInfo }
-
-trait LogMessage // TODO temporary
+import model.{ ConnectionInfo, LogMessage, Settings, StorageGroupDir, TimeZoneInfo }
 
 trait MythService extends BackendService {
   def serviceName: String = "Myth"
@@ -41,11 +39,13 @@ trait MythService extends BackendService {
 
   def getStorageGroupDirs(hostName: String = "", groupName: String = ""): ServiceResult[List[StorageGroupDir]]
 
+  // TODO leaving hostName or application blank results in collecting a list (matrix?) of available host/app names
   /**
     * Retrieve log entries from the database.
     *
     * If logging to the database is not configured, then there will be no entries
-    * to return.
+    * to return. Starting with MythTV 0.27, if database logging is desired it must
+    * be enabled using the --enable-dblog argument to mythbackend.
     *
     * All parameters are optional and allow for filtering the log messages to only
     * those of interest.
@@ -57,7 +57,7 @@ trait MythService extends BackendService {
     tid: Int = 0,
     thread: String = "",
     filename: String = "",
-    line: Int = 0,
+    lineNumber: Int = 0,
     function: String = "",
     fromTime: Instant = Instant.MAX,
     toTime: Instant = Instant.MIN,
