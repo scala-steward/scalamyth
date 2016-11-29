@@ -185,7 +185,7 @@ class JsonDvrService(conn: BackendJsonConnection)
       "Transcoder"     -> rule.transcoder.getOrElse(0)
     )
     for {
-      response <- post("UpdateRecordSchedule", params)
+      response <- post("AddRecordSchedule", params)
       root     <- responseRoot(response)
       result   <- Try(RecordRuleId(0)) // FIXME
     } yield result
