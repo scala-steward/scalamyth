@@ -1423,11 +1423,9 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   protected def serializeShutdownNow(command: String, args: Seq[Any]): String = args match {
     case Seq(haltCommand: String) =>
       val elems = List(command, haltCommand)
-      elems mkString " "
-    case Seq() => command
+      elems mkString Separator
     case _ => throwArgumentExceptionMultipleSig(command, """
-      | haltCommand: String
-      |  - empty -""")
+      | haltCommand: String""")
   }
 
   protected def serializeUndeleteRecording(command: String, args: Seq[Any]): String = args match {

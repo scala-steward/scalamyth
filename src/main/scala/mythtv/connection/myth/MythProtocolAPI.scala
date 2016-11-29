@@ -159,7 +159,7 @@ trait MythProtocolAPI {
   def setChannelInfo(chanId: ChanId, sourceId: ListingSourceId, oldChanNum: ChannelNumber, callsign: String,
     channum: ChannelNumber, name: String, xmltvId: String): MythProtocolResult[Boolean]
   def setSetting(hostName: String, settingName: String, value: String): MythProtocolResult[Boolean]
-  def shutdownNow(haltCommand: String = ""): Unit
+  def shutdownNow(haltCommand: String): Unit
   def stopRecording(rec: Recording): MythProtocolResult[CaptureCardId]
   def undeleteRecording(rec: Recording): MythProtocolResult[Boolean]
   def undeleteRecording(chanId: ChanId, startTime: MythDateTime): MythProtocolResult[Boolean]
