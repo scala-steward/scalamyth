@@ -281,14 +281,14 @@ private[myth] trait MythProtocolAPILike {
     result map { case r: Boolean => r }
   }
 
-  def queryGetAllPending: MythProtocolResult[ExpectedCountIterator[Recording]] = {
+  def queryGetAllPending: MythProtocolResult[ExpectedCountIterator[Recordable]] = {
     val result = sendCommand("QUERY_GETALLPENDING")
-    result map { case it: ExpectedCountIterator[_] => it.asInstanceOf[ExpectedCountIterator[Recording]] }
+    result map { case it: ExpectedCountIterator[_] => it.asInstanceOf[ExpectedCountIterator[Recordable]] }
   }
 
-  def queryGetAllScheduled: MythProtocolResult[ExpectedCountIterator[Recording]] = {
+  def queryGetAllScheduled: MythProtocolResult[ExpectedCountIterator[Recordable]] = {
     val result = sendCommand("QUERY_GETALLSCHEDULED")
-    result map { case it: ExpectedCountIterator[_] => it.asInstanceOf[ExpectedCountIterator[Recording]] }
+    result map { case it: ExpectedCountIterator[_] => it.asInstanceOf[ExpectedCountIterator[Recordable]] }
   }
 
   def queryGetConflicting(rec: Recording): MythProtocolResult[ExpectedCountIterator[Recording]] = {

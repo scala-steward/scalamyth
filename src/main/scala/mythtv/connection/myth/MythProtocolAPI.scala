@@ -66,8 +66,8 @@ trait MythProtocolAPI {
   def queryFreeSpaceSummary: MythProtocolResult[(ByteCount, ByteCount)]
   def queryGenPixmap(rec: Recording, token: String = "", time: VideoPosition = VideoPositionSeconds(-1),
     outputFile: String = "", width: Int = 0, height: Int = 0): MythProtocolResult[Boolean]
-  def queryGetAllPending: MythProtocolResult[ExpectedCountIterator[Recording]]
-  def queryGetAllScheduled: MythProtocolResult[ExpectedCountIterator[Recording]]
+  def queryGetAllPending: MythProtocolResult[ExpectedCountIterator[Recordable]]
+  def queryGetAllScheduled: MythProtocolResult[ExpectedCountIterator[Recordable]]
   def queryGetConflicting(rec: Recording): MythProtocolResult[ExpectedCountIterator[Recording]]  // TODO should parameter really be a Recordable?
   def queryGetExpiring: MythProtocolResult[ExpectedCountIterator[Recording]]
   def queryGuideDataThrough: MythProtocolResult[MythDateTime]
