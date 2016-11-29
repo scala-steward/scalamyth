@@ -37,12 +37,12 @@ class JsonCaptureService(conn: BackendJsonConnection)
 
   def addCaptureCard(card: CaptureCard): ServiceResult[CaptureCardId] = {
     val params: Map[String, Any] = Map(
-      "VideoDevice"        -> card.videoDevice.getOrElse(""),
+      "VideoDevice"        -> card.videoDevice.getOrElse(""),   // this is required TODO
       "AudioDevice"        -> card.audioDevice.getOrElse(""),
       "VBIDevice"          -> card.vbiDevice.getOrElse(""),
-      "CardType"           -> card.cardType.getOrElse(""),
+      "CardType"           -> card.cardType.getOrElse(""),      // this is required TODO
       "AudioRateLimit"     -> card.audioRateLimit.getOrElse(0),
-      "HostName"           -> card.hostName,
+      "HostName"           -> card.hostName,                    // this is required
       "DVBSWFilter"        -> card.dvbSwFilter.getOrElse(0),
       "DVBSatType"         -> card.dvbSatType.getOrElse(0),
       "DVBWaitForSeqStart" -> card.dvbWaitForSeqStart,
@@ -94,9 +94,9 @@ class JsonCaptureService(conn: BackendJsonConnection)
   // TODO we don't have enough details in CardInput trait currently to support all of addCardInput
   def addCardInput(input: CardInput): ServiceResult[InputId] = {
     val params: Map[String, Any] = Map(
-      "CardId"          -> input.cardInputId.id,
-      "SourceId"        -> input.sourceId.id,
-      "InputName"       -> input.name,
+      "CardId"          -> input.cardId.id,        // required
+      "SourceId"        -> input.sourceId.id,      // required
+      "InputName"       -> input.name,             // required
       "ExternalCommand" -> ???,
       "ChangerDevice"   -> ???,
       "ChangerModel"    -> ???,
