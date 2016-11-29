@@ -4,13 +4,11 @@ package http
 
 import java.io.OutputStreamWriter
 import java.net.{ HttpURLConnection, URL, URLEncoder }
+import java.util.{ List => JList }
 
 import scala.collection.JavaConverters._
 
-// TODO make a scala version of the header fields map, but do so lazily so not to incur cost
-//      overhead when we never look at headers...
-
-// TODO need somewhere to clean up our resource(s): connection, stream?
+// TODO need somewhere to clean up our resource(s): stream(s)?
 
 abstract class AbstractHttpConnection(val protocol: String, val host: String, val port: Int)
     extends NetworkConnection {
@@ -27,9 +25,7 @@ abstract class AbstractHttpConnection(val protocol: String, val host: String, va
     url.openConnection() match {
       case conn: HttpURLConnection =>
         setupConnection(conn)
-        val code = conn.getResponseCode
-        val stream = conn.getInputStream  // TODO this may fail with java.net.UnknownHostException
-        HttpStreamResponse(code, conn.getHeaderFields.asScala.toMap, stream)
+        response(url, conn)
     }
   }
 
@@ -45,16 +41,24 @@ abstract class AbstractHttpConnection(val protocol: String, val host: String, va
 
         val data = encodeParameters(params, new StringBuilder).toString
         println("Data to post: " + data)   // TODO buffer the output writer?
-        val out = conn.getOutputStream
-        val writer = new OutputStreamWriter(out)
+        val writer = new OutputStreamWriter(conn.getOutputStream)
         writer.write(data)
         writer.close()
 
-        // TODO check response code?
-        val code = conn.getResponseCode
-        val stream = conn.getInputStream
-        HttpStreamResponse(code, conn.getHeaderFields.asScala.toMap, stream)
+        response(url, conn)
     }
+  }
+
+  private def getHeaders(conn: HttpURLConnection)(): Map[String, JList[String]] = {
+    conn.getHeaderFields.asScala.toMap
+  }
+
+  private def response(url: URL, conn: HttpURLConnection): HttpStreamResponse = {
+    val code = conn.getResponseCode
+    if (code >= 400) throw HttpResponseException(url, code)
+
+    val stream = conn.getInputStream
+    HttpStreamResponse(code, getHeaders(conn) _, stream)
   }
 }
 
