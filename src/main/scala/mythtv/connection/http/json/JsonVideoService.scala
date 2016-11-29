@@ -6,8 +6,9 @@ package json
 import scala.util.Try
 
 import util.OptionalCount
-import services.{ VideoService, PagedList, ServiceResult }
 import model.{ BlurayInfo, Video, VideoId, VideoLookup }
+import services.{ VideoService, PagedList, ServiceResult }
+import services.Service.ServiceFailure.ServiceNoResult
 import RichJsonObject._
 
 class JsonVideoService(conn: BackendJsonConnection)
@@ -16,11 +17,13 @@ class JsonVideoService(conn: BackendJsonConnection)
 
   def getVideo(videoId: VideoId): ServiceResult[Video] = {
     val params: Map[String, Any] = Map("Id" -> videoId.id)
-    for {
+    val vidTry = for {
       response <- request("GetVideo", params)
       root     <- responseRoot(response, "VideoMetadataInfo")
       result   <- Try(root.convertTo[Video])
     } yield result
+    if (vidTry.isSuccess && vidTry.get.id.id == 0) Left(ServiceNoResult)
+    else vidTry
   }
 
   def getVideoByFileName(fileName: String): ServiceResult[Video] = {
@@ -44,11 +47,13 @@ class JsonVideoService(conn: BackendJsonConnection)
 
   def getBluray(path: String): ServiceResult[BlurayInfo] = {
     val params: Map[String, Any] = Map("Path" -> path)
-    for {
+    val bdTry = for {
       response <- request("GetBluray", params)
       root     <- responseRoot(response, "BlurayInfo")
       result   <- Try(root.convertTo[BlurayInfo])
     } yield result
+    if (bdTry.isSuccess && bdTry.get.title.isEmpty) Left(ServiceNoResult)
+    else bdTry
   }
 
   def lookupVideo(title: String, subtitle: String, inetRef: String, season: Int, episode: Int,
