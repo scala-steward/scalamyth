@@ -15,7 +15,7 @@ trait FreeSpace {
   def freeSpace: ByteCount
 }
 
-final case class StorageGroupId(id: Int) extends AnyVal
+final case class StorageGroupId(id: Int) extends AnyVal with IntegerIdentifier
 
 trait StorageGroupDir {
   def id: StorageGroupId

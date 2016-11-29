@@ -5,7 +5,7 @@ import java.time.{ Duration, Instant, LocalDate }
 
 import util.MythFileHash
 
-final case class VideoId(id: Int) extends AnyVal
+final case class VideoId(id: Int) extends AnyVal with IntegerIdentifier
 
 trait Video extends ProgramAndVideoBase with InternetMetadata {
   def id: VideoId
