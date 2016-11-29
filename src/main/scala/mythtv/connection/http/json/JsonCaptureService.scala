@@ -50,7 +50,7 @@ class JsonCaptureService(conn: BackendJsonConnection)
       "DVBOnDemand"        -> card.dvbOnDemand,
       "DVBDiSEqCType"      -> card.dvbDiseqcType.getOrElse(0),
       "FirewireSpeed"      -> card.firewireSpeed.getOrElse(0),
-      "FirewireModel"      -> card.firewireModel.getOrElse(""),  // TODO s/b NULL not ""
+      "FirewireModel"      -> card.firewireModel.getOrElse(""),
       "FirewireConnection" -> card.firewireConnection.getOrElse(0),
       "SignalTimeout"      -> card.signalTimeout,
       "ChannelTimeout"     -> card.channelTimeout,
@@ -73,7 +73,7 @@ class JsonCaptureService(conn: BackendJsonConnection)
     for {
       response <- post("RemoveCaptureCard", params)
       root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool")) // TODO test
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -86,11 +86,11 @@ class JsonCaptureService(conn: BackendJsonConnection)
     for {
       response <- post("UpdateCaptureCard", params)
       root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool")) // TODO test
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
-  // TODO we don't have enough details in CardInput trait currently to support addCardInput
+  // TODO we don't have enough details in CardInput trait currently to support all of addCardInput
   def addCardInput(input: CardInput): ServiceResult[InputId] = {
     val params: Map[String, Any] = Map(
       "CardId"          -> input.cardInputId.id,
@@ -120,7 +120,7 @@ class JsonCaptureService(conn: BackendJsonConnection)
     for {
       response <- post("RemoveCardInput", params)
       root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool")) // TODO test
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -133,7 +133,7 @@ class JsonCaptureService(conn: BackendJsonConnection)
     for {
       response <- post("UpdateCardInput", params)
       root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool")) // TODO test
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 }
