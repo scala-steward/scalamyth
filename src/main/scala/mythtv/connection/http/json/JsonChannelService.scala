@@ -8,6 +8,7 @@ import scala.util.Try
 import model._
 import util.OptionalCount
 import services.{ ChannelService, PagedList, ServiceResult }
+import services.Service.ServiceFailure._
 import RichJsonObject._
 
 class JsonChannelService(conn: BackendJsonConnection)
@@ -34,11 +35,13 @@ class JsonChannelService(conn: BackendJsonConnection)
 
   def getVideoSource(sourceId: ListingSourceId): ServiceResult[ListingSource] = {
     val params: Map[String, Any] = Map("SourceID" -> sourceId.id)
-    for {
+    val srcTry = for {
       response <- request("GetVideoSource", params)
       root     <- responseRoot(response, "VideoSource")
       result   <- Try(root.convertTo[ListingSource])
     } yield result
+    if (srcTry.isSuccess && srcTry.get.sourceId.id == 0) Left(ServiceNoResult)
+    else srcTry
   }
 
   def getVideoSourceList: ServiceResult[List[ListingSource]] = {
@@ -51,11 +54,13 @@ class JsonChannelService(conn: BackendJsonConnection)
 
   def getVideoMultiplex(mplexId: MultiplexId): ServiceResult[VideoMultiplex] = {
     val params: Map[String, Any] = Map("MplexID" -> mplexId.id)
-    for {
+    val mplexTry = for {
       response <- request("GetVideoMultiplex", params)
       root     <- responseRoot(response, "VideoMultiplex")
       result   <- Try(root.convertTo[VideoMultiplex])
     } yield result
+    if (mplexTry.isSuccess && mplexTry.get.mplexId.id == 0) Left(ServiceNoResult)
+    else mplexTry
   }
 
   def getVideoMultiplexList(sourceId: ListingSourceId, startIndex: Int, count: OptionalCount[Int]
