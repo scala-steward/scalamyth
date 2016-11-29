@@ -4,6 +4,7 @@ package services
 import java.time.{ Duration, Instant }
 
 import model.{ ConnectionInfo, LogMessage, Settings, StorageGroupDir, TimeZoneInfo }
+import Service.ServiceFailure.ServiceNoResult
 
 trait MythService extends BackendService {
   def serviceName: String = "Myth"
@@ -15,6 +16,12 @@ trait MythService extends BackendService {
   def getHosts: ServiceResult[List[String]]
   def getKeys: ServiceResult[List[String]]
 
+  private def extractSetting(key: String)(s: Settings): ServiceResult[String] = {
+    val settings = s.settings
+    if (settings contains key) Right(settings(key))
+    else                       Left(ServiceNoResult)
+  }
+
   /**
     * Query a global MythTV setting.
     *
@@ -23,14 +30,14 @@ trait MythService extends BackendService {
     * @param key the key name of the global setting to query
     * @return the value of the setting, or None if not found
     */
-  def getSetting(key: String): ServiceResult[Option[String]] = {
+  def getSetting(key: String): ServiceResult[String] = {
     require(key.nonEmpty)
-    getSettings("", key) map (_.settings.get(key))
+    getSettings("", key) flatMap extractSetting(key)
   }
 
-  def getSetting(hostname: String, key: String): ServiceResult[Option[String]] = {
+  def getSetting(hostname: String, key: String): ServiceResult[String] = {
     require(key.nonEmpty)
-    getSettings(hostname, key) map (_.settings.get(key))
+    getSettings(hostname, key) flatMap extractSetting(key)
   }
 
   def getSettings(hostName: String = "", key: String = ""): ServiceResult[Settings]

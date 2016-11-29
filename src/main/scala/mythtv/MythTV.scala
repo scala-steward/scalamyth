@@ -42,8 +42,8 @@ object MythTV {
     val port = trialBackend.port
     val myth = service[MythService](host, port)
 
-    val masterIp = myth.getSetting("MasterServerIP").right.get.get
-    val masterPort = myth.getSetting("MasterServerPort").right.get.map(_.toInt).get
+    val masterIp = myth.getSetting("MasterServerIP").right.get
+    val masterPort = myth.getSetting("MasterServerPort").right.get.toInt
 
     val masterAddr = InetAddress.getByName(masterIp)
     val discoveredMaster = backends find (_.addresses contains masterAddr)
