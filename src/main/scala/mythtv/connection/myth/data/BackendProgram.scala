@@ -19,6 +19,11 @@ private[myth] class BackendProgram(data: Seq[String], fieldOrder: IndexedSeq[Str
   private def optionalNonZeroIntField(f: String): Option[Int] =
     { Try(fields(f).toInt) filter (_ != 0) }.toOption
 
+  private def optionalNonEmptyStringField(f: String): Option[String] = {
+    val s = fields(f)
+    if (s.isEmpty) None else Some(s)
+  }
+
   private def timestampField(f: String): MythDateTime =
     MythDateTime.fromTimestamp(fields(f).toLong)
 
@@ -27,8 +32,8 @@ private[myth] class BackendProgram(data: Seq[String], fieldOrder: IndexedSeq[Str
   def title: String = fields("title")
   def subtitle: String = fields("subtitle")
   def description: String = fields("description")
-  def season: Int = fields("season").toInt
-  def episode: Int = fields("episode").toInt
+  def season: Option[Int] = optionalNonZeroIntField("season")
+  def episode: Option[Int] = optionalNonZeroIntField("episode")
   def syndicatedEpisode: String = fields("syndicatedEpisode")
   def category: String = fields("category")
   def categoryType: Option[CategoryType] = None        // not included in myth protocol serialization
@@ -58,7 +63,7 @@ private[myth] class BackendProgram(data: Seq[String], fieldOrder: IndexedSeq[Str
   def outputFilters: String = fields("outputFilters")
   def seriesId: String = fields("seriesId")
   def programId: String = fields("programId")
-  def inetRef: String = fields("inetRef")
+  def inetRef: Option[String] = optionalNonEmptyStringField("inetRef")
   def lastModified: MythDateTime = timestampField("lastModified")
   def stars: Option[Double] = if (fields("stars") == "0") None else Try(fields("stars").toDouble).toOption
   def originalAirDate: Option[LocalDate] = Try(LocalDate.parse(fields("originalAirDate"))).toOption

@@ -195,6 +195,11 @@ object MythProtocolSerializable {
     def serialize(in: Option[Double]): String = if (in.isEmpty) "0" else in.get.toString
   }
 
+  implicit object StringOptionSerializer extends MythProtocolSerializable[Option[String]] {
+    def deserialize(in: String): Option[String] = if (in.isEmpty) None else Some(in)
+    def serialize(in: Option[String]): String = if (in.isEmpty) "" else in.get
+  }
+
   implicit object MythDateTimeSerializer extends MythProtocolSerializable[MythDateTime] {
     def deserialize(in: String): MythDateTime = {
       try MythDateTime.fromTimestamp(in.toLong)

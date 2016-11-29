@@ -92,14 +92,9 @@ trait Recordable extends Program {
   def parentId: Int                // TODO what is this? the parent RecordRuleId?
 }
 
-trait Recording extends Recordable {
+trait Recording extends Recordable with InternetMetadata {
   def filename: String
   def filesize: ByteCount
-
-  // metadata downloaded from the internet? not in program guide
-  def season: Int                  // TODO only for Recording?, not in program table. s/b Option[_]
-  def episode: Int                 // TODO only for Recording?, not in program table  s/b Option[_]
-  def inetRef: String              // TODO not in program table                       s/b Option[_]
 
   // TODO get this working w/out calling .id
   def programType: ProgramType = ProgramType.applyOrUnknown((ProgramFlags.ProgramType.id & programFlags.id) >> 16)

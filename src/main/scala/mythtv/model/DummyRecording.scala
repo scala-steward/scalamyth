@@ -49,7 +49,7 @@ class DummyRecording extends Recording {
   def parentId          = 0
   def filename          = ""
   def filesize          = DecimalByteCount(0)
-  def season            = 0
-  def episode           = 0
-  def inetRef           = ""
+  def season            = None
+  def episode           = None
+  def inetRef           = None
 }

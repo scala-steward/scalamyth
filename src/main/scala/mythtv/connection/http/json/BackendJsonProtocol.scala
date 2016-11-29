@@ -256,9 +256,9 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       JsObject(rmap ++ Map(
         "FileName" -> JsString(r.filename),
         "FileSize" -> JsString(r.filesize.bytes.toString),
-        "Season"   -> JsString(r.season.toString),
-        "Episode"  -> JsString(r.episode.toString),
-        "Inetref"  -> JsString(r.inetRef)
+        "Season"   -> JsString(r.season.getOrElse(0).toString),
+        "Episode"  -> JsString(r.episode.getOrElse(0).toString),
+        "Inetref"  -> JsString(r.inetRef.getOrElse(""))
       ))
     }
 
@@ -323,9 +323,9 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
 
         def filename                = obj.stringField("FileName")
         def filesize                = DecimalByteCount(obj.longField("FileSize"))
-        def season                  = obj.intFieldOrElse("Season", 0)
-        def episode                 = obj.intFieldOrElse("Episode", 0)
-        def inetRef                 = obj.stringField("Inetref")
+        def season                  = obj.intFieldOption("Season", 0)
+        def episode                 = obj.intFieldOption("Episode", 0)
+        def inetRef                 = obj.stringFieldOption("Inetref", "")
 
         def artworkInfo             = obj.fields("Artwork").convertTo[List[ArtworkInfo]]
       }
