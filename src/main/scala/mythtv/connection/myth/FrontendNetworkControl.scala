@@ -75,7 +75,7 @@ trait FrontendNetworkControl {
 
   def playVolume(volumePercent: Int): Unit
 
-  // TODO UPSTREAM the track number necessary to supply here doesn't necessaily seem to align
+  // FIXME UPSTREAM the track number necessary to supply here doesn't necessaily seem to align
   // with those given in the response to query location
   def playSubtitles(track: Int): Unit
 
