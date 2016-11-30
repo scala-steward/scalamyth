@@ -10,7 +10,7 @@ import scala.util.{ DynamicVariable, Try }
 import spray.json.{ JsonFormat, RootJsonFormat, jsonWriter }
 import spray.json.{ JsObject, JsString, JsValue }
 
-import util.{ DecimalByteCount, MythDateTime, MythFileHash }
+import util.{ DecimalByteCount, MythDateTime, MythFileHash, URIFactory }
 import services.PagedList
 import model.EnumTypes._
 import model._
@@ -204,7 +204,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
 
   implicit object ArtworkInfoJsonFormat extends RootJsonFormat[ArtworkInfo] {
     def write(a: ArtworkInfo): JsValue = JsObject(Map(
-      "URL"          -> JsString(a.url),
+      "URL"          -> JsString(a.uri.toString),
       "FileName"     -> JsString(a.fileName),
       "StorageGroup" -> JsString(a.storageGroup),
       "Type"         -> JsString(a.artworkType)
@@ -213,7 +213,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     def read(value: JsValue): ArtworkInfo = {
       val obj = value.asJsObject
       new ArtworkInfo {
-        def url          = obj.stringField("URL")
+        def uri          = URIFactory(obj.stringField("URL"))
         def fileName     = obj.stringField("FileName")
         def storageGroup = obj.stringField("StorageGroup")
         def artworkType  = obj.stringField("Type")
@@ -232,7 +232,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     def read(value: JsValue): ArtworkItem = {
       val obj = value.asJsObject
       new ArtworkItem {
-        def url         = obj.stringField("Url")
+        def uri         = URIFactory(obj.stringField("Url"))
         def thumbnail   = obj.stringField("Thumbnail")
         def artworkType = obj.stringField("Type")
         def width       = obj.intFieldOption("Width", 0)
