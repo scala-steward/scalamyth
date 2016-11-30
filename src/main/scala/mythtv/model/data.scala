@@ -3,6 +3,8 @@ package model
 
 import java.time.{ Instant, ZoneOffset }
 
+// TODO make a tuple type for (chanid, starttime) to shorten parameter lists? and to ease switchover to 0.28+ recordedId in places?
+
 trait Backend extends BackendOperations
 trait Frontend extends FrontendOperations
 
@@ -25,11 +27,8 @@ trait TimeZoneInfo {
   override def toString: String = s"<TimeZoneInfo $tzName $offset>"
 }
 
-// TODO make a tuple type for (chanid, starttime) to shorten parameter lists?
-//        and to ease switchover to 0.28+ recordedId in places?
 trait PlayableMedia {
   // TODO what are subclasses?  Program(?), Recording, Video, music?
-  // TODO methods on PlayableMedia
   def playOnFrontend(fe: Frontend): Boolean
 }
 
