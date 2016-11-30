@@ -3,10 +3,10 @@ package connection
 package myth
 package data
 
-import model.{ Channel, ChannelNumber, ChanId, ListingSourceId }
+import model.{ Channel, ChannelNumber, ChanId, ListingSourceId, XmlTvChannel }
 
 private[myth] class BackendChannel(data: Seq[String], fieldOrder: IndexedSeq[String])
-    extends GenericBackendObject(data, fieldOrder) with Channel {
+    extends GenericBackendObject(data, fieldOrder) with Channel with XmlTvChannel {
 
   override def toString: String = s"<BackendChannel $chanId, $number $callsign>"
 

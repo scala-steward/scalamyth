@@ -44,9 +44,6 @@ trait Channel {
   def callsign: String
   def sourceId: ListingSourceId  // TODO not included in base results for guide data from services?
 
-  /*
-  def xmltvId: String //TODO, expose this here? it is returned by QUERY_RECORDER/GET_CHANNEL_INFO in MythProtocol
-   */
 
   /*
   def visible: Boolean
@@ -57,12 +54,15 @@ trait Channel {
   override def toString: String = s"<Channel $chanId ${number.num} $callsign>"
 }
 
-trait ChannelDetails extends Channel {
+trait XmlTvChannel {
+  def xmltvId: String
+}
+
+trait ChannelDetails extends Channel with XmlTvChannel {
   def freqId: Option[String]
   def iconPath: String        // TODO is this a URL or file path (or could be either!)
   def fineTune: Option[Int]   // TODO what is this?
   /* TODO does videofilters field map anywhere? */
-  def xmltvId: String
   /* TODO: does recpriority field map anywhere? */
   // also contrast, brightness, colour, hue
   def format: String   // sometimes set to "" even when database entry disagrees (e.g. in return from GetRecorded...)
