@@ -15,25 +15,25 @@ trait Tuner {
 trait CaptureCard extends Tuner {
   def cardType: Option[String]
   def audioRateLimit: Option[Int]
-  def hostName: String    // TODO can this really be nullable as the DB schema says?
-  def dvbSwFilter: Option[Int]  // TODO what is this?
-  def dvbSatType: Option[Int]   // TODO what is this?
+  def hostName: String                 // TODO can this really be nullable as the DB schema says?
+  def dvbSwFilter: Option[Int]         // re-introduced by commit 291dd7f97, UNUSED since?
+  def dvbSatType: Option[Int]          // is this UNUSED since ~2005, git commit 540b9f58d ??
   def dvbWaitForSeqStart: Boolean
   def skipBtAudio: Boolean
-  def dvbOnDemand: Boolean
-  def dvbDiseqcType: Option[Int] // TODO what is this?
-  def firewireSpeed: Option[Int] // TODO what is this?
-  def firewireModel: Option[String]
-  def firewireConnection: Option[Int]
-  def signalTimeout: Int   // TODO what are units?
-  def channelTimeout: Int  // TODO what are units?
-  def dvbTuningDelay: Int  // TODO what are units?
-  def contrast: Int        // TODO these all default to zero, is that a valid value?, i.e. can we map to None?
+  def dvbOnDemand: Boolean             // when enabled, only open the DVB card when required
+  def dvbDiseqcType: Option[Int]       // is this UNUSED since ~2006 git commit 818423230 ??
+  def firewireSpeed: Option[Int]       // firewire speed Mbps: { 0=100, 1=200, 2=400, 3=800 }
+  def firewireModel: Option[String]    // firewire cable box model
+  def firewireConnection: Option[Int]  // firewire communications protocol indicator (0=point-to-point, 1=broadcast)
+  def signalTimeout: Int   // in millis, timeout waiting for signal when scanning for channels
+  def channelTimeout: Int  // in millis, timeout waiting for channel lock; doubled for recordings
+  def dvbTuningDelay: Int  // in millis, intentionally slows down the tuning process, required by some cards
+  def contrast: Int
   def brightness: Int
   def colour: Int
   def hue: Int
   def diseqcId: Option[Int]
-  def dvbEitScan: Boolean
+  def dvbEitScan: Boolean               // use DVB card for EIT scan?
   // field 'defaultinput' from the DB capturecard table is excluded here
 
   override def toString: String =
