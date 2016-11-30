@@ -1421,7 +1421,19 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
   }
 
   implicit object LogMessageJsonFormat extends JsonFormat[LogMessage] {
-    def write(m: LogMessage): JsValue = ???
+    def write(m: LogMessage): JsValue = JsObject(Map(
+      "HostName"    -> JsString(m.hostName),
+      "Application" -> JsString(m.application),
+      "PID"         -> JsString(m.pid.toString),
+      "TID"         -> JsString(m.tid.toString),
+      "Thread"      -> JsString(m.thread.toString),
+      "Filename"    -> JsString(m.fileName),
+      "Line"        -> JsString(m.lineNum.toString),
+      "Function"    -> JsString(m.function),
+      "Time"        -> JsString(m.messageTime.toString),
+      "Level"       -> jsonWriter[MythLogLevel].write(m.level),
+      "Message"     -> JsString(m.message)
+    ))
     def read(value: JsValue): LogMessage = {
       val obj = value.asJsObject
       new LogMessage {
