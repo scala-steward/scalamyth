@@ -44,13 +44,6 @@ trait Channel {
   def callsign: String
   def sourceId: ListingSourceId  // TODO not included in base results for guide data from services?
 
-
-  /*
-  def visible: Boolean
-  def recPriority: Int           // TODO do we want this here?  Not in serivce object?
-  def lastRecord: MythDateTime   // TODO do we want this here?  Not in service object?
-   */
-
   override def toString: String = s"<Channel $chanId ${number.num} $callsign>"
 }
 
@@ -60,28 +53,35 @@ trait XmlTvChannel {
 
 trait ChannelDetails extends Channel with XmlTvChannel {
   def freqId: Option[String]
-  def iconPath: String        // TODO is this a URL or file path (or could be either!)
-  def fineTune: Option[Int]   // TODO what is this?
-  /* TODO does videofilters field map anywhere? */
-  /* TODO: does recpriority field map anywhere? */
-  // also contrast, brightness, colour, hue
-  def format: String   // sometimes set to "" even when database entry disagrees (e.g. in return from GetRecorded...)
+  def iconPath: String        // should be a file path relative to the ChannelIcons storage group?
+  def fineTune: Option[Int]   // used to adjust the frequency, e.g. to compensate for carrier drift in a cable system (in kHz?)
+  def format: String          // sometimes set to "" even when database entry disagrees (e.g. in return from GetRecorded...)
   def visible: Boolean
   def outputFilters: Option[String]
   def useOnAirGuide: Boolean  // TODO is this really nullable as database schema indicates?
   def mplexId: Option[MultiplexId]
-  def serviceId: Option[Int]  // TODO what is this?
-  /* TODO does tmoffset map anywhere */
+  def serviceId: Option[Int]          // MPEG service/program number when describing a DVB service
   def atscMajorChan: Option[Int]      // sometimes set to "0" even when data is avail (e.g. in return from GetRecorded...)
   def atscMinorChan: Option[Int]      //     "       "  "   "
-  /* TODO last_record? */
   def defaultAuthority: Option[String]  // TODO what is this?
   def commMethod: ChannelCommDetectMethod
-  /* iptvid? */
-  /* Results not in DB?
-       videosource: FrequencyTable
-       dtv_multiplex: Frequency, Modulation, NetworkId, SIStandard, TransportId
-         (latter set sometimes collectively called "TuningParams"
+
+  /* TODO fields from DB 'channel' table not in ChannelInfo from ChannelService:
+   *   videofilters
+   *   contrast
+   *   brightness
+   *   colour
+   *   hue
+   *   tmoffset
+   *   recpriority
+   *   last_record
+   *   iptvid
+   */
+
+  /* Results from ChannelService but stored in a DB table other than 'channel':
+   *    videosource table: FrequencyTable
+   *    dtv_multiplex table: Frequency, Modulation, NetworkId, SIStandard, TransportId
+   *        (sometimes collectively called "TuningParams")
    */
 
   def isCommercialFree: Boolean = commMethod == ChannelCommDetectMethod.CommFree
