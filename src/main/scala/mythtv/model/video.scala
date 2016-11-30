@@ -11,8 +11,6 @@ final case class VideoId(id: Int) extends AnyVal with IntegerIdentifier
 trait Video extends ProgramVideoBase with InternetMetadata {
   def id: VideoId
   def director: String
-  // TODO more
-  // TODO check these against database, they are from VideoMetadataInfo service
   def tagline: Option[String]
   def homePage: Option[String]
   def studio: Option[String]
@@ -21,17 +19,30 @@ trait Video extends ProgramVideoBase with InternetMetadata {
   def hash: MythFileHash
   def visible: Boolean
   def fileName: String
-  def contentType: VideoContentType  // TODO enum? MOVIE, TELEVISION, ADULT, MUSICVIDEO, HOMEVIDEO
+  def contentType: VideoContentType
   def hostName: String
   def addedDate: Option[Instant]  // database stores timestamp; VideoService returns valid date portion only
   def watched: Boolean
   def userRating: Double
-  def rating: String       // This is MPPA or some such rating/certification, correct?  Should this really be a Map? (RatingBody -> Rating)
+  def rating: String       // This is MPPA or some such rating/certification
   def collectionRef: Option[Int]
   def releasedDate: Option[LocalDate]
-  // TODO various artworks   These are common to many elements, no?  What should a "HasArtwork" (or may have artwork, really...) trait be called?
 
+  // TODO various artworks   These are common to many elements, no?  What should a "HasArtwork" (or may have artwork, really...) trait be called?
   def artworkInfo: List[ArtworkInfo]  // TODO probably belongs in a different, HasArtworkInfo (?) trait
+
+  // Fields in the 'videometadata' DB table but not serialized? (at least not directly)
+  // def showLevel: Int        // not serialized in JSON ?
+  // def childId: Int          // not serialized in JSON ?
+  // def browse: Boolean       // not serialized in JSON ?
+  // def processed: Boolean    // not serialized in JSON ?
+  // def playCommand: String   // not serialized in JSON ?
+  // def category: Int         // not serialized in JSON ?
+  // def trailer: String       // not serialized in JSON ?
+  // def coverfile: String     // not serialized in JSON ?
+  // def screenshot: String    // not serialized in JSON ?
+  // def banner: String        // not serialized in JSON ?
+  // def fanart: String        // not serialized in JSON ?
 
   override def toString: String = s"<Video $id $combinedTitle>"
 }
