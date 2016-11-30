@@ -59,3 +59,47 @@ trait RecordRule {
 
   override def toString: String = s"<RecordRule $id $title>"
 }
+
+object RecordRule {
+  def apply(host: String, ruleId: RecordRuleId): RecordRule = {
+    import services.DvrService
+    import connection.http.json.JsonServiceFactory._
+
+    // FIXME acquisition via service is imperfect; some fields are lost/misrepresented:
+    //   e.g. rectype loses TemplateRecord (goes to NotRecording)
+
+    val dvr = MythTV.service[DvrService](host)
+    dvr.getRecordSchedule(ruleId) match {
+      case Right(rule) => rule
+      case Left(_) => throw new NoSuchElementException
+    }
+  }
+
+  // TODO build our own default rather than throw an exception if we fail
+  // to discover the default template
+  def default(host: String): RecordRule = template(host, "Default").get
+
+  def template(host: String, template: String): Option[RecordRule] = {
+    templateRuleId(host, template) map (apply(host, _))
+  }
+
+  def templateRuleId(host: String, template: String): Option[RecordRuleId] = {
+    // Services API (at least in 0.27) doesn't provide TemplateRecord as a RecType
+    import connection.myth.MythProtocolAPIConnection
+
+    val api = MythProtocolAPIConnection(host)
+    api.announce("Monitor", "recruletemplatecheck")
+
+    val templates = api.queryGetAllScheduled map (_ filter { rule =>
+      rule.recType == RecType.TemplateRecord && (
+        rule.title == template || rule.title == template + " (Template)")
+    })
+
+    api.close()
+
+    templates.toOption flatMap { it =>
+      if (it.hasNext) Some(it.next().recordId)
+      else            None
+    }
+  }
+}
