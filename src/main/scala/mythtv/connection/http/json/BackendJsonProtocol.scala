@@ -15,8 +15,6 @@ import services.PagedList
 import model.EnumTypes._
 import model._
 
-// TODO expose artwork info on recording/recordable/program
-
 // TODO default values for model elements need to be centralized somewhere (e.g. Inetref="000000...")
 
 /* ----------------------------------------------------------------- */
