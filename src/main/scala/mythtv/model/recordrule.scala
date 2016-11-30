@@ -54,7 +54,7 @@ trait RecordRule {
   def lastRecord: Option[MythDateTime]
   def lastDelete: Option[MythDateTime]
   def storageGroup: String
-  def averageDelay: Int   // TODO what units?
+  def averageDelay: Int   // average number of hours until recording is deleted? in range [1, 200]
   def filter: Option[Int] // TODO what type is this? bitmask enum of data from the recordfilter table?
 
   override def toString: String = s"<RecordRule $id $title>"
