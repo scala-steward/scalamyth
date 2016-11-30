@@ -15,6 +15,36 @@ trait FreeSpace {
   def freeSpace: ByteCount
 }
 
+/*
+ * Built-in storage groups
+ * =======================
+ * These storage groups are always available, whether or not they have been
+ * configured by the end user. If not otherwise configured, they are default
+ * to subdirectories underneath the MythTV configuration directory, which in
+ * many cases defaults to ~mythtv/.mythtv and is noted in the log at startup.
+ *
+ * Storage Group Name      Default directory
+ * ------------------      --------------------
+ * ChannelIcons            ${confdir}/channels
+ * Themes                  ${confdir}/themes
+ * Temp                    ${confdir}/tmp
+ * Streaming               ${confdir}/tmp/hls
+ * 3rdParty                ${confdir}/3rdParty
+ *
+ *
+ * Special storage groups
+ * =======================
+ * 0.27: LiveTV, DB Backups, Videos, Trailers, Coverart, Fanart, Screenshots, Banners
+ * 0.28: Photographs, Music, MusicArt
+ *
+ *
+ * See libs/libmythbase/storagegroup.cpp for more info on built-in and special
+ * storage groups.
+ *
+ * See libs/libmythbase/mythdirs.cpp for more info on finding the MythTV
+ * configuration directory.
+ */
+
 final case class StorageGroupId(id: Int) extends AnyVal with IntegerIdentifier
 
 trait StorageGroupDir {
