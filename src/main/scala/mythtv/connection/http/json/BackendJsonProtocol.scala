@@ -228,7 +228,13 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
   }
 
   implicit object ArtworkItemJsonFormat extends JsonFormat[ArtworkItem] {
-    def write(a: ArtworkItem): JsValue = ???
+    def write(a: ArtworkItem): JsValue = JsObject(Map(
+      "Url"       -> JsString(a.uri.toString),
+      "Thumbnail" -> JsString(a.thumbnail),
+      "Type"      -> JsString(a.artworkType),
+      "Width"     -> JsString(a.width.getOrElse(0).toString),
+      "Height"    -> JsString(a.height.getOrElse(0).toString)
+    ))
     def read(value: JsValue): ArtworkItem = {
       val obj = value.asJsObject
       new ArtworkItem {
