@@ -13,6 +13,11 @@ import services.{ MythService, ServiceResult }
 import model.{ ConnectionInfo, LogMessage, Settings, StorageGroupDir, TimeZoneInfo }
 import RichJsonObject._
 
+private[json] trait LabelValue {
+  def label: String
+  def value: String
+}
+
 class JsonMythService(conn: BackendJsonConnection)
   extends JsonBackendService(conn)
      with MythService {
@@ -78,6 +83,22 @@ class JsonMythService(conn: BackendJsonConnection)
       response <- request("GetTimeZone")
       root     <- responseRoot(response, "TimeZoneInfo")
       result   <- Try(root.convertTo[TimeZoneInfo])
+    } yield result
+  }
+
+  def getLogHostNames: ServiceResult[List[String]] = {
+    for {
+      response <- request("GetLogs")
+      root     <- responseRoot(response, "LogMessageList")
+      result   <- Try(root.asJsObject.fields("HostNames").convertTo[List[LabelValue]] map (_.value))
+    } yield result
+  }
+
+  def getLogApplications: ServiceResult[List[String]] = {
+    for {
+      response <- request("GetLogs")
+      root     <- responseRoot(response, "LogMessageList")
+      result   <- Try(root.asJsObject.fields("Applications").convertTo[List[LabelValue]] map (_.value))
     } yield result
   }
 

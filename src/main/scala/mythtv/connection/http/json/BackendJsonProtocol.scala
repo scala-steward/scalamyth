@@ -7,8 +7,8 @@ import java.time.{ Duration, Instant, LocalTime, ZoneOffset }
 
 import scala.util.{ DynamicVariable, Try }
 
-import spray.json.{ JsonFormat, RootJsonFormat, jsonWriter }
-import spray.json.{ JsObject, JsString, JsValue }
+import spray.json.{ JsonFormat, RootJsonFormat, deserializationError, jsonWriter }
+import spray.json.{ JsArray, JsObject, JsString, JsValue }
 
 import util.{ DecimalByteCount, MythDateTime, MythFileHash, URIFactory }
 import services.PagedList
@@ -1425,6 +1425,33 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def database  = obj.fields("Database").convertTo[DatabaseConnectionInfo]
         def wakeOnLan = obj.fields("WOL").convertTo[WakeOnLanInfo]
       }
+    }
+  }
+
+  implicit object LabelValueJsonFormat extends JsonFormat[LabelValue] {
+    def write(v: LabelValue): JsValue = JsObject(Map(
+      "Label" -> JsString(v.label),
+      "Value" -> JsString(v.value)
+    ))
+    def read(value: JsValue): LabelValue = {
+      val obj = value.asJsObject
+      new LabelValue {
+        def label = obj.stringField("Label")
+        def value = obj.stringField("Value")
+      }
+    }
+  }
+
+  implicit object LabelValueJsonListFormat extends RootJsonFormat[List[LabelValue]] {
+    def convertElement(value: JsValue): LabelValue = value.convertTo[LabelValue]
+    def elementToJson(elem: LabelValue): JsValue = jsonWriter[LabelValue].write(elem)
+
+    def write(list: List[LabelValue]): JsValue =
+      JsArray(list.map(elementToJson).toVector)
+
+    def read(value: JsValue): List[LabelValue] = value match {
+      case JsArray(elements) => elements.map(convertElement)(scala.collection.breakOut)
+      case x => deserializationError(s"expected array but got $x")
     }
   }
 

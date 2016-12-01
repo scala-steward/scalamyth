@@ -46,7 +46,10 @@ trait MythService extends BackendService {
 
   def getStorageGroupDirs(hostName: String = "", groupName: String = ""): ServiceResult[List[StorageGroupDir]]
 
-  // TODO leaving hostName or application blank results in collecting a list (matrix?) of available host/app names
+  def getLogHostNames: ServiceResult[List[String]]
+
+  def getLogApplications: ServiceResult[List[String]]
+
   /**
     * Retrieve log entries from the database.
     *
@@ -58,8 +61,8 @@ trait MythService extends BackendService {
     * those of interest.
     */
   def getLogs(
-    hostName: String = "",
-    application: String = "",
+    hostName: String,
+    application: String,
     pid: Int = 0,
     tid: Int = 0,
     thread: String = "",
