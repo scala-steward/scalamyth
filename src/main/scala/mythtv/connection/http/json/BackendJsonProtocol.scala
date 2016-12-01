@@ -768,6 +768,16 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
 
     def read(value: JsValue): RemoteEncoderState = {
       val obj = value.asJsObject
+
+      val recObj: RichJsonObject =      // inner object
+        if (obj.fields contains "Recording") obj.fields("Recording").asJsObject
+        else EmptyJsonObject
+
+      val currentRec: Option[Recording] =
+        if (recObj.stringFieldOption("StartTime", "").nonEmpty)
+          Some(RecordingJsonFormat.read(obj.fields("Recording")))
+        else None
+
       new RemoteEncoderState {
         def cardId           = CaptureCardId(obj.intField("Id"))
         def host             = obj.stringField("HostName")
@@ -778,7 +788,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def lowFreeSpace     = obj.booleanField("LowOnFreeSpace")
         def state            = TvState.applyOrUnknown(obj.intField("State"))
         def sleepStatus      = SleepStatus.applyOrUnknown(obj.intField("SleepStatus"))
-        def currentRecording = None  // TODO Option[Recording], embedded object (check for "" StartTime)
+        def currentRecording = currentRec
       }
     }
   }
