@@ -46,10 +46,8 @@ trait Program extends ProgramVideoBase {
   def stereo: Boolean    = audioProps contains AudioProperties.Stereo
   def subtitled: Boolean = subtitleType != SubtitleType.Unknown
 
-  def hdtv: Boolean =   // TODO need a BitmaskEnum.containsSome(Mask) method!
-    videoProps.contains(VideoProperties.Hdtv) ||
-    videoProps.contains(VideoProperties.Hd720) ||
-    videoProps.contains(VideoProperties.Hd1080)
+  def hdtv: Boolean =
+    videoProps.containsAny(VideoProperties.Hdtv | VideoProperties.Hd720 | VideoProperties.Hd1080)
 
   def closeCaptioned: Boolean =
     (subtitleType contains SubtitleType.HardHear) ||
