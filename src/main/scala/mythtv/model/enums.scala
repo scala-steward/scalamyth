@@ -18,6 +18,7 @@ object EnumTypes {
   type ListingSourceType = model.ListingSourceType.Value
   type LiveStreamStatus = model.LiveStreamStatus.Value
   type Markup = model.Markup.Value
+  type MetadataGrabberType = model.MetadataGrabberType.Value
   type MythLogLevel = model.MythLogLevel.Value
   type MythVerboseLevel = model.MythVerboseLevel.Base
   type NotificationPriority = model.NotificationPriority.Value
@@ -472,11 +473,20 @@ object MythVerboseLevel extends BitmaskEnum[Long] {
 }
 
 object VideoContentType extends Enumeration {
-  type VideoContentType = VideoContentType.Value
+  type VideoContentType = Value
   val Unknown    = Value("UNKNOWN")
   val Movie      = Value("MOVIE")
   val Television = Value("TELEVISION")
   val Adult      = Value("ADULT")
   val MusicVideo = Value("MUSICVIDEO")
   val HomeVideo  = Value("HOMEVIDEO")
+}
+
+object MetadataGrabberType extends Enumeration {
+  type MetadataGrabberType = Value
+  val Unknown    = Value
+  val Movie      = Value
+  val Television = Value
+  val Music      = Value
+  val Game       = Value
 }

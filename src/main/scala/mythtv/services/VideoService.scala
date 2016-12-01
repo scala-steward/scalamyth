@@ -1,8 +1,9 @@
 package mythtv
 package services
 
-import model.{ BlurayInfo, VideoId, Video, VideoLookup }
 import util.OptionalCount
+import model.{ BlurayInfo, MetadataGrabberType, VideoId, Video, VideoLookup }
+import model.EnumTypes.MetadataGrabberType
 
 trait VideoService extends BackendService {
   def serviceName: String = "Video"
@@ -26,14 +27,13 @@ trait VideoService extends BackendService {
    */
 
   // perform metadata lookup for a video
-  // TODO enum or something for grabber type?
   def lookupVideo(
     title: String,
     subtitle: String,
     inetRef: String,
     season: Int = 0,
     episode: Int = 0,
-    grabberType: String = "",
+    grabberType: MetadataGrabberType = MetadataGrabberType.Unknown,
     allowGeneric: Boolean = false
   ): ServiceResult[List[VideoLookup]]
 
@@ -43,7 +43,7 @@ trait VideoService extends BackendService {
     season: Int = 0,
     episode: Int = 0,
     inetRef: String = "",
-    grabberType: String = "",
+    grabberType: MetadataGrabberType = MetadataGrabberType.Unknown,
     allowGeneric: Boolean = false
   ): ServiceResult[List[VideoLookup]] =
     lookupVideo(title, subtitle, inetRef, season, episode, grabberType, allowGeneric)
@@ -54,7 +54,7 @@ trait VideoService extends BackendService {
     episode: Int = 0,
     title: String = "",
     subtitle: String = "",
-    grabberType: String = "",
+    grabberType: MetadataGrabberType = MetadataGrabberType.Unknown,
     allowGeneric: Boolean = false
   ): ServiceResult[List[VideoLookup]] =
     lookupVideo(title, subtitle, inetRef, season, episode, grabberType, allowGeneric)

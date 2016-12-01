@@ -6,7 +6,8 @@ package json
 import scala.util.Try
 
 import util.OptionalCount
-import model.{ BlurayInfo, Video, VideoId, VideoLookup }
+import model.EnumTypes.MetadataGrabberType
+import model.{ BlurayInfo, MetadataGrabberType, Video, VideoId, VideoLookup }
 import services.{ VideoService, PagedList, ServiceResult }
 import services.Service.ServiceFailure.ServiceNoResult
 import RichJsonObject._
@@ -57,14 +58,14 @@ class JsonVideoService(conn: BackendJsonConnection)
   }
 
   def lookupVideo(title: String, subtitle: String, inetRef: String, season: Int, episode: Int,
-    grabberType: String, allowGeneric: Boolean): ServiceResult[List[VideoLookup]] = {
+    grabberType: MetadataGrabberType, allowGeneric: Boolean): ServiceResult[List[VideoLookup]] = {
     var params: Map[String, Any] = Map.empty
     if (title.nonEmpty)    params += "Title" -> title
     if (subtitle.nonEmpty) params += "Subtitle" -> subtitle
     if (inetRef.nonEmpty)  params += "Inetref" -> inetRef
     if (season != 0)       params += "Season" -> season
     if (episode != 0)      params += "Episode" -> episode
-    if (grabberType.nonEmpty) params += "GrabberType" -> grabberType
+    if (grabberType != MetadataGrabberType.Unknown) params += "GrabberType" -> grabberType.toString
     if (allowGeneric)      params += "AllowGeneric" -> allowGeneric
     for {
       response <- request("LookupVideo", params)
