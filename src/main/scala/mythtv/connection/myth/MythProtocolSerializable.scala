@@ -281,7 +281,6 @@ private trait GenericBackendObjectSerializer[T, F <: GenericBackendObjectFactory
   def newFactory: F
   def otherSerializer: S
 
-  // TODO do we really need to call take() in deserialize? Use a view slice instead?
   // What about deserialization of a adjacent sequence of like-typed objects?
 
   def deserialize(in: String): T = {

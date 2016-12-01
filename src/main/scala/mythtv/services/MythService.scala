@@ -99,7 +99,7 @@ trait MythService extends BackendService {
   // NB broadcast address doesn't seem to be picked up by frontends? The packet is visible on bigbertha in wireshark.
   //    It turns out the frontends were listening on 192.168.1.255 but not 255.255.255.255.  Wonder why? Investigate.
   //    mythudplistener in libmythui ; uses ServerPool::DefaultBroadcast from libmythbase
-  //    The bug seems to be in the backend service; should use subnet broadcast address rather than global?
+  //    UPSTREAM: The bug seems to be in the backend service; should use subnet broadcast address rather than global?
   def sendMessage(message: String, address: String = "", udpPort: Int = 0, timeout: Duration = Duration.ZERO): ServiceResult[Boolean]
 
   //def sendNotification(....): Boolean

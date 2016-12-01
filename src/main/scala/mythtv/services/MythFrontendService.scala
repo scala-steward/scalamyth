@@ -21,7 +21,7 @@ trait MythFrontendService extends FrontendService {
 
   // action methods
 
-  // TODO UPSTREAM seems to be a bug in MythTV that if the frontend is not at playbackbox,
+  // FIXME UPSTREAM seems to be a bug in MythTV that if the frontend is not at playbackbox,
   // then playRecording just jumps there and doesn't play. Sending the messsage
   // again will cause playback, but it will restart upon exit (guess cause we
   // send the message twice?)  I think the same buf may affect other control
