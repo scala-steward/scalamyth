@@ -1,6 +1,7 @@
 package mythtv
 package services
 
+import java.net.URI
 import java.time.{ Duration, Instant }
 
 import model.{ ConnectionInfo, LogMessage, Settings, StorageGroupDir, TimeZoneInfo }
@@ -109,16 +110,20 @@ trait MythService extends BackendService {
   // This causes a database check to be performed synchronously, so may not return for some time.
   def checkDatabase(repair: Boolean = false): ServiceResult[Boolean]
 
+  // Submit the hardware profile to the MythTV smolt server
   def profileSubmit(): ServiceResult[Boolean]
 
+  // Deletes any submitted profile and disables hardware profiling
   def profileDelete(): ServiceResult[Boolean]
 
-// the three below are parameterless GET methods
+  // Retrieves the URL of a submitted profile on the MythTV servers
+  def profileUrl: ServiceResult[URI]
 
-  def profileUrl: ServiceResult[String]
-
+  // This returns a date but in a format which may vary, and which may omit some components,
+  // so we don't attempt to parse it. (It uses the DateFormat value in the 'settings' table)
   def profileUpdated: ServiceResult[String]
 
-  def profileText: ServiceResult[String]
+  // This causes a new hardware profile to be generated, by running an external command
+  def profileText(): ServiceResult[String]
 
 }

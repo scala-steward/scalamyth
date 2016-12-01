@@ -3,12 +3,14 @@ package connection
 package http
 package json
 
+import java.net.URI
 import java.time.{ Duration, Instant }
 
 import scala.util.Try
 
 import spray.json.DefaultJsonProtocol
 
+import util.URIFactory
 import services.{ MythService, ServiceResult }
 import model.{ ConnectionInfo, LogMessage, Settings, StorageGroupDir, TimeZoneInfo }
 import RichJsonObject._
@@ -241,7 +243,7 @@ class JsonMythService(conn: BackendJsonConnection)
     for {
       response <- post("ProfileSubmit")
       root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool"))  // TODO test
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
@@ -249,15 +251,34 @@ class JsonMythService(conn: BackendJsonConnection)
     for {
       response <- post("ProfileDelete")
       root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool"))  // TODO test
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
-// TODO are the three below GET methods?
+  def profileUrl: ServiceResult[URI] = {
+    import DefaultJsonProtocol.StringJsonFormat
+    for {
+      response <- request("ProfileURL")
+      root     <- responseRoot(response, "String")
+      result   <- Try(URIFactory(root.convertTo[String]))
+    } yield result
+  }
 
-  def profileUrl: ServiceResult[String] = ???
+  def profileUpdated: ServiceResult[String] = {
+    import DefaultJsonProtocol.StringJsonFormat
+    for {
+      response <- request("ProfileUpdated")
+      root     <- responseRoot(response, "String")
+      result   <- Try(root.convertTo[String])
+    } yield result
+  }
 
-  def profileUpdated: ServiceResult[String] = ???
-
-  def profileText: ServiceResult[String] = ???
+  def profileText(): ServiceResult[String] = {
+    import DefaultJsonProtocol.StringJsonFormat
+    for {
+      response <- request("ProfileText")
+      root     <- responseRoot(response, "String")
+      result   <- Try(root.convertTo[String])
+    } yield result
+  }
 }
