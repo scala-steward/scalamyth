@@ -11,8 +11,8 @@ object MythTV {
   def frontend(host: String): MythFrontend = new MythFrontend(host)
   def backend(host: String): MythBackend = new MythBackend(host)
 
-  def service[A <: Service](host: String)(implicit factory: ServiceFactory[A]): A = factory(host)
-  def service[A <: Service](host: String, port: Int)(implicit factory: ServiceFactory[A]): A = factory(host, port)
+  @deprecated("", "") def service[A <: Service](host: String)(implicit factory: ServiceFactory[A]): A = factory(host)
+  @deprecated("", "") def service[A <: Service](host: String, port: Int)(implicit factory: ServiceFactory[A]): A = factory(host, port)
 
   private def parseHostNameFromServiceName(serviceName: String): String = {
     val pattern = """.+ on (.+)""".r
@@ -35,14 +35,12 @@ object MythTV {
   // If there is more than one master backend advertised via mDNS, this may find
   // either of them; which one is undefined.
   def discoverMasterBackend: BackendInfo = {
-    import connection.http.json.JsonServiceFactory._
-
     val backends = ServiceDiscovery.discoverBackends
     val trialBackend = backends.head // TODO check that we got some results
 
     val host = trialBackend.addresses.head.getHostAddress
     val port = trialBackend.port
-    val myth = service[MythService](host, port)
+    val myth = ServiceProvider.mythService(host, port)
 
     val masterIp = myth.getSetting("MasterServerIP").get
     val masterPort = myth.getSetting("MasterServerPort").get.toInt

@@ -5,8 +5,6 @@ package json
 
 import services._
 
-object JsonServiceProvider extends ServiceProvider[JsonServiceFactory]
-
 trait JsonServiceFactory[S <: Service] extends ServiceFactory[S]
 object JsonServiceFactory extends JsonServiceFactoryImplicits
 
@@ -62,4 +60,32 @@ private[json] trait JsonServiceFactoryImplicits {
   implicit object JsonMythFrontendServiceFactory extends FrontendJsonServiceFactory[MythFrontendService] {
     def newInstance(conn: FrontendJsonConnection): MythFrontendService = new JsonMythFrontendService(conn)
   }
+}
+
+object JsonServiceProvider extends ServiceProvider {
+  private val f = JsonServiceFactory
+
+  def captureService(host: String): CaptureService = f.JsonCaptureServiceFactory(host)
+  def captureService(host: String, port: Int): CaptureService = f.JsonCaptureServiceFactory(host, port)
+
+  def channelService(host: String): ChannelService = f.JsonChannelServiceFactory(host)
+  def channelService(host: String, port: Int): ChannelService = f.JsonChannelServiceFactory(host, port)
+
+  def contentService(host: String): ContentService = f.JsonContentServiceFactory(host)
+  def contentService(host: String, port: Int): ContentService = f.JsonContentServiceFactory(host, port)
+
+  def dvrService(host: String): DvrService = f.JsonDvrServiceFactory(host)
+  def dvrService(host: String, port: Int): DvrService = f.JsonDvrServiceFactory(host, port)
+
+  def guideService(host: String): GuideService = f.JsonGuideServiceFactory(host)
+  def guideService(host: String, port: Int): GuideService = f.JsonGuideServiceFactory(host, port)
+
+  def mythService(host: String): MythService = f.JsonMythServiceFactory(host)
+  def mythService(host: String, port: Int): MythService = f.JsonMythServiceFactory(host, port)
+
+  def videoService(host: String): VideoService = f.JsonVideoServiceFactory(host)
+  def videoService(host: String, port: Int): VideoService = f.JsonVideoServiceFactory(host, port)
+
+  def mythFrontendService(host: String): MythFrontendService = f.JsonMythFrontendServiceFactory(host)
+  def mythFrontendService(host: String, port: Int): MythFrontendService = f.JsonMythFrontendServiceFactory(host, port)
 }

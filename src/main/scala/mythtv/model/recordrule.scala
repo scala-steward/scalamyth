@@ -62,13 +62,12 @@ trait RecordRule {
 
 object RecordRule {
   def apply(host: String, ruleId: RecordRuleId): RecordRule = {
-    import services.DvrService
-    import connection.http.json.JsonServiceFactory._
+    import services.{ DvrService, ServiceProvider }
 
     // FIXME acquisition via service is imperfect; some fields are lost/misrepresented:
     //   e.g. rectype loses TemplateRecord (goes to NotRecording)
 
-    val dvr = MythTV.service[DvrService](host)
+    val dvr = ServiceProvider.dvrService(host)
     dvr.getRecordSchedule(ruleId) match {
       case Right(rule) => rule
       case Left(_) => throw new NoSuchElementException
