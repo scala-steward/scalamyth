@@ -58,66 +58,93 @@ class JsonContentService(conn: BackendJsonConnection)
     } yield result
   }
 
-  def getFile(storageGroup: String, fileName: String): HttpStreamResponse = {
+  def getFile[U](storageGroup: String, fileName: String)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
     val params: Map[String, Any] = Map(
       "StorageGroup" -> storageGroup,
       "FileName"     -> fileName
     )
-    requestStream("GetFile", params)
+    Try {
+      val response = requestStream("GetFile", params)
+      streamResponse(response, f)
+    }
   }
 
-  def getImageFile(storageGroup: String, fileName: String, width: Int, height: Int): HttpStreamResponse = {
+  def getImageFile[U](storageGroup: String, fileName: String, width: Int, height: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
     var params: Map[String, Any] = Map(
       "StorageGroup" -> storageGroup,
       "FileName"     -> fileName
     )
     if (width != 0)  params += "Width" -> width
     if (height != 0) params += "Height" -> height
-    requestStream("GetImageFile", params)
+    Try {
+      val response = requestStream("GetImageFile", params)
+      streamResponse(response, f)
+    }
   }
 
-  def getMusic(id: Int): HttpStreamResponse = {
+  def getMusic[U](id: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
     val params: Map[String, Any] = Map("Id" -> id)
-    requestStream("GetMusic", params)
+    Try {
+      val response = requestStream("GetMusic", params)
+      streamResponse(response, f)
+    }
   }
 
-  def getRecording(chanId: ChanId, startTime: MythDateTime): HttpStreamResponse = {
+  def getRecording[U](chanId: ChanId, startTime: MythDateTime)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
     val params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
-    requestStream("GetRecording", params)
+    Try {
+      val response = requestStream("GetRecording", params)
+      streamResponse(response, f)
+    }
   }
 
-  def getVideo(videoId: VideoId): HttpStreamResponse = {
+  def getVideo[U](videoId: VideoId)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
     val params: Map[String, Any] = Map("Id" -> videoId.id)
-    requestStream("GetVideo", params)
+    Try {
+      val response = requestStream("GetVideo", params)
+      streamResponse(response, f)
+    }
   }
 
-  def getVideoArtwork(artType: String, videoId: VideoId, width: Int, height: Int): HttpStreamResponse = {
+  def getVideoArtwork[U](artType: String, videoId: VideoId, width: Int, height: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
     var params: Map[String, Any] = Map("Type" -> artType, "Id" -> videoId.id)
     if (width != 0)  params += "Width" -> width
     if (height != 0) params += "Height" -> height
-    requestStream("GetVideoArtwork", params)
+    Try {
+      val response = requestStream("GetVideoArtwork", params)
+      streamResponse(response, f)
+    }
   }
 
-  def getAlbumArt(id: Int, width: Int, height: Int): HttpStreamResponse = {
+  def getAlbumArt[U](id: Int, width: Int, height: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
     var params: Map[String, Any] = Map("Id" -> id)
     if (width != 0)  params += "Width" -> width
     if (height != 0) params += "Height" -> height
-    requestStream("GetAlbumArt", params)
+    Try {
+      val response = requestStream("GetAlbumArt", params)
+      streamResponse(response, f)
+    }
   }
 
-  def getPreviewImage(chanId: ChanId, startTime: MythDateTime, width: Int, height: Int, secsIn: Int): HttpStreamResponse = {
+  def getPreviewImage[U](chanId: ChanId, startTime: MythDateTime, width: Int, height: Int, secsIn: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
     var params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
     if (width != 0)  params += "Width" -> width
     if (height != 0) params += "Height" -> height
     if (secsIn > 0)  params += "SecsIn" -> secsIn
-    requestStream("GetPreviewImage", params)
+    Try {
+      val response = requestStream("GetPreviewImage", params)
+      streamResponse(response, f)
+    }
   }
 
-  def getRecordingArtwork(artType: String, inetRef: String, season: Int, width: Int, height: Int): HttpStreamResponse = {
+  def getRecordingArtwork[U](artType: String, inetRef: String, season: Int, width: Int, height: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
     var params: Map[String, Any] = Map("Type" -> artType, "Inetref" -> inetRef, "Season" -> season)
     if (width != 0)  params += "Width" -> width
     if (height != 0) params += "Height" -> height
-    requestStream("GetRecordingArtwork", params)
+    Try {
+      val response = requestStream("GetRecordingArtwork", params)
+      streamResponse(response, f)
+    }
   }
 
   def getRecordingArtworkList(chanId: ChanId, startTime: MythDateTime): ServiceResult[List[ArtworkInfo]] = {

@@ -52,10 +52,14 @@ class JsonGuideService(conn: BackendJsonConnection)
     } yield result
   }
 
-  def getChannelIcon(chanId: ChanId, width: Int, height: Int): HttpStreamResponse = {
+  def getChannelIcon[U](chanId: ChanId, width: Int, height: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
     var params: Map[String, Any] = Map("ChanId" -> chanId.id)
     if (width != 0)  params += "Width" -> width
     if (height != 0) params += "Height" -> height
-    requestStream("GetChannelIcon", params)
+
+    Try {
+      val response = requestStream("GetChannelIcon", params)
+      streamResponse(response, f)
+    }
   }
 }

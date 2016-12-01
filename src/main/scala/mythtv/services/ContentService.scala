@@ -15,23 +15,23 @@ trait ContentService extends BackendService {
   def getRecordingArtworkList(chanId: ChanId, startTime: MythDateTime): ServiceResult[List[ArtworkInfo]]
   def getProgramArtworkList(inetRef: String, season: Int): ServiceResult[List[ArtworkInfo]]
 
-  def getMusic(id: Int): HttpStreamResponse
+  def getMusic[U](id: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit]
 
-  def getRecording(chanId: ChanId, startTime: MythDateTime): HttpStreamResponse
+  def getRecording[U](chanId: ChanId, startTime: MythDateTime)(f: (HttpStreamResponse) => U): ServiceResult[Unit]
 
-  def getVideo(id: VideoId): HttpStreamResponse
+  def getVideo[U](id: VideoId)(f: (HttpStreamResponse) => U): ServiceResult[Unit]
 
-  def getFile(storageGroup: String, fileName: String): HttpStreamResponse
+  def getFile[U](storageGroup: String, fileName: String)(f: (HttpStreamResponse) => U): ServiceResult[Unit]
 
-  def getImageFile(storageGroup: String, fileName: String, width: Int = 0, height: Int = 0): HttpStreamResponse
+  def getImageFile[U](storageGroup: String, fileName: String, width: Int = 0, height: Int = 0)(f: (HttpStreamResponse) => U): ServiceResult[Unit]
 
-  def getRecordingArtwork(artType: String, inetRef: String, season: Int, width: Int = 0, height: Int = 0): HttpStreamResponse
+  def getRecordingArtwork[U](artType: String, inetRef: String, season: Int, width: Int = 0, height: Int = 0)(f: (HttpStreamResponse) => U): ServiceResult[Unit]
 
-  def getVideoArtwork(artType: String, videoId: VideoId, width: Int = 0, height: Int = 0): HttpStreamResponse
+  def getVideoArtwork[U](artType: String, videoId: VideoId, width: Int = 0, height: Int = 0)(f: (HttpStreamResponse) => U): ServiceResult[Unit]
 
-  def getAlbumArt(id: Int, width: Int = 0, height: Int = 0): HttpStreamResponse
+  def getAlbumArt[U](id: Int, width: Int = 0, height: Int = 0)(f: (HttpStreamResponse) => U): ServiceResult[Unit]
 
-  def getPreviewImage(chanId: ChanId, startTime: MythDateTime, width: Int = 0, height: Int = 0, secsIn: Int = -1): HttpStreamResponse
+  def getPreviewImage[U](chanId: ChanId, startTime: MythDateTime, width: Int = 0, height: Int = 0, secsIn: Int = -1)(f: (HttpStreamResponse) => U): ServiceResult[Unit]
 
   def addLiveStream(
     storageGroup: String,

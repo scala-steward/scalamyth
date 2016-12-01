@@ -18,5 +18,5 @@ trait GuideService extends BackendService {
 
   def getProgramDetails(chanId: ChanId, startTime: MythDateTime): ServiceResult[Program]
 
-  def getChannelIcon(chanId: ChanId, width: Int = 0, height: Int = 0): HttpStreamResponse
+  def getChannelIcon[U](chanId: ChanId, width: Int = 0, height: Int = 0)(f: (HttpStreamResponse) => U): ServiceResult[Unit]
 }

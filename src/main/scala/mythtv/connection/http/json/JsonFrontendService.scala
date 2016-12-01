@@ -50,12 +50,15 @@ class JsonMythFrontendService(conn: FrontendJsonConnection)
     } yield result
   }
 
-  def getScreenshot(format: ScreenshotFormat, width: Int, height: Int): HttpStreamResponse = {
+  def getScreenshot[U](format: ScreenshotFormat, width: Int, height: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
     var params: Map[String, Any] = Map("format" -> format.formatString)
     if (width != 0)      params += "width" -> width
     if (height != 0)     params += "height" -> height
-    val path = buildPath("MythFE", "GetScreenShot", params)
-    conn.requestStream(path)
+    val path = buildPath("MythFE", "GetScreenShot", params)  // Note this has a different service prefix
+    Try {
+      val response = conn.requestStream(path)
+      streamResponse(response, f)
+    }
   }
 
   // post methods

@@ -28,4 +28,9 @@ abstract class JsonService(conn: JsonConnection)
 
   def responseRoot(response: JsonResponse, fieldName: String): Try[JsValue] =
     Try(response.json.asJsObject.fields(fieldName))
+
+  def streamResponse[U](response: HttpStreamResponse, f: (HttpStreamResponse) => U): Unit = {
+    try f(response)
+    finally response.stream.close()
+  }
 }
