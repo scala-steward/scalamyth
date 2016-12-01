@@ -348,7 +348,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      *                E MythSocketThread(56) mythsocket.cpp:694 (WriteStringListReal) MythSocket(27f1540:56):
      *                      WriteStringList: Error, joined null string.
      *           ----> Same problem as above if pass wrong number of arguments
-     *           TODO UPSTREAM File bug/pull request with MythTV upstream
+     *           FIXME UPSTREAM File bug/pull request with MythTV upstream
      *      %s  hash of the file (currently 64-bit, so 16 hex characters)
      *     "NULL" if file was zero-length or did not exist (any other conditions?)
      * NB storageGroup parameter seems to be a hint at most, specifying a non-existing or
@@ -487,7 +487,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      * QUERY_IS_ACTIVE_BACKEND [] [%s]   [<hostname>]
      *  @responds sometimes; only if tokenCount == 1
      *  @returns "TRUE" or "FALSE"
-     * TODO UPSTREAM causes NPE on backend if hostname is not passed
+     * FIXME UPSTREAM causes NPE on backend if hostname is not passed
      */
     "QUERY_IS_ACTIVE_BACKEND" -> ((serializeQueryIsActiveBackend, handleQueryIsActiveBackend)),
 

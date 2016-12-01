@@ -16,8 +16,9 @@ abstract class AbstractHttpConnection(val protocol: String, val host: String, va
   import AbstractHttpConnection._
 
   def setupConnection(conn: HttpURLConnection): Unit = {
-    conn.setConnectTimeout(10000)  // TODO where to specify? properties file?
-    conn.setReadTimeout(10000)     // TODO where to specify? properties file?
+    // TODO need a centralized mechanism for specifying default HTTP connect and read timeouts
+    conn.setConnectTimeout(10000)
+    conn.setReadTimeout(10000)
   }
 
   // TODO do we need to pick up errorStream and read it out?
@@ -41,7 +42,8 @@ abstract class AbstractHttpConnection(val protocol: String, val host: String, va
         conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
 
         val data = encodeParameters(params, new StringBuilder).toString
-        println("Data to post: " + data)   // TODO buffer the output writer?
+        println("Data to post: " + data)
+
         val writer = new OutputStreamWriter(conn.getOutputStream)
         writer.write(data)
         writer.close()

@@ -114,7 +114,7 @@ private abstract class AbstractEventConnection(
   }
 
   // TODO is isConnected thread safe?
-  // TODO need to catch ClosedConnectionException thrown by readEvent()
+  // TODO need to catch ClosedConnectionException thrown by readEvent() To test: shutdown myth server while event monitor is running
   private class EventMonitor(queue: BlockingQueue[BackendEventResponse]) extends Runnable {
     def run(): Unit = {
       while (isConnected) {

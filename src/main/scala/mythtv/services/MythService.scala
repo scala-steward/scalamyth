@@ -106,12 +106,11 @@ trait MythService extends BackendService {
   // This causes a database check to be performed synchronously, so may not return for some time.
   def checkDatabase(repair: Boolean = false): ServiceResult[Boolean]
 
-
   def profileSubmit(): ServiceResult[Boolean]
 
   def profileDelete(): ServiceResult[Boolean]
 
-// TODO are the three below GET methods?
+// the three below are parameterless GET methods
 
   def profileUrl: ServiceResult[String]
 

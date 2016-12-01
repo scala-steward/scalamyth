@@ -42,7 +42,7 @@ trait Channel {
   def name: String
   def number: ChannelNumber
   def callsign: String
-  def sourceId: ListingSourceId  // TODO not included in base results for guide data from services?
+  def sourceId: ListingSourceId  // TODO not included in channel of GuideService.GetProgamGuide when Details=false
 
   override def toString: String = s"<Channel $chanId ${number.num} $callsign>"
 }
