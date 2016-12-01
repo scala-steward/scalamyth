@@ -255,7 +255,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     def write(r: Recording): JsValue = {
       val rmap: Map[String, JsValue] = RecordableJsonFormat.write(r) match {
         case JsObject(fields) => fields
-        case _ => Map.empty  // TODO should probably throw an exception here
+        case _ => throw new RuntimeException("RecordableJsonFormat.write failed to create a JsObject")
       }
       JsObject(rmap ++ Map(
         "FileName" -> JsString(r.filename),
@@ -345,7 +345,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     def write(r: Recordable): JsValue = {
       val pmap: Map[String, JsValue] = ProgramJsonFormat.write(r) match {
         case JsObject(fields) => fields
-        case _ => Map.empty  // TODO should probably throw an exception here
+        case _ => throw new RuntimeException("ProgramJsonFormat failed to create a JsObject")
       }
       JsObject(pmap ++ Map(
         // TODO inner Channel object overrides: SourceId, InputId, ChanNum, CallSign, ChannelName
