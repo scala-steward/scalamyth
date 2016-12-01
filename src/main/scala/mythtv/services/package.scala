@@ -8,6 +8,9 @@ package object services {
   implicit class ServiceResultGetter[T](val res: ServiceResult[T]) extends AnyVal {
     import ServiceFailure._
 
+    def isSuccess: Boolean = res.isRight
+    def isFailure: Boolean = res.isLeft
+
     def get: T = res match {
       case Right(result) => result
       case Left(fail) => fail match {
