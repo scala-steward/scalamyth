@@ -79,6 +79,8 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
     def id: T
     def contains(elem: Value): Boolean
 
+    final def containsAny(mask: Mask): Boolean = (id & mask.id) != 0
+
     final def + (elem: Value): Mask = | (elem)
     final def - (elem: Value): Mask = transientMask(id & ~elem.id)
     final def | (elem: Value): Mask = transientMask(id | elem.id)
