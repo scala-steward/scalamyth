@@ -17,6 +17,9 @@ package object myth {
   implicit class MythProtocolResultGetter[T](val res: MythProtocolResult[T]) extends AnyVal {
     import MythProtocolFailure._
 
+    def isSuccess: Boolean = res.isRight
+    def isFailure: Boolean = res.isLeft
+
     def get: T = res match {
       case Right(result) => result
       case Left(fail) => fail match {
