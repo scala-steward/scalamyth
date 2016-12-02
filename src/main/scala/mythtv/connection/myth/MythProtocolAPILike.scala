@@ -24,7 +24,7 @@ private[myth] trait MythProtocolAPILike {
   def announce(mode: String, hostName: String, eventMode: MythProtocolEventMode): MythProtocolResult[Boolean] = {
     import MythProtocol.AnnounceResult._
     val localHost =
-      if (hostName != "") hostName
+      if (hostName.nonEmpty) hostName
       else NetworkUtil.myHostName
     val result = sendCommand("ANN", mode, localHost, eventMode)
     result map { case AnnounceAcknowledgement => true }

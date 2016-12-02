@@ -19,8 +19,6 @@ private[myth] trait MythProtocolLike extends MythProtocolSerializer {
   protected type SerializeRequest = (String, Seq[Any]) => String
   protected type HandleResponse = (BackendRequest, BackendResponse) => MythProtocolResult[_]
 
-  // FIXME we lose the type of the option going through the message dispatch map. is there a way around this?
-
   protected def commands: Map[String, (SerializeRequest, HandleResponse)] = Map.empty
 
   def sendCommand(command: String, args: Any*): MythProtocolResult[_]

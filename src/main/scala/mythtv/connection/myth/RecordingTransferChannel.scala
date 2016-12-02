@@ -115,7 +115,7 @@ private class RecordingTransfer(api: MythProtocolAPIConnection, @volatile privat
 
 object RecordingTransferChannel {
   def apply(api: MythProtocolAPIConnection, chanId: ChanId, recStartTs: MythDateTime): RecordingTransferChannel = {
-    val rec = api.queryRecording(chanId, recStartTs).right.get   // TODO check for failure/not found
+    val rec = api.queryRecording(chanId, recStartTs).get   // TODO check for failure/not found, wrap exception?
     apply(api, rec)
   }
 
