@@ -2,7 +2,7 @@ package mythtv
 package connection
 package myth
 
-import java.net.URI
+import java.net.{ InetAddress, URI }
 import java.time.Duration
 
 import model._
@@ -22,7 +22,7 @@ trait MythProtocolAPI {
     timeout: Duration = Duration.ofSeconds(2),
     checkFiles: Seq[String] = Nil
   ): MythProtocolResult[(FileTransferId, ByteCount, Seq[String])]
-  // TODO SlaveBackend announce (more complex)
+  def announceSlaveBackend(slaveHostName: String, slaveIpAddr: InetAddress, currentlyRecording: Seq[Recording]): MythProtocolResult[Boolean]
   def backendMessage(message: String, extra: String*): MythProtocolResult[Boolean]
   def blockShutdown(): MythProtocolResult[Boolean]
   def checkRecording(rec: Recording): MythProtocolResult[Boolean]

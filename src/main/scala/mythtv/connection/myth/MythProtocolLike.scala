@@ -2,7 +2,7 @@ package mythtv
 package connection
 package myth
 
-import java.net.URI
+import java.net.{ InetAddress, URI }
 import java.time.{ Duration, Instant, ZoneOffset }
 
 import scala.util.{ Try, Success, Failure }
@@ -85,7 +85,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      * ANN Monitor %s %d                <clientHostName> <eventsMode>
      * ANN Playback %s %d               <clientHostName> <eventsMode>
      * ANN MediaServer %s               <hostName>
-     * ANN SlaveBackend %s %s { %p }*   <slaveHostName> <slaveIPAddr?> [<ProgramInfo>]*
+     * ANN SlaveBackend %s %s { %p }+   <slaveHostName> <slaveIPAddr> <ProgramInfo>+
      * ANN FileTransfer %s { %b { %b { %d }}} [%s %s %s {, %s}*]
      *                    <clientHostName> { writeMode {, useReadAhead {, timeoutMS }}}
      *                    [ url, wantgroup, checkfile {, ...} ]
@@ -874,6 +874,11 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     case Seq(mode @ "MediaServer", clientHostName: String) =>
       val elems = List(command, mode, clientHostName)
       elems mkString " "
+    case Seq(mode @ "SlaveBackend", slaveHostName: String, slaveIpAddr: InetAddress, currentlyRecording: Seq[_]) =>
+      val base = List(command, mode, slaveHostName, slaveIpAddr.getHostAddress)
+      val recs = currentlyRecording collect { case r: Recording => r } map (serialize(_))
+      val elems = List(base mkString " ") ++ recs
+      elems mkString Separator
     case Seq(mode @ "FileTransfer", clientHostName: String, fileName: String, storageGroup: String, checkFiles @ _*) =>
       val base = List(command, mode, clientHostName)
       val check = checkFiles map (_.toString)
@@ -896,11 +901,11 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       val check = checkFiles map (_.toString)
       val elems = List(base mkString " ", fileName, storageGroup) ++ check
       elems mkString Separator
-    // TODO SlaveBackend is complex
     case _ => throwArgumentExceptionMultipleSig(command, """
       | "Monitor", clientHostName: String, eventsMode: MythProtocolEventMode
       | "Playback", clientHostName: String, eventsMode: MythProtocolEventMode
       | "MediaServer", clientHostName: String
+      | "SlaveBackend", slaveHostName: String, slaveIpAddr: InetAddress, currentlyRecording: Seq[Recording]
       | "FileTransfer", clientHostName: String, fileName: String, storageGroup: String, checkFiles @ _*
       | "FileTransfer", clientHostName: String, writeMode: Boolean, fileName: String, storageGroup: String, checkFiles @ _*
       | "FileTransfer", clientHostName: String, writeMode: Boolean, useReadAhead: Boolean, fileName: String, storageGroup: String, checkFiles @ _*

@@ -2,7 +2,7 @@ package mythtv
 package connection
 package myth
 
-import java.net.URI
+import java.net.{ InetAddress, URI }
 import java.time.Duration
 
 import model._
@@ -39,6 +39,12 @@ private[myth] trait MythProtocolAPILike {
       else           List("FileTransfer", hostName, writeMode, useReadAhead, timeout, fileName, storageGroup) ++ checkFiles
     val result = sendCommand("ANN", args: _*)
     result map { case AnnounceFileTransfer(ftID, fileSize, check) => (ftID, fileSize, check) }
+  }
+
+  def announceSlaveBackend(slaveHostName: String, slaveIpAddr: InetAddress, currentlyRecording: Seq[Recording]): MythProtocolResult[Boolean] = {
+    import MythProtocol.AnnounceResult._
+    val result = sendCommand("ANN", "SlaveBackend", slaveHostName, slaveIpAddr, currentlyRecording)
+    result map { case AnnounceAcknowledgement => true }
   }
 
   def backendMessage(message: String, extra: String*): MythProtocolResult[Boolean] = {
