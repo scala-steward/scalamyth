@@ -100,7 +100,6 @@ private[myth] trait MythProtocolAPILike {
     result map { case r: Recording => r }
   }
 
-  // TODO is the result here really Int or Boolean
   def forceDeleteRecording(rec: Recording): MythProtocolResult[Int] = {
     val result = sendCommand("FORCE_DELETE_RECORDING", rec)
     result map { case r: Int => r }

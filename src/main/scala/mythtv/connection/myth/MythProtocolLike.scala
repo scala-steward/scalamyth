@@ -134,10 +134,9 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      * NB starttime is in myth/ISO string format rather than timestamp
      *  @responds sometimes; only if ChanId in program info
      *  @returns Int result code:
-     *     0 Successful (expiration only?)
-     *    -1 Unspecified error? Or deletion pending in background?
+     *     0 Successful (expiration (move to Deleted recgroup) only?)
+     *    -1 Recording moved to Deleted recgroup; deletion pending
      *    -2 Error deleting file
-     *  TODO needs more investigation
      */
     "DELETE_RECORDING" -> ((serializeDeleteRecording, handleDeleteRecording)),
 
@@ -181,6 +180,8 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      * FORCE_DELETE_RECORDING [] [%p]   [<ProgramInfo>]
      *  @responds sometimes; only if ChanId in program info
      *  @returns see DELETE_RECORDING
+     *
+     *  forces deletion of recording metadata even if the recording file cannot be found on disk
      */
     "FORCE_DELETE_RECORDING" -> ((serializeProgramInfo, handleForceDeleteRecording)),
 
