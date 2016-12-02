@@ -8,7 +8,7 @@ import EnumTypes.VideoContentType
 
 final case class VideoId(id: Int) extends AnyVal with IntegerIdentifier
 
-trait Video extends ProgramVideoBase with InternetMetadata {
+trait Video extends ProgramVideoBase with InternetMetadata with HasArtworkInfo {
   def id: VideoId
   def director: String
   def tagline: Option[String]
@@ -27,9 +27,6 @@ trait Video extends ProgramVideoBase with InternetMetadata {
   def rating: String       // This is MPPA or some such rating/certification
   def collectionRef: Option[Int]
   def releasedDate: Option[LocalDate]
-
-  // TODO various artworks   These are common to many elements, no?  What should a "HasArtwork" (or may have artwork, really...) trait be called?
-  def artworkInfo: List[ArtworkInfo]  // TODO probably belongs in a different, HasArtworkInfo (?) trait
 
   // Fields in the 'videometadata' DB table but not serialized? (at least not directly)
   // def showLevel: Int        // not serialized in JSON ?
