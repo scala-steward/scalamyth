@@ -874,34 +874,37 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     case Seq(mode @ "MediaServer", clientHostName: String) =>
       val elems = List(command, mode, clientHostName)
       elems mkString " "
-    case Seq(mode @ "FileTransfer", clientHostName: String, fileName: String, storageGroup: String) =>
+    case Seq(mode @ "FileTransfer", clientHostName: String, fileName: String, storageGroup: String, checkFiles @ _*) =>
       val base = List(command, mode, clientHostName)
-      val elems = List(base mkString " ", fileName, storageGroup)
+      val check = checkFiles map (_.toString)
+      val elems = List(base mkString " ", fileName, storageGroup) ++ check
       elems mkString Separator
-    case Seq(mode @ "FileTransfer", clientHostName: String, writeMode: Boolean, fileName: String, storageGroup: String) =>
+    case Seq(mode @ "FileTransfer", clientHostName: String, writeMode: Boolean, fileName: String, storageGroup: String, checkFiles @ _*) =>
       val base = List(command, mode, clientHostName, serialize(writeMode))
-      val elems = List(base mkString " ", fileName, storageGroup)
+      val check = checkFiles map (_.toString)
+      val elems = List(base mkString " ", fileName, storageGroup) ++ check
       elems mkString Separator
     case Seq(mode @ "FileTransfer", clientHostName: String, writeMode: Boolean, useReadAhead: Boolean,
-      fileName: String, storageGroup: String) =>
+      fileName: String, storageGroup: String, checkFiles @ _*) =>
       val base = List(command, mode, clientHostName, serialize(writeMode), serialize(useReadAhead))
-      val elems = List(base mkString " ", fileName, storageGroup)
+      val check = checkFiles map (_.toString)
+      val elems = List(base mkString " ", fileName, storageGroup) ++ check
       elems mkString Separator
     case Seq(mode @ "FileTransfer", clientHostName: String, writeMode: Boolean, useReadAhead: Boolean, timeout: Duration,
-      fileName: String, storageGroup: String) =>
+      fileName: String, storageGroup: String, checkFiles @ _*) =>
       val base = List(command, mode, clientHostName, serialize(writeMode), serialize(useReadAhead), serialize(timeout.toMillis))
-      val elems = List(base mkString " ", fileName, storageGroup)
+      val check = checkFiles map (_.toString)
+      val elems = List(base mkString " ", fileName, storageGroup) ++ check
       elems mkString Separator
-    // TODO support checkFiles varargs on FileTransfer mode
     // TODO SlaveBackend is complex
     case _ => throwArgumentExceptionMultipleSig(command, """
       | "Monitor", clientHostName: String, eventsMode: MythProtocolEventMode
       | "Playback", clientHostName: String, eventsMode: MythProtocolEventMode
       | "MediaServer", clientHostName: String
-      | "FileTransfer", clientHostName: String, fileName: String, storageGroup: String
-      | "FileTransfer", clientHostName: String, writeMode: Boolean, fileName: String, storageGroup: String
-      | "FileTransfer", clientHostName: String, writeMode: Boolean, useReadAhead: Boolean, fileName: String, storageGroup: String
-      | "FileTransfer", clientHostName: String, writeMode: Boolean, useReadAhead: Boolean, timeout: Duration, fileName: String, storageGroup: String""")
+      | "FileTransfer", clientHostName: String, fileName: String, storageGroup: String, checkFiles @ _*
+      | "FileTransfer", clientHostName: String, writeMode: Boolean, fileName: String, storageGroup: String, checkFiles @ _*
+      | "FileTransfer", clientHostName: String, writeMode: Boolean, useReadAhead: Boolean, fileName: String, storageGroup: String, checkFiles @ _*
+      | "FileTransfer", clientHostName: String, writeMode: Boolean, useReadAhead: Boolean, timeout: Duration, fileName: String, storageGroup: String, checkFiles @ _*""")
   }
 
   protected def serializeBackendMessage(command: String, args: Seq[Any]): String = args match {
@@ -1407,8 +1410,8 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       else {
         val ftId = deserialize[FileTransferId](items(1))
         val fileSize = DecimalByteCount(deserialize[Long](items(2)))
-        // TODO may include one or more filenames here from checkfiles (if given)
-        Right(AnnounceFileTransfer(ftId, fileSize))
+        val checkFiles = items drop 3
+        Right(AnnounceFileTransfer(ftId, fileSize, checkFiles))
       }
     }
     else {

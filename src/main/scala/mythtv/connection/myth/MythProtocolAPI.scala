@@ -17,7 +17,11 @@ trait MythProtocolAPI {
   def allowShutdown(): MythProtocolResult[Boolean]
   def announce(mode: String, hostName: String = "", eventMode: MythProtocolEventMode = MythProtocolEventMode.None): MythProtocolResult[Boolean]
   def announceFileTransfer(hostName: String, fileName: String, storageGroup: String,
-    writeMode: Boolean = false, useReadAhead: Boolean = false, timeout: Duration = Duration.ofSeconds(2)): MythProtocolResult[(FileTransferId, ByteCount)]
+    writeMode: Boolean = false,
+    useReadAhead: Boolean = false,
+    timeout: Duration = Duration.ofSeconds(2),
+    checkFiles: Seq[String] = Nil
+  ): MythProtocolResult[(FileTransferId, ByteCount, Seq[String])]
   // TODO SlaveBackend announce (more complex)
   def backendMessage(message: String, extra: String*): MythProtocolResult[Boolean]
   def blockShutdown(): MythProtocolResult[Boolean]

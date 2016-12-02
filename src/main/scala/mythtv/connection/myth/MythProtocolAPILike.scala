@@ -31,12 +31,14 @@ private[myth] trait MythProtocolAPILike {
   }
 
   def announceFileTransfer(hostName: String, fileName: String, storageGroup: String,
-    writeMode: Boolean, useReadAhead: Boolean, timeout: Duration): MythProtocolResult[(FileTransferId, ByteCount)] = {
+    writeMode: Boolean, useReadAhead: Boolean, timeout: Duration, checkFiles: Seq[String]
+  ): MythProtocolResult[(FileTransferId, ByteCount, Seq[String])] = {
     import MythProtocol.AnnounceResult._
-    val result =
-      if (writeMode) sendCommand("ANN", "FileTransfer", hostName, writeMode, fileName, storageGroup)
-      else           sendCommand("ANN", "FileTransfer", hostName, writeMode, useReadAhead, timeout, fileName, storageGroup)
-    result map { case AnnounceFileTransfer(ftID, fileSize) => (ftID, fileSize) }
+    val args: Seq[Any] =
+      if (writeMode) List("FileTransfer", hostName, writeMode, fileName, storageGroup)
+      else           List("FileTransfer", hostName, writeMode, useReadAhead, timeout, fileName, storageGroup) ++ checkFiles
+    val result = sendCommand("ANN", args: _*)
+    result map { case AnnounceFileTransfer(ftID, fileSize, check) => (ftID, fileSize, check) }
   }
 
   def backendMessage(message: String, extra: String*): MythProtocolResult[Boolean] = {
