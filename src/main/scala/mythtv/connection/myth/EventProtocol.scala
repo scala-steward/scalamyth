@@ -31,6 +31,7 @@ object Event {
   case class  HousekeeperRunningEvent(hostName: String, tag: String, lastRunTime: Instant) extends Event
   case class  LiveTvChainUpdateEvent(chainId: LiveTvChainId, maxPos: Int, chain: List[LiveTvChain]) extends Event
   case class  RecordingListAddEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
+  case object RecordingListChangeEmptyEvent extends Event
   case class  RecordingListDeleteEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
   case class  RecordingListUpdateEvent(rec: Recording) extends Event
   case object ScheduleChangeEvent extends Event
@@ -363,17 +364,21 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
   }
 
   def parseRecordingListChange(name: String, split: Array[String]): Event = {
-    split(1).substring(name.length + 1).takeWhile(_ != ' ') match {
-      case "ADD" =>
-        val parts = split(1).substring(name.length + 5).split(' ')
-        RecordingListAddEvent(deserialize[ChanId](parts(0)), MythDateTime(deserialize[Instant](parts(1))))
-      case "DELETE" =>
-        val parts = split(1).substring(name.length + 8).split(' ')
-        RecordingListDeleteEvent(deserialize[ChanId](parts(0)), MythDateTime(deserialize[Instant](parts(1))))
-      case "UPDATE" =>
-        RecordingListUpdateEvent(deserialize[Recording](split.drop(2)))
-      case _ => unknownEvent(name, split)
+    val body = split(1)
+    if (body.length > name.length) {
+      body.substring(name.length + 1).takeWhile(_ != ' ') match {
+        case "ADD" =>
+          val parts = body.substring(name.length + 5).split(' ')
+          RecordingListAddEvent(deserialize[ChanId](parts(0)), MythDateTime(deserialize[Instant](parts(1))))
+        case "DELETE" =>
+          val parts = body.substring(name.length + 8).split(' ')
+          RecordingListDeleteEvent(deserialize[ChanId](parts(0)), MythDateTime(deserialize[Instant](parts(1))))
+        case "UPDATE" =>
+          RecordingListUpdateEvent(deserialize[Recording](split.drop(2)))
+        case _ => unknownEvent(name, split)
+      }
     }
+    else RecordingListChangeEmptyEvent
   }
 
   implicit object SignalMonitorValueSerializer extends MythProtocolSerializable[SignalMonitorValue] {
