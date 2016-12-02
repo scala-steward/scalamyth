@@ -23,6 +23,7 @@ class EventMonitor(host: String) {
 
 object EventMonitor {
   def main(args: Array[String]): Unit = {
-    new EventMonitor("myth1")
+    val host = if (args.length > 0) args(0) else "myth1"
+    new EventMonitor(host)
   }
 }
