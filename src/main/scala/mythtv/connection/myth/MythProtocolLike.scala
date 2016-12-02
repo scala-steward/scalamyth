@@ -1100,7 +1100,6 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 
   protected def serializeQueryPixmapGetIfModified(command: String, args: Seq[Any]): String = args match {
-    // TODO use StringBuilder for efficiency?
     case Seq(modifiedSince: MythDateTime, maxFileSize: Long, rec: Recording) =>
       val elems = List(command, serialize(modifiedSince), serialize(maxFileSize), serialize(rec))
       elems mkString Separator
@@ -1582,7 +1581,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     val items = response.split
     Try {
       val count = deserialize[Int](items(0))
-      assert(count % 2 == 0)  // TODO FIXME not guaranteed to be true!?
+      assert(count % 2 == 0)  // FIXME not guaranteed to be true!?
 
       if (count == 0) Nil
       else {
@@ -1603,7 +1602,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     val items = response.split
     Try {
       val count = deserialize[Int](items(0))
-      assert(count % 2 == 0)  // TODO FIXME not guaranteed to be true!?
+      assert(count % 2 == 0)  // FIXME not guaranteed to be true!?
 
       if (count == 0) Nil
       else {
