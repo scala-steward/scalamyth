@@ -60,7 +60,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   override def commands = commandMap
 
   // override as necessary in versioned traits to get proper serialization
-  protected implicit val programInfoSerializer     : GenericBackendObjectSerializer[Recording, _, _]       = ProgramInfoSerializerRef
+  protected implicit val programInfoSerializer     : GenericBackendObjectSerializer[Recording, _, _]
   protected implicit val freeSpaceSerializer       : GenericBackendObjectSerializer[FreeSpace, _, _]       = FreeSpaceSerializerRef
   protected implicit val cardInputSerializer       : GenericBackendObjectSerializer[CardInput, _, _]       = CardInputSerializerRef
   protected implicit val channelSerializer         : GenericBackendObjectSerializer[Channel, _, _]         = ChannelSerializerRef
@@ -2146,6 +2146,13 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   }
 }
 
-private[myth] trait MythProtocolLike75 extends MythProtocolLikeRef
-private[myth] trait MythProtocolLike77 extends MythProtocolLike75
+private[myth] trait MythProtocolLike75 extends MythProtocolLikeRef {
+  override val programInfoSerializer: GenericBackendObjectSerializer[Recording, _, _] = ProgramInfoSerializer75
+}
+
+private[myth] trait MythProtocolLike77 extends MythProtocolLike75 {
+  // TODO Add command QUERY_RECORDER FILL_DURATION_MAP
+  override val programInfoSerializer: GenericBackendObjectSerializer[Recording, _, _] = ProgramInfoSerializer77
+}
+
 private[myth] trait MythProtocolLike88 extends MythProtocolLike77
