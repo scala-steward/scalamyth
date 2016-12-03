@@ -313,37 +313,37 @@ private trait GenericBackendObjectSerializer[T, F <: GenericBackendObjectFactory
   }
 }
 
-private object ProgramInfoSerializerGeneric
+private[myth] object ProgramInfoSerializerRef
   extends GenericBackendObjectSerializer[Recording, BackendProgramFactory, ProgramOtherSerializer] {
   def newFactory = BackendProgram
   def otherSerializer = BackendProgram
 }
 
-private object FreeSpaceSerializerGeneric
+private[myth] object FreeSpaceSerializerRef
   extends GenericBackendObjectSerializer[FreeSpace, BackendFreeSpaceFactory, FreeSpaceOtherSerializer] {
   def newFactory = BackendFreeSpace
   def otherSerializer = ???
 }
 
-private object CardInputSerializerGeneric
+private[myth] object CardInputSerializerRef
   extends GenericBackendObjectSerializer[CardInput, BackendCardInputFactory, CardInputOtherSerializer] {
   def newFactory = BackendCardInput
   def otherSerializer = ???
 }
 
-private object ChannelSerializerGeneric
+private[myth] object ChannelSerializerRef
   extends GenericBackendObjectSerializer[Channel, BackendChannelFactory, ChannelOtherSerializer] {
   def newFactory = BackendChannel
   def otherSerializer = ???
 }
 
-private object LiveTvChainSerializerGeneric
+private[myth] object LiveTvChainSerializerRef
   extends GenericBackendObjectSerializer[LiveTvChain, BackendLiveTvChainFactory, LiveTvChainOtherSerializer] {
   def newFactory = BackendLiveTvChain
   def otherSerializer = ???
 }
 
-private object UpcomingProgramSerializerGeneric
+private[myth] object UpcomingProgramSerializerRef
   extends GenericBackendObjectSerializer[UpcomingProgram, BackendUpcomingProgramFactory, UpcomingProgramOtherSerializer] {
   def newFactory = BackendUpcomingProgram
   def otherSerializer = ???
