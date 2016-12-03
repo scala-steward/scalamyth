@@ -88,7 +88,7 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
   import Event._
   import SystemEvent._
 
-  protected implicit val programInfoSerializer = ProgramInfoSerializerRef
+  protected implicit val programInfoSerializer = ProgramInfoSerializer77
   protected implicit val liveTvChainSerializer = LiveTvChainSerializerRef
 
   private val SystemEventPattern = """SYSTEM_EVENT ([^ ]*) (?:(.*) )?SENDER (.+)""".r

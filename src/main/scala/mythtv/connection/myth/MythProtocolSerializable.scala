@@ -313,10 +313,16 @@ private trait GenericBackendObjectSerializer[T, F <: GenericBackendObjectFactory
   }
 }
 
-private[myth] object ProgramInfoSerializerRef
+private[myth] object ProgramInfoSerializer75
   extends GenericBackendObjectSerializer[Recording, BackendProgramFactory, ProgramOtherSerializer] {
-  def newFactory = BackendProgram
-  def otherSerializer = BackendProgram
+  def newFactory = BackendProgram75
+  def otherSerializer = BackendProgram75
+}
+
+private[myth] object ProgramInfoSerializer77
+  extends GenericBackendObjectSerializer[Recording, BackendProgramFactory, ProgramOtherSerializer] {
+  def newFactory = BackendProgram77
+  def otherSerializer = BackendProgram77
 }
 
 private[myth] object FreeSpaceSerializerRef
