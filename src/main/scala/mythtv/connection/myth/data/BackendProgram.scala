@@ -82,7 +82,72 @@ private[myth] class BackendProgram(data: Seq[String], fieldOrder: IndexedSeq[Str
 private[myth] trait BackendProgramFactory extends GenericBackendObjectFactory[BackendProgram]
 private[myth] trait ProgramOtherSerializer extends BackendTypeSerializer[Recording]
 
-private[myth] object BackendProgram extends BackendProgramFactory with ProgramOtherSerializer {
+private[myth] object BackendProgram75 extends BackendProgramFactory with ProgramOtherSerializer {
+  final val FIELD_ORDER = IndexedSeq(
+    "title",      "subtitle",        "description",  "season",       "episode",
+    "category",   "chanId",          "chanNum",      "callsign",     "chanName",   "filename",
+    "filesize",   "startTime",       "endTime",      "findId",       "hostname",   "sourceId",
+    "cardId",     "inputId",         "recPriority",  "recStatus",    "recordId",   "recType",
+    "dupIn",      "dupMethod",       "recStartTS",   "recEndTS",     "programFlags",
+    "recGroup",   "outputFilters",   "seriesId",     "programId",    "inetRef",    "lastModified",
+    "stars",      "originalAirDate", "playGroup",    "recPriority2", "parentId",   "storageGroup",
+    "audioProps", "videoProps",      "subtitleType", "year"
+  )
+
+  def apply(data: Seq[String]): BackendProgram = new BackendProgram(data, FIELD_ORDER)
+
+  def serialize(in: Recording): String = serialize(in, new StringBuilder).toString
+  def serialize(in: Recording, sb: StringBuilder): StringBuilder = {
+    (new BackendSerializationBuilder(sb)
+      += in.title
+      += in.subtitle
+      += in.description
+      += in.season
+      += in.episode
+      += in.category
+      += in.chanId
+      += in.chanNum
+      += in.callsign
+      += in.chanName
+      += in.filename
+      += in.filesize.bytes
+      += in.startTime
+      += in.endTime
+      += in.findId
+      += in.hostname
+      += in.sourceId
+      += in.cardId
+      += in.inputId
+      += in.recPriority
+      += in.recStatus
+      += in.recordId
+      += in.recType
+      += in.dupIn
+      += in.dupMethod
+      += in.recStartTS
+      += in.recEndTS
+      += in.programFlags
+      += in.recGroup
+      += in.outputFilters
+      += in.seriesId
+      += in.programId
+      += in.inetRef
+      += in.lastModified
+      += in.stars
+      += in.originalAirDate
+      += in.playGroup
+      += in.recPriority2
+      += in.parentId
+      += in.storageGroup
+      += in.audioProps
+      += in.videoProps
+      += in.subtitleType
+      += in.year
+      ).result
+  }
+}
+
+private[myth] object BackendProgram77 extends BackendProgramFactory with ProgramOtherSerializer {
   final val FIELD_ORDER = IndexedSeq(
     "title",      "subtitle",        "description",  "season",       "episode",    "syndicatedEpisode",
     "category",   "chanId",          "chanNum",      "callsign",     "chanName",   "filename",
