@@ -60,11 +60,11 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   override def commands = commandMap
 
   // override as necessary in versioned traits to get proper serialization
-  protected implicit val programInfoSerializer     = ProgramInfoSerializerRef
-  protected implicit val freeSpaceSerializer       = FreeSpaceSerializerRef
-  protected implicit val cardInputSerializer       = CardInputSerializerRef
-  protected implicit val channelSerializer         = ChannelSerializerRef
-  protected implicit val upcomingProgramSerializer = UpcomingProgramSerializerRef
+  protected implicit val programInfoSerializer     : GenericBackendObjectSerializer[Recording, _, _]       = ProgramInfoSerializerRef
+  protected implicit val freeSpaceSerializer       : GenericBackendObjectSerializer[FreeSpace, _, _]       = FreeSpaceSerializerRef
+  protected implicit val cardInputSerializer       : GenericBackendObjectSerializer[CardInput, _, _]       = CardInputSerializerRef
+  protected implicit val channelSerializer         : GenericBackendObjectSerializer[Channel, _, _]         = ChannelSerializerRef
+  protected implicit val upcomingProgramSerializer : GenericBackendObjectSerializer[UpcomingProgram, _, _] = UpcomingProgramSerializerRef
 
   /**
     * Myth protocol commands: (from programs/mythbackend/mainserver.cpp)
