@@ -281,17 +281,21 @@ private trait GenericBackendObjectSerializer[T, F <: GenericBackendObjectFactory
   def newFactory: F
   def otherSerializer: S
 
+  def fieldCount: Int = fieldCount(newFactory)
+
+  private def fieldCount(factory: F): Int = factory.FIELD_ORDER.length
+
   // What about deserialization of a adjacent sequence of like-typed objects?
 
   def deserialize(in: String): T = {
     val factory = newFactory
     val data: Seq[String] = in split MythProtocol.SplitPattern
-    factory(data take factory.FIELD_ORDER.length)
+    factory(data take fieldCount(factory))
   }
 
   override def deserialize(in: Seq[String]): T = {
     val factory = newFactory
-    factory(in take factory.FIELD_ORDER.length)
+    factory(in take fieldCount(factory))
   }
 
   def serialize(in: T): String = in match {
