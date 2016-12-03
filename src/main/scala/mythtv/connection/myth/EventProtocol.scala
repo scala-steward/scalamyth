@@ -356,7 +356,7 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
     val chainId = deserialize[LiveTvChainId](parts(2))
     val maxPos = deserialize[Int](split(2))
 
-    val fieldCount = BackendLiveTvChain.FIELD_ORDER.length - 1
+    val fieldCount = liveTvChainSerializer.fieldCount - 1
     val it = split.iterator drop 2 grouped fieldCount withPartial false map (chainId.id +: _)
     val chain = it map deserialize[LiveTvChain]
 

@@ -1683,7 +1683,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   protected def handleQueryFreeSpace(request: BackendRequest, response: BackendResponse): MythProtocolResult[List[FreeSpace]] = {
     Try {
       val items = response.split
-      val fieldCount = BackendFreeSpace.FIELD_ORDER.length
+      val fieldCount = freeSpaceSerializer.fieldCount
       val it = items.iterator grouped fieldCount withPartial false map deserialize[FreeSpace]
       it.toList
     }
@@ -1692,7 +1692,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   protected def handleQueryFreeSpaceList(request: BackendRequest, response: BackendResponse): MythProtocolResult[List[FreeSpace]] = {
     Try {
       val items = response.split
-      val fieldCount = BackendFreeSpace.FIELD_ORDER.length
+      val fieldCount = freeSpaceSerializer.fieldCount
       val it = items.iterator grouped fieldCount withPartial false map deserialize[FreeSpace]
       it.toList
     }
@@ -1715,7 +1715,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       val expectedCount = deserialize[Int](recs(1))
       if (expectedCount == 0) ExpectedCountIterator.empty
       else {
-        val fieldCount = BackendProgram.FIELD_ORDER.length
+        val fieldCount = programInfoSerializer.fieldCount
         val it = recs.iterator drop 2 grouped fieldCount withPartial false
         new ExpectedCountIterator(expectedCount, it map deserialize[Recording])
       }
@@ -1728,7 +1728,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       val expectedCount = deserialize[Int](recs(0))
       if (expectedCount == 0) ExpectedCountIterator.empty
       else {
-        val fieldCount = BackendProgram.FIELD_ORDER.length
+        val fieldCount = programInfoSerializer.fieldCount
         val it = recs.iterator drop 1 grouped fieldCount withPartial false
         new ExpectedCountIterator(expectedCount, it map deserialize[Recording])
       }
@@ -1741,7 +1741,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       val expectedCount = deserialize[Int](recs(0))
       if (expectedCount == 0) ExpectedCountIterator.empty
       else {
-        val fieldCount = BackendProgram.FIELD_ORDER.length
+        val fieldCount = programInfoSerializer.fieldCount
         val it = recs.iterator drop 1 grouped fieldCount withPartial false
         new ExpectedCountIterator(expectedCount, it map deserialize[Recording])
       }
@@ -1754,7 +1754,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       val expectedCount = deserialize[Int](recs(0))
       if (expectedCount == 0) ExpectedCountIterator.empty
       else {
-        val fieldCount = BackendProgram.FIELD_ORDER.length
+        val fieldCount = programInfoSerializer.fieldCount
         val it = recs.iterator drop 1 grouped fieldCount withPartial false
         new ExpectedCountIterator(expectedCount, it map deserialize[Recording])
       }
@@ -1882,7 +1882,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     def freeInputs: MythProtocolResult[QueryRecorderResult] = {
       if (response.raw == "EMPTY_LIST") Right(QueryRecorderCardInputList(Nil))
       else Try {
-        val fieldCount = BackendCardInput.FIELD_ORDER.length
+        val fieldCount = cardInputSerializer.fieldCount
         val it = response.split.iterator grouped fieldCount withPartial false
         val inputs = (it map deserialize[CardInput]).toList
         QueryRecorderCardInputList(inputs)
@@ -1963,7 +1963,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       val expectedCount = deserialize[Int](recs(0))
       if (expectedCount == 0) ExpectedCountIterator.empty
       else {
-        val fieldCount = BackendProgram.FIELD_ORDER.length
+        val fieldCount = programInfoSerializer.fieldCount
         val it = recs.iterator drop 1 grouped fieldCount withPartial false
         new ExpectedCountIterator(expectedCount, it map deserialize[Recording])
       }
@@ -2000,7 +2000,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       if (response.raw == "-1") unknownEncoder
       else if (response.raw == "EMPTY_LIST") Right(QueryRemoteEncoderCardInputList(Nil))
       else Try {
-        val fieldCount = BackendCardInput.FIELD_ORDER.length
+        val fieldCount = cardInputSerializer.fieldCount
         val it = response.split.iterator grouped fieldCount withPartial false
         val inputs = (it map deserialize[CardInput]).toList
         QueryRemoteEncoderCardInputList(inputs)
