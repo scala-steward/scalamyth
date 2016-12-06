@@ -7,7 +7,7 @@ import java.time.{ Duration, Instant, ZoneOffset }
 
 import scala.util.{ Try, Success, Failure }
 
-import data._
+import data.{ BackendRemoteEncoder, BackendTuner, BackendVideoSegment }
 import util._
 import model._
 import model.EnumTypes._

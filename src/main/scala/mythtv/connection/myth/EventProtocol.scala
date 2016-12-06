@@ -8,7 +8,6 @@ import java.time.Instant
 import model._
 import model.EnumTypes.RecStatus
 import util.{ Base64String, ByteCount, Crc16, DecimalByteCount, MythDateTime, URIFactory }
-import data.BackendLiveTvChain
 
 sealed trait Event
 
