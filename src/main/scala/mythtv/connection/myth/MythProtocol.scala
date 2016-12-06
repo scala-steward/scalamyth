@@ -2,7 +2,7 @@ package mythtv
 package connection
 package myth
 
-import java.util.regex.Pattern
+import scala.util.matching.Regex
 
 import model._
 import util.ByteCount
@@ -15,7 +15,7 @@ trait MythProtocol extends MythProtocolLike {
 
 object MythProtocol extends MythProtocolSerializer {
   final val Separator: String = "[]:[]"
-  final val SplitPattern: String = Pattern.quote(Separator)
+  final val SplitPattern: String = Regex.quote(Separator)
 
   sealed trait MythProtocolFailure
   object MythProtocolFailure {
