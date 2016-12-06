@@ -9,6 +9,8 @@ import myth.MythProtocol.MythProtocolFailure
 package object myth {
   type MythProtocolResult[T] = Either[MythProtocolFailure, T]
 
+  private[myth] type BackendObjectSerializer[T] = GenericBackendObjectSerializer[T, _, _]
+
   // Allows for the same encode(String) convenience method that Charset provides
   implicit class CharsetStringEncoder(val enc: CharsetEncoder) extends AnyVal {
     def encode(str: String): ByteBuffer = enc.encode(CharBuffer.wrap(str))

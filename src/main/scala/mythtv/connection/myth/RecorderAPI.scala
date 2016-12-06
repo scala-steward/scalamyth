@@ -17,7 +17,7 @@ trait RecorderAPI {
   def checkChannelPrefix(channumPrefix: ChannelNumber): MythProtocolResult[(Boolean, Option[CaptureCardId], Boolean, String)]
 
   // This returns a map from frame number to duration, what is that???
-  def fillDurationMap(start: VideoPositionFrame, end: VideoPositionFrame): MythProtocolResult[Map[VideoPositionFrame, Long]]
+  //def fillDurationMap(start: VideoPositionFrame, end: VideoPositionFrame): MythProtocolResult[Map[VideoPositionFrame, Long]]
 
   // This returns a map from frame number to file byte offset
   def fillPositionMap(start: VideoPositionFrame, end: VideoPositionFrame): MythProtocolResult[Map[VideoPositionFrame, Long]]
@@ -83,8 +83,8 @@ trait RecorderAPILike extends RemoteEncoder with RecorderAPI {
   def checkChannelPrefix(channumPrefix: ChannelNumber): MythProtocolResult[(Boolean, Option[CaptureCardId], Boolean, String)] =
     protoApi.queryRecorderCheckChannelPrefix(cardId, channumPrefix)
 
-  def fillDurationMap(start: VideoPositionFrame, end: VideoPositionFrame): MythProtocolResult[Map[VideoPositionFrame, Long]] =
-    protoApi.queryRecorderFillDurationMap(cardId, start, end)
+//  def fillDurationMap(start: VideoPositionFrame, end: VideoPositionFrame): MythProtocolResult[Map[VideoPositionFrame, Long]] =
+//    protoApi.queryRecorderFillDurationMap(cardId, start, end)
 
   def fillPositionMap(start: VideoPositionFrame, end: VideoPositionFrame): MythProtocolResult[Map[VideoPositionFrame, Long]] =
     protoApi.queryRecorderFillPositionMap(cardId, start, end)

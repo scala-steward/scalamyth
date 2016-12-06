@@ -12,6 +12,7 @@ object EnumTypes {
   type DupCheckIn = model.DupCheckIn.Base
   type DupCheckMethod = model.DupCheckMethod.Base
   type FrontendState = model.FrontendState.Value
+  type ImageFileTransform = model.ImageFileTransform.Value
   type JobFlags = model.JobFlags.Base
   type JobStatus = model.JobStatus.Value
   type JobType = model.JobType.Value
@@ -19,6 +20,7 @@ object EnumTypes {
   type LiveStreamStatus = model.LiveStreamStatus.Value
   type Markup = model.Markup.Value
   type MetadataGrabberType = model.MetadataGrabberType.Value
+  type MusicImageType = model.MusicImageType.Value
   type MythLogLevel = model.MythLogLevel.Value
   type MythVerboseLevel = model.MythVerboseLevel.Base
   type NotificationPriority = model.NotificationPriority.Value
@@ -65,8 +67,8 @@ object Markup extends LooseEnum {
   val VideoWidthOld = Value(15)
   val VideoWidth    = Value(30)
   val VideoHeight   = Value(31)
-  val VideoRate     = Value(32)
-  val DurationMs    = Value(33)
+  val VideoRate     = Value(32)  // new in 0.27
+  val DurationMs    = Value(33)  // new in 0.27
   val TotalFrame    = Value(34)
 }
 

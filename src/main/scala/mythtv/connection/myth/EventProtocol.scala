@@ -84,12 +84,12 @@ private[myth] trait EventParser {
   def parse(rawEvent: BackendEventResponse): Event
 }
 
-private class EventParserImpl extends EventParser with MythProtocolSerializer {
+private[myth] abstract class EventProtocolRef extends EventParser with MythProtocolSerializer {
   import Event._
   import SystemEvent._
 
-  protected implicit val programInfoSerializer = ProgramInfoSerializer77
-  protected implicit val liveTvChainSerializer = LiveTvChainSerializerRef
+  protected implicit val programInfoSerializer: BackendObjectSerializer[Recording]
+  protected implicit val liveTvChainSerializer: BackendObjectSerializer[LiveTvChain] = LiveTvChainSerializerRef
 
   private val SystemEventPattern = """SYSTEM_EVENT ([^ ]*) (?:(.*) )?SENDER (.+)""".r
 
@@ -438,6 +438,18 @@ private class EventParserImpl extends EventParser with MythProtocolSerializer {
 
   def unknownEvent(name: String, split: Array[String]): Event =
     UnknownEvent(name, split.slice(1, split.length): _*)
+}
+
+private[myth] class EventProtocol75 extends EventProtocolRef {
+  override val programInfoSerializer: BackendObjectSerializer[Recording] = ProgramInfoSerializer75
+}
+
+private[myth] class EventProtocol77 extends EventProtocol75 {
+  override val programInfoSerializer: BackendObjectSerializer[Recording] = ProgramInfoSerializer77
+}
+
+private[myth] class EventProtocol88 extends EventProtocol77 {
+  override val programInfoSerializer: BackendObjectSerializer[Recording] = ProgramInfoSerializer88
 }
 
 /*

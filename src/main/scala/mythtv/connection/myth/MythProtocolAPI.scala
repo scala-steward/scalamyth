@@ -3,7 +3,7 @@ package connection
 package myth
 
 import java.net.{ InetAddress, URI }
-import java.time.Duration
+import java.time.{ Duration, Instant }
 
 import model._
 import model.EnumTypes._
@@ -91,8 +91,6 @@ trait MythProtocolAPI {
   def queryRecorderChangeHue(cardId: CaptureCardId, adjType: PictureAdjustType, up: Boolean): MythProtocolResult[Int]
   def queryRecorderCheckChannel(cardId: CaptureCardId, channum: ChannelNumber): MythProtocolResult[Boolean]
   def queryRecorderCheckChannelPrefix(cardId: CaptureCardId, channumPrefix: ChannelNumber): MythProtocolResult[(Boolean, Option[CaptureCardId], Boolean, String)]
-  // This returns a map from frame number to duration, what is that???
-  def queryRecorderFillDurationMap(cardId: CaptureCardId, start: VideoPositionFrame, end: VideoPositionFrame): MythProtocolResult[Map[VideoPositionFrame, Long]]
   // This returns a map from frame number to file byte offset
   def queryRecorderFillPositionMap(cardId: CaptureCardId, start: VideoPositionFrame, end: VideoPositionFrame): MythProtocolResult[Map[VideoPositionFrame, Long]]
   def queryRecorderFinishRecording(cardId: CaptureCardId): MythProtocolResult[Unit]
@@ -167,4 +165,44 @@ trait MythProtocolAPI {
   def stopRecording(rec: Recording): MythProtocolResult[CaptureCardId]
   def undeleteRecording(rec: Recording): MythProtocolResult[Boolean]
   def undeleteRecording(chanId: ChanId, startTime: MythDateTime): MythProtocolResult[Boolean]
+}
+
+trait MythProtocolApi75 extends MythProtocolAPI
+
+trait MythProtocolApi77 extends MythProtocolApi75 {
+  // This returns a map from frame number to duration, what is that???
+  def queryRecorderFillDurationMap(cardId: CaptureCardId, start: VideoPositionFrame, end: VideoPositionFrame): MythProtocolResult[Map[VideoPositionFrame, Long]]
+}
+
+trait MythProtocolApi88 extends MythProtocolApi77 {
+  def imageCover(directoryId: ImageDirId, coverId: ImageFileId): MythProtocolResult[Unit]
+  def imageCoverReset(directoryId: ImageDirId): MythProtocolResult[Unit]
+  def imageCreateDirs(directoryId: ImageDirId, rescan: Boolean, newRelativePaths: Seq[String]): MythProtocolResult[Unit]
+  def imageDelete(imageId: ImageId): MythProtocolResult[Unit]
+  def imageDelete(imageIds: Seq[ImageId]): MythProtocolResult[Unit]
+  def imageHide(hide: Boolean, imageId: ImageId): MythProtocolResult[Unit]
+  def imageHide(hide: Boolean, imageIds: Seq[ImageId]): MythProtocolResult[Unit]
+  def imageIgnore(ignorePattern: String*): MythProtocolResult[Unit]
+  def imageMove(imageId: ImageId, oldPath: String, newPath: String): MythProtocolResult[Unit]
+  def imageMove(imageIds: Seq[ImageId], oldPath: String, newPath: String): MythProtocolResult[Unit]
+  def imageRename(imageId: ImageId, newBasename: String): MythProtocolResult[Unit]
+  def imageScanQuery(): MythProtocolResult[(Boolean, Int, Int)]
+  def imageScanStart(): MythProtocolResult[Unit]
+  def imageScanStop(): MythProtocolResult[Unit]
+  def imageTransform(transform: ImageFileTransform, imageId: ImageFileId): MythProtocolResult[Unit]
+  def imageTransform(transform: ImageFileTransform, imageIds: Seq[ImageFileId]): MythProtocolResult[Unit]
+  def moveFile(storageGroup: String, source: String, dest: String): MythProtocolResult[Boolean]
+  def musicCalcTrackLength(hostName: String, songId: SongId): MythProtocolResult[Unit]
+  def musicFindAlbumArt(hostName: String, songId: SongId, updateDatabase: Boolean): MythProtocolResult[List[AlbumArtImage]]
+  def musicLyricsFind(hostName: String, songId: SongId, grabberName: String): MythProtocolResult[Unit]
+  def musicLyricsGetGrabbers: MythProtocolResult[List[String]]
+  def musicLyricsSave(hostName: String, songId: SongId, lyricsLines: Seq[String]): MythProtocolResult[Unit]
+  def musicTagAddImage(hostName: String, songId: SongId, fileName: String, imageType: MusicImageType): MythProtocolResult[Unit]
+  def musicTagChangeImage(hostName: String, songId: SongId, oldType: MusicImageType, newType: MusicImageType): MythProtocolResult[Unit]
+  def musicTagGetImage(hostName: String, songId: SongId, imageType: MusicImageType): MythProtocolResult[Unit]
+  def musicTagRemoveImage(hostName: String, songId: SongId, imageId: MusicImageId): MythProtocolResult[Unit]
+  def musicTagUpdateMetadata(hostName: String, songId: SongId): MythProtocolResult[Unit]
+  def musicTagUpdateVolatile(hostName: String, songId: SongId, rating: Int, playCount: Int, lastPlayed: Instant): MythProtocolResult[Unit]
+  def queryFindFile(fileName: String, storageGroup: String = "", hostName: String= "", useRegex: Boolean = false, allowFallback: Boolean = true): MythProtocolResult[List[URI]]
+  def scanMusic(): MythProtocolResult[Unit]
 }

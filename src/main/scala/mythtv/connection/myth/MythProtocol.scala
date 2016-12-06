@@ -32,6 +32,13 @@ object MythProtocol extends MythProtocolSerializer {
     final case class AnnounceFileTransfer(ftID: FileTransferId, size: ByteCount, checkFiles: Seq[String]) extends AnnounceResult
   }
 
+  // Sum type representing return values from IMAGE_SCAN
+  sealed trait ImageScanResult
+  object ImageScanResult {
+    case object ImageScanAcknowledgement extends ImageScanResult
+    final case class ImageScanProgress(isBackend: Boolean, progressCount: Int, totalCount: Int) extends ImageScanResult
+  }
+
   // Sum type representing return values from QUERY_FILETRANSFER
   sealed trait QueryFileTransferResult
   object QueryFileTransferResult {
@@ -107,16 +114,40 @@ private trait MythProtocol88 extends MythProtocol with MythProtocolLike88 { // m
  *  77*  49dbed5be07  Add command QUERY_RECORDER FILL_DURATION_MAP; VideoRate and DurationMs to Markup enum
  *  78   e8bfd99e214  Add totalEpisodes to ProgramInfo
  *  79   3af71b4f758  Add categoryType to ProgramInfo
+ *       5f47d6922e8  Add QUERY_FILETRANSFER REQUEST_SIZE command
  *  80   3ee65b3b145  MythMusic changes in prior commits:
+ *       8aefe1bcf0f    add SCAN_MUSIC command
+ *       e6c8a78685e    add MUSIC_TAG_GETIMAGE command
+ *       2f1a5350be3    add MUSIC_TAG_UPDATE_VOLATILE command
+ *       d9217461fff    add MUSIC_TAG_UPDATE_METADATA command
+ *       d0185093e95    add MUSIC_FIND_ALBUMART command
+ *       b257f3c8608    add MUSIC_CALC_TRACK_LENGTH command
+ *       e350c8fb09d    add MUSIC_TAG_ADDIMAGE command
+ *       b9d40e4075a    add MUSIC_TAG_REMOVEIMAGE command
+ *       efafb148fa8    add MUSIC_TAG_CHANGEIMAGE command
+ *       41580ebaef2  add optional allowFallback parameter to QUERY_SG_FILEQUERY
  *  81   cd866684857  ??? chanId added to InputInfo ?
  *  82   e8a99d45c3c  add recordedId to ProgramInfo
+ *       124a55dcece  SendErrorResponse to socket on bad protocol command
  *  83   1dab1907956  add a QUERY_FINDFILE command to the protocol
+ *       fdaf14dd4cf  first part of new image gallery rewrite, adds lots of new IMAGE_ commands
  *  84   b220116f77e  recordId changes; affects events: RECORDING_LIST_CHANGE (ADD|DELETE), UPDATE_FILE_SIZE,
  *                    UPDATE_MASTER_PROG_INFO - renamed to UPDATE_MASTER_REC_INFO
  *  85   a4f65ce15ba  new ANN Frontend
  *  86   bcd7d65ef74  add inputName, bookmarkUpdate to ProgramInfo serialization
+ *       e845eae3e84  big mythgallery changes/rewrite using storage groups, etc.
+ *       6657e1a4ec5  change vector excluded_card[id]s to scalar excluded_input
+ *       d2736963115  add GET_FREE_INPUT_INFO
+ *       189a7be2a32  remove GET_FREE_RECORDER, GET_FREE_RECORDER_COUNT, GET_FREE_RECORDER_LIST, GET_NEXT_FREE_RECORDER,
+ *                    QUERY_RECORDER/GET_FREE_INPUTS, QUERY_REMOTE_ENCODER/GET_FREE_INPUTS (all replaced by GET_FREE_INPUT_INFO)
+ *       a2676c2dd2a  add MUSIC_LYRICS_FIND and MUSIC_LYRICS_GETGRABBERS
+ *       -----------
  *  87   c4f8b270f16  due to prior changes; conversion of cardId to inputId (many/all places?)
  *       ca71fcd28f9  <-- changes start with this commit?
+ *       -----------
+ *       1971440f8df  update MUSIC_LYRICS_FIND
+ *       20603add41a  add MUSIC_LYRICS_SAVE
+ *       096b94929c7  add MOVE_FILE
  *  88*  6f6a5914c63  add LyricsView to MythMusic; unsure of impact on protocol -- event changes?
- *  89   1f8c275b814  add reclimit to InputInfo
+ *  89   1f8c275b814  add reclimit to InputInfo (is this serialized in myth protocol?)
  */

@@ -172,21 +172,29 @@ private abstract class AbstractBackendConnection(host: String, port: Int, timeou
 private class BackendConnection75(host: String, port: Int, timeout: Int)
     extends AbstractBackendConnection(host, port, timeout) with MythProtocol75
 
-private object BackendConnection75 extends BackendConnectionFactory {
-  def apply(host: String, port: Int, timeout: Int) = new BackendConnection75(host, port, timeout)
-}
-
 private class BackendConnection77(host: String, port: Int, timeout: Int)
     extends AbstractBackendConnection(host, port, timeout) with MythProtocol77
 
-private object BackendConnection77 extends BackendConnectionFactory {
-  def apply(host: String, port: Int, timeout: Int) = new BackendConnection77(host, port, timeout)
-}
+private class BackendConnection88(host: String, port: Int, timeout: Int)
+    extends AbstractBackendConnection(host, port, timeout) with MythProtocol88
 
 
 private sealed trait BackendConnectionFactory {
   def apply(host: String, port: Int, timeout: Int): BackendConnection
 }
+
+private object BackendConnection75 extends BackendConnectionFactory {
+  def apply(host: String, port: Int, timeout: Int) = new BackendConnection75(host, port, timeout)
+}
+
+private object BackendConnection77 extends BackendConnectionFactory {
+  def apply(host: String, port: Int, timeout: Int) = new BackendConnection77(host, port, timeout)
+}
+
+private object BackendConnection88 extends BackendConnectionFactory {
+  def apply(host: String, port: Int, timeout: Int) = new BackendConnection88(host, port, timeout)
+}
+
 
 object BackendConnection {
   final val DefaultPort = 6543
@@ -194,7 +202,8 @@ object BackendConnection {
 
   private val supportedVersions = Map[Int, BackendConnectionFactory](
     75 -> BackendConnection75,
-    77 -> BackendConnection77
+    77 -> BackendConnection77,
+    88 -> BackendConnection88
   )
 
   private[myth] val DefaultVersion = 75  // TODO just for now for testing

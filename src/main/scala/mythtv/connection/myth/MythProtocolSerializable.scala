@@ -93,6 +93,22 @@ object MythProtocolSerializable {
     def factory = FileTransferId.apply
   }
 
+  implicit object ImageIdSerializer extends IntegerIdentifierSerializer[ImageId] {
+    def factory = ImageUnknownId.apply
+  }
+
+  implicit object ImageDirIdSerializer extends IntegerIdentifierSerializer[ImageDirId] {
+    def factory = ImageDirId.apply
+  }
+
+  implicit object ImageFileIdSerializer extends IntegerIdentifierSerializer[ImageFileId] {
+    def factory = ImageFileId.apply
+  }
+
+  implicit object ImageFileTransformSerializer extends EnumerationSerializer[ImageFileTransform] {
+    def factory = ImageFileTransform.applyOrUnknown
+  }
+
   implicit object InputIdSerializer extends IntegerIdentifierSerializer[InputId] {
     def factory = InputId.apply
   }
@@ -110,6 +126,14 @@ object MythProtocolSerializable {
     def factory = MultiplexId.apply
   }
 
+  implicit object MusicImageIdSerializer extends IntegerIdentifierSerializer[MusicImageId] {
+    def factory = MusicImageId.apply
+  }
+
+  implicit object MusicImageTypeSerializer extends EnumerationSerializer[MusicImageType] {
+    def factory = MusicImageType.applyOrUnknown
+  }
+
   implicit object RecordRuleIdSerializer extends IntegerIdentifierSerializer[RecordRuleId] {
     def factory = RecordRuleId.apply
   }
@@ -120,6 +144,10 @@ object MythProtocolSerializable {
 
   implicit object SleepStatusSerializer extends EnumerationSerializer[SleepStatus] {
     def factory = SleepStatus.applyOrUnknown
+  }
+
+  implicit object SongIdSerialzier extends IntegerIdentifierSerializer[SongId] {
+    def factory = SongId.apply
   }
 
   implicit object TvStateSerializer extends EnumerationSerializer[TvState] {
@@ -231,6 +259,11 @@ object MythProtocolSerializable {
     def serialize(in: MythDateTimeString): String = in.toString
   }
 
+  implicit object ImageIdListSerializer extends MythProtocolSerializable[Seq[ImageId]] {
+    def deserialize(in: String): Seq[ImageId] = in split ',' map (s => ImageUnknownId(s.trim.toInt))
+    def serialize(in: Seq[ImageId]): String = in.map(_.id).mkString(",")
+  }
+
   /**** UTILITY OBJECTS (not MythTV specific) ******/
 
   implicit object FileStatsSerializer extends MythProtocolSerializable[FileStats] {
@@ -276,7 +309,7 @@ private[myth] trait BackendTypeSerializer[T] {
 // Idea here is a generic de-/serializer for backend objects that can be
 //  - constructed from a Seq[String] and a FIELD_ORDER
 //  - deconstructed using FIELD_ORDER and the apply-based fields accessor
-private trait GenericBackendObjectSerializer[T, F <: GenericBackendObjectFactory[T], S <: BackendTypeSerializer[T]]
+private[myth] trait GenericBackendObjectSerializer[T, F <: GenericBackendObjectFactory[T], S <: BackendTypeSerializer[T]]
     extends MythProtocolSerializable[T] {
   def newFactory: F
   def otherSerializer: S
@@ -285,7 +318,7 @@ private trait GenericBackendObjectSerializer[T, F <: GenericBackendObjectFactory
 
   private def fieldCount(factory: F): Int = factory.FIELD_ORDER.length
 
-  // What about deserialization of a adjacent sequence of like-typed objects?
+  // What about deserialization of an adjacent sequence of like-typed objects?
 
   def deserialize(in: String): T = {
     val factory = newFactory
@@ -323,6 +356,18 @@ private[myth] object ProgramInfoSerializer77
   extends GenericBackendObjectSerializer[Recording, BackendProgramFactory, ProgramOtherSerializer] {
   def newFactory = BackendProgram77
   def otherSerializer = BackendProgram77
+}
+
+private[myth] object ProgramInfoSerializer88
+  extends GenericBackendObjectSerializer[Recording, BackendProgramFactory, ProgramOtherSerializer] {
+  def newFactory = BackendProgram88
+  def otherSerializer = BackendProgram88
+}
+
+private[myth] object AlbumArtImageSerializerRef
+  extends GenericBackendObjectSerializer[AlbumArtImage, BackendAlbumArtImageFactory, AlbumArtImageOtherSerializer] {
+  def newFactory = BackendAlbumArtImage
+  def otherSerializer = ???
 }
 
 private[myth] object FreeSpaceSerializerRef

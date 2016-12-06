@@ -34,9 +34,9 @@ private[myth] class BackendProgram(data: Seq[String], fieldOrder: IndexedSeq[Str
   def description: String = fields("description")
   def season: Option[Int] = optionalNonZeroIntField("season")
   def episode: Option[Int] = optionalNonZeroIntField("episode")
-  def syndicatedEpisode: String = fields("syndicatedEpisode")
+  def syndicatedEpisode: String = fields.getOrElse("syndicatedEpisode", "")
   def category: String = fields("category")
-  def categoryType: Option[CategoryType] = None        // not included in myth protocol serialization
+  def categoryType: Option[CategoryType] = None        // not included in myth protocol serialization (until ver 79?)
   def chanId: ChanId = ChanId(fields("chanId").toInt)
   def chanNum: ChannelNumber = ChannelNumber(fields("chanNum"))
   def callsign: String = fields("callsign")
@@ -211,6 +211,80 @@ private[myth] object BackendProgram77 extends BackendProgramFactory with Program
       += in.year
       += in.partNumber
       += in.partTotal
+    ).result
+  }
+}
+
+private[myth] object BackendProgram88 extends BackendProgramFactory with ProgramOtherSerializer {
+  final val FIELD_ORDER = IndexedSeq(
+    "title",      "subtitle",        "description",  "season",       "episode",    "totalEpisodes", "syndicatedEpisode",
+    "category",   "chanId",          "chanNum",      "callsign",     "chanName",   "filename",
+    "filesize",   "startTime",       "endTime",      "findId",       "hostname",   "sourceId",
+    "cardId",     "inputId",         "recPriority",  "recStatus",    "recordId",   "recType",   // TODO cardId and inputId are now the same
+    "dupIn",      "dupMethod",       "recStartTS",   "recEndTS",     "programFlags",
+    "recGroup",   "outputFilters",   "seriesId",     "programId",    "inetRef",    "lastModified",
+    "stars",      "originalAirDate", "playGroup",    "recPriority2", "parentId",   "storageGroup",
+    "audioProps", "videoProps",      "subtitleType", "year",         "partNumber", "partTotal",
+    "categoryType", "recordedId",    "inputName",    "bookmarkUpdate"
+  )
+
+  def apply(data: Seq[String]): BackendProgram = new BackendProgram(data, FIELD_ORDER)
+
+  def serialize(in: Recording): String = serialize(in, new StringBuilder).toString
+  def serialize(in: Recording, sb: StringBuilder): StringBuilder = {
+    (new BackendSerializationBuilder(sb)
+      += in.title
+      += in.subtitle
+      += in.description
+      += in.season
+      += in.episode
+      += "" // TODO totalEpisodes
+      += in.syndicatedEpisode
+      += in.category
+      += in.chanId
+      += in.chanNum
+      += in.callsign
+      += in.chanName
+      += in.filename
+      += in.filesize.bytes
+      += in.startTime
+      += in.endTime
+      += in.findId
+      += in.hostname
+      += in.sourceId
+      += in.cardId   // TODO cardId and inputId are the same, which to choose?
+      += in.inputId
+      += in.recPriority
+      += in.recStatus
+      += in.recordId
+      += in.recType
+      += in.dupIn
+      += in.dupMethod
+      += in.recStartTS
+      += in.recEndTS
+      += in.programFlags
+      += in.recGroup
+      += in.outputFilters
+      += in.seriesId
+      += in.programId
+      += in.inetRef
+      += in.lastModified
+      += in.stars
+      += in.originalAirDate
+      += in.playGroup
+      += in.recPriority2
+      += in.parentId
+      += in.storageGroup
+      += in.audioProps
+      += in.videoProps
+      += in.subtitleType
+      += in.year
+      += in.partNumber
+      += in.partTotal
+      += in.categoryType.getOrElse("").toString // TODO this is not a pure string in Program (enum?)
+      += ""  // TODO recordedId
+      += ""  // TODO inputName
+      += ""  // TODO bookmarkUpdate
     ).result
   }
 }

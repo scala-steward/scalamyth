@@ -3,18 +3,19 @@ package connection
 package myth
 
 import java.net.{ InetAddress, URI }
-import java.time.Duration
+import java.time.{ Duration, Instant }
 
 import model._
 import model.EnumTypes._
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythFileHash, NetworkUtil }
 import EnumTypes.{ MythProtocolEventMode, SeekWhence }
+import MythProtocol.ImageScanResult._
 import MythProtocol.QueryRecorderResult._
 import MythProtocol.QueryRemoteEncoderResult._
 import MythProtocol.QueryFileTransferResult._
 
 private[myth] trait MythProtocolAPILike {
-  self: MythProtocolLike =>
+  self: MythProtocol =>
 
   def allowShutdown(): MythProtocolResult[Boolean] = {
     val result = sendCommand("ALLOW_SHUTDOWN")
@@ -150,6 +151,86 @@ private[myth] trait MythProtocolAPILike {
     result map { case r: Boolean => r }
   }
 
+  def imageCover(directoryId: ImageDirId, coverId: ImageFileId): MythProtocolResult[Unit] = {
+    val result = sendCommand("IMAGE_COVER", directoryId, coverId)
+    result map { case () => () }
+  }
+
+  def imageCoverReset(directoryId: ImageDirId): MythProtocolResult[Unit] = {
+    val result = sendCommand("IMAGE_COVER", directoryId, ImageFileId(0))
+    result map { case () => () }
+  }
+
+  def imageCreateDirs(directoryId: ImageDirId, rescan: Boolean, newRelativePaths: Seq[String]): MythProtocolResult[Unit] = {
+    val result = sendCommand("IMAGE_CREATE_DIRS", directoryId, rescan, newRelativePaths)
+    result map { case () => () }
+  }
+
+  def imageDelete(imageId: ImageId): MythProtocolResult[Unit] = {
+    val result = sendCommand("IMAGE_DELETE", imageId)
+    result map { case () => () }
+  }
+
+  def imageDelete(imageIds: Seq[ImageId]): MythProtocolResult[Unit] = {
+    val result = sendCommand("IMAGE_DELETE", imageIds)
+    result map { case () => () }
+  }
+
+  def imageHide(hide: Boolean, imageId: ImageId): MythProtocolResult[Unit] = {
+    val result = sendCommand("IMAGE_HIDE", hide, imageId)
+    result map { case () => () }
+  }
+
+  def imageHide(hide: Boolean, imageIds: Seq[ImageId]): MythProtocolResult[Unit] = {
+    val result = sendCommand("IMAGE_HIDE", hide, imageIds)
+    result map { case () => () }
+  }
+
+  def imageIgnore(ignorePattern: String*): MythProtocolResult[Unit] = {
+    val result = sendCommand("IMAGE_IGNORE", ignorePattern)
+    result map { case () => () }
+  }
+
+  def imageMove(imageId: ImageId, oldPath: String, newPath: String): MythProtocolResult[Unit] = {
+    val result = sendCommand("IMAGE_MOVE", imageId, oldPath, newPath)
+    result map { case () => () }
+  }
+
+  def imageMove(imageIds: Seq[ImageId], oldPath: String, newPath: String): MythProtocolResult[Unit] = {
+    val result = sendCommand("IMAGE_MOVE", imageIds, oldPath, newPath)
+    result map { case () => () }
+  }
+
+  def imageRename(imageId: ImageId, newBasename: String): MythProtocolResult[Unit] = {
+    val result = sendCommand("IMAGE_RENAME", imageId, newBasename)
+    result map { case () => () }
+  }
+
+  def imageScanQuery(): MythProtocolResult[(Boolean, Int, Int)] = {
+    val result = sendCommand("IMAGE_SCAN", "QUERY")
+    result map { case ImageScanProgress(isBackend, progress, total) => (isBackend, progress, total) }
+  }
+
+  def imageScanStart(): MythProtocolResult[Unit] = {
+    val result = sendCommand("IMAGE_SCAN", "START")
+    result map { case ImageScanAcknowledgement => () }
+  }
+
+  def imageScanStop(): MythProtocolResult[Unit] = {
+    val result = sendCommand("IMAGE_SCAN", "STOP")
+    result map { case ImageScanAcknowledgement => () }
+  }
+
+  def imageTransform(transform: ImageFileTransform, imageId: ImageFileId): MythProtocolResult[Unit] = {
+    val result = sendCommand("IMAGE_TRANSFORM", transform, imageId)
+    result map { case () => () }
+  }
+
+  def imageTransform(transform: ImageFileTransform, imageIds: Seq[ImageFileId]): MythProtocolResult[Unit] = {
+    val result = sendCommand("IMAGE_TRANSFORM", transform, imageIds)
+    result map { case () => () }
+  }
+
   def lockTuner(): MythProtocolResult[Tuner] = {
     val result = sendCommand("LOCK_TUNER")
     result map { case t: Tuner => t }
@@ -174,6 +255,66 @@ private[myth] trait MythProtocolAPILike {
   def messageSetVerbose(verboseMask: String): MythProtocolResult[Boolean] = {
     val result = sendCommand("MESSAGE", "SET_VERBOSE", verboseMask)
     result map { case r: Boolean => r }
+  }
+
+  def moveFile(storageGroup: String, source: String, dest: String): MythProtocolResult[Boolean] = {
+    val result = sendCommand("MOVE_FILE", storageGroup, source, dest)
+    result map { case r: Boolean => r }
+  }
+
+  def musicCalcTrackLength(hostName: String, songId: SongId): MythProtocolResult[Unit] = {
+    val result = sendCommand("MUSIC_CALC_TRACK_LENGTH", hostName, songId)
+    result map { case () => () }
+  }
+
+  def musicFindAlbumArt(hostName: String, songId: SongId, updateDatabase: Boolean): MythProtocolResult[List[AlbumArtImage]] = {
+    val result = sendCommand("MUSIC_FIND_ALBUMART", hostName, songId, updateDatabase)
+    result map { case xs: List[_] => xs.asInstanceOf[List[AlbumArtImage]] }
+  }
+
+  def musicLyricsFind(hostName: String, songId: SongId, grabberName: String): MythProtocolResult[Unit] = {
+    val result = sendCommand("MUSIC_LYRICS_FIND", hostName, songId, grabberName)
+    result map { case () => () }
+  }
+
+  def musicLyricsGetGrabbers: MythProtocolResult[List[String]] = {
+    val result = sendCommand("MUSIC_LYRICS_GETGRABBERS")
+    result map { case xs: List[_] => xs.asInstanceOf[List[String]] }
+  }
+
+  def musicLyricsSave(hostName: String, songId: SongId, lyricsLines: Seq[String]): MythProtocolResult[Unit] = {
+    val result = sendCommand("MUSIC_LYRICS_SAVE", hostName, songId, lyricsLines)
+    result map { case () => () }
+  }
+
+  def musicTagAddImage(hostName: String, songId: SongId, fileName: String, imageType: MusicImageType): MythProtocolResult[Unit] = {
+    val result = sendCommand("MUSIC_TAG_ADDIMAGE", hostName, songId, fileName, imageType)
+    result map { case () => () }
+  }
+
+  def musicTagChangeImage(hostName: String, songId: SongId, oldType: MusicImageType, newType: MusicImageType): MythProtocolResult[Unit] = {
+    val result = sendCommand("MUSIC_TAG_CHANGEIMAGE", hostName, songId, oldType, newType)
+    result map { case () => () }
+  }
+
+  def musicTagGetImage(hostName: String, songId: SongId, imageType: MusicImageType): MythProtocolResult[Unit] = {
+    val result = sendCommand("MUSIC_TAG_GETIMAGE", hostName, songId, imageType)
+    result map { case () => () }
+  }
+
+  def musicTagRemoveImage(hostName: String, songId: SongId, imageId: MusicImageId): MythProtocolResult[Unit] = {
+    val result = sendCommand("MUSIC_TAG_REMOVEIMAGE", hostName, songId, imageId)
+    result map { case () => () }
+  }
+
+  def musicTagUpdateMetadata(hostName: String, songId: SongId): MythProtocolResult[Unit] = {
+    val result = sendCommand("MUSIC_TAG_UPDATE_METADATA", hostName, songId)
+    result map { case () => () }
+  }
+
+  def musicTagUpdateVolatile(hostName: String, songId: SongId, rating: Int, playCount: Int, lastPlayed: Instant): MythProtocolResult[Unit] = {
+    val result = sendCommand("MUSIC_TAG_UPDATE_VOLATILE", hostName, songId, rating, playCount, lastPlayed)
+    result map { case () => () }
   }
 
   def protocolVersion(version: Int, token: String): MythProtocolResult[(Boolean, Int)] = {
@@ -259,6 +400,11 @@ private[myth] trait MythProtocolAPILike {
       if (hostName == "") sendCommand("QUERY_FILE_HASH", fileName, storageGroup)
       else sendCommand("QUERY_FILE_HASH", fileName, storageGroup, hostName)
     result map { case h: MythFileHash => h }
+  }
+
+  def queryFindFile(fileName: String, storageGroup: String, hostName: String, useRegex: Boolean, allowFallback: Boolean): MythProtocolResult[List[URI]] = {
+    val result = sendCommand("QUERY_FINDFILE", hostName, storageGroup, fileName, useRegex, allowFallback)
+    result map { case xs: List[_] => xs.asInstanceOf[List[URI]] }
   }
 
   def queryFreeSpace: MythProtocolResult[List[FreeSpace]] = {
@@ -700,6 +846,11 @@ private[myth] trait MythProtocolAPILike {
     result map { case r: Boolean => r }
   }
 
+  def scanMusic(): MythProtocolResult[Unit] = {
+    val result = sendCommand("SCAN_MUSIC")
+    result map { case () => () }
+  }
+
   def scanVideos(): MythProtocolResult[Boolean] = {
     val result = sendCommand("SCAN_VIDEOS")
     result map { case r: Boolean => r }
@@ -740,5 +891,4 @@ private[myth] trait MythProtocolAPILike {
     val result = sendCommand("UNDELETE_RECORDING", chanId, startTime)
     result map { case r: Boolean => r }
   }
-
 }

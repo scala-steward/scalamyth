@@ -19,7 +19,9 @@ private[myth] trait MythProtocolLike extends MythProtocolSerializer {
   protected type SerializeRequest = (String, Seq[Any]) => String
   protected type HandleResponse = (BackendRequest, BackendResponse) => MythProtocolResult[_]
 
-  protected def commands: Map[String, (SerializeRequest, HandleResponse)] = Map.empty
+  protected type CommandMap = Map[String, (SerializeRequest, HandleResponse)]
+
+  protected def commands: CommandMap = Map.empty
 
   def sendCommand(command: String, args: Any*): MythProtocolResult[_]
 
@@ -57,14 +59,14 @@ object MythProtocolEventMode extends Enumeration {
 private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   import MythProtocol.Separator
 
-  override def commands = commandMap
+  override protected def commands: CommandMap = commandMap
 
   // override as necessary in versioned traits to get proper serialization
-  protected implicit val programInfoSerializer     : GenericBackendObjectSerializer[Recording, _, _]
-  protected implicit val freeSpaceSerializer       : GenericBackendObjectSerializer[FreeSpace, _, _]       = FreeSpaceSerializerRef
-  protected implicit val cardInputSerializer       : GenericBackendObjectSerializer[CardInput, _, _]       = CardInputSerializerRef
-  protected implicit val channelSerializer         : GenericBackendObjectSerializer[Channel, _, _]         = ChannelSerializerRef
-  protected implicit val upcomingProgramSerializer : GenericBackendObjectSerializer[UpcomingProgram, _, _] = UpcomingProgramSerializerRef
+  protected implicit val programInfoSerializer    : BackendObjectSerializer[Recording]
+  protected implicit val freeSpaceSerializer      : BackendObjectSerializer[FreeSpace]       = FreeSpaceSerializerRef
+  protected implicit val cardInputSerializer      : BackendObjectSerializer[CardInput]       = CardInputSerializerRef
+  protected implicit val channelSerializer        : BackendObjectSerializer[Channel]         = ChannelSerializerRef
+  protected implicit val upcomingProgramSerializer: BackendObjectSerializer[UpcomingProgram] = UpcomingProgramSerializerRef
 
   /**
     * Myth protocol commands: (from programs/mythbackend/mainserver.cpp)
@@ -363,7 +365,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
      * QUERY_FILETRANSFER %d [IS_OPEN]              <ftID>
      * QUERY_FILETRANSFER %d [REOPEN %s]            <ftID> [ newFilename ]
      * QUERY_FILETRANSFER %d [SET_TIMEOUT %b]       <ftID> [ fast ]
-     * QUERY_FILETRANSFER %d [REQUEST_SIZE]         <ftID>
+     * QUERY_FILETRANSFER %d [REQUEST_SIZE]         <ftID> FIXME new in protocol 79/80 ??
      *  @responds sometimes, only if tokenCount == 2
      *  @returns
      *       "ERROR: ......."           if ftID not found
@@ -1139,8 +1141,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       val args = List(serialize(cardId), sub, serialize(desiredPos))
       val elems = List(command, args mkString Separator)
       elems mkString " "
-    case Seq(cardId: CaptureCardId, sub @ ("FILL_POSITION_MAP" | "FILL_DURATION_MAP"),
-      start: VideoPositionFrame, end: VideoPositionFrame) =>
+    case Seq(cardId: CaptureCardId, sub @ "FILL_POSITION_MAP", start: VideoPositionFrame, end: VideoPositionFrame) =>
       val args = List(serialize(cardId), sub, serialize(start), serialize(end))
       val elems = List(command, args mkString Separator)
       elems mkString " "
@@ -1200,6 +1201,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       val args = List(serialize(cardId), sub, serialize(recordingState))
       val elems = List(command, args mkString Separator)
       elems mkString " "
+    // TODO this error message includes args not available until protocol 77 (FILL_DURATION_MAP)
     case _ => throwArgumentExceptionMultipleSig(command, """
       | cardId: CaptureCardId, sub @ ( "IS_RECORDING" | "GET_FRAMERATE" | "GET_FRAMES_WRITTEN" | "GET_FILE_POSITION" |
       |                                "GET_MAX_BITRATE" | "GET_CURRENT_RECORDING" | "GET_RECORDING" | "FRONTEND_READY" |
@@ -2147,12 +2149,600 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 }
 
 private[myth] trait MythProtocolLike75 extends MythProtocolLikeRef {
-  override val programInfoSerializer: GenericBackendObjectSerializer[Recording, _, _] = ProgramInfoSerializer75
+  override val programInfoSerializer: BackendObjectSerializer[Recording] = ProgramInfoSerializer75
 }
 
 private[myth] trait MythProtocolLike77 extends MythProtocolLike75 {
-  // TODO Add command QUERY_RECORDER FILL_DURATION_MAP
-  override val programInfoSerializer: GenericBackendObjectSerializer[Recording, _, _] = ProgramInfoSerializer77
+  override val programInfoSerializer: BackendObjectSerializer[Recording] = ProgramInfoSerializer77
+
+  // Add FILL_DURATION_MAP command to QUERY_RECORDER
+  override protected def serializeQueryRecorder(command: String, args: Seq[Any]): String = args match {
+    case Seq(cardId: CaptureCardId, sub @ "FILL_DURATION_MAP", start: VideoPositionFrame, end: VideoPositionFrame) =>
+      val args = List(serialize(cardId), sub, serialize(start), serialize(end))
+      val elems = List(command, args mkString Separator)
+      elems mkString " "
+
+    case _ => super.serializeQueryRecorder(command, args)
+  }
 }
 
-private[myth] trait MythProtocolLike88 extends MythProtocolLike77
+private[myth] trait MythProtocolLike88 extends MythProtocolLike77 {
+  override val        programInfoSerializer: BackendObjectSerializer[Recording]     = ProgramInfoSerializer88
+  protected implicit val albumArtSerializer: BackendObjectSerializer[AlbumArtImage] = AlbumArtImageSerializerRef
+
+  // TODO "Frontend" now allowed as an announce type
+
+  // we use a lazy val for commandMap to avoid NPE during initialization
+  private lazy val commandMap = super.commands -- removedCommands ++ newCommands
+
+  private val removedCommands = List(
+    "GET_FREE_RECORDER",
+    "GET_FREE_RECORDER_COUNT",
+    "GET_FREE_RECORDER_LIST",
+    "GET_NEXT_FREE_RECORDER"
+  )
+
+  private val newCommands = Map[String, (SerializeRequest, HandleResponse)](
+    /*
+     * GET_FREE_INPUT_INFO [%d]  <excluded_input>
+     *  @returns
+     *    "OK"  or
+     *    [<inputinfo> {,<inputinfo>}*]
+     */
+    "GET_FREE_INPUT_INFO" -> ((serializeNOP, handleNOP)),
+
+    /*
+     * IMAGE_COPY ???
+     *  @returns
+     *    ["OK"]
+     *    ["ERROR", "Bad: " ...]
+     *    ["ERROR", "Copy Failed"]
+     */
+    "IMAGE_COPY" -> ((serializeNOP, handleImageCopy)),
+
+    /*
+     * IMAGE_COVER [%d, %d]  <dir id> <cover id (ImageFileId)(0=reset)>
+     *  @returns
+     *    ["OK"]
+     *    ["ERROR", "Bad: " ...]
+     *    ["ERROR", "Set Cover failed"]
+     */
+    "IMAGE_COVER" -> ((serializeImageCover, handleImageCover)),
+
+    /*
+     * IMAGE_CREATE_DIRS [%d, %b {, %s}+] <destination ID (ImageDirId)> <rescan flag> <list of new dir relative paths>
+     *  @returns
+     *    ["OK"]
+     *    ["ERROR", "Bad: " ...]
+     *    ["ERROR", "Destination not found"]
+     */
+    "IMAGE_CREATE_DIRS" -> ((serializeImageCreateDirs, handleImageCreateDirs)),
+
+    /*
+     * IMAGE_DELETE [%s]   <comma separated list of ImageId>
+     *  @returns
+     *    ["OK"]
+     *    ["ERROR", "Bad: " ...]
+     *    ["ERROR", "Delete failed"]
+     */
+    "IMAGE_DELETE" -> ((serializeImageDelete, handleImageDelete)),
+
+    /*
+     * IMAGE_HIDE [%b, %s]   <hide flag> <comma separated list of ImageId>
+     *  @returns
+     *    ["OK"]
+     *    ["ERROR", "Bad: " ...]
+     *    ["ERROR", "Hide failed"]
+     */
+    "IMAGE_HIDE" -> ((serializeImageHide, handleImageHide)),
+
+    /*
+     * IMAGE_IGNORE [%s] (comma separated list of exclusion patterns)
+     *  @returns
+     *    ["OK"]
+     *    ["ERROR", "Bad: " ...]
+     */
+    "IMAGE_IGNORE" -> ((serializeImageIgnore, handleImageIgnore)),
+
+    /*
+     * IMAGE_MOVE [%s, %s, %s]  <comma separated list of ImageId> <oldpath> <newpath>
+     *  @returns
+     *    ["OK"]
+     *    ["ERROR", "Bad: " ...]
+     *    ["ERROR", "Invalid path"]
+     *    ["ERROR", "Image not found"]
+     */
+    "IMAGE_MOVE" -> ((serializeImageMove, handleImageMove)),
+
+    /*
+     * IMAGE_RENAME [%d, %s]  <ImageId> <new basename>
+     *  @returns
+     *    ["OK"]
+     *    ["ERROR", "Bad: " ...]
+     *    ["ERROR", "Invalid name"]
+     *    ["ERROR", "Image not found"]
+     *    ["ERROR", "Filename already used"]
+     *    ["ERROR", "Rename failed"]
+     */
+    "IMAGE_RENAME" -> ((serializeImageRename, handleImageRename)),
+
+    /*
+     * IMAGE_SCAN [%s] <scan command = { START | STOP | QUERY }>
+     *  @returns
+     *    ["OK"]                for START | STOP
+     *    ["OK", %b, %d, %d]    for QUERY     <isBackend> <progressCount> <totalCount>
+     *    ["ERROR", "Bad: " ...]
+     *    ["ERROR", ""]
+     *    ["ERROR", "Scanner not running"]
+     *    ["ERROR", "Unknown command"]
+     */
+    "IMAGE_SCAN" -> ((serializeImageScan, handleImageScan)),
+
+    /*
+     * IMAGE_TRANSFORM [%d, %s] <transformation id> <comma separated list of ImageFileId>
+     *  @returns
+     *    ["OK"]
+     *    ["ERROR", "Bad: " ...]
+     *    ["ERROR", "Transform failed"]
+     *    ["ERROR", "Image not found"]
+     */
+    "IMAGE_TRANSFORM" -> ((serializeImageTransform, handleImageTransform)),
+
+    /*
+     * MOVE_FILE [%s, %s, %s]  <storageGroup> <source> <destination>
+     *  @returns [ %b {, %s}]  boolean success, optional error message
+     *     ["1"]
+     *     ["0", "Invalid path"]
+     *     ["0", "Source file not found"]
+     *     ["0", "Destination file exists"]
+     *     ["0", "Rename failed"]
+     */
+    "MOVE_FILE" -> ((serializeMoveFile, handleMoveFile)),
+
+    /*
+     * MUSIC_CALC_TRACK_LENGTH [%s, %d]  <hostname> <songid>
+     *  @returns
+     *    ["OK"]
+     *    ["ERROR: slave not found"]
+     */
+    "MUSIC_CALC_TRACK_LENGTH" -> ((serializeMusicCalcTrackLength, handleMusicCalcTrackLength)),
+
+    /*
+     * MUSIC_FIND_ALBUMART [%s, %d, %b]  <hostname> <songid> <update_database>
+     *  @returns
+     *    ["OK", %d {, AlbumArtImage}*]   <imagecount>
+     *    ["ERROR: slave not found"]
+     *    ["ERROR: track not found"]
+     */
+    "MUSIC_FIND_ALBUMART" -> ((serializeMusicFindAlbumArt, handleMusicFindAlbumArt)),
+
+    /*
+     * MUSIC_LYRICS_FIND" [%s, %d, %s {,%s, %s, %s} ] <hostname> <songid> <grabbername> { <artist> <album> <title> }
+     *  @returns ["OK"]
+     */
+    "MUSIC_LYRICS_FIND" -> ((serializeMusicLyricsFind, handleMusicLyricsFind)),
+
+    /*
+     * MUSIC_LYRICS_GETGRABBERS
+     *  @returns
+     *    ["OK" {, %s}*]   <grabber_name>
+     *    ["ERROR: Cannot find lyric scripts directory: %1"]
+     *    ["ERROR: Cannot find any lyric scripts in: %1"]
+     */
+    "MUSIC_LYRICS_GETGRABBERS" -> ((serializeEmpty, handleMusicLyricsGetGrabbers)),
+
+    /*
+     * MUSIC_LYRICS_SAVE [%s, %d {, %s}*] <hostname> <songid> {<lyrics_line>}*
+     *  @returns
+     *    ["OK"]
+     *    ["ERROR: Cannot find metadata for trackid: %1"]
+     */
+    "MUSIC_LYRICS_SAVE" -> ((serializeMusicLyricsSave, handleMusicLyricsSave)),
+
+    /*
+     * MUSIC_TAG_ADDIMAGE [%s, %d, %s, %d] <hostname> <songid> <filename> <imagetype>
+     *  @returns
+     *    ["OK"]
+     *    ["ERROR: slave not found"]
+     *    ["ERROR: track not found"]
+     *    ["ERROR: tagger not found"]
+     *    ["ERROR: embedded images not supported by tag"]
+     *    ["ERROR: failed to find image file"]
+     *    ["ERROR: failed to write album art to tag"]
+     */
+    "MUSIC_TAG_ADDIMAGE" -> ((serializeMusicTagAddImage, handleMusicTagAddImage)),
+
+    /*
+     * MUSIC_TAG_CHANGEIMAGE [%s, %d, %d, %d] <hostname> <songid> <oldtype> <newtype>
+     *  @returns
+     *    ["OK"]
+     *    ["ERROR: slave not found"]
+     *    ["ERROR: track not found"]
+     *    ["ERROR: failed to change image type"]
+     */
+    "MUSIC_TAG_CHANGEIMAGE" -> ((serializeMusicTagChangeImage, handleMusicTagChangeImage)),
+
+    /*
+     * MUSIC_TAG_GETIMAGE [%s, %d, %d ]  <hostname> <songid> <imagetype>
+     *  @returns
+     *    ["OK"]  (regardless of whether there was some sort of error)
+     */
+    "MUSIC_TAG_GETIMAGE" -> ((serializeMusicTagGetImage, handleMusicTagGetImage)),
+
+    /*
+     * MUSIC_TAG_REMOVEIMAGE [%s, %d, %d]  <hostname> <songid> <imageid>
+     *  @returns
+     *    ["OK"]
+     *    ["ERROR: slave not found"]
+     *    ["ERROR: track not found"]
+     *    ["ERROR: tagger not found"]
+     *    ["ERROR: embedded images not supported by tag"]
+     *    ["ERROR: image not found"]
+     *    ["ERROR: failed to remove album art from tag"]
+     */
+    "MUSIC_TAG_REMOVEIMAGE" -> ((serializeMusicTagRemoveImage, handleMusicTagRemoveImage)),
+
+    /*
+     * MUSIC_TAG_UPDATE_METADATA [%s, %d]  <hostname> <songid>
+     *  @returns
+     *    ["OK"]
+     *    ["ERROR: slave not found"]
+     *    ["ERROR: track not found"]
+     *    ["ERROR: write to tag failed"]
+     */
+    "MUSIC_TAG_UPDATE_METADATA" -> ((serializeMusicTagUpdateMetadata, handleMusicTagUpdateMetadata)),
+
+    /*
+     * MUSIC_TAG_UPDATE_VOLATILE [%s, %d, %d, %d, %t]
+     *                           <hostname> <songid> <rating> <playcount> <lastplayed>
+     *  @returns
+     *    ["OK"]
+     *    ["ERROR: slave not found"]
+     */
+    "MUSIC_TAG_UPDATE_VOLATILE" -> ((serializeMusicTagUpdateVolatile, handleMusicTagUpdateVolatile)),
+
+    /*
+     * QUERY_FINDFILE [%s, %s, %s {, %b} {, %b}] <host> <storagegroup> <filename> [useregex] [allowFalllback]
+     *  @responds only if numtokens >= 4
+     *  @returns
+     *    [%s {,%s}*]   list of myth:// URI
+     *    "ERROR: Bad/Missing Filename"
+     *    "ERROR: SLAVE UNREACHABLE: %1"
+     *    "ERROR: failed to get host list"
+     *    "NOT FOUND"
+     *
+     *    empty host uses name of backend we're talking to
+     *    empty storage group uses "Default"
+     *    empty filename is an error
+     */
+    "QUERY_FINDFILE" -> ((serializeQueryFindFile, handleQueryFindFile)),
+
+    /*
+     * SCAN_MUSIC
+     *  @returns "OK"
+     */
+    "SCAN_MUSIC" -> ((serializeEmpty, handleScanMusic))
+  )
+
+  override protected def commands: CommandMap = commandMap
+
+  protected def serializeImageCover(command: String, args: Seq[Any]): String = args match {
+    case Seq(directoryId: ImageDirId, coverId: ImageFileId) =>
+      val elems = List(command, serialize(directoryId), serialize(coverId))
+      elems mkString Separator
+    case _ => throwArgumentExceptionSignature(command, "directoryId: ImageDirId, coverId: ImageFileId")
+  }
+
+  protected def serializeImageCreateDirs(command: String, args: Seq[Any]): String = args match {
+    case Seq(directoryId: ImageDirId, rescan: Boolean, newRelativePaths: Seq[_]) =>
+      val elems: Seq[Any] = List(command, serialize(directoryId), serialize(rescan)) ++ newRelativePaths
+      elems mkString Separator
+    case _ => throwArgumentExceptionSignature(command,
+      "directoryId: ImageDirId, rescan: Boolean, newRelativePaths: Seq[String]")
+  }
+
+  protected def serializeImageDelete(command: String, args: Seq[Any]): String = args match {
+    case Seq(imageId: ImageId) =>
+      val elems = List(command, serialize(imageId))
+      elems mkString Separator
+    case Seq(imageIds: Seq[_]) =>
+      val ids = imageIds.asInstanceOf[Seq[ImageId]]
+      val elems = List(command, serialize(ids))
+      elems mkString Separator
+    case _ => throwArgumentExceptionMultipleSig(command, """
+      | imageId: ImageId
+      | imageIds: Seq[ImageId]""")
+  }
+
+  protected def serializeImageHide(command: String, args: Seq[Any]): String = args match {
+    case Seq(hideFlag: Boolean, imageId: ImageId) =>
+      val elems = List(command, serialize(hideFlag), serialize(imageId))
+      elems mkString Separator
+    case Seq(hideFlag: Boolean, imageIds: Seq[_]) =>
+      val ids = imageIds.asInstanceOf[Seq[ImageId]]
+      val elems = List(command, serialize(hideFlag), serialize(ids))
+      elems mkString Separator
+    case _ => throwArgumentExceptionMultipleSig(command, """
+      | hideFlag: Boolean, imageId: ImageId
+      | hideFlag: Boolean, imageIds: Seq[ImageId]""")
+  }
+
+  protected def serializeImageIgnore(command: String, args: Seq[Any]): String = args match {
+    case Seq(ignorePatterns: Seq[_]) =>
+      val pats = ignorePatterns.asInstanceOf[Seq[String]]
+      val elems = List(command, pats mkString ",")
+      elems mkString Separator
+    case _ => throwArgumentExceptionSignature(command, "ignorePatterns: Seq[String]")
+  }
+
+  protected def serializeImageMove(command: String, args: Seq[Any]): String = args match {
+    case Seq(imageId: ImageId, oldPath: String, newPath: String) =>
+      val elems = List(command, serialize(imageId), oldPath, newPath)
+      elems mkString Separator
+    case Seq(imageIds: Seq[_], oldPath: String, newPath: String) =>
+      val ids = imageIds.asInstanceOf[Seq[ImageId]]
+      val elems = List(command, serialize(ids), oldPath, newPath)
+      elems mkString Separator
+    case _ => throwArgumentExceptionMultipleSig(command, """
+      | imageId: ImageId, oldPath: String, newPath: String
+      | imageIds: Seq[ImageId], oldPath: String, newPath: String""")
+  }
+
+  protected def serializeImageRename(command: String, args: Seq[Any]): String = args match {
+    case Seq(imageId: ImageId, newBasename: String) =>
+      val elems = List(command, serialize(imageId), newBasename)
+      elems mkString Separator
+    case _ => throwArgumentExceptionSignature(command, "imageId: ImageId, newBasename: String")
+  }
+
+  protected def serializeImageScan(command: String, args: Seq[Any]): String = args match {
+    case Seq(sub @ ("START" | "STOP" | "QUERY")) =>
+      val elems = List(command, sub)
+      elems mkString Separator
+    case _ => throwArgumentExceptionSignature(command, """sub @ ("START" | "STOP" | "QUERY")""")
+  }
+
+  protected def serializeImageTransform(command: String, args: Seq[Any]): String = args match {
+    case Seq(transform: ImageFileTransform, imageId: ImageFileId) =>
+      val elems = List(command, serialize(transform), serialize(imageId))
+      elems mkString Separator
+    case Seq(transform: ImageFileTransform, imageIds: Seq[_]) =>
+      val ids = imageIds.asInstanceOf[Seq[ImageId]]
+      val elems = List(command, serialize(transform), serialize(ids))
+      elems mkString Separator
+    case _ => throwArgumentExceptionMultipleSig(command, """
+      | transform: ImageFileTransform, imageId: ImageFileId
+      | transform: ImageFileTransform, imageIds: Seq[ImageFileId]""")
+  }
+
+  protected def serializeMoveFile(command: String, args: Seq[Any]): String = args match {
+    case Seq(storageGroup: String, source: String, dest: String) =>
+      val elems = List(command, storageGroup, source, dest)
+      elems mkString Separator
+    case _ => throwArgumentExceptionSignature(command, "storageGroup: String, source: String, dest: String")
+  }
+
+  protected def serializeMusicCalcTrackLength(command: String, args: Seq[Any]): String = args match {
+    case Seq(hostname: String, songId: SongId) =>
+      val elems = List(command, hostname, serialize(songId))
+      elems mkString Separator
+    case _ => throwArgumentExceptionSignature(command, "hostname: String, songId: SongId")
+  }
+
+  protected def serializeMusicFindAlbumArt(command: String, args: Seq[Any]): String = args match {
+    case Seq(hostname: String, songId: SongId, updateDatabase: Boolean) =>
+      val elems = List(command, hostname, serialize(songId), serialize(updateDatabase))
+      elems mkString Separator
+    case _ => throwArgumentExceptionSignature(command, "hostname: String, songId: SongId, updateDatabase: Boolean")
+  }
+
+  protected def serializeMusicLyricsFind(command: String, args: Seq[Any]): String = args match {
+    case Seq(hostName: String, songId: SongId, grabberName: String) =>
+      val elems = List(command, hostName, serialize(songId), grabberName)
+      elems mkString Separator
+    case Seq(hostName: String, songId: SongId, grabberName: String, artist: String, album: String, title: String) =>
+      val elems = List(command, hostName, serialize(songId), grabberName, artist, album, title)
+      elems mkString Separator
+    case _ => throwArgumentExceptionMultipleSig(command, """
+      | hostName: String, songId: SongId, grabberName: String
+      | hostName: String, songId: SongId, grabberName: String, artist: String, album: String, title: String""")
+  }
+
+  protected def serializeMusicLyricsSave(command: String, args: Seq[Any]): String = args match {
+    case Seq(hostName: String, songId: SongId, lyricsLines: Seq[_]) =>
+      val lyrics = lyricsLines map (_.toString)
+      val elems = List(command, hostName, serialize(songId)) ++ lyrics
+      elems mkString Separator
+    case _ => throwArgumentExceptionSignature(command, "hostName: String, songId: SongId, lyricsLines: Seq[String]")
+  }
+
+  protected def serializeMusicTagAddImage(command: String, args: Seq[Any]): String = args match {
+    case Seq(hostName: String, songId: SongId, fileName: String, imageType: MusicImageType) =>
+      val elems = List(command, hostName, serialize(songId), fileName, serialize(imageType))
+      elems mkString Separator
+    case _ => throwArgumentExceptionSignature(command, """
+      | hostName: String, songId: SongId, fileName: String, imageType: MusicImageType""")
+  }
+
+  protected def serializeMusicTagChangeImage(command: String, args: Seq[Any]): String = args match {
+    case Seq(hostName: String, songId: SongId, oldType: MusicImageType, newType: MusicImageType) =>
+      val elems = List(command, hostName, serialize(songId), serialize(oldType), serialize(newType))
+      elems mkString Separator
+    case _ => throwArgumentExceptionSignature(command, """
+      | hostName: String, songId: SongId, oldType: MusicImageType, newType: MusicImageType""")
+  }
+
+  protected def serializeMusicTagGetImage(command: String, args: Seq[Any]): String = args match {
+    case Seq(hostName: String, songId: SongId, imageType: MusicImageType) =>
+      val elems = List(command, hostName, serialize(songId), serialize(imageType))
+      elems mkString Separator
+    case _ => throwArgumentExceptionSignature(command, "hostName: String, songId: SongId, imageType: MusicImageType")
+  }
+
+  protected def serializeMusicTagRemoveImage(command: String, args: Seq[Any]): String = args match {
+    case Seq(hostName: String, songId: SongId, imageId: MusicImageId) =>
+      val elems = List(command, hostName, serialize(songId), serialize(imageId))
+      elems mkString Separator
+    case _ => throwArgumentExceptionSignature(command, "hostName: String, songId: SongId, imageId: MusicImageId")
+  }
+
+  protected def serializeMusicTagUpdateMetadata(command: String, args: Seq[Any]): String = args match {
+    case Seq(hostName: String, songId: SongId) =>
+      val elems = List(command, hostName, serialize(songId))
+      elems mkString Separator
+    case _ => throwArgumentExceptionSignature(command, "hostName: String, songId: SongId")
+  }
+
+  protected def serializeMusicTagUpdateVolatile(command: String, args: Seq[Any]): String = args match {
+    case Seq(hostName: String, songId: SongId, rating: Int, playCount: Int, lastPlayed: Instant) =>
+      val elems = List(command, hostName, serialize(songId), serialize(rating), serialize(playCount), serialize(lastPlayed))
+      elems mkString Separator
+    case _ => throwArgumentExceptionSignature(command, """
+      | hostName: String, songId: SongId, rating: Int, playCount: Int, lastPlayed: Instant""")
+  }
+
+  protected def serializeQueryFindFile(command: String, args: Seq[Any]): String = args match {
+    case Seq(hostName: String, storageGroup: String, fileName: String) =>
+      val elems = List(command, hostName, storageGroup, fileName)
+      elems mkString Separator
+    case Seq(hostName: String, storageGroup: String, fileName: String, useRegex: Boolean) =>
+      val elems = List(command, hostName, storageGroup, fileName, serialize(useRegex))
+      elems mkString Separator
+    case Seq(hostName: String, storageGroup: String, fileName: String, useRegex: Boolean, allowFallback: Boolean) =>
+      val elems = List(command, hostName, storageGroup, fileName, serialize(useRegex), serialize(allowFallback))
+      elems mkString Separator
+    case _ => throwArgumentExceptionMultipleSig(command, """
+      | hostName: String, storageGroup: String, fileName: String
+      | hostName: String, storageGroup: String, fileName: String, useRegex: Boolean
+      | hostName: String, storageGroup: String, fileName: String, useRegex: Boolean, allowFallback: Boolean""")
+  }
+
+  /* Response handlers */
+
+  protected def handleMoveFile(request: BackendRequest, response: BackendResponse): MythProtocolResult[Boolean] = {
+    val items = response.split
+    if (items(0) == "0") Left(MythProtocolFailureMessage(items.drop(1) mkString " "))
+    else Try { deserialize[Boolean](items(0)) }
+  }
+
+  protected def genericHandleImage(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] = {
+    if (response.raw == "OK") Right(())
+    else if (response.raw startsWith "ERROR") Left(MythProtocolFailureMessage(response.split mkString " "))
+    else Left(MythProtocolFailureUnknown)
+  }
+
+  protected def genericHandleMusic(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] = {
+    if (response.raw == "OK") Right(())
+    else if (response.raw startsWith "ERROR") Left(MythProtocolFailureMessage(response.split mkString " "))
+    else Left(MythProtocolFailureUnknown)
+  }
+
+  protected def handleImageCopy(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] =
+    genericHandleImage(request, response)
+
+  protected def handleImageCover(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] =
+    genericHandleImage(request, response)
+
+  protected def handleImageCreateDirs(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] =
+    genericHandleImage(request, response)
+
+  protected def handleImageDelete(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] =
+    genericHandleImage(request, response)
+
+  protected def handleImageHide(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] =
+    genericHandleImage(request, response)
+
+  protected def handleImageIgnore(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] =
+    genericHandleImage(request, response)
+
+  protected def handleImageMove(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] =
+    genericHandleImage(request, response)
+
+  protected def handleImageRename(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] =
+    genericHandleImage(request, response)
+
+  protected def handleImageScan(request: BackendRequest, response: BackendResponse): MythProtocolResult[ImageScanResult] = {
+    import ImageScanResult._
+
+    def acknowledgement: MythProtocolResult[ImageScanResult] =
+      if (response.raw == "OK") Right(ImageScanAcknowledgement)
+      else Left(MythProtocolFailureUnknown)
+
+    def progress: MythProtocolResult[ImageScanResult] = Try {
+      val items = response.split
+      val isBackend = deserialize[Boolean](items(0))
+      val progressCount = deserialize[Int](items(1))
+      val totalCount = deserialize[Int](items(2))
+      ImageScanProgress(isBackend, progressCount, totalCount)
+    }
+
+    if (response.raw startsWith "ERROR") Left(MythProtocolFailureMessage(response.split mkString " "))
+    else {
+      val subcommand = request.args(1).toString
+      subcommand match {
+        case "START" => acknowledgement
+        case "STOP"  => acknowledgement
+        case "QUERY" => progress
+        case _       => Left(MythProtocolFailureUnknown)
+      }
+    }
+  }
+
+  protected def handleImageTransform(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] =
+    genericHandleImage(request, response)
+
+  protected def handleMusicCalcTrackLength(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] =
+    genericHandleMusic(request, response)
+
+  protected def handleMusicFindAlbumArt(request: BackendRequest, response: BackendResponse): MythProtocolResult[List[AlbumArtImage]] = {
+    val items = response.split
+    if (items(0) == "OK") Try {
+      val fieldCount = albumArtSerializer.fieldCount
+      val it = items.iterator grouped fieldCount withPartial false map deserialize[AlbumArtImage]
+      it.toList
+    }
+    else if (items(0) startsWith "ERROR") Left(MythProtocolFailureMessage(items mkString " "))
+    else Left(MythProtocolFailureUnknown)
+  }
+
+  protected def handleMusicLyricsFind(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] =
+    genericHandleMusic(request, response)
+
+  protected def handleMusicLyricsGetGrabbers(request: BackendRequest, response: BackendResponse): MythProtocolResult[List[String]] = {
+    val items = response.split
+    if (items(0) == "OK") Try { items.drop(1).toList }
+    else if (items(0) startsWith "ERROR") Left(MythProtocolFailureMessage(items mkString " "))
+    else Left(MythProtocolFailureUnknown)
+  }
+
+  protected def handleMusicLyricsSave(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] =
+    genericHandleMusic(request, response)
+
+  protected def handleMusicTagAddImage(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] =
+    genericHandleMusic(request, response)
+
+  protected def handleMusicTagChangeImage(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] =
+    genericHandleMusic(request, response)
+
+  protected def handleMusicTagGetImage(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] =
+    genericHandleMusic(request, response)
+
+  protected def handleMusicTagRemoveImage(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] =
+    genericHandleMusic(request, response)
+
+  protected def handleMusicTagUpdateMetadata(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] =
+    genericHandleMusic(request, response)
+
+  protected def handleMusicTagUpdateVolatile(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] =
+    genericHandleMusic(request, response)
+
+  protected def handleQueryFindFile(request: BackendRequest, response: BackendResponse): MythProtocolResult[List[URI]] = {
+    val items = response.split
+    if (items(0) == "NOT FOUND") Right(Nil)
+    else if (items(0) startsWith "ERROR") Left(MythProtocolFailureMessage(items mkString " "))
+    else Try { items.toList map (URIFactory(_)) }
+  }
+
+  protected def handleScanMusic(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] =
+    genericHandleMusic(request, response)
+}

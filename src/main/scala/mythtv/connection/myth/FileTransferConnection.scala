@@ -80,11 +80,6 @@ private class FileTransferConnection75(host: String, port: Int, timeout: Int, fi
      with MythProtocolAPILike
      with AnnouncingConnection
 
-private object FileTransferConnection75 extends FileTransferConnectionFactory {
-  def apply(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean, useReadAhead: Boolean): FileTransferConnection =
-    new FileTransferConnection75(host, port, timeout, fileName, storageGroup, writeMode, useReadAhead)
-}
-
 private class FileTransferConnection77(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean, useReadAhead: Boolean)
   extends AbstractFileTransferConnection(host, port, timeout, fileName, storageGroup, writeMode, useReadAhead)
      with MythProtocol77
@@ -92,15 +87,33 @@ private class FileTransferConnection77(host: String, port: Int, timeout: Int, fi
      with MythProtocolAPILike
      with AnnouncingConnection
 
+private class FileTransferConnection88(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean, useReadAhead: Boolean)
+  extends AbstractFileTransferConnection(host, port, timeout, fileName, storageGroup, writeMode, useReadAhead)
+     with MythProtocol88
+     with MythProtocolAPIConnection
+     with MythProtocolAPILike
+     with AnnouncingConnection
+
+private object FileTransferConnection75 extends FileTransferConnectionFactory {
+  def apply(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean, useReadAhead: Boolean): FileTransferConnection =
+    new FileTransferConnection75(host, port, timeout, fileName, storageGroup, writeMode, useReadAhead)
+}
+
 private object FileTransferConnection77 extends FileTransferConnectionFactory {
   def apply(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean, useReadAhead: Boolean): FileTransferConnection =
     new FileTransferConnection77(host, port, timeout, fileName, storageGroup, writeMode, useReadAhead)
 }
 
+private object FileTransferConnection88 extends FileTransferConnectionFactory {
+  def apply(host: String, port: Int, timeout: Int, fileName: String, storageGroup: String, writeMode: Boolean, useReadAhead: Boolean): FileTransferConnection =
+    new FileTransferConnection88(host, port, timeout, fileName, storageGroup, writeMode, useReadAhead)
+}
+
 object FileTransferConnection {
   private val supportedVersions = Map[Int, FileTransferConnectionFactory](
     75 -> FileTransferConnection75,
-    77 -> FileTransferConnection77
+    77 -> FileTransferConnection77,
+    88 -> FileTransferConnection88
   )
 
   def apply(

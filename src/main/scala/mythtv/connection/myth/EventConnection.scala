@@ -43,6 +43,8 @@ private abstract class AbstractEventConnection(
   private[this] var listenerSet: Set[EventListener] = Set.empty
   private[this] var eventLoopThread: Thread = _
 
+  protected val eventProtocol: EventParser
+
   def announce(): Unit = {
     val localHost = NetworkUtil.myHostName
     val result = sendCommand("ANN", "Monitor", localHost, eventMode)
@@ -87,7 +89,13 @@ private abstract class AbstractEventConnection(
     }
   }
 
-  protected def newEventResponse(eventString: String): BackendEventResponse
+  protected def newEventResponse(eventString: String): BackendEventResponse = {
+    val protocol = eventProtocol
+    new BackendEventResponse {
+      def raw = eventString
+      def parse = protocol.parse(this)
+    }
+  }
 
   // blocking read to wait for the next event
   protected def readEvent(): BackendEventResponse = newEventResponse(reader.read())
@@ -192,15 +200,21 @@ private class EventConnection75(host: String, port: Int, eventMode: MythProtocol
  extends AbstractEventConnection(host, port, eventMode, listener)
     with MythProtocol75
     with AnnouncingConnection {
-  private[this] val eventParser = new EventParserImpl
+  override protected val eventProtocol = new EventProtocol75
+}
 
-  override protected def newEventResponse(eventString: String): BackendEventResponse = {
-    val parser = eventParser
-    new BackendEventResponse {
-      def raw = eventString
-      def parse = parser.parse(this)
-    }
-  }
+private class EventConnection77(host: String, port: Int, eventMode: MythProtocolEventMode, listener: EventListener)
+ extends AbstractEventConnection(host, port, eventMode, listener)
+    with MythProtocol77
+    with AnnouncingConnection {
+  override protected val eventProtocol = new EventProtocol77
+}
+
+private class EventConnection88(host: String, port: Int, eventMode: MythProtocolEventMode, listener: EventListener)
+ extends AbstractEventConnection(host, port, eventMode, listener)
+    with MythProtocol88
+    with AnnouncingConnection {
+  override protected val eventProtocol = new EventProtocol88
 }
 
 private object EventConnection75 extends EventConnectionFactory {
@@ -208,31 +222,21 @@ private object EventConnection75 extends EventConnectionFactory {
     new EventConnection75(host, port, eventMode, listener)
 }
 
-private class EventConnection77(host: String, port: Int, eventMode: MythProtocolEventMode, listener: EventListener)
- extends AbstractEventConnection(host, port, eventMode, listener)
-    with MythProtocol77
-    with AnnouncingConnection {
-  private[this] val eventParser = new EventParserImpl
-
-  override protected def newEventResponse(eventString: String): BackendEventResponse = {
-    val parser = eventParser
-    new BackendEventResponse {
-      def raw = eventString
-      def parse = parser.parse(this)
-    }
-  }
-}
-
 private object EventConnection77 extends EventConnectionFactory {
   def apply(host: String, port: Int, eventMode: MythProtocolEventMode, listener: EventListener) =
     new EventConnection77(host, port, eventMode, listener)
 }
 
+private object EventConnection88 extends EventConnectionFactory {
+  def apply(host: String, port: Int, eventMode: MythProtocolEventMode, listener: EventListener) =
+    new EventConnection88(host, port, eventMode, listener)
+}
 
 object EventConnection {
   private val supportedVersions = Map[Int, EventConnectionFactory](
     75 -> EventConnection75,
-    77 -> EventConnection77
+    77 -> EventConnection77,
+    88 -> EventConnection88
   )
 
   def apply(
