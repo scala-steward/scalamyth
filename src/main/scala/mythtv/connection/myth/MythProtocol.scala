@@ -86,8 +86,8 @@ object MythProtocol extends MythProtocolSerializer {
   }
 }
 
-//                                                          protocol version 63   // myth 0.24.x
-//                                                          protocol version 72   // myth 0.25.x
+//                                                    protocol version 63   // myth 0.24.x
+//                                                    protocol version 72   // myth 0.25.x
 
 private trait MythProtocol75 extends MythProtocol with MythProtocolLike75 { // myth 0.26.x
   final val ProtocolVersion = 75

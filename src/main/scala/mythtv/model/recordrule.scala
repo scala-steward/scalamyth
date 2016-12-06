@@ -47,7 +47,7 @@ trait RecordRule {
   def findTime: Option[LocalTime]
   def inactive: Boolean
   def parentId: Option[RecordRuleId]
-  def transcoder: Option[Int]   // TODO what type is this? (ugh, see what I do here in mythjango...)
+  def transcoder: Option[Int]   // TODO what type is this? (ugh, see what I do here in mythjango...recordingprofiles+profilegroups tables)
   def playGroup: String
   def preferredInput: Option[InputId]
   def nextRecord: Option[MythDateTime]
