@@ -117,3 +117,14 @@ trait Recording extends Recordable with InternetMetadata {
 
   def isDummy: Boolean = title.isEmpty && chanId.id == 0
 }
+
+sealed trait RecordedId {
+  def idString: String
+}
+
+object RecordedId {
+  case class RecordedIdInt(id: Int) extends RecordedId with IntegerIdentifier { def idString = id.toString }
+  case class RecordedIdChanTime(chanId: ChanId, startTime: MythDateTime) extends RecordedId {
+    def idString = chanId.id.toString + "_" + startTime.toMythFormat
+  }
+}
