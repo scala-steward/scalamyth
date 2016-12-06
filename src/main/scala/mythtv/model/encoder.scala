@@ -1,6 +1,7 @@
 package mythtv
 package model
 
+import util.LooseEnum
 import EnumTypes.{ TvState, SleepStatus }
 
 final case class CaptureCardId(id: Int) extends AnyVal with IntegerIdentifier
@@ -88,4 +89,61 @@ trait SignalMonitorValue {
 
   override def toString: String =
     s"<Signal $name $value ($minValue,$maxValue) ${timeout}ms set:$isValueSet good:$isGood>"
+}
+
+object ChannelBrowseDirection extends LooseEnum {
+  type ChannelBrowseDirection = Value
+  val Invalid   = Value(-1)
+  val Same      = Value(0)  // Current channel and time
+  val Up        = Value(1)  // Previous channel
+  val Down      = Value(2)  // Next channel
+  val Left      = Value(3)  // Current channel in the past
+  val Right     = Value(4)  // Current channel in the future
+  val Favorite  = Value(5)  // Next favorite channel
+}
+
+object ChannelChangeDirection extends LooseEnum {
+  type ChannelChangeDirection = Value
+  val Up        = Value(0)
+  val Down      = Value(1)
+  val Favorite  = Value(2)
+  val Same      = Value(3)
+}
+
+object PictureAdjustType extends LooseEnum {
+  type PictureAdjustType = Value
+  val None      = Value(0)
+  val Playback  = Value(1)
+  val Channel   = Value(2)
+  val Recording = Value(3)
+}
+
+/* We explicitly specify the names for the values here because the reflection
+   based default implementation fails once we start subclassing. Additionally,
+   we use the withName() method to translate state strings to values, so the
+   names specified here must match those in MythTV's StateToString */
+private[model] abstract class AbstractTvStateEnum extends LooseEnum {
+  val Error               = Value(-1, "Error")
+  val None                = Value( 0, "None")
+  val WatchingLiveTv      = Value( 1, "WatchingLiveTV")
+  val WatchingPreRecorded = Value( 2, "WatchingPreRecorded")
+  val WatchingVideo       = Value( 3, "WatchingVideo")
+  val WatchingDvd         = Value( 4, "WatchingDVD")
+  val WatchingBd          = Value( 5, "WatchingBD")
+  val WatchingRecording   = Value( 6, "WatchingRecording")
+  val RecordingOnly       = Value( 7, "RecordingOnly")
+  val ChangingState       = Value( 8, "ChangingState")
+}
+
+object TvState extends AbstractTvStateEnum {
+  type TvState = Value
+}
+
+object SleepStatus extends LooseEnum {
+  type SleepStatus = Value
+  val Awake         = Value(0x0)
+  val Asleep        = Value(0x1)
+  val FallingAsleep = Value(0x3)
+  val Waking        = Value(0x5)
+  val Undefined     = Value(0x8)
 }

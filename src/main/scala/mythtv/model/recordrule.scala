@@ -4,7 +4,7 @@ package model
 import java.time.LocalTime
 
 import EnumTypes._
-import util.MythDateTime
+import util.{ BitmaskEnum, LooseEnum, MythDateTime }
 
 final case class RecordRuleId(id: Int) extends AnyVal with IntegerIdentifier
 
@@ -62,7 +62,7 @@ trait RecordRule {
 
 object RecordRule {
   def apply(host: String, ruleId: RecordRuleId): RecordRule = {
-    import services.{ DvrService, ServiceProvider }
+    import services.ServiceProvider
 
     // FIXME acquisition via service is imperfect; some fields are lost/misrepresented:
     //   e.g. rectype loses TemplateRecord (goes to NotRecording)
@@ -101,4 +101,56 @@ object RecordRule {
       else            None
     }
   }
+}
+
+object DupCheckIn extends BitmaskEnum[Int] {
+  type DupCheckIn = Base
+  val Recorded      = Value(0x01)
+  val OldRecorded   = Value(0x02)
+  val All           =  Mask(0x0f)
+  val NewEpisodes   = Value(0x10)  // this should always be combined with DupsInAll ??
+}
+
+object DupCheckMethod extends BitmaskEnum[Int] {
+  type DupCheckMethod = Base
+  val None             = Value(0x01)
+  val Subtitle         = Value(0x02)
+  val Description      = Value(0x04)
+  val SubtitleDesc     =  Mask(0x06)
+  val SubtitleThenDesc = Value(0x08) // subtitle, then description
+}
+
+object RecSearchType extends LooseEnum {
+  type RecSearchType = Value
+  val NoSearch      = Value(0)
+  val PowerSearch   = Value(1)
+  val TitleSearch   = Value(2)
+  val KeywordSearch = Value(3)
+  val PeopleSearch  = Value(4)
+  val ManualSearch  = Value(5)
+}
+
+object RecType extends LooseEnum {
+  type RecType = Value
+  val NotRecording     = Value(0)
+  val SingleRecord     = Value(1)
+  val DailyRecord      = Value(2)
+  @deprecated("use DailyRecord + 'this time' filter", "MythTV 0.27")
+  val TimeslotRecord   = DailyRecord
+  @deprecated("use 'this channel' filter", "MythTV 0.27")
+  val ChannelRecord    = Value(3)
+  val AllRecord        = Value(4)
+  val WeeklyRecord     = Value(5)
+  @deprecated("use WeeklyRecord + 'this day and time' filter", "MythTV 0.27")
+  val WeekslotRecord   = WeeklyRecord
+  val OneRecord        = Value(6)
+  @deprecated("", "")
+  val FindOneRecord    = OneRecord
+  val OverrideRecord   = Value(7)
+  val DontRecord       = Value(8)
+  @deprecated("", "MythTV 0.27")
+  val FindDailyRecord  = Value(9)
+  @deprecated("", "MythTV 0.27")
+  val FindWeeklyRecord = Value(10)
+  val TemplateRecord   = Value(11)
 }

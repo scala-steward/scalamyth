@@ -4,7 +4,7 @@ package model
 import java.time.{ LocalDate, Year }
 
 import EnumTypes._
-import util.{ ByteCount, MythDateTime }
+import util.{ BitmaskEnum, ByteCount, LooseEnum, MythDateTime }
 
 trait ProgramVideoBase {
   def title: String
@@ -127,4 +127,111 @@ object RecordedId {
   case class RecordedIdChanTime(chanId: ChanId, startTime: MythDateTime) extends RecordedId {
     def idString = chanId.id.toString + "_" + startTime.toMythFormat
   }
+}
+
+object ProgramFlags extends BitmaskEnum[Int] {
+  type ProgramFlags = Base
+  val None           =  Mask(0x00000000)
+  val CommFlag       = Value(0x00000001)
+  val CutList        = Value(0x00000002)
+  val AutoExpire     = Value(0x00000004)
+  val Editing        = Value(0x00000008)
+  val Bookmark       = Value(0x00000010)
+  val ReallyEditing  = Value(0x00000020)
+  val CommProcessing = Value(0x00000040)
+  val DeletePending  = Value(0x00000080)
+  val Transcoded     = Value(0x00000100)
+  val Watched        = Value(0x00000200)
+  val Preserved      = Value(0x00000400)
+  val ChanCommFree   = Value(0x00000800)
+  val Repeat         = Value(0x00001000)
+  val Duplicate      = Value(0x00002000)
+  val Reactivate     = Value(0x00004000)
+  val IgnoreBookmark = Value(0x00008000)
+  val ProgramType    =  Mask(0x000f0000)
+  val InUseRecording = Value(0x00100000)
+  val InUsePlaying   = Value(0x00200000)
+  val InUseOther     = Value(0x00400000)
+}
+
+object ProgramType extends LooseEnum {
+  type ProgramType = Value
+  val Recording      = Value(0)
+  val VideoFile      = Value(1)
+  val Dvd            = Value(2)
+  val StreamingHtml  = Value(3)
+  val StreamingRtsp  = Value(4)
+  val Bluray         = Value(5)
+}
+
+object CategoryType extends LooseEnum {
+  type CategoryType = Value
+  val None     = Value(0)
+  val Movie    = Value(1, "movie")
+  val Series   = Value(2, "series")
+  val Sports   = Value(3, "sports")
+  val TvShow   = Value(4, "tvshow")
+}
+
+object RecStatus extends LooseEnum {
+  type RecStatus = Value
+  val OtherRecording    = Value(-13)
+  val OtherTuning       = Value(-12)
+  val MissedFuture      = Value(-11)
+  val Tuning            = Value(-10)
+  val Failed            = Value(-9)
+  val TunerBusy         = Value(-8)
+  val LowDiskSpace      = Value(-7)
+  val Cancelled         = Value(-6)
+  val Missed            = Value(-5)
+  val Aborted           = Value(-4)
+  val Recorded          = Value(-3)
+  val Recording         = Value(-2)
+  val WillRecord        = Value(-1)
+  val Unknown           = Value(0)
+  val DontRecord        = Value(1)
+  val PreviousRecording = Value(2)
+  val CurrentRecording  = Value(3)
+  val EarlierShowing    = Value(4)
+  val TooManyRecordings = Value(5)
+  val NotListed         = Value(6)
+  val Conflict          = Value(7)
+  val LaterShowing      = Value(8)
+  val Repeat            = Value(9)
+  val Inactive          = Value(10)
+  val NeverRecord       = Value(11)
+  val Offline           = Value(12)
+  val OtherShowing      = Value(13)
+}
+
+object AudioProperties extends BitmaskEnum[Int] {
+  type AudioProperties = Base
+  val Unknown      =  Mask(0x00)
+  val Stereo       = Value(0x01)
+  val Mono         = Value(0x02)
+  val Surround     = Value(0x04)
+  val Dolby        = Value(0x08)
+  val HardHear     = Value(0x10)
+  val VisualImpair = Value(0x20)
+}
+
+object VideoProperties extends BitmaskEnum[Int] {
+  type VideoProperties = Base
+  val Unknown    =  Mask(0x00)
+  val Hdtv       = Value(0x01)
+  val Widescreen = Value(0x02)
+  val AVC        = Value(0x04)
+  val Hd720      = Value(0x08)
+  val Hd1080     = Value(0x10)
+  val Damaged    = Value(0x20)
+  val ThreeD     = Value(0x40)
+}
+
+object SubtitleType extends BitmaskEnum[Int] {
+  type SubtitleType = Base
+  val Unknown  =  Mask(0x00)
+  val HardHear = Value(0x01)
+  val Normal   = Value(0x02)
+  val OnScreen = Value(0x04)
+  val Signed   = Value(0x08)
 }

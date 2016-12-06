@@ -1,7 +1,7 @@
 package mythtv
 package model
 
-import util.MythDateTime
+import util.{ LooseEnum, MythDateTime }
 import EnumTypes.ListingSourceType
 
 // This structure optimized for channel-based access rather than time-based access.
@@ -38,4 +38,12 @@ trait ProgramGuideEntry extends Program {
   def generic: Boolean  // generic episode info for this program, rather than a particular episode
   def first: Boolean    // first showing of this episode (in current listings window)
   def last: Boolean     // last showing of this episode (in current listings window)
+}
+
+object ListingSourceType extends LooseEnum {
+  type ListingSourceType = Value
+  val EIT             = Value(0x01)
+  val SchedulesDirect = Value(0x02)
+  val XMLTV           = Value(0x04)
+  val DBOX2EPG        = Value(0x08)
 }

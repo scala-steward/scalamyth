@@ -93,3 +93,13 @@ trait BlurayInfo {
   def libbdplusDetected: Boolean
   def bdplusHandled: Boolean
 }
+
+object VideoContentType extends Enumeration {
+  type VideoContentType = Value
+  val Unknown    = Value("UNKNOWN")
+  val Movie      = Value("MOVIE")
+  val Television = Value("TELEVISION")
+  val Adult      = Value("ADULT")
+  val MusicVideo = Value("MUSICVIDEO")
+  val HomeVideo  = Value("HOMEVIDEO")
+}

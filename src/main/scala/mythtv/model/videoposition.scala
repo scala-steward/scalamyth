@@ -1,6 +1,7 @@
 package mythtv
 package model
 
+import util.LooseEnum
 import EnumTypes.Markup
 
 /* We define the Ordering objects in companion objects to the case classes
@@ -49,4 +50,37 @@ trait VideoSegment {
 trait RecordedMarkup {
   def tag: Markup
   def position: VideoPositionFrame
+}
+
+object Markup extends LooseEnum {
+  type Markup = Value
+  val All           = Value(-100)
+  val Unset         = Value(-10)
+  val TmpCutEnd     = Value(-5)
+  val TmpCutStart   = Value(-4)
+  val UpdatedCut    = Value(-3)
+  val Placeholder   = Value(-2)
+  val CutEnd        = Value(0)
+  val CutStart      = Value(1)
+  val Bookmark      = Value(2)
+  val BlankFrame    = Value(3)
+  val CommStart     = Value(4)
+  val CommEnd       = Value(5)
+  val GopStart      = Value(6)
+  val KeyFrame      = Value(7)
+  val SceneChange   = Value(8)
+  val GopByFrame    = Value(9)
+  @deprecated("", "")
+  val Aspect1x1     = Value(10)
+  val Aspect4x3     = Value(11)
+  val Aspect16x9    = Value(12)
+  val Aspect221x1   = Value(13)
+  val AspectCustom  = Value(14)
+  @deprecated("", "")
+  val VideoWidthOld = Value(15)
+  val VideoWidth    = Value(30)
+  val VideoHeight   = Value(31)
+  val VideoRate     = Value(32)  // new in 0.27
+  val DurationMs    = Value(33)  // new in 0.27
+  val TotalFrame    = Value(34)
 }

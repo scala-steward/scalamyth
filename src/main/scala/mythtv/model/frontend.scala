@@ -1,6 +1,7 @@
 package mythtv
 package model
 
+import util.{ BitmaskEnum, LooseEnum }
 import EnumTypes.FrontendState
 
 // TODO an object for jump points that appear in the GetActionList also..
@@ -15,7 +16,47 @@ trait FrontendStatus {
   override def toString: String = s"<FrontendStatus $state>"
 }
 
+object FrontendState extends AbstractTvStateEnum {
+  type FrontendState = Value
+  val Idle    = Value("idle")
+  val Standby = Value("standby")
+}
+
+object NotificationType extends LooseEnum {
+  type NotificationType = Value
+  val New     = Value
+  val Error   = Value
+  val Warning = Value
+  val Info    = Value
+  val Update  = Value
+  val Check   = Value
+  val Busy    = Value
+}
+
+object NotificationPriority extends LooseEnum {
+  type NotificationPriority = Value
+  val Default  = Value(0)
+  val Low      = Value(1)
+  val Medium   = Value(2)
+  val High     = Value(3)
+  val Higher   = Value(4)
+  val Highest  = Value(5)
+}
+
+object NotificationVisibility extends BitmaskEnum[Int] {
+  type NotificationVisibility = Base
+  val None       =  Mask(0)
+  val All        =  Mask(~None)
+  val Playback   = Value(0x01)
+  val Settings   = Value(0x02)
+  val Wizard     = Value(0x04)
+  val Videos     = Value(0x08)
+  val Music      = Value(0x10)
+  val Recordings = Value(0x20)
+}
+
 sealed trait ScreenshotFormat { def formatString: String }
+
 object ScreenshotFormat {
   case object Jpg extends ScreenshotFormat { def formatString = "jpg" }
   case object Png extends ScreenshotFormat { def formatString = "png" }

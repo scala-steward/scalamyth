@@ -3,7 +3,8 @@ package model
 
 import java.time.Instant
 
-import model.EnumTypes.LiveStreamStatus
+import util.LooseEnum
+import EnumTypes.LiveStreamStatus
 
 final case class LiveStreamId(id: Int) extends AnyVal
 
@@ -47,4 +48,17 @@ object LiveStream {
   final val DefaultMaxSegments: Int = 0
 
   final val DefaultSampleRate: Int = -1
+}
+
+
+object LiveStreamStatus extends LooseEnum {
+  type LiveStreamStatus = Value
+  val Undefined  = Value(-1)
+  val Queued     = Value(0)
+  val Starting   = Value(1)
+  val Running    = Value(2)
+  val Completed  = Value(3)
+  val Errored    = Value(4)
+  val Stopping   = Value(5)
+  val Stopped    = Value(6)
 }

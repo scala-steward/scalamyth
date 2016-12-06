@@ -3,6 +3,7 @@ package model
 
 import java.time.Instant
 
+import util.LooseEnum
 import EnumTypes.ChannelCommDetectMethod
 
 final case class ChanId(id: Int) extends AnyVal with IntegerIdentifier
@@ -147,4 +148,11 @@ trait VideoMultiplex {
 
   override def toString: String =
     s"<VideoMultiplex $mplexId $sourceId $transportId $frequency $modulation>"
+}
+
+/* as set in the commmethod field of the channel table in the database */
+object ChannelCommDetectMethod extends LooseEnum {
+  type ChannelCommDetectMethod = Value
+  val CommFree      = Value(-2)
+  val Uninitialized = Value(-1)
 }
