@@ -40,7 +40,7 @@ object Event {
   case class  VideoListChangeEvent(changes: Map[String, Set[VideoId]]) extends Event
   case object VideoListNoChangeEvent extends Event
   case class  UnknownEvent(name: String, body: String*) extends Event
-  case object NoMoreEvents extends Event  // poison pill
+  private[myth] case object NoMoreEvents extends Event  // poison pill
 }
 
 object SystemEvent {
