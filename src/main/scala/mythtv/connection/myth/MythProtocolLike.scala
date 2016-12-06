@@ -2031,7 +2031,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       }
 
     def unknownEncoder: MythProtocolResult[QueryRemoteEncoderResult] =
-      Left(MythProtocolFailureMessage("unknown encoder: " + request.args(0)))
+      Left(MythProtocolFailureMessage("unknown encoder: " + request.args.head))
 
     val subcommand = request.args(1).toString
     subcommand match {
