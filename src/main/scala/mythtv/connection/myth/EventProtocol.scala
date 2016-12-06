@@ -79,6 +79,14 @@ object SystemEvent {
   case class UnknownSystemEvent(name: String, data: String, sender: String) extends SystemEvent
 }
 
+object MythProtocolEventMode extends Enumeration {
+  type MythProtocolEventMode = Value
+  val None       = Value(0)
+  val Normal     = Value(1)
+  val NonSystem  = Value(2)
+  val SystemOnly = Value(3)
+}
+
 private[myth] trait EventParser {
   def parse(rawEvent: BackendEventResponse): Event
 }

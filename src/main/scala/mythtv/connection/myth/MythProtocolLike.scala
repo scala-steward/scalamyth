@@ -48,14 +48,6 @@ final case class MythProtocolArgumentException(command: String, message: String)
   def this(command: String) = this(command, "valid argument list")
 }
 
-object MythProtocolEventMode extends Enumeration {
-  type MythProtocolEventMode = Value
-  val None       = Value(0)
-  val Normal     = Value(1)
-  val NonSystem  = Value(2)
-  val SystemOnly = Value(3)
-}
-
 private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
   import MythProtocol.Separator
 
