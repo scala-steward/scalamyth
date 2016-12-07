@@ -149,5 +149,7 @@ private trait MythProtocol88 extends MythProtocol with MythProtocolLike88 { // m
  *       20603add41a  add MUSIC_LYRICS_SAVE
  *       096b94929c7  add MOVE_FILE
  *  88*  6f6a5914c63  add LyricsView to MythMusic; unsure of impact on protocol -- event changes?
- *  89   1f8c275b814  add reclimit to InputInfo (is this serialized in myth protocol?)
+ *  89   1f8c275b814  add reclimit to InputInfo
+ *  90   3e782baea08  add reccount to InputInfo
+ *  91   0cd367d7a5b  revert reclimit/reccount changes
  */

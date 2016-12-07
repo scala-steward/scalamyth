@@ -63,8 +63,24 @@ trait RemoteEncoderState extends RemoteEncoder {
 
 final case class InputId(id: Int) extends AnyVal with IntegerIdentifier
 
+trait Input {
+  def inputId: InputId
+  def cardId: CaptureCardId
+  def sourceId: ListingSourceId
+  def chanId: Option[ChanId]
+  def mplexId: Option[MultiplexId]
+  def name: String
+  def displayName: String
+  def recPriority: Int
+  def scheduleOrder: Int
+  def liveTvOrder: Int
+  def quickTune: Boolean
+
+  override def toString: String = s"<Input $inputId $cardId $sourceId $name>"
+}
+
 trait CardInput {
-  def cardInputId: InputId
+  def cardInputId: InputId   // TODO do I want to rename this type to CardInputId?
   def cardId: CaptureCardId
   def sourceId: ListingSourceId
   def name: String

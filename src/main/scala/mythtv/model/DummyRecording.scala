@@ -1,6 +1,7 @@
 package mythtv
 package model
 
+import RecordedId._
 import util.{ DecimalByteCount, MythDateTime }
 
 class DummyRecording extends Recording {
@@ -51,5 +52,7 @@ class DummyRecording extends Recording {
   def filesize          = DecimalByteCount(0)
   def season            = None
   def episode           = None
+  def totalEpisodes     = None
   def inetRef           = None
+  def recordedId        = RecordedIdInt(0)
 }

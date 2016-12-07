@@ -9,12 +9,19 @@ import scala.util.Try
 
 import model._
 import EnumTypes._
+import RecordedId._
 import util.{ ByteCount, DecimalByteCount, MythDateTime }
 
 private[myth] class BackendProgram(data: Seq[String], fieldOrder: IndexedSeq[String])
     extends GenericBackendObject(data, fieldOrder) with Program with Recordable with Recording {
 
-  override def toString: String = s"<BackendProgram $chanId, $startTime: $title>"
+  override def toString: String = s"<BackendProgram $chanId, $startTime: $combinedTitle>"
+
+  private def findRecordedId: RecordedId = {
+    if (fields contains "recordedId") RecordedIdInt(fields("recordedId").toInt)
+    else if (filename.isEmpty)        RecordedIdInt(0)
+    else                              RecordedIdChanTime(chanId, recStartTS)
+  }
 
   private def optionalNonZeroIntField(f: String): Option[Int] =
     { Try(fields(f).toInt) filter (_ != 0) }.toOption
@@ -34,6 +41,7 @@ private[myth] class BackendProgram(data: Seq[String], fieldOrder: IndexedSeq[Str
   def description: String = fields("description")
   def season: Option[Int] = optionalNonZeroIntField("season")
   def episode: Option[Int] = optionalNonZeroIntField("episode")
+  def totalEpisodes: Option[Int] = optionalNonZeroIntField("totalEpisodes")
   def syndicatedEpisode: String = fields.getOrElse("syndicatedEpisode", "")
   def category: String = fields("category")
   def categoryType: Option[CategoryType] = None        // not included in myth protocol serialization (until ver 79?)
@@ -77,6 +85,7 @@ private[myth] class BackendProgram(data: Seq[String], fieldOrder: IndexedSeq[Str
   def year: Option[Year] = optionalNonZeroIntField("year") map Year.of
   def partNumber: Option[Int] = optionalNonZeroIntField("partNumber")
   def partTotal: Option[Int] = optionalNonZeroIntField("partTotal")
+  def recordedId: RecordedId = findRecordedId
 }
 
 private[myth] trait BackendProgramFactory extends GenericBackendObjectFactory[BackendProgram]
@@ -216,11 +225,12 @@ private[myth] object BackendProgram77 extends BackendProgramFactory with Program
 }
 
 private[myth] object BackendProgram88 extends BackendProgramFactory with ProgramOtherSerializer {
+  // NB the cardId and inputId fields now refer to the same underlying object on the backend
   final val FIELD_ORDER = IndexedSeq(
     "title",      "subtitle",        "description",  "season",       "episode",    "totalEpisodes", "syndicatedEpisode",
     "category",   "chanId",          "chanNum",      "callsign",     "chanName",   "filename",
     "filesize",   "startTime",       "endTime",      "findId",       "hostname",   "sourceId",
-    "cardId",     "inputId",         "recPriority",  "recStatus",    "recordId",   "recType",   // TODO cardId and inputId are now the same
+    "cardId",     "inputId",         "recPriority",  "recStatus",    "recordId",   "recType",
     "dupIn",      "dupMethod",       "recStartTS",   "recEndTS",     "programFlags",
     "recGroup",   "outputFilters",   "seriesId",     "programId",    "inetRef",    "lastModified",
     "stars",      "originalAirDate", "playGroup",    "recPriority2", "parentId",   "storageGroup",
@@ -238,7 +248,7 @@ private[myth] object BackendProgram88 extends BackendProgramFactory with Program
       += in.description
       += in.season
       += in.episode
-      += "" // TODO totalEpisodes
+      += in.totalEpisodes
       += in.syndicatedEpisode
       += in.category
       += in.chanId
@@ -252,7 +262,7 @@ private[myth] object BackendProgram88 extends BackendProgramFactory with Program
       += in.findId
       += in.hostname
       += in.sourceId
-      += in.cardId   // TODO cardId and inputId are the same, which to choose?
+      += in.cardId   // should be the same as inputId now
       += in.inputId
       += in.recPriority
       += in.recStatus
@@ -281,10 +291,10 @@ private[myth] object BackendProgram88 extends BackendProgramFactory with Program
       += in.year
       += in.partNumber
       += in.partTotal
-      += in.categoryType.getOrElse("").toString // TODO this is not a pure string in Program (enum?)
-      += ""  // TODO recordedId
+      += in.categoryType.getOrElse(CategoryType.None)
+      += in.recordedId
       += ""  // TODO inputName
-      += ""  // TODO bookmarkUpdate
+      += ""  // TODO bookmarkUpdateTime
     ).result
   }
 }

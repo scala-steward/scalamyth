@@ -32,7 +32,10 @@ trait RecorderAPI {
   def getFilePosition: MythProtocolResult[Long]
   def getFrameRate: MythProtocolResult[Double]
   def getFramesWritten: MythProtocolResult[Long]
+
+  @deprecated("use MythProtocolApi.getFreeInputInfo", "MythTV 0.28")
   def getFreeInputs(excludedCards: CaptureCardId*): MythProtocolResult[List[CardInput]]
+
   def getHue: MythProtocolResult[Int]
   def getInput: MythProtocolResult[String]
   // This returns byte offset from the approximate keyframe position

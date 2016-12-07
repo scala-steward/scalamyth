@@ -3,8 +3,6 @@ package model
 
 import java.time.{ Instant, ZoneOffset }
 
-// TODO make a tuple type for (chanid, starttime) to shorten parameter lists? and to ease switchover to 0.28+ recordedId in places?
-
 trait Backend extends BackendOperations
 trait Frontend extends FrontendOperations
 

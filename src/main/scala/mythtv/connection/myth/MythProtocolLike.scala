@@ -2161,13 +2161,14 @@ private[myth] trait MythProtocolLike77 extends MythProtocolLike75 {
 private[myth] trait MythProtocolLike88 extends MythProtocolLike77 {
   override val        programInfoSerializer: BackendObjectSerializer[Recording]     = ProgramInfoSerializer88
   protected implicit val albumArtSerializer: BackendObjectSerializer[AlbumArtImage] = AlbumArtImageSerializerRef
+  protected implicit val inputSerializer   : BackendObjectSerializer[Input]         = InputSerializerRef
 
   // TODO "Frontend" now allowed as an announce type
 
   // we use a lazy val for commandMap to avoid NPE during initialization
   private lazy val commandMap = super.commands -- removedCommands ++ newCommands
 
-  private val removedCommands = List(
+  private val removedCommands = List(  // TODO QUERY_{RECORDER,REMOTE_ENCODER}/GET_FREE_INPUTS no longer available either
     "GET_FREE_RECORDER",
     "GET_FREE_RECORDER_COUNT",
     "GET_FREE_RECORDER_LIST",
@@ -2181,7 +2182,7 @@ private[myth] trait MythProtocolLike88 extends MythProtocolLike77 {
      *    "OK"  or
      *    [<inputinfo> {,<inputinfo>}*]
      */
-    "GET_FREE_INPUT_INFO" -> ((serializeNOP, handleNOP)),
+    "GET_FREE_INPUT_INFO" -> ((serializeGetFreeInputInfo, handleGetFreeInputInfo)),
 
     /*
      * IMAGE_COPY ???
@@ -2418,6 +2419,13 @@ private[myth] trait MythProtocolLike88 extends MythProtocolLike77 {
 
   override protected def commands: CommandMap = commandMap
 
+  protected def serializeGetFreeInputInfo(command: String, args: Seq[Any]): String = args match {
+    case Seq(inputId: InputId) =>
+      val elems = List(command, serialize(inputId))
+      elems mkString " "
+    case _ => throwArgumentExceptionSignature(command, "inputId: InputId")
+  }
+
   protected def serializeImageCover(command: String, args: Seq[Any]): String = args match {
     case Seq(directoryId: ImageDirId, coverId: ImageFileId) =>
       val elems = List(command, serialize(directoryId), serialize(coverId))
@@ -2611,12 +2619,6 @@ private[myth] trait MythProtocolLike88 extends MythProtocolLike77 {
 
   /* Response handlers */
 
-  protected def handleMoveFile(request: BackendRequest, response: BackendResponse): MythProtocolResult[Boolean] = {
-    val items = response.split
-    if (items(0) == "0") Left(MythProtocolFailureMessage(items.drop(1) mkString " "))
-    else Try { deserialize[Boolean](items(0)) }
-  }
-
   protected def genericHandleImage(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] = {
     if (response.raw == "OK") Right(())
     else if (response.raw startsWith "ERROR") Left(MythProtocolFailureMessage(response.split mkString " "))
@@ -2627,6 +2629,16 @@ private[myth] trait MythProtocolLike88 extends MythProtocolLike77 {
     if (response.raw == "OK") Right(())
     else if (response.raw startsWith "ERROR") Left(MythProtocolFailureMessage(response.split mkString " "))
     else Left(MythProtocolFailureUnknown)
+  }
+
+  protected def handleGetFreeInputInfo(request: BackendRequest, response: BackendResponse): MythProtocolResult[List[Input]] = {
+    if (response.raw == "OK") Right(Nil)
+    else if (response.raw startsWith "ERROR") Left(MythProtocolFailureMessage(response.split mkString " "))
+    else Try {
+      val fieldCount = inputSerializer.fieldCount
+      val it = response.split.iterator grouped fieldCount withPartial false
+      (it map deserialize[Input]).toList
+    }
   }
 
   protected def handleImageCopy(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] =
@@ -2682,6 +2694,12 @@ private[myth] trait MythProtocolLike88 extends MythProtocolLike77 {
 
   protected def handleImageTransform(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] =
     genericHandleImage(request, response)
+
+  protected def handleMoveFile(request: BackendRequest, response: BackendResponse): MythProtocolResult[Boolean] = {
+    val items = response.split
+    if (items(0) == "0") Left(MythProtocolFailureMessage(items.drop(1) mkString " "))
+    else Try { deserialize[Boolean](items(0)) }
+  }
 
   protected def handleMusicCalcTrackLength(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] =
     genericHandleMusic(request, response)

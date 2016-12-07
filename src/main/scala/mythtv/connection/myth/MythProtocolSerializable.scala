@@ -79,6 +79,10 @@ object MythProtocolSerializable {
     def factory = CaptureCardId.apply
   }
 
+  implicit object CategoryTypeSerializer extends EnumerationSerializer[CategoryType] {
+    def factory = CategoryType.applyOrUnknown
+  }
+
   implicit object ChanIdSerializer extends IntegerIdentifierSerializer[ChanId] {
     def factory = ChanId.apply
   }
@@ -264,6 +268,16 @@ object MythProtocolSerializable {
     def serialize(in: Seq[ImageId]): String = in.map(_.id).mkString(",")
   }
 
+  implicit object RecordedIdSerializer extends MythProtocolSerializable[RecordedId] {
+    import RecordedId._
+    def deserialize(in: String): RecordedId = RecordedIdInt(in.toInt)
+    def serialize(in: RecordedId): String = in match {
+      case RecordedIdInt(id) => id.toString
+      case RecordedIdChanTime(chanId, recStartTs) =>  // is this case useful? somewhat arbitrary definition...
+        MythProtocol.serialize(chanId) + "_" + MythProtocol.serialize(recStartTs)
+    }
+  }
+
   /**** UTILITY OBJECTS (not MythTV specific) ******/
 
   implicit object FileStatsSerializer extends MythProtocolSerializable[FileStats] {
@@ -385,6 +399,12 @@ private[myth] object CardInputSerializerRef
 private[myth] object ChannelSerializerRef
   extends GenericBackendObjectSerializer[Channel, BackendChannelFactory, ChannelOtherSerializer] {
   def newFactory = BackendChannel
+  def otherSerializer = ???
+}
+
+private[myth] object InputSerializerRef
+  extends GenericBackendObjectSerializer[Input, BackendInputFactory, InputOtherSerializer] {
+  def newFactory = BackendInput
   def otherSerializer = ???
 }
 

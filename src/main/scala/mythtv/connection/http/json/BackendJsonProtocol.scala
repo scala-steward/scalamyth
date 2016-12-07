@@ -267,6 +267,8 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
 
     def read(value: JsValue): Recording = {
+      import RecordedId._
+
       val obj = value.asJsObject
 
       val channel: RichJsonObject =  // inner object
@@ -276,6 +278,17 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       val rec: RichJsonObject =      // inner object
         if (obj.fields contains "Recording") obj.fields("Recording").asJsObject
         else EmptyJsonObject
+
+      val inferredRecordedId: RecordedId = {
+        rec.intFieldOption("RecordedId") map RecordedIdInt
+      } getOrElse {
+        if (obj.stringFieldOption("FileName", "").nonEmpty) {
+          val chanId = ChanId(channel.intFieldOrElse("ChanId", 0))
+          val startTs = rec.dateTimeField("StartTs")
+          RecordedIdChanTime(chanId, startTs)
+        }
+        else RecordedIdInt(0)
+      }
 
       new Recording {
         override def toString: String = s"<JsonRecording $chanId, $startTime: $title>"
@@ -297,6 +310,9 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def videoProps              = VideoProperties(obj.intField("VideoProps"))
         def subtitleType            = SubtitleType(obj.intField("SubProps"))
         def year                    = None
+        def season                  = obj.intFieldOption("Season", 0)
+        def episode                 = obj.intFieldOption("Episode", 0)
+        def totalEpisodes           = obj.intFieldOption("TotalEpisodes", 0)
         def partNumber              = None
         def partTotal               = None
         def programFlags            = ProgramFlags(obj.intField("ProgramFlags"))
@@ -327,9 +343,8 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
 
         def filename                = obj.stringField("FileName")
         def filesize                = DecimalByteCount(obj.longField("FileSize"))
-        def season                  = obj.intFieldOption("Season", 0)
-        def episode                 = obj.intFieldOption("Episode", 0)
         def inetRef                 = obj.stringFieldOption("Inetref", "")
+        def recordedId              = inferredRecordedId
 
         def artworkInfo             = obj.fields("Artwork").convertTo[List[ArtworkInfo]]
       }
@@ -400,6 +415,9 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def videoProps              = VideoProperties(obj.intField("VideoProps"))
         def subtitleType            = SubtitleType(obj.intField("SubProps"))
         def year                    = None
+        def season                  = obj.intFieldOption("Season", 0)
+        def episode                 = obj.intFieldOption("Episode", 0)
+        def totalEpisodes           = obj.intFieldOption("TotalEpisodes", 0)
         def partNumber              = None
         def partTotal               = None
         def programFlags            = ProgramFlags(obj.intField("ProgramFlags"))
@@ -502,6 +520,9 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def videoProps              = VideoProperties(obj.intField("VideoProps"))
         def subtitleType            = SubtitleType(obj.intField("SubProps"))
         def year                    = None
+        def season                  = obj.intFieldOption("Season", 0)
+        def episode                 = obj.intFieldOption("Episode", 0)
+        def totalEpisodes           = obj.intFieldOption("TotalEpisodes", 0)
         def partNumber              = None
         def partTotal               = None
         def programFlags            = ProgramFlags(obj.intField("ProgramFlags"))

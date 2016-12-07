@@ -5,12 +5,13 @@ package myth
 import model._
 import model.EnumTypes._
 
-// TODO Factor out commonality with RecorderAPI ?
+// TODO Factor out commonality with RecorderAPI ? what to call it?
 //  (cancelNextRecording, getMaxBitrate, getCurrentRecording, getFreeInputs)
 
 trait RemoteEncoderAPI {
   def cancelNextRecording(cancel: Boolean): MythProtocolResult[Unit]
   def getCurrentRecording: MythProtocolResult[Recording]
+  @deprecated("use MythProtocolApi.getFreeInputInfo", "MythTV 0.28")
   def getFreeInputs(excludedCards: CaptureCardId*): MythProtocolResult[List[CardInput]]
   def getMaxBitrate: MythProtocolResult[Long]
   def getRecordingStatus: MythProtocolResult[RecStatus]

@@ -37,9 +37,18 @@ trait MythProtocolAPI {
   def forceDeleteRecording(rec: Recording): MythProtocolResult[Int]
   def forgetRecording(rec: Recording): MythProtocolResult[Boolean]
   def freeTuner(cardId: CaptureCardId): MythProtocolResult[Boolean]
+
+  /* for compatibility purposes */
+  def getFreeInputInfo: MythProtocolResult[List[Input]]
+  def getFreeInputInfo(excludedInput: InputId): MythProtocolResult[List[Input]]
+
+  @deprecated("use getFreeInputInfo", "MythTV 0.28")
   def getFreeRecorder: MythProtocolResult[RemoteEncoder]
+  @deprecated("use getFreeInputInfo", "MythTV 0.28")
   def getFreeRecorderCount: MythProtocolResult[Int]
+  @deprecated("use getFreeInputInfo", "MythTV 0.28")
   def getFreeRecorderList: MythProtocolResult[List[CaptureCardId]]
+  @deprecated("use getFreeInputInfo", "MythTV 0.28")
   def getNextFreeRecorder(cardId: CaptureCardId): MythProtocolResult[RemoteEncoder]
   def getRecorderFromNum(cardId: CaptureCardId): MythProtocolResult[RemoteEncoder]
   def getRecorderNum(rec: Recording): MythProtocolResult[RemoteEncoder]

@@ -206,7 +206,7 @@ object BackendConnection {
     88 -> BackendConnection88
   )
 
-  private[myth] val DefaultVersion = 75  // TODO just for now for testing
+  private[myth] val DefaultVersion = 88
 
   def apply(host: String, port: Int = DefaultPort, timeout: Int = DefaultTimeout): BackendConnection = {
     try {

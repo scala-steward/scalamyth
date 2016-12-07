@@ -11,6 +11,8 @@ trait ProgramVideoBase {
   def subtitle: String
   def description: String
   def year: Option[Year]      // NB called 'airdate' in program table
+  def season: Option[Int]
+  def episode: Option[Int]
 
   def combinedTitle: String = combinedTitle(": ")
   def combinedTitle(sep: String): String =
@@ -21,11 +23,10 @@ trait ProgramVideoBase {
 /* metadata acquired from the internet (e.g. TheTVDB.com or TheMovieDB.org (TMDb) or IMDb(?)) */
 trait InternetMetadata {
   def inetRef: Option[String]
-  def season: Option[Int]
-  def episode: Option[Int]
 }
 
 trait Program extends ProgramVideoBase {
+  def totalEpisodes: Option[Int]           // starting in MythTV 0.28
   def syndicatedEpisode: String
   def category: String
   def categoryType: Option[CategoryType]   // only really seems to be populated in program guide stuff
@@ -98,6 +99,7 @@ trait Recordable extends Program {
 }
 
 trait Recording extends Recordable with InternetMetadata {
+  def recordedId: RecordedId
   def filename: String
   def filesize: ByteCount
 
@@ -166,7 +168,7 @@ object ProgramType extends LooseEnum {
 
 object CategoryType extends LooseEnum {
   type CategoryType = Value
-  val None     = Value(0)
+  val None     = Value(0, "")
   val Movie    = Value(1, "movie")
   val Series   = Value(2, "series")
   val Sports   = Value(3, "sports")

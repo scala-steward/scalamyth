@@ -5,6 +5,8 @@ package myth
 import java.net.{ InetAddress, URI }
 import java.time.{ Duration, Instant }
 
+import scala.util.{ Try, Success, Failure }
+
 import model._
 import model.EnumTypes._
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythFileHash, NetworkUtil }
@@ -13,6 +15,7 @@ import MythProtocol.ImageScanResult._
 import MythProtocol.QueryRecorderResult._
 import MythProtocol.QueryRemoteEncoderResult._
 import MythProtocol.QueryFileTransferResult._
+import MythProtocol.MythProtocolFailure._
 
 private[myth] trait MythProtocolAPILike {
   self: MythProtocol =>
@@ -116,24 +119,97 @@ private[myth] trait MythProtocolAPILike {
     result map { case r: Boolean => r }
   }
 
+  private def cardInput2Input(cardInput: CardInput): Input = new Input {
+    def cardId        = cardInput.cardId
+    def inputId       = cardInput.cardInputId
+    def sourceId      = cardInput.sourceId
+    def chanId        = None
+    def mplexId       = Some(cardInput.mplexId)
+    def name          = cardInput.name
+    def displayName   = name
+    def recPriority   = 0
+    def scheduleOrder = 0
+    def liveTvOrder   = cardInput.liveTvOrder
+    def quickTune     = false
+  }
+
+  import scala.language.implicitConversions
+  private implicit def try2Result[T](t: Try[T]): MythProtocolResult[T] = t match {
+    case Success(value) => Right(value)
+    case Failure(ex) => Left(MythProtocolFailureThrowable(ex))  // TODO catch more specific exception types
+  }
+
+  private def internalFreeInputsForCards(cards: List[CaptureCardId]): MythProtocolResult[List[CardInput]] =
+    Try(cards flatMap (queryRecorderGetFreeInputs(_).get))
+
+  private def internalFreeInputsForCards(excluded: InputId)(cards: List[CaptureCardId]): MythProtocolResult[List[CardInput]] =
+    Try(cards flatMap (queryRecorderGetFreeInputs(_, CaptureCardId(excluded.id)).get))
+
+  def getFreeInputInfo: MythProtocolResult[List[Input]] = {
+    if (ProtocolVersion >= 88) {
+      val result = sendCommand("GET_FREE_INPUT_INFO", InputId(0))
+      result map { case xs: List[_] => xs.asInstanceOf[List[Input]] }
+    } else {
+      val cardInputs = getFreeRecorderList flatMap internalFreeInputsForCards
+      cardInputs map (_ map cardInput2Input)
+    }
+  }
+
+  def getFreeInputInfo(excludedInput: InputId): MythProtocolResult[List[Input]] = {
+    if (ProtocolVersion >= 88) {
+      val result = sendCommand("GET_FREE_INPUT_INFO", excludedInput)
+      result map { case xs: List[_] => xs.asInstanceOf[List[Input]] }
+    } else {
+      val cardInputs = getFreeRecorderList flatMap internalFreeInputsForCards(excludedInput)
+      cardInputs map (_ map cardInput2Input)
+    }
+  }
+
+  private def internalFirstInput(inputs: List[Input]): MythProtocolResult[Input] = inputs match {
+    case Nil => Left(MythProtocolNoResult)
+    case x :: _ => Right(x)
+  }
+
   def getFreeRecorder: MythProtocolResult[RemoteEncoder] = {
-    val result = sendCommand("GET_FREE_RECORDER")
-    result map { case e: RemoteEncoder => e }
+    if (ProtocolVersion < 88) {
+      val result = sendCommand("GET_FREE_RECORDER")
+      result map { case e: RemoteEncoder => e }
+    }
+    else for {
+      inputs  <- getFreeInputInfo
+      first   <- internalFirstInput(inputs)
+      encoder <- getRecorderFromNum(CaptureCardId(first.inputId.id))
+    } yield encoder
   }
 
   def getFreeRecorderCount: MythProtocolResult[Int] = {
-    val result = sendCommand("GET_FREE_RECORDER_COUNT")
-    result map { case n: Int => n }
+    if (ProtocolVersion < 88) {
+      val result = sendCommand("GET_FREE_RECORDER_COUNT")
+      result map { case n: Int => n }
+    } else {
+      getFreeInputInfo map (_.size)
+    }
   }
 
   def getFreeRecorderList: MythProtocolResult[List[CaptureCardId]] = {
-    val result = sendCommand("GET_FREE_RECORDER_LIST")
-    result map { case xs: List[_] => xs.asInstanceOf[List[CaptureCardId]] }
+    if (ProtocolVersion < 88) {
+      val result = sendCommand("GET_FREE_RECORDER_LIST")
+      result map { case xs: List[_] => xs.asInstanceOf[List[CaptureCardId]] }
+    } else {
+      getFreeInputInfo map (_ map (i => CaptureCardId(i.inputId.id)))
+    }
   }
 
   def getNextFreeRecorder(cardId: CaptureCardId): MythProtocolResult[RemoteEncoder] = {
-    val result = sendCommand("GET_NEXT_FREE_RECORDER", cardId)
-    result map { case e: RemoteEncoder => e }
+    if (ProtocolVersion < 88) {
+      val result = sendCommand("GET_NEXT_FREE_RECORDER", cardId)
+      result map { case e: RemoteEncoder => e }
+    }
+    else for {
+      inputs  <- getFreeInputInfo(InputId(cardId.id))  // FIXME not sure this is right?
+      first   <- internalFirstInput(inputs)
+      encoder <- getRecorderFromNum(CaptureCardId(first.inputId.id))
+    } yield encoder
   }
 
   def getRecorderFromNum(cardId: CaptureCardId): MythProtocolResult[RemoteEncoder] = {
