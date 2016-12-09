@@ -41,7 +41,7 @@ private[http] trait MythJsonListFormat[T]
   }
 }
 
-trait CommonJsonProtocol {
+private[http] trait CommonJsonProtocol {
 
   implicit object StringListJsonFormat extends MythJsonListFormat[String] {
     import DefaultJsonProtocol.StringJsonFormat
