@@ -51,8 +51,13 @@ trait DvrService extends BackendService {
     descending: Boolean = false
   ): ServiceResult[PagedList[RecordRule]]
 
-  // TODO for 0.28 adds Template, RecordedId, ChanId, StartTime, MakeOverride parameters
+  // for MythTV 0.28 getRecordSchedule adds parameters: Template, RecordedId, ChanId, StartTime, MakeOverride
   def getRecordSchedule(recordId: RecordRuleId): ServiceResult[RecordRule]
+  def getRecordSchedule(recordedId: RecordedId): ServiceResult[RecordRule]
+  def getRecordSchedule(template: String): ServiceResult[RecordRule]
+
+  // NB getRecordSchedule(ChanId, StartTime) loads from program table, should not be used with recordings
+  def getRecordSchedule(chanId: ChanId, startTime: MythDateTime, makeOverride: Boolean = false): ServiceResult[RecordRule]
 
   def getRecGroupList: ServiceResult[List[String]]
 

@@ -151,6 +151,42 @@ class JsonDvrService(conn: BackendJsonConnection)
     } yield result
   }
 
+  def getRecordSchedule(recordedId: RecordedId): ServiceResult[RecordRule] = recordedId match {
+    case RecordedIdInt(id) =>
+      val params: Map[String, Any] = Map("RecordedId" -> id)
+      for {
+        response <- request("GetRecordSchedule", params)
+        root     <- responseRoot(response, "RecRule")
+        result   <- Try(root.convertTo[RecordRule])
+      } yield result
+    case RecordedIdChanTime(chanId, startTime) =>
+      // we can't use getRecordSchedule(chanId, startTime) on an existing recording,
+      // so query the record rule id of the recording and use that as our parameter
+      for {
+        rec  <- getRecorded(chanId, startTime)
+        rule <- getRecordSchedule(rec.recordId)
+      } yield rule
+  }
+
+  def getRecordSchedule(template: String): ServiceResult[RecordRule] = {
+    val params: Map[String, Any] = Map("Template" -> template)
+    for {
+      response <- request("GetRecordSchedule", params)
+      root     <- responseRoot(response, "RecRule")
+      result   <- Try(root.convertTo[RecordRule])
+    } yield result
+  }
+
+  def getRecordSchedule(chanId: ChanId, startTime: MythDateTime, makeOverride: Boolean): ServiceResult[RecordRule] = {
+    var params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
+    if (makeOverride) params += "MakeOverride" -> makeOverride
+    for {
+      response <- request("GetRecordSchedule", params)
+      root     <- responseRoot(response, "RecRule")
+      result   <- Try(root.convertTo[RecordRule])
+    } yield result
+  }
+
   def getRecGroupList: ServiceResult[List[String]] = {
     for {
       response <- request("GetRecGroupList")
