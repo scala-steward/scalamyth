@@ -24,8 +24,33 @@ class JsonChannelService(conn: BackendJsonConnection)
     } yield result
   }
 
-  def getChannelInfoList(sourceId: ListingSourceId): ServiceResult[PagedList[ChannelDetails]] = {
-    val params: Map[String, Any] = Map("SourceID" -> sourceId.id)
+  // TODO simulate onlyVisible for older versions? also startIndex and count? Also, older versions have unsorted results...
+  def getChannelInfoList(
+    sourceId: ListingSourceId,
+    startIndex: Int,
+    count: OptionalCount[Int],
+    onlyVisible: Boolean
+  ): ServiceResult[PagedList[Channel]] = {
+    var params = buildStartCountParams(startIndex, count) + ("SourceID" -> sourceId.id)
+    if (onlyVisible) params += "OnlyVisible" -> onlyVisible
+    for {
+      response <- request("GetChannelInfoList", params)
+      root     <- responseRoot(response, "ChannelInfoList")
+      result   <- Try(root.convertTo[MythJsonPagedObjectList[Channel]])
+    } yield result
+  }
+
+  def getChannelInfoDetailsList(
+    sourceId: ListingSourceId,
+    startIndex: Int = 0,
+    count: OptionalCount[Int] = OptionalCount.all,
+    onlyVisible: Boolean = false
+  ): ServiceResult[PagedList[ChannelDetails]] = {
+    var params = buildStartCountParams(startIndex, count) ++ Map(
+      "SourceID" -> sourceId.id,
+      "Details"  -> true
+    )
+    if (onlyVisible) params += "OnlyVisible" -> onlyVisible
     for {
       response <- request("GetChannelInfoList", params)
       root     <- responseRoot(response, "ChannelInfoList")

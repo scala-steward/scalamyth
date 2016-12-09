@@ -11,6 +11,8 @@ import model._
 import util.MythDateTime
 import services.{ MythFrontendService, ServiceResult }
 import EnumTypes.{ NotificationPriority, NotificationType, NotificationVisibility }
+import MythFrontend.KeyName
+import RecordedId._
 
 import RichJsonObject._
 
@@ -73,6 +75,17 @@ class JsonMythFrontendService(conn: FrontendJsonConnection)
     } yield result
   }
 
+  def playRecording(recordedId: RecordedId): ServiceResult[Boolean] = recordedId match {
+    case RecordedIdInt(id) =>
+      val params: Map[String, Any] = Map("RecordedId" -> id)
+      for {
+        response <- post("PlayRecording", params)
+        root     <- responseRoot(response)
+        result   <- Try(root.booleanField("bool"))
+      } yield result
+    case RecordedIdChanTime(chanId, startTime) => playRecording(chanId, startTime)
+  }
+
   def playVideo(id: VideoId, useBookmark: Boolean = false): ServiceResult[Boolean] = {
     var params: Map[String, Any] = Map("Id" -> id.id)
     if (useBookmark) params += "UseBookmark" -> useBookmark
@@ -89,6 +102,15 @@ class JsonMythFrontendService(conn: FrontendJsonConnection)
     if (value.nonEmpty) params += "Value" -> value
     for {
       response <- post("SendAction", params)
+      root     <- responseRoot(response)
+      result   <- Try(root.booleanField("bool"))
+    } yield result
+  }
+
+  def sendKey(key: KeyName): ServiceResult[Boolean] = {
+    val params: Map[String, Any] = Map("Key" -> key)
+    for {
+      response <- post("SendKey", params)
       root     <- responseRoot(response)
       result   <- Try(root.booleanField("bool"))
     } yield result

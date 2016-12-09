@@ -7,6 +7,7 @@ import model._
 import util.MythDateTime
 import connection.http.HttpStreamResponse
 import EnumTypes.{ NotificationPriority, NotificationType, NotificationVisibility }
+import MythFrontend.KeyName
 
 trait MythFrontendService extends FrontendService {
   def serviceName: String = "Frontend"
@@ -27,11 +28,15 @@ trait MythFrontendService extends FrontendService {
   // send the message twice?)  I think the same buf may affect other control
   // avenues as well.
   def playRecording(chanId: ChanId, startTime: MythDateTime): ServiceResult[Boolean]
+  def playRecording(recordedId: RecordedId): ServiceResult[Boolean]
 
   // FIXME UPSTREAM BUG? if UseBookmark=true, then dialog still pops up about bookmark
   def playVideo(id: VideoId, useBookmark: Boolean = false): ServiceResult[Boolean]
 
   def sendAction(action: Action, value: String = ""): ServiceResult[Boolean]
+
+  // sendKey is new for MythTV 0.28
+  def sendKey(key: KeyName): ServiceResult[Boolean]
 
   def sendMessage(message: String, timeout: Duration = Duration.ZERO): ServiceResult[Boolean]
 

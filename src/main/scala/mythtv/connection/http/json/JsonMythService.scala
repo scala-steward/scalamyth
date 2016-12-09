@@ -8,11 +8,12 @@ import java.time.{ Duration, Instant }
 
 import scala.util.Try
 
-import spray.json.DefaultJsonProtocol
+import spray.json.DefaultJsonProtocol.StringJsonFormat
 
-import util.URIFactory
+import model._
+import util.{ MythDateTime, URIFactory }
 import services.{ MythService, ServiceResult }
-import model.{ ConnectionInfo, LogMessage, Settings, StorageGroupDir, TimeZoneInfo }
+import EnumTypes.{ NotificationPriority, NotificationType, NotificationVisibility }
 import RichJsonObject._
 
 private[json] trait LabelValue {
@@ -24,6 +25,14 @@ class JsonMythService(conn: BackendJsonConnection)
   extends JsonBackendService(conn)
      with MythService {
 
+  def getBackendInfo: ServiceResult[BackendDetails] = {
+    for {
+      response <- request("GetBackendInfo")
+      root     <- responseRoot(response, "BackendInfo")
+      result   <- Try(root.convertTo[BackendDetails])
+    } yield result
+  }
+
   def getConnectionInfo(pin: String): ServiceResult[ConnectionInfo] = {
     val params: Map[String, Any] = Map("Pin" -> pin)
     for {
@@ -33,8 +42,17 @@ class JsonMythService(conn: BackendJsonConnection)
     } yield result
   }
 
+  def getFrontends(onlyOnline: Boolean): ServiceResult[List[KnownFrontendInfo]] = {
+    var params: Map[String, Any] = Map.empty
+    if (onlyOnline) params += "OnLine" -> onlyOnline
+    for {
+      response <- request("GetFrontends", params)
+      root     <- responseRoot(response, "FrontendList")
+      result   <- Try(root.convertTo[List[KnownFrontendInfo]])
+    } yield result
+  }
+
   def getHostName: ServiceResult[String] = {
-    import DefaultJsonProtocol.StringJsonFormat
     for {
       response <- request("GetHostName")
       root     <- responseRoot(response, "String")
@@ -69,6 +87,16 @@ class JsonMythService(conn: BackendJsonConnection)
     } yield result
   }
 
+  def getSettingList(hostName: String = ""): ServiceResult[Settings] = {
+    var params: Map[String, Any] = Map.empty
+    if (hostName.nonEmpty) params += "HostName" -> hostName
+    for {
+      response <- request("GetSettingList", params)
+      root     <- responseRoot(response, "SettingList")
+      result   <- Try(root.convertTo[Settings])
+    } yield result
+  }
+
   def getStorageGroupDirs(hostName: String, groupName: String): ServiceResult[List[StorageGroupDir]] = {
     var params: Map[String, Any] = Map.empty
     if (hostName.nonEmpty) params += "HostName" -> hostName
@@ -80,11 +108,49 @@ class JsonMythService(conn: BackendJsonConnection)
     } yield result
   }
 
+  def getFormatDate(dateTime: MythDateTime, shortDate: Boolean = false): ServiceResult[String] = {
+    var params: Map[String, Any] = Map("Date" -> dateTime.toIsoFormat)
+    if (shortDate) params += "ShortDate" -> shortDate
+    for {
+      response <- request("GetFormatDate", params)
+      root     <- responseRoot(response, "String")
+      result   <- Try(root.convertTo[String])
+    } yield result
+  }
+
+  def getFormatDateTime(dateTime: MythDateTime, shortDate: Boolean = false): ServiceResult[String] = {
+    var params: Map[String, Any] = Map("DateTime" -> dateTime.toIsoFormat)
+    if (shortDate) params += "ShortDate" -> shortDate
+    for {
+      response <- request("GetFormatDateTime", params)
+      root     <- responseRoot(response, "String")
+      result   <- Try(root.convertTo[String])
+    } yield result
+  }
+
+  def getFormatTime(dateTime: MythDateTime): ServiceResult[String] = {
+    val params: Map[String, Any] = Map("Time" -> dateTime.toIsoFormat)
+    for {
+      response <- request("GetFormatTime", params)
+      root     <- responseRoot(response, "String")
+      result   <- Try(root.convertTo[String])
+    } yield result
+  }
+
   def getTimeZone: ServiceResult[TimeZoneInfo] = {
     for {
       response <- request("GetTimeZone")
       root     <- responseRoot(response, "TimeZoneInfo")
       result   <- Try(root.convertTo[TimeZoneInfo])
+    } yield result
+  }
+
+  def parseIsoDateString(dateTimeString: String): ServiceResult[MythDateTime] = {
+    val params: Map[String, Any] = Map("DateTime" -> dateTimeString)
+    for {
+      response <- request("ParseISODateString", params)
+      root     <- responseRoot(response, "DateTime")
+      result   <- Try(MythDateTime.fromIso(root.convertTo[String]))
     } yield result
   }
 
@@ -219,7 +285,40 @@ class JsonMythService(conn: BackendJsonConnection)
     } yield result
   }
 
-  //def sendNotification(....): Boolean = ???
+  def sendNotification(
+    message: String,
+    origin: String,
+    description: String,
+    extra: String,
+    progressText: String,
+    progress: Float,
+    fullScreen: Boolean,
+    timeout: Duration,
+    notifyType: NotificationType,
+    priority: NotificationPriority,
+    visibility: NotificationVisibility,
+    address: String,
+    udpPort: Int
+  ): ServiceResult[Boolean] = {
+    var params: Map[String, Any] = Map("Message" -> message)
+    if (origin.nonEmpty)       params +=       "Origin" -> origin
+    if (description.nonEmpty)  params +=  "Description" -> description
+    if (extra.nonEmpty)        params +=        "Extra" -> extra
+    if (progressText.nonEmpty) params += "ProgressText" -> progressText
+    if (progress != 0f)        params +=     "Progress" -> progress
+    if (fullScreen)            params +=   "Fullscreen" -> fullScreen
+    if (!timeout.isZero)       params +=      "Timeout" -> timeout.getSeconds
+    if (notifyType != NotificationType.New)       params +=       "Type" -> notifyType.toString.toLowerCase
+    if (priority != NotificationPriority.Default) params +=   "Priority" -> priority.id
+    if (visibility != NotificationVisibility.All) params += "Visibility" -> visibility.id
+    if (address.nonEmpty)      params +=      "Address" -> address
+    if (udpPort != 0)          params +=      "udpPort" -> udpPort
+    for {
+      response <- post("SendNotification", params)
+      root     <- responseRoot(response)
+      result   <- Try(root.booleanField("bool"))
+    } yield result
+  }
 
   def backupDatabase(): ServiceResult[Boolean] = {
     for {
@@ -256,7 +355,6 @@ class JsonMythService(conn: BackendJsonConnection)
   }
 
   def profileUrl: ServiceResult[URI] = {
-    import DefaultJsonProtocol.StringJsonFormat
     for {
       response <- request("ProfileURL")
       root     <- responseRoot(response, "String")
@@ -265,7 +363,6 @@ class JsonMythService(conn: BackendJsonConnection)
   }
 
   def profileUpdated: ServiceResult[String] = {
-    import DefaultJsonProtocol.StringJsonFormat
     for {
       response <- request("ProfileUpdated")
       root     <- responseRoot(response, "String")
@@ -274,7 +371,6 @@ class JsonMythService(conn: BackendJsonConnection)
   }
 
   def profileText(): ServiceResult[String] = {
-    import DefaultJsonProtocol.StringJsonFormat
     for {
       response <- request("ProfileText")
       root     <- responseRoot(response, "String")

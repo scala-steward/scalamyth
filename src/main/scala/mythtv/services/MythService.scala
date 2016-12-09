@@ -4,13 +4,21 @@ package services
 import java.net.URI
 import java.time.{ Duration, Instant }
 
-import model.{ ConnectionInfo, LogMessage, Settings, StorageGroupDir, TimeZoneInfo }
+import model._
+import util.MythDateTime
+import EnumTypes.{ NotificationPriority, NotificationType, NotificationVisibility }
 import Service.ServiceFailure.ServiceNoResult
 
 trait MythService extends BackendService {
   def serviceName: String = "Myth"
 
+  // getBackendInfo is new with MythTV 0.28
+  def getBackendInfo: ServiceResult[BackendDetails]
+
   def getConnectionInfo(pin: String): ServiceResult[ConnectionInfo]
+
+  def getFrontends: ServiceResult[List[KnownFrontendInfo]] = getFrontends(false)
+  def getFrontends(onlyOnline: Boolean): ServiceResult[List[KnownFrontendInfo]]
 
   def getHostName: ServiceResult[String]
 
@@ -41,7 +49,22 @@ trait MythService extends BackendService {
     getSettings(hostname, key) flatMap extractSetting(key)
   }
 
+  // FIXME: starting with MythTV 0.28, this no longer accepts "" as a key?
   def getSettings(hostName: String = "", key: String = ""): ServiceResult[Settings]
+
+  def getSettingList(hostName: String = ""): ServiceResult[Settings]
+
+  // getFormatDate is new with MythTV 0.28
+  def getFormatDate(dateTime: MythDateTime, shortDate: Boolean = false): ServiceResult[String]
+
+  // getFormatDateTime is new with MythTV 0.28
+  def getFormatDateTime(dateTime: MythDateTime, shortDate: Boolean = false): ServiceResult[String]
+
+  // getFormatTime is new with MythTV 0.28
+  def getFormatTime(dateTime: MythDateTime): ServiceResult[String]
+
+  // parseIsoDateString is new with MythTV 0.28
+  def parseIsoDateString(dateTimeString: String): ServiceResult[MythDateTime]
 
   def getTimeZone: ServiceResult[TimeZoneInfo]
 
@@ -102,7 +125,21 @@ trait MythService extends BackendService {
   //    UPSTREAM: The bug seems to be in the backend service; should use subnet broadcast address rather than global?
   def sendMessage(message: String, address: String = "", udpPort: Int = 0, timeout: Duration = Duration.ZERO): ServiceResult[Boolean]
 
-  //def sendNotification(....): Boolean
+  def sendNotification(
+    message: String,
+    origin: String = "",
+    description: String = "",
+    extra: String = "",
+    progressText: String = "",
+    progress: Float = 0f,   /* should be decimal between 0 and 1 */
+    fullScreen: Boolean = false,
+    timeout: Duration = Duration.ZERO,
+    notifyType: NotificationType = NotificationType.New,
+    priority: NotificationPriority = NotificationPriority.Default,
+    visibility: NotificationVisibility = NotificationVisibility.All,
+    address: String = "",
+    udpPort: Int = 0
+  ): ServiceResult[Boolean]
 
   // This causes a database backup to be performed synchronously, so may not return for some time.
   def backupDatabase(): ServiceResult[Boolean]
@@ -125,5 +162,4 @@ trait MythService extends BackendService {
 
   // This causes a new hardware profile to be generated, by running an external command
   def profileText(): ServiceResult[String]
-
 }

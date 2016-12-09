@@ -1,7 +1,7 @@
 package mythtv
 package services
 
-import model.{ CaptureCardId, ChanId, ChannelDetails, Lineup,
+import model.{ CaptureCardId, ChanId, Channel, ChannelDetails, Lineup,
   ListingSource, ListingSourceId, MultiplexId, VideoMultiplex }
 import util.OptionalCount
 
@@ -9,7 +9,22 @@ trait ChannelService extends BackendService {
   def serviceName: String = "Channel"
 
   def getChannelInfo(chanId: ChanId): ServiceResult[ChannelDetails]
-  def getChannelInfoList(sourceId: ListingSourceId): ServiceResult[PagedList[ChannelDetails]]
+
+  // for MythTV 0.28 gains parameters: StartIndex, Count, OnlyVisible, Details
+  // different methods for details/non-details, because different return type...
+  def getChannelInfoList(
+    sourceId: ListingSourceId,
+    startIndex: Int = 0,
+    count: OptionalCount[Int] = OptionalCount.all,
+    onlyVisible: Boolean = false
+  ): ServiceResult[PagedList[Channel]]
+
+  def getChannelInfoDetailsList(
+    sourceId: ListingSourceId,
+    startIndex: Int = 0,
+    count: OptionalCount[Int] = OptionalCount.all,
+    onlyVisible: Boolean = false
+  ): ServiceResult[PagedList[ChannelDetails]]
 
   def getVideoSource(sourceId: ListingSourceId): ServiceResult[ListingSource]
   def getVideoSourceList: ServiceResult[List[ListingSource]]

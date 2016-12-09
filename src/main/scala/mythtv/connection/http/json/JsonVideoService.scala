@@ -36,9 +36,17 @@ class JsonVideoService(conn: BackendJsonConnection)
     } yield result
   }
 
-  def getVideoList(startIndex: Int, count: OptionalCount[Int], descending: Boolean): ServiceResult[PagedList[Video]] = {
+  def getVideoList(
+    folder: String,
+    sortBy: String,
+    startIndex: Int,
+    count: OptionalCount[Int],
+    descending: Boolean
+  ): ServiceResult[PagedList[Video]] = {
     var params = buildStartCountParams(startIndex, count)
-    if (descending) params += "Descending" -> descending
+    if (folder.nonEmpty) params += "Folder"     -> folder
+    if (sortBy.nonEmpty) params += "Sort"       -> sortBy
+    if (descending)      params += "Descending" -> descending
     for {
       response <- request("GetVideoList", params)
       root     <- responseRoot(response, "VideoMetadataInfoList")
@@ -60,11 +68,11 @@ class JsonVideoService(conn: BackendJsonConnection)
   def lookupVideo(title: String, subtitle: String, inetRef: String, season: Int, episode: Int,
     grabberType: MetadataGrabberType, allowGeneric: Boolean): ServiceResult[List[VideoLookup]] = {
     var params: Map[String, Any] = Map.empty
-    if (title.nonEmpty)    params += "Title" -> title
+    if (title.nonEmpty)    params += "Title"    -> title
     if (subtitle.nonEmpty) params += "Subtitle" -> subtitle
-    if (inetRef.nonEmpty)  params += "Inetref" -> inetRef
-    if (season != 0)       params += "Season" -> season
-    if (episode != 0)      params += "Episode" -> episode
+    if (inetRef.nonEmpty)  params += "Inetref"  -> inetRef
+    if (season != 0)       params += "Season"   -> season
+    if (episode != 0)      params += "Episode"  -> episode
     if (grabberType != MetadataGrabberType.Unknown) params += "GrabberType" -> grabberType.toString
     if (allowGeneric)      params += "AllowGeneric" -> allowGeneric
     for {

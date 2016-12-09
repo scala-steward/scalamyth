@@ -56,7 +56,7 @@ private class BackendCommandReader(channel: SocketChannel, conn: SocketConnectio
     val size = readStringOfLength(HeaderSizeBytes).trim.toInt
     //println("Waiting for response of length " + size)
     val response = readStringOfLength(size)
-    //println("Received response: " + response)
+    println("Received response: " + response)
     //println("Received response.")
     response
   }

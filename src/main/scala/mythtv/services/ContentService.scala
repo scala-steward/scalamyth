@@ -1,23 +1,29 @@
 package mythtv
 package services
 
-import model.{ ArtworkInfo, ChanId, LiveStreamId, LiveStream, VideoId }
+import model.{ ArtworkInfo, ChanId, LiveStreamId, LiveStream, RecordedId, VideoId }
 import util.{ MythDateTime, MythFileHash }
 import connection.http.HttpStreamResponse
 
 trait ContentService extends BackendService {
   def serviceName: String = "Content"
 
+  // getDirList is new in MythTV 0.28
+  def getDirList(storageGroup: String): ServiceResult[List[String]]
   def getFileList(storageGroup: String): ServiceResult[List[String]]
+
   def downloadFile(url: String, storageGroup: String): ServiceResult[Boolean]
   def getHash(storageGroup: String, fileName: String): ServiceResult[MythFileHash]
 
   def getRecordingArtworkList(chanId: ChanId, startTime: MythDateTime): ServiceResult[List[ArtworkInfo]]
+  def getRecordingArtworkList(recordedId: RecordedId): ServiceResult[List[ArtworkInfo]]
+
   def getProgramArtworkList(inetRef: String, season: Int): ServiceResult[List[ArtworkInfo]]
 
   def getMusic[U](id: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit]
 
   def getRecording[U](chanId: ChanId, startTime: MythDateTime)(f: (HttpStreamResponse) => U): ServiceResult[Unit]
+  def getRecording[U](recordedId: RecordedId)(f: (HttpStreamResponse) => U): ServiceResult[Unit]
 
   def getVideo[U](id: VideoId)(f: (HttpStreamResponse) => U): ServiceResult[Unit]
 
@@ -31,7 +37,8 @@ trait ContentService extends BackendService {
 
   def getAlbumArt[U](id: Int, width: Int = 0, height: Int = 0)(f: (HttpStreamResponse) => U): ServiceResult[Unit]
 
-  def getPreviewImage[U](chanId: ChanId, startTime: MythDateTime, width: Int = 0, height: Int = 0, secsIn: Int = -1)(f: (HttpStreamResponse) => U): ServiceResult[Unit]
+  def getPreviewImage[U](chanId: ChanId, startTime: MythDateTime, width: Int, height: Int, secsIn: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit]
+  def getPreviewImage[U](recordedId: RecordedId, width: Int = 0, height: Int = 0, secsIn: Int = -1)(f: (HttpStreamResponse) => U): ServiceResult[Unit]
 
   def addLiveStream(
     storageGroup: String,
@@ -47,7 +54,22 @@ trait ContentService extends BackendService {
 
   def addRecordingLiveStream(
     chanId: ChanId,
+    startTime: MythDateTime
+  ): ServiceResult[LiveStream]
+
+  def addRecordingLiveStream(
+    chanId: ChanId,
     startTime: MythDateTime,
+    maxSegments: Int,
+    width: Int,
+    height: Int,
+    bitrate: Int,
+    audioBitrate: Int,
+    sampleRate: Int
+  ): ServiceResult[LiveStream]
+
+  def addRecordingLiveStream(
+    recordedId: RecordedId,
     maxSegments: Int = LiveStream.DefaultMaxSegments,
     width: Int = LiveStream.DefaultWidth,
     height: Int = LiveStream.DefaultHeight,

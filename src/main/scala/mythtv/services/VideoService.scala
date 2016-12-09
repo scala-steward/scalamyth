@@ -10,7 +10,11 @@ trait VideoService extends BackendService {
 
   def getVideo(id: VideoId): ServiceResult[Video]
   def getVideoByFileName(fileName: String): ServiceResult[Video]
+
+  // For MythTV 0.28, getVideoList gains two parameters: Folder and Sort
   def getVideoList(
+    folder: String = "",
+    sortBy: String = "",
     startIndex: Int = 0,
     count: OptionalCount[Int] = OptionalCount.all,
     descending: Boolean = false

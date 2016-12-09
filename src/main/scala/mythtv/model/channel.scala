@@ -83,9 +83,20 @@ trait ChannelDetails extends Channel with XmlTvChannel {
    *    videosource table: FrequencyTable
    *    dtv_multiplex table: Frequency, Modulation, NetworkId, SIStandard, TransportId
    *        (sometimes collectively called "TuningParams")
+   * In MythTV 0.28, these fields are no longer present in the results.
    */
 
   def isCommercialFree: Boolean = commMethod == ChannelCommDetectMethod.CommFree
+}
+
+final case class ChannelGroupId(id: Int) extends AnyVal with IntegerIdentifier
+
+trait ChannelGroup {
+  def groupId: ChannelGroupId
+  def name: String
+  def channels: Seq[ChanId]
+
+  override def toString: String = s"<ChannelGroup $groupId $name>"
 }
 
 trait Lineup {

@@ -8,11 +8,15 @@ import java.time.format.DateTimeFormatter
 
 import scala.util.Try
 
+import spray.json.DefaultJsonProtocol.StringJsonFormat
+
 import model._
 import util.{ MythDateTime, OptionalCount }
 import services.{ DvrService, PagedList, ServiceResult }
 import services.Service.ServiceFailure.ServiceNoResult
+import EnumTypes.{ DupCheckIn, DupCheckMethod, RecStatus, RecType }
 import RichJsonObject._
+import RecordedId._
 
 class JsonDvrService(conn: BackendJsonConnection)
   extends JsonBackendService(conn)
@@ -40,9 +44,32 @@ class JsonDvrService(conn: BackendJsonConnection)
     else recTry
   }
 
-  def getRecordedList(startIndex: Int, count: OptionalCount[Int], descending: Boolean): ServiceResult[PagedList[Recording]] = {
+  def getRecorded(recordedId: RecordedId): ServiceResult[Recording] = recordedId match {
+    case RecordedIdInt(id) =>
+      val params: Map[String, Any] = Map("RecordedId" -> id)
+      val recTry = for {
+        response <- request("GetRecorded", params)
+        root     <- responseRoot(response, "Program")
+        result   <- Try(root.convertTo[Recording])
+      } yield result
+      if (recTry.isSuccess && recTry.get.isDummy) Left(ServiceNoResult)
+      else recTry
+    case RecordedIdChanTime(chanId, startTime) => getRecorded(chanId, startTime)
+  }
+
+  def getRecordedList(
+    startIndex: Int,
+    count: OptionalCount[Int],
+    descending: Boolean,
+    titleRegex: String,
+    recGroup: String,
+    storageGroup: String
+  ): ServiceResult[PagedList[Recording]] = {
     var params = buildStartCountParams(startIndex, count)
-    if (descending) params += "Descending" -> descending
+    if (descending)            params += "Descending"   -> descending
+    if (titleRegex.nonEmpty)   params += "TitleRegEx"   -> titleRegex
+    if (recGroup.nonEmpty)     params += "RecGroup"     -> recGroup
+    if (storageGroup.nonEmpty) params += "StorageGroup" -> storageGroup
     for {
       response <- request("GetRecordedList", params)
       root     <- responseRoot(response, "ProgramList")
@@ -59,9 +86,17 @@ class JsonDvrService(conn: BackendJsonConnection)
     } yield result
   }
 
-  def getUpcomingList(startIndex: Int, count: OptionalCount[Int], showAll: Boolean): ServiceResult[PagedList[Recordable]] = {
+  def getUpcomingList(
+    startIndex: Int,
+    count: OptionalCount[Int],
+    showAll: Boolean,
+    recordRuleId: RecordRuleId,
+    recStatus: RecStatus
+  ): ServiceResult[PagedList[Recordable]] = {
     var params = buildStartCountParams(startIndex, count)
-    if (showAll) params += "ShowAll" -> showAll
+    if (showAll)                        params += "ShowAll" -> showAll
+    if (recordRuleId.id != 0)           params += "RecordId" -> recordRuleId.id
+    if (recStatus != RecStatus.Unknown) params += "RecStatus" -> recStatus.id
     for {
       response <- request("GetUpcomingList", params)
       root     <- responseRoot(response, "ProgramList")
@@ -69,8 +104,13 @@ class JsonDvrService(conn: BackendJsonConnection)
     } yield result
   }
 
-  def getConflictList(startIndex: Int, count: OptionalCount[Int]): ServiceResult[PagedList[Recordable]] = {
-    val params = buildStartCountParams(startIndex, count)
+  def getConflictList(
+    startIndex: Int,
+    count: OptionalCount[Int],
+    recordRuleId: RecordRuleId
+  ): ServiceResult[PagedList[Recordable]] = {
+    var params = buildStartCountParams(startIndex, count)
+    if (recordRuleId.id != 0) params += "RecordId" -> recordRuleId.id
     for {
       response <- request("GetConflictList", params)
       root     <- responseRoot(response, "ProgramList")
@@ -86,8 +126,15 @@ class JsonDvrService(conn: BackendJsonConnection)
     } yield result
   }
 
-  def getRecordScheduleList(startIndex: Int, count: OptionalCount[Int]): ServiceResult[PagedList[RecordRule]] = {
-    val params = buildStartCountParams(startIndex, count)
+  def getRecordScheduleList(
+    startIndex: Int,
+    count: OptionalCount[Int],
+    sortBy: String,
+    descending: Boolean
+  ): ServiceResult[PagedList[RecordRule]] = {
+    var params = buildStartCountParams(startIndex, count)
+    if (sortBy.nonEmpty) params += "Sort" -> sortBy
+    if (descending)      params += "Descending" -> descending
     for {
       response <- request("GetRecordScheduleList", params)
       root     <- responseRoot(response, "RecRuleList")
@@ -112,9 +159,11 @@ class JsonDvrService(conn: BackendJsonConnection)
     } yield result
   }
 
-  def getTitleList: ServiceResult[List[String]] = {
+  def getTitleList(recGroup: String): ServiceResult[List[String]] = {
+    var params: Map[String, Any] = Map.empty
+    if (recGroup.nonEmpty) params += "RecGroup" -> recGroup
     for {
-      response <- request("GetTitleList")
+      response <- request("GetTitleList", params)
       root     <- responseRoot(response)
       result   <- Try(root.convertTo[List[String]])
     } yield result
@@ -130,16 +179,92 @@ class JsonDvrService(conn: BackendJsonConnection)
 
   /* POST methods */
 
-  def removeRecorded(chanId: ChanId, startTime: MythDateTime): ServiceResult[Boolean] = {
-    val params: Map[String, Any] = Map(
-      "ChanId" -> chanId.id,
-      "StartTime" -> startTime.toIsoFormat
-    )
+  private def internalRemoveRecorded(
+    partialParams: Map[String, Any],
+    forceDelete: Boolean,
+    allowReRecord: Boolean
+  ): ServiceResult[Boolean] = {
+    var params = partialParams
+    if (forceDelete)   params += "ForceDelete" -> forceDelete
+    if (allowReRecord) params += "AllowRerecord" -> allowReRecord
     for {
       response <- post("RemoveRecorded", params)
       root     <- responseRoot(response)
       result   <- Try(root.booleanField("bool"))
     } yield result
+  }
+
+  def removeRecorded(
+    chanId: ChanId,
+    startTime: MythDateTime,
+    forceDelete: Boolean,
+    allowReRecord: Boolean
+  ): ServiceResult[Boolean] = {
+    val params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
+    internalRemoveRecorded(params, forceDelete, allowReRecord)
+  }
+
+  def removeRecorded(
+    recordedId: RecordedId,
+    forceDelete: Boolean = false,
+    allowReRecord: Boolean = false
+  ): ServiceResult[Boolean] = recordedId match {
+    case RecordedIdInt(id) => internalRemoveRecorded(Map("RecordedId" -> id), forceDelete, allowReRecord)
+    case RecordedIdChanTime(chanId, startTime) => removeRecorded(chanId, startTime)
+  }
+
+  private def internalDeleteRecording(
+    partialParams: Map[String, Any],
+    forceDelete: Boolean,
+    allowReRecord: Boolean
+  ): ServiceResult[Boolean] = {
+    var params = partialParams
+    if (forceDelete)   params += "ForceDelete" -> forceDelete
+    if (allowReRecord) params += "AllowRerecord" -> allowReRecord
+    for {
+      response <- post("DeleteRecording", params)
+      root     <- responseRoot(response)
+      result   <- Try(root.booleanField("bool"))
+    } yield result
+  }
+
+  def deleteRecording(
+    chanId: ChanId,
+    startTime: MythDateTime,
+    forceDelete: Boolean,
+    allowReRecord: Boolean
+  ): ServiceResult[Boolean] = {
+    val params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
+    internalDeleteRecording(params, forceDelete, allowReRecord)
+  }
+
+  def deleteRecording(
+    recordedId: RecordedId,
+    forceDelete: Boolean,
+    allowReRecord: Boolean
+  ): ServiceResult[Boolean] = recordedId match {
+    case RecordedIdInt(id) => internalDeleteRecording(Map("RecordedId" -> id), forceDelete, allowReRecord)
+    case RecordedIdChanTime(chanId, startTime) => deleteRecording(chanId, startTime, forceDelete, allowReRecord)
+  }
+
+  def undeleteRecording(chanId: ChanId, startTime: MythDateTime): ServiceResult[Boolean] = {
+    val params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
+    for {
+      response <- post("UnDeleteRecording", params)
+      root     <- responseRoot(response)
+      result   <- Try(root.booleanField("bool"))
+    } yield result
+  }
+
+  def undeleteRecording(recordedId: RecordedId): ServiceResult[Boolean] = recordedId match {
+    case RecordedIdInt(id) =>
+      val params: Map[String, Any] = Map("RecordedId" -> id)
+      for {
+        response <- post("UnDeleteRecording", params)
+        root     <- responseRoot(response)
+        result   <- Try(root.booleanField("bool"))
+      } yield result
+    case RecordedIdChanTime(chanId, startTime) => undeleteRecording(chanId, startTime)
   }
 
   // All parameters are technically optional and will be filled in with defaults?
@@ -272,16 +397,156 @@ class JsonDvrService(conn: BackendJsonConnection)
     } yield result
   }
 
-  def updateRecordedWatchedStatus(chanId: ChanId, startTime: MythDateTime, watched: Boolean): ServiceResult[Boolean] = {
-    val params: Map[String, Any] = Map(
-      "ChanId" -> chanId.id,
-      "StartTime" -> startTime.toIsoFormat,
-      "Watched" -> watched
-    )
+  def addDontRecordSchedule(chanId: ChanId, startTime: MythDateTime, neverRecord: Boolean): ServiceResult[Boolean] = {
+    var params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
+    if (neverRecord) params += "NeverRecord" -> neverRecord
+    for {
+      response <- post("AddDontRecordSchedule", params)
+      root     <- responseRoot(response)
+      result   <- Try(root.booleanField("bool"))
+    } yield result
+  }
+
+  private def internalUpdateRecordedWatchedStatus(partialParams: Map[String, Any], watched: Boolean): ServiceResult[Boolean] = {
+    val params: Map[String, Any] = partialParams + ("Watched" -> watched)
     for {
       response <- post("UpdateRecordedWatchedStatus", params)
       root     <- responseRoot(response)
       result   <- Try(root.booleanField("bool"))
+    } yield result
+  }
+
+  def updateRecordedWatchedStatus(chanId: ChanId, startTime: MythDateTime, watched: Boolean): ServiceResult[Boolean] = {
+    val params: Map[String, Any] = Map(
+      "ChanId" -> chanId.id,
+      "StartTime" -> startTime.toIsoFormat
+    )
+    internalUpdateRecordedWatchedStatus(params, watched)
+  }
+
+  def updateRecordedWatchedStatus(recordedId: RecordedId, watched: Boolean): ServiceResult[Boolean] = recordedId match {
+    case RecordedIdInt(id) => internalUpdateRecordedWatchedStatus(Map("RecordedId" -> id), watched)
+    case RecordedIdChanTime(chanId, startTime) => updateRecordedWatchedStatus(chanId, startTime, watched)
+  }
+
+  def getInputList: ServiceResult[List[Input]] = {
+    for {
+      response <- request("GetInputList")
+      root     <- responseRoot(response, "InputList")
+      result   <- Try(root.convertTo[List[Input]])
+    } yield result
+  }
+
+  def getRecStorageGroupList: ServiceResult[List[String]] = {
+    for {
+      response <- request("GetRecStorageGroupList")
+      root     <- responseRoot(response)
+      result   <- Try(root.convertTo[List[String]])
+    } yield result
+  }
+
+  def getPlayGroupList: ServiceResult[List[String]] = {
+    for {
+      response <- request("GetPlayGroupList")
+      root     <- responseRoot(response)
+      result   <- Try(root.convertTo[List[String]])
+    } yield result
+  }
+
+  def getRecRuleFilterList: ServiceResult[List[RecRuleFilter]] = {
+    for {
+      response <- request("GetRecRuleFilterList")
+      root     <- responseRoot(response, "RecRuleFilterList")
+      result   <- Try(root.convertTo[MythJsonPagedObjectList[RecRuleFilter]].items)
+    } yield result
+  }
+
+  def recStatusToString(recStatus: RecStatus): ServiceResult[String] = {
+    val params: Map[String, Any] = Map("RecStatus" -> recStatus.id)
+    for {
+      response <- request("RecStatusToString", params)
+      root     <- responseRoot(response, "String")
+      result   <- Try(root.convertTo[String])
+    } yield result
+  }
+
+  def recStatusToDescription(recStatus: RecStatus, recType: RecType, recStartTs: MythDateTime): ServiceResult[String] = {
+    val params: Map[String, Any] = Map(
+      "RecStatus" -> recStatus.id,
+      "RecType"   -> recType.id,
+      "StartTime" -> recStartTs.toIsoFormat
+    )
+    for {
+      response <- request("RecStatusToDescription", params)
+      root     <- responseRoot(response, "String")
+      result   <- Try(root.convertTo[String])
+    } yield result
+  }
+
+
+  def recTypeToString(recType: RecType): ServiceResult[String] = {
+    val params: Map[String, Any] = Map("RecType" -> recType.id)
+    for {
+      response <- request("RecTypeToString", params)
+      root     <- responseRoot(response, "String")
+      result   <- Try(root.convertTo[String])
+    } yield result
+  }
+
+  def recTypeToDescription(recType: RecType): ServiceResult[String] = {
+    val params: Map[String, Any] = Map("RecType" -> recType.id)
+    for {
+      response <- request("RecTypeToDescription", params)
+      root     <- responseRoot(response, "String")
+      result   <- Try(root.convertTo[String])
+    } yield result
+  }
+
+  // NB the DupMethodToXXXX service expects a *String* parameter, not an enum int id
+  def dupMethodToString(dupMethod: DupCheckMethod): ServiceResult[String] = {
+    val params: Map[String, Any] = Map(
+      "DupMethod" -> DupCheckMethodJsonFormat.id2Description(dupMethod)
+    )
+    for {
+      response <- request("DupMethodToString", params)
+      root     <- responseRoot(response, "String")
+      result   <- Try(root.convertTo[String])
+    } yield result
+  }
+
+  // NB the DupMethodToXXXX service expects a *String* parameter, not an enum int id
+  def dupMethodToDescription(dupMethod: DupCheckMethod): ServiceResult[String] = {
+    val params: Map[String, Any] = Map(
+      "DupMethod" -> DupCheckMethodJsonFormat.id2Description(dupMethod)
+    )
+    for {
+      response <- request("DupMethodToDescription", params)
+      root     <- responseRoot(response, "String")
+      result   <- Try(root.convertTo[String])
+    } yield result
+  }
+
+  // NB the DupInToXXXX service expects a *String* parameter, not an enum int id
+  def dupInToString(dupIn: DupCheckIn): ServiceResult[String] = {
+    val params: Map[String, Any] = Map(
+      "DupIn" -> DupCheckInJsonFormat.id2Description(dupIn)
+    )
+    for {
+      response <- request("DupInToString", params)
+      root     <- responseRoot(response, "String")
+      result   <- Try(root.convertTo[String])
+    } yield result
+  }
+
+  // NB the DupInToXXXX service expects a *String* parameter, not an enum int id
+  def dupInToDescription(dupIn: DupCheckIn): ServiceResult[String] = {
+    val params: Map[String, Any] = Map(
+      "DupIn" -> DupCheckInJsonFormat.id2Description(dupIn)
+    )
+    for {
+      response <- request("DupInToDescription", params)
+      root     <- responseRoot(response, "String")
+      result   <- Try(root.convertTo[String])
     } yield result
   }
 }

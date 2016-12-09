@@ -8,13 +8,23 @@ import scala.util.Try
 import spray.json.DefaultJsonProtocol
 
 import services.{ ContentService, ServiceResult }
-import model.{ ArtworkInfo, ChanId, LiveStreamId, LiveStream, VideoId }
+import model.{ ArtworkInfo, ChanId, LiveStreamId, LiveStream, RecordedId, VideoId }
 import util.{ MythFileHash, MythDateTime }
 import RichJsonObject._
+import RecordedId._
 
 class JsonContentService(conn: BackendJsonConnection)
   extends JsonBackendService(conn)
      with ContentService {
+
+  def getDirList(storageGroup: String): ServiceResult[List[String]] = {
+    val params: Map[String, Any] = Map("StorageGroup" -> storageGroup)
+    for {
+      response <- request("GetDirList", params)
+      root     <- responseRoot(response)
+      result   <- Try(root.convertTo[List[String]])
+    } yield result
+  }
 
   def getFileList(storageGroup: String): ServiceResult[List[String]] = {
     val params: Map[String, Any] = Map("StorageGroup" -> storageGroup)
@@ -98,6 +108,16 @@ class JsonContentService(conn: BackendJsonConnection)
     }
   }
 
+  def getRecording[U](recordedId: RecordedId)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = recordedId match {
+    case RecordedIdInt(id) =>
+      val params: Map[String, Any] = Map("RecordedId" -> id)
+      Try {
+        val response = requestStream("GetRecording", params)
+        streamResponse(response, f)
+      }
+    case RecordedIdChanTime(chanId, startTime) => getRecording(chanId, startTime)(f)
+  }
+
   def getVideo[U](videoId: VideoId)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
     val params: Map[String, Any] = Map("Id" -> videoId.id)
     Try {
@@ -126,8 +146,8 @@ class JsonContentService(conn: BackendJsonConnection)
     }
   }
 
-  def getPreviewImage[U](chanId: ChanId, startTime: MythDateTime, width: Int, height: Int, secsIn: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
-    var params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
+  def internalGetPreviewImage[U](partialParams: Map[String, Any], width: Int, height: Int, secsIn: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
+    var params = partialParams
     if (width != 0)  params += "Width" -> width
     if (height != 0) params += "Height" -> height
     if (secsIn > 0)  params += "SecsIn" -> secsIn
@@ -135,6 +155,16 @@ class JsonContentService(conn: BackendJsonConnection)
       val response = requestStream("GetPreviewImage", params)
       streamResponse(response, f)
     }
+  }
+
+  def getPreviewImage[U](chanId: ChanId, startTime: MythDateTime, width: Int, height: Int, secsIn: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
+    val params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
+    internalGetPreviewImage(params, width, height, secsIn)(f)
+  }
+
+  def getPreviewImage[U](recordedId: RecordedId, width: Int, height: Int, secsIn: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = recordedId match {
+    case RecordedIdInt(id) => internalGetPreviewImage(Map("RecordedId" -> id), width, height, secsIn)(f)
+    case RecordedIdChanTime(chanId, startTime) => getPreviewImage(chanId, startTime, width, height, secsIn)(f)
   }
 
   def getRecordingArtwork[U](artType: String, inetRef: String, season: Int, width: Int, height: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
@@ -157,6 +187,17 @@ class JsonContentService(conn: BackendJsonConnection)
       root     <- responseRoot(response, "ArtworkInfoList")
       result   <- Try(root.convertTo[List[ArtworkInfo]])
     } yield result
+  }
+
+  def getRecordingArtworkList(recordedId: RecordedId): ServiceResult[List[ArtworkInfo]] = recordedId match {
+    case RecordedIdInt(id) =>
+      val params: Map[String, Any] = Map("RecordedId" -> id)
+      for {
+        response <- request("GetRecordingArtworkList", params)
+        root     <- responseRoot(response, "ArtworkInfoList")
+        result   <- Try(root.convertTo[List[ArtworkInfo]])
+      } yield result
+    case RecordedIdChanTime(chanId, startTime) => getRecordingArtworkList(chanId, startTime)
   }
 
   def getProgramArtworkList(inetRef: String, season: Int): ServiceResult[List[ArtworkInfo]] = {
@@ -203,12 +244,9 @@ class JsonContentService(conn: BackendJsonConnection)
     } yield result
   }
 
-  def addRecordingLiveStream(chanId: ChanId, startTime: MythDateTime, maxSegments: Int,
+  private def internalAddRecordingLiveStream(partialParams: Map[String, Any], maxSegments: Int,
     width: Int, height: Int, bitrate: Int, audioBitrate: Int, sampleRate: Int): ServiceResult[LiveStream] = {
-    var params: Map[String, Any] = Map(
-      "ChanId"       -> chanId.id,
-      "StartTime"    -> startTime.toIsoFormat
-    )
+    var params = partialParams
     if (maxSegments != 0)  params += "MaxSegments"  -> maxSegments
     if (width != 0)        params += "Width"        -> width
     if (height != 0)       params += "Height"       -> height
@@ -220,6 +258,35 @@ class JsonContentService(conn: BackendJsonConnection)
       root     <- responseRoot(response, "LiveStreamInfo")
       result   <- Try(root.convertTo[LiveStream])
     } yield result
+  }
+
+  def addRecordingLiveStream(chanId: ChanId, startTime: MythDateTime): ServiceResult[LiveStream] =
+    addRecordingLiveStream(
+      chanId,
+      startTime,
+      LiveStream.DefaultMaxSegments,
+      LiveStream.DefaultWidth,
+      LiveStream.DefaultHeight,
+      LiveStream.DefaultBitrate,
+      LiveStream.DefaultAudioBitrate,
+      LiveStream.DefaultSampleRate
+    )
+
+  def addRecordingLiveStream(chanId: ChanId, startTime: MythDateTime, maxSegments: Int,
+    width: Int, height: Int, bitrate: Int, audioBitrate: Int, sampleRate: Int): ServiceResult[LiveStream] = {
+    val params: Map[String, Any] = Map(
+      "ChanId"       -> chanId.id,
+      "StartTime"    -> startTime.toIsoFormat
+    )
+    internalAddRecordingLiveStream(params, maxSegments, width, height, bitrate, audioBitrate, sampleRate)
+  }
+
+  def addRecordingLiveStream(recordedId: RecordedId, maxSegments: Int, width: Int, height: Int, bitrate: Int,
+    audioBitrate: Int, sampleRate: Int): ServiceResult[LiveStream] = recordedId match {
+    case RecordedIdInt(id) =>
+      internalAddRecordingLiveStream(Map("RecordedId" -> id), maxSegments, width, height, bitrate, audioBitrate, sampleRate)
+    case RecordedIdChanTime(chanId, startTime) =>
+      addRecordingLiveStream(chanId, startTime, maxSegments, width, height, bitrate, audioBitrate, sampleRate)
   }
 
   def addVideoLiveStream(videoId: VideoId, maxSegments: Int,

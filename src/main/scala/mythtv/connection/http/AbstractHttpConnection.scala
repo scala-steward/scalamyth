@@ -24,6 +24,7 @@ abstract class AbstractHttpConnection(val protocol: String, val host: String, va
   // TODO do we need to pick up errorStream and read it out?
   def request(path: String): HttpResponse = {
     val url = new URL(protocol, host, port, path)
+    //println("Requesting: " + url)
     url.openConnection() match {
       case conn: HttpURLConnection =>
         setupConnection(conn)

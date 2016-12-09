@@ -75,3 +75,24 @@ trait ConnectionInfo {
   def database: DatabaseConnectionInfo
   def wakeOnLan: WakeOnLanInfo
 }
+
+trait OnlineStatus {
+  def online: Boolean
+}
+
+trait BackendDetails {
+  def fullVersion: String
+  def hasLibX264: Boolean
+  def hasLibDnsSd: Boolean
+  def logArgs: String
+  def environment: Map[String, String]
+}
+
+trait KnownFrontendInfo extends FrontendInfo with OnlineStatus
+
+trait RecRuleFilter {   // this is a "dynamic enum", defined in the database
+  def id: Int
+  def name: String
+
+  override def toString = s"<RecRuleFilter $id $name>"
+}
