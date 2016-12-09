@@ -97,6 +97,7 @@ private[myth] abstract class EventProtocolRef extends EventParser with MythProto
 
   protected implicit val programInfoSerializer: BackendObjectSerializer[Recording]
   protected implicit val liveTvChainSerializer: BackendObjectSerializer[LiveTvChain] = LiveTvChainSerializerRef
+  protected implicit val signalMonitorSerializer: MythProtocolSerializable[SignalMonitorValue] = SignalMonitorValueSerializer
 
   private val SystemEventPattern = """SYSTEM_EVENT ([^ ]*) (?:(.*) )?SENDER (.+)""".r
 
@@ -388,29 +389,6 @@ private[myth] abstract class EventProtocolRef extends EventParser with MythProto
     else RecordingListChangeEmptyEvent
   }
 
-  implicit object SignalMonitorValueSerializer extends MythProtocolSerializable[SignalMonitorValue] {
-    def deserialize(in: String): SignalMonitorValue =
-      deserialize(in split MythProtocol.SplitPattern)
-
-    override def deserialize(in: Seq[String]): SignalMonitorValue = {
-      val id = in(0)
-      val args = in(1) split ' '
-      new SignalMonitorValue {
-        def name            = id
-        def statusName      = args(0)
-        def value           = MythProtocol.deserialize[Int](args(1))
-        def threshold       = MythProtocol.deserialize[Int](args(2))
-        def minValue        = MythProtocol.deserialize[Int](args(3))
-        def maxValue        = MythProtocol.deserialize[Int](args(4))
-        def timeout         = MythProtocol.deserialize[Int](args(5))
-        def isHighThreshold = MythProtocol.deserialize[Boolean](args(6))
-        def isValueSet      = MythProtocol.deserialize[Boolean](args(7))
-      }
-    }
-
-    def serialize(in: SignalMonitorValue): String = ???
-  }
-
   def parseSignal(name: String, split: Array[String]): Event = {
     val parts = split(1) split ' '
     val cardId = deserialize[CaptureCardId](parts(1))
@@ -445,6 +423,29 @@ private[myth] abstract class EventProtocolRef extends EventParser with MythProto
 
   def unknownEvent(name: String, split: Array[String]): Event =
     UnknownEvent(name, split.slice(1, split.length): _*)
+}
+
+private[myth] object SignalMonitorValueSerializer extends MythProtocolSerializable[SignalMonitorValue] {
+  def deserialize(in: String): SignalMonitorValue =
+    deserialize(in split MythProtocol.SplitPattern)
+
+  override def deserialize(in: Seq[String]): SignalMonitorValue = {
+    val id = in.head
+    val args = in(1) split ' '
+    new SignalMonitorValue {
+      def name            = id
+      def statusName      = args(0)
+      def value           = MythProtocol.deserialize[Int](args(1))
+      def threshold       = MythProtocol.deserialize[Int](args(2))
+      def minValue        = MythProtocol.deserialize[Int](args(3))
+      def maxValue        = MythProtocol.deserialize[Int](args(4))
+      def timeout         = MythProtocol.deserialize[Int](args(5))
+      def isHighThreshold = MythProtocol.deserialize[Boolean](args(6))
+      def isValueSet      = MythProtocol.deserialize[Boolean](args(7))
+    }
+  }
+
+  def serialize(in: SignalMonitorValue): String = ???
 }
 
 private[myth] class EventProtocol75 extends EventProtocolRef {
