@@ -9,7 +9,7 @@ final case class ImageFileId(id: Int) extends AnyVal with ImageId
 
 final case class ImageDirId(id: Int) extends AnyVal with ImageId
 
-private[mythtv] final case class ImageUnknownId(id: Int) extends AnyVal with ImageId
+final case class ImageUnknownId(id: Int) extends AnyVal with ImageId
 
 final case class ImageSyncStatus(running: Boolean, progress: Int, total: Int)
 
