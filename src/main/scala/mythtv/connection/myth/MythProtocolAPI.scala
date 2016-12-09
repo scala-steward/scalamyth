@@ -195,7 +195,7 @@ trait MythProtocolApi88 extends MythProtocolApi77 {
   def imageMove(imageId: ImageId, oldPath: String, newPath: String): MythProtocolResult[Unit]
   def imageMove(imageIds: Seq[ImageId], oldPath: String, newPath: String): MythProtocolResult[Unit]
   def imageRename(imageId: ImageId, newBasename: String): MythProtocolResult[Unit]
-  def imageScanQuery(): MythProtocolResult[(Boolean, Int, Int)]
+  def imageScanQuery(): MythProtocolResult[(Boolean, Int, Int)]  // TODO converge result type with ImageScanStatus from services API? (but it doesn't have isBackend param..)
   def imageScanStart(): MythProtocolResult[Unit]
   def imageScanStop(): MythProtocolResult[Unit]
   def imageTransform(transform: ImageFileTransform, imageId: ImageFileId): MythProtocolResult[Unit]

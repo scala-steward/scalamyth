@@ -114,6 +114,13 @@ trait DvrService extends BackendService {
   // getPlayGroupList is new for MythTV 0.28
   def getPlayGroupList: ServiceResult[List[String]]
 
+ /* TODO new DvrService methods for 0.28:  figure out offset parameter type (Position=1, Duration=2, otherwise=0)
+      maybe 0 = exact frame; 1 = nearest keyframe, 2 = keyframe duration(?)
+      In any case I may need three different return types (and a type parameter to VideoSegment?)
+      GetRecordedCutList(RecordedId, ChanId, StartTime, OffsetType)   -> CutList  (List[VideoSegment])
+      GetRecordedCommBreak(RecordedId, ChanId, StartTime, OffsetType)  -> CutList (List[VideoSegment])
+   */
+
   /* Enumeration services -- new for MythTV 0.28 */
 
   def getRecRuleFilterList: ServiceResult[List[RecRuleFilter]]
@@ -129,9 +136,4 @@ trait DvrService extends BackendService {
 
   def dupInToString(dupIn: DupCheckIn): ServiceResult[String]
   def dupInToDescription(dupIn: DupCheckIn): ServiceResult[String]
-
-  /* TODO new DvrService methods for 0.28:
-      GetRecordedCutList(RecordedId, ChanId, StartTime, OffsetType)   -> CutList
-      GetRecordedCommBreak(RecordedId, ChanId, StartTime, OffsetType)  -> CutList
-   */
 }
