@@ -20,6 +20,7 @@ object Event {
   case object ClearSettingsCacheEvent extends Event
   case class  CommflagRequestEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
   case class  CommflagStartEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
+  case class  CreateThumbnailsEvent(forFolder: Boolean, imageIds: Seq[ImageId]) extends Event
   case class  DoneRecordingEvent(cardId: CaptureCardId, secondsSinceStart: Int, framesWritten: Long) extends Event
   case class  DownloadFileFinishedEvent(sourceUri: URI, targetUri: URI, fileSize: ByteCount, errString: String, errCode: Int) extends Event
   case class  DownloadFileUpdateEvent(sourceUri: URI, targetUri: URI, bytesReceived: ByteCount, bytesTotal: ByteCount) extends Event
@@ -28,6 +29,8 @@ object Event {
   case class  GeneratedPixmapEvent(chanId: ChanId, startTime: MythDateTime, message: String, finishTime: Instant, size: ByteCount, crc: Crc16, data: Base64String, tokens: List[String]) extends Event
   case class  GeneratedPixmapFailEvent(chanId: ChanId, startTime: MythDateTime, message: String, tokens: List[String]) extends Event
   case class  HousekeeperRunningEvent(hostName: String, tag: String, lastRunTime: Instant) extends Event
+  case class  ImageDbChangedEvent(deletedIds: Seq[ImageId], modifiedIds: Seq[ImageId]) extends Event
+  case class  ImageScanStatusEvent(isBackend: Boolean, progress: Int, total: Int) extends Event
   case class  LiveTvChainUpdateEvent(chainId: LiveTvChainId, maxPos: Int, chain: List[LiveTvChain]) extends Event
   case class  RecordingListAddEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
   case object RecordingListChangeEmptyEvent extends Event
@@ -36,6 +39,7 @@ object Event {
   case object ScheduleChangeEvent extends Event
   case class  SignalEvent(cardId: CaptureCardId, values: Map[String, SignalMonitorValue]) extends Event
   case class  SignalMessageEvent(cardId: CaptureCardId, message: String) extends Event
+  case class  ThumbAvailableEvent(imageId: ImageId) extends Event
   case class  UpdateFileSizeEvent(chanId: ChanId, recStartTs: MythDateTime, size: ByteCount) extends Event
   case class  VideoListChangeEvent(changes: Map[String, Set[VideoId]]) extends Event
   case object VideoListNoChangeEvent extends Event
@@ -121,16 +125,20 @@ private[myth] abstract class EventProtocolRef extends EventParser with MythProto
       case "CLEAR_SETTINGS_CACHE"  => ClearSettingsCacheEvent
       case "COMMFLAG_REQUEST"      => parseCommflagRequest(name, split)
       case "COMMFLAG_START"        => parseCommflagStart(name, split)
+      case "CREATE_THUMBNAILS"     => parseCreateThumbnails(name, split)
       case "DOWNLOAD_FILE"         => parseDownloadFile(name, split)
       case "DONE_RECORDING"        => parseDoneRecording(name, split)
       case "FILE_CLOSED"           => parseFileClosed(name, split)
       case "FILE_WRITTEN"          => parseFileWritten(name, split)
       case "GENERATED_PIXMAP"      => parseGeneratedPixmap(name, split)
       case "HOUSE_KEEPER_RUNNING"  => parseHousekeeperRunning(name, split)
+      case "IMAGE_DB_CHANGED"      => parseImageDbChanged(name, split)
+      case "IMAGE_SCAN_STATUS"     => parseImageScanStatus(name, split)
       case "LIVETV_CHAIN"          => parseLiveTvChain(name, split)
       case "RECORDING_LIST_CHANGE" => parseRecordingListChange(name, split)
       case "SCHEDULE_CHANGE"       => ScheduleChangeEvent
       case "SIGNAL"                => parseSignal(name, split)
+      case "THUMB_AVAILABLE"       => parseThumbAvailable(name, split)
       case "UPDATE_FILE_SIZE"      => parseUpdateFileSize(name, split)
       case "VIDEO_LIST_CHANGE"     => parseVideoListChange(name, split)
       case "VIDEO_LIST_NO_CHANGE"  => VideoListNoChangeEvent
@@ -296,6 +304,12 @@ private[myth] abstract class EventProtocolRef extends EventParser with MythProto
     CommflagStartEvent(deserialize[ChanId](tokenSplit(0)), MythDateTime(deserialize[Instant](tokenSplit(1))))
   }
 
+  def parseCreateThumbnails(name: String, split: Array[String]): Event = {
+    val forFolder = deserialize[Boolean](split(2))
+    val imageIds = deserialize[Seq[ImageId]](split(3))
+    CreateThumbnailsEvent(forFolder, imageIds)
+  }
+
   def parseDoneRecording(name: String, split: Array[String]): Event = {
     val parts = split(1).split(' ')
     DoneRecordingEvent(deserialize[CaptureCardId](parts(1)), deserialize[Int](parts(2)), deserialize[Long](parts(3)))
@@ -359,6 +373,19 @@ private[myth] abstract class EventProtocolRef extends EventParser with MythProto
     HousekeeperRunningEvent(parts(1), parts(2), deserialize[Instant](parts(3)))
   }
 
+  def parseImageDbChanged(name: String, split: Array[String]): Event = {
+    val deletedIds = deserialize[Seq[ImageId]](split(2))
+    val modifiedIds = if (split.length < 4) Nil else deserialize[Seq[ImageId]](split(3))
+    ImageDbChangedEvent(deletedIds, modifiedIds)
+  }
+
+  def parseImageScanStatus(name: String, split: Array[String]): Event = {
+    val isBackend = deserialize[Boolean](split(2))
+    val progress = deserialize[Int](split(3))
+    val total = deserialize[Int](split(4))
+    ImageScanStatusEvent(isBackend, progress, total)
+  }
+
   def parseLiveTvChain(name: String, split: Array[String]): Event = {
     val parts = split(1).split(' ')
     val chainId = deserialize[LiveTvChainId](parts(2))
@@ -399,6 +426,11 @@ private[myth] abstract class EventProtocolRef extends EventParser with MythProto
       val valueMap = (values map { v => (v.name, v) }).toMap
       SignalEvent(cardId, valueMap)
     }
+  }
+
+  def parseThumbAvailable(name: String, split: Array[String]): Event = {
+    val imageId = deserialize[ImageId](split(2))
+    ThumbAvailableEvent(imageId)
   }
 
   def parseUpdateFileSize(name: String, split: Array[String]): Event = {
