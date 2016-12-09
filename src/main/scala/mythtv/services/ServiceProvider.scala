@@ -24,6 +24,9 @@ trait ServiceProvider {
   def guideService(host: String): GuideService
   def guideService(host: String, port: Int): GuideService
 
+  def imageService(host: String): ImageService
+  def imageService(host: String, port: Int): ImageService
+
   def mythService(host: String): MythService
   def mythService(host: String, port: Int): MythService
 
@@ -50,6 +53,8 @@ object ServiceProvider extends ServiceProvider {
   def dvrService(host: String, port: Int): DvrService                   = provider.dvrService(host, port)
   def guideService(host: String): GuideService                          = provider.guideService(host)
   def guideService(host: String, port: Int): GuideService               = provider.guideService(host, port)
+  def imageService(host: String): ImageService                          = provider.imageService(host)
+  def imageService(host: String, port: Int): ImageService               = provider.imageService(host, port)
   def mythService(host: String): MythService                            = provider.mythService(host)
   def mythService(host: String, port: Int): MythService                 = provider.mythService(host, port)
   def videoService(host: String): VideoService                          = provider.videoService(host)

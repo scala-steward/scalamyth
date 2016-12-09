@@ -49,6 +49,10 @@ private[json] trait JsonServiceFactoryImplicits {
     def newInstance(conn: BackendJsonConnection): GuideService = new JsonGuideService(conn)
   }
 
+  implicit object JsonImageServiceFactory extends BackendJsonServiceFactory[ImageService] {
+    def newInstance(conn: BackendJsonConnection): ImageService = new JsonImageService(conn)
+  }
+
   implicit object JsonMythServiceFactory extends BackendJsonServiceFactory[MythService] {
     def newInstance(conn: BackendJsonConnection): MythService = new JsonMythService(conn)
   }
@@ -79,6 +83,9 @@ object JsonServiceProvider extends ServiceProvider {
 
   def guideService(host: String): GuideService = f.JsonGuideServiceFactory(host)
   def guideService(host: String, port: Int): GuideService = f.JsonGuideServiceFactory(host, port)
+
+  def imageService(host: String): ImageService = f.JsonImageServiceFactory(host)
+  def imageService(host: String, port: Int): ImageService = f.JsonImageServiceFactory(host, port)
 
   def mythService(host: String): MythService = f.JsonMythServiceFactory(host)
   def mythService(host: String, port: Int): MythService = f.JsonMythServiceFactory(host, port)
