@@ -1669,4 +1669,20 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     def elementToJson(elem: LogMessage): JsValue = jsonWriter[LogMessage].write(elem)
   }
 
+  implicit object ImageSyncStatusJsonFormat extends RootJsonFormat[ImageSyncStatus] {
+    def write(s: ImageSyncStatus): JsValue = JsObject(Map(
+      "Running" -> JsString(s.running.toString),
+      "Current" -> JsString(s.progress.toString),
+      "Total"   -> JsString(s.total.toString)
+    ))
+    def read(value: JsValue): ImageSyncStatus = {
+      val obj = value.asJsObject
+      ImageSyncStatus(
+        obj.booleanField("Running"),
+        obj.intField("Current"),
+        obj.intField("Total")
+      )
+    }
+  }
+
 }

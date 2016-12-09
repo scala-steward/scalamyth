@@ -7,16 +7,16 @@ import scala.util.Try
 
 import spray.json.DefaultJsonProtocol.StringJsonFormat
 
-import model.ImageId
+import model.{ ImageId, ImageFileId, ImageSyncStatus }
 import services.{ ImageService, ServiceResult }
-import services.{ ImageSyncInfo, ImageInfo } // TEMP
+import services.ImageInfo // TEMP
 import RichJsonObject._
 
 class JsonImageService(conn: BackendJsonConnection)
   extends JsonBackendService(conn)
      with ImageService {
 
-  def getImageInfo(imageId: ImageId, exifTag: String): ServiceResult[String] = {
+  def getImageInfo(imageId: ImageFileId, exifTag: String): ServiceResult[String] = {
     val params: Map[String, Any] = Map("Id" -> imageId.id, "Tag" -> exifTag)
     for {
       response <- request("GetImageInfo", params)
@@ -25,7 +25,7 @@ class JsonImageService(conn: BackendJsonConnection)
     } yield result
   }
 
-  def getImageInfoList(imageId: ImageId): ServiceResult[List[ImageInfo]] = ???
+  def getImageInfoList(imageId: ImageFileId): ServiceResult[List[ImageInfo]] = ???
 
   def removeImage(imageId: ImageId): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map("Id" -> imageId.id)
@@ -61,7 +61,13 @@ class JsonImageService(conn: BackendJsonConnection)
     } yield result
   }
 
-  def getSyncStatus: ServiceResult[ImageSyncInfo] = ???
+  def getSyncStatus: ServiceResult[ImageSyncStatus] = {
+    for {
+      response <- request("GetSyncStatus")
+      root     <- responseRoot(response, "ImageSyncInfo")
+      result   <- Try(root.convertTo[ImageSyncStatus])
+    } yield result
+  }
 
   def createThumbnail(imageId: ImageId): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map("Id" -> imageId.id)
