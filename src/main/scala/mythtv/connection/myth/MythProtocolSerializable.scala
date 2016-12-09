@@ -264,7 +264,7 @@ object MythProtocolSerializable {
   }
 
   implicit object ImageIdListSerializer extends MythProtocolSerializable[Seq[ImageId]] {
-    def deserialize(in: String): Seq[ImageId] = in split ',' map (s => ImageUnknownId(s.trim.toInt))
+    def deserialize(in: String): Seq[ImageId] = if (in.isEmpty) Nil else in split ',' map (s => ImageUnknownId(s.trim.toInt))
     def serialize(in: Seq[ImageId]): String = in.map(_.id).mkString(",")
   }
 
