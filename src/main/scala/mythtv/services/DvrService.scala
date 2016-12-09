@@ -6,7 +6,7 @@ import EnumTypes.{ DupCheckIn, DupCheckMethod, RecStatus, RecType }
 import util.{ MythDateTime, OptionalCount }
 
 trait DvrService extends BackendService {
-  def serviceName: String = "Dvr"
+  final def serviceName: String = "Dvr"
 
   def getRecorded(chanId: ChanId, startTime: MythDateTime): ServiceResult[Recording]
   def getRecorded(recordedId: RecordedId): ServiceResult[Recording]

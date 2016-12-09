@@ -10,7 +10,7 @@ import EnumTypes.{ NotificationPriority, NotificationType, NotificationVisibilit
 import MythFrontend.KeyName
 
 trait MythFrontendService extends FrontendService {
-  def serviceName: String = "Frontend"
+  final def serviceName: String = "Frontend"
 
   // query methods
 

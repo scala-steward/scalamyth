@@ -6,7 +6,7 @@ import model.{ CaptureCardId, ChanId, Channel, ChannelDetails, Lineup,
 import util.OptionalCount
 
 trait ChannelService extends BackendService {
-  def serviceName: String = "Channel"
+  final def serviceName: String = "Channel"
 
   def getChannelInfo(chanId: ChanId): ServiceResult[ChannelDetails]
 

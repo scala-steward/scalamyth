@@ -4,7 +4,7 @@ package services
 import model.{ CaptureCardId, CaptureCard, CardInput, InputId }
 
 trait CaptureService extends BackendService {
-  def serviceName: String = "Capture"
+  final def serviceName: String = "Capture"
 
   def getCaptureCard(cardId: CaptureCardId): ServiceResult[CaptureCard]
 

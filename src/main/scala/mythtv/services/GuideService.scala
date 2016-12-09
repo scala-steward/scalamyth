@@ -7,7 +7,7 @@ import util.{ OptionalCount, MythDateTime }
 import connection.http.HttpStreamResponse
 
 trait GuideService extends BackendService {
-  def serviceName: String = "Guide"
+  final def serviceName: String = "Guide"
 
   // TODO separate getProgramGuide methods for details=True/False (with different return types)
   // for MythTV 0.28, this gains a ChannelGroupId parameter, and loses numChannels and startChanId

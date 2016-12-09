@@ -6,7 +6,7 @@ import model.{ BlurayInfo, MetadataGrabberType, VideoId, Video, VideoLookup }
 import model.EnumTypes.MetadataGrabberType
 
 trait VideoService extends BackendService {
-  def serviceName: String = "Video"
+  final def serviceName: String = "Video"
 
   def getVideo(id: VideoId): ServiceResult[Video]
   def getVideoByFileName(fileName: String): ServiceResult[Video]

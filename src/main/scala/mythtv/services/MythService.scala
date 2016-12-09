@@ -10,7 +10,7 @@ import EnumTypes.{ NotificationPriority, NotificationType, NotificationVisibilit
 import Service.ServiceFailure.ServiceNoResult
 
 trait MythService extends BackendService {
-  def serviceName: String = "Myth"
+  final def serviceName: String = "Myth"
 
   // getBackendInfo is new with MythTV 0.28
   def getBackendInfo: ServiceResult[BackendDetails]

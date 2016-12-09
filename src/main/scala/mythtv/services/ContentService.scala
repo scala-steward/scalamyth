@@ -6,7 +6,7 @@ import util.{ MythDateTime, MythFileHash }
 import connection.http.HttpStreamResponse
 
 trait ContentService extends BackendService {
-  def serviceName: String = "Content"
+  final def serviceName: String = "Content"
 
   // getDirList is new in MythTV 0.28
   def getDirList(storageGroup: String): ServiceResult[List[String]]
