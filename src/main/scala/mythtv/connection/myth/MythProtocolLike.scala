@@ -2706,9 +2706,9 @@ private[myth] trait MythProtocolLike88 extends MythProtocolLike77 {
 
   protected def handleMusicFindAlbumArt(request: BackendRequest, response: BackendResponse): MythProtocolResult[List[AlbumArtImage]] = {
     val items = response.split
-    if (items(0) == "OK") Try {
+    if (items(0) == "OK") Try {  // image count is serialized at items(1)
       val fieldCount = albumArtSerializer.fieldCount
-      val it = items.iterator grouped fieldCount withPartial false map deserialize[AlbumArtImage]
+      val it = items.iterator drop 2 grouped fieldCount withPartial false map deserialize[AlbumArtImage]
       it.toList
     }
     else if (items(0) startsWith "ERROR") Left(MythProtocolFailureMessage(items mkString " "))
