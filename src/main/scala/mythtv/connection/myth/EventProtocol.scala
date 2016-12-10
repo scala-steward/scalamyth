@@ -32,6 +32,14 @@ object Event {
   case class  ImageDbChangedEvent(deletedIds: Seq[ImageId], modifiedIds: Seq[ImageId]) extends Event
   case class  ImageScanStatusEvent(isBackend: Boolean, progress: Int, total: Int) extends Event
   case class  LiveTvChainUpdateEvent(chainId: LiveTvChainId, maxPos: Int, chain: List[LiveTvChain]) extends Event
+  case class  MusicLyricsErrorEvent(errorCode: String) extends Event
+  case class  MusicLyricsFoundEvent(songId: SongId, lyrics: String) extends Event
+  case class  MusicLyricsNotFoundEvent(songId: SongId) extends Event
+  case class  MusicLyricsStatusEvent(songId: SongId, statusMessage: String) extends Event
+  case class  MusicResyncFinishedEvent(added: Int, removed: Int, changed: Int) extends Event
+  case class  MusicScannerErrorEvent(hostName: String, errorMessage: String) extends Event
+  case class  MusicScannerFinishedEvent(hostName: String, tracksTotal: Int, tracksAdded: Int, coverArtTotal: Int, coverArtAdded: Int) extends Event
+  case class  MusicScannerStartedEvent(hostName: String) extends Event
   case class  RecordingListAddEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
   case object RecordingListChangeEmptyEvent extends Event
   case class  RecordingListDeleteEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
@@ -135,6 +143,14 @@ private[myth] abstract class EventProtocolRef extends EventParser with MythProto
       case "IMAGE_DB_CHANGED"      => parseImageDbChanged(name, split)
       case "IMAGE_SCAN_STATUS"     => parseImageScanStatus(name, split)
       case "LIVETV_CHAIN"          => parseLiveTvChain(name, split)
+      case "MUSIC_LYRICS_ERROR"    => parseMusicLyricsError(name, split)
+      case "MUSIC_LYRICS_FOUND"    => parseMusicLyricsFound(name, split)
+      case "MUSIC_LYRICS_NOTFOUND" => parseMusicLyricsNotFound(name, split)
+      case "MUSIC_LYRICS_STATUS"   => parseMusicLyricsStatus(name, split)
+      case "MUSIC_RESYNC_FINISHED" => parseMusicResyncFinished(name, split)
+      case "MUSIC_SCANNER_ERROR"   => parseMusicScannerError(name, split)
+      case "MUSIC_SCANNER_FINISHED" => parseMusicScannerFinished(name, split)
+      case "MUSIC_SCANNER_STARTED" => parseMusicScannerStarted(name, split)
       case "RECORDING_LIST_CHANGE" => parseRecordingListChange(name, split)
       case "SCHEDULE_CHANGE"       => ScheduleChangeEvent
       case "SIGNAL"                => parseSignal(name, split)
@@ -396,6 +412,62 @@ private[myth] abstract class EventProtocolRef extends EventParser with MythProto
     val chain = it map deserialize[LiveTvChain]
 
     LiveTvChainUpdateEvent(chainId, maxPos, chain.toList)
+  }
+
+  def parseMusicLyricsError(name: String, split: Array[String]): Event = {
+    val parts = split(1).split(' ')
+    MusicLyricsErrorEvent(parts(1))
+  }
+
+  def parseMusicLyricsFound(name: String, split: Array[String]): Event = {
+    val parts = split(1).split(" ", 3)
+    val songId = deserialize[SongId](parts(1))
+    val lyrics = parts(2)
+    MusicLyricsFoundEvent(songId, lyrics)
+  }
+
+  def parseMusicLyricsNotFound(name: String, split: Array[String]): Event = {
+    val parts = split(1).split(' ')
+    val songId = deserialize[SongId](parts(1))
+    MusicLyricsNotFoundEvent(songId)
+  }
+
+  def parseMusicLyricsStatus(name: String, split: Array[String]): Event = {
+    val parts = split(1).split(" ", 3)
+    val songId = deserialize[SongId](parts(1))
+    val statusMessage = parts(2)
+    MusicLyricsStatusEvent(songId, statusMessage)
+  }
+
+  def parseMusicResyncFinished(name: String, split: Array[String]): Event = {
+    val parts = split(1).split(' ')
+    val added = deserialize[Int](parts(1))
+    val removed = deserialize[Int](parts(2))
+    val changed = deserialize[Int](parts(3))
+    MusicResyncFinishedEvent(added, removed, changed)
+  }
+
+  def parseMusicScannerError(name: String, split: Array[String]): Event = {
+    val parts = split(1).split(" ", 3)
+    val hostName = parts(1)
+    val errorMessage = parts(2)
+    MusicScannerErrorEvent(hostName, errorMessage)
+  }
+
+  def parseMusicScannerFinished(name: String, split: Array[String]): Event = {
+    val parts = split(1).split(' ')
+    val hostName = parts(1)
+    val tracksTotal = deserialize[Int](parts(2))
+    val tracksAdded = deserialize[Int](parts(3))
+    val coverArtTotal = deserialize[Int](parts(4))
+    val coverArtAdded = deserialize[Int](parts(5))
+    MusicScannerFinishedEvent(hostName, tracksTotal, tracksAdded, coverArtTotal, coverArtAdded)
+  }
+
+  def parseMusicScannerStarted(name: String, split: Array[String]): Event = {
+    val parts = split(1).split(' ')
+    val hostName = parts(1)
+    MusicScannerStartedEvent(hostName)
   }
 
   def parseRecordingListChange(name: String, split: Array[String]): Event = {
