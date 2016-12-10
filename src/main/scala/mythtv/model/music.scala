@@ -8,6 +8,11 @@ final case class SongId(id: Int) extends AnyVal with IntegerIdentifier
 
 final case class MusicImageId(id: Int) extends AnyVal with IntegerIdentifier
 
+trait RemoteSong {
+  val hostName: String
+  val songId: SongId
+}
+
 object MusicImageType extends LooseEnum {
   type MusicImageType = Value
   val Unknown    = Value(0)
