@@ -69,10 +69,6 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
   def pendingRecordingsIterator: ExpectedCountIterator[Recordable] = conn.queryGetAllPending.right.get
   def pendingRecordings: List[Recordable] = pendingRecordingsIterator.toList
 
-  // TODO These are really *recording schedules*, not scheduled recordings
-  def scheduledRecordingsIterator: ExpectedCountIterator[Recordable] = conn.queryGetAllScheduled.right.get
-  def scheduledRecordings: List[Recordable] = scheduledRecordingsIterator.toList
-
   def upcomingRecordingsIterator: Iterator[Recordable] = {
     pendingRecordingsIterator filter (_.recStatus == RecStatus.WillRecord)
   }

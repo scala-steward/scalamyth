@@ -41,7 +41,6 @@ trait BackendOperations {
 
   def pendingRecordings: Iterable[Recordable]
   def upcomingRecordings: Iterable[Recordable]
-  def scheduledRecordings: Iterable[Recordable]
   def conflictingRecordings: Iterable[Recordable]
 
   def availableRecorders: Iterable[CaptureCardId]
