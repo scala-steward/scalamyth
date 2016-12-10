@@ -205,6 +205,7 @@ trait MythProtocolApi88 extends MythProtocolApi77 {
   def musicFindAlbumArt(hostName: String, songId: SongId, updateDatabase: Boolean): MythProtocolResult[List[AlbumArtImage]]
   def musicLyricsFind(hostName: String, songId: SongId, grabberName: String): MythProtocolResult[Unit]
   def musicLyricsGetGrabbers: MythProtocolResult[List[String]]
+  // for musicLyricsSave, the lyricsLines must already contain newlines or there won't be any! will these lyrics be used? Also, text file must already exist, will not be created?
   def musicLyricsSave(hostName: String, songId: SongId, lyricsLines: Seq[String]): MythProtocolResult[Unit]
   def musicTagAddImage(hostName: String, songId: SongId, fileName: String, imageType: MusicImageType): MythProtocolResult[Unit]
   def musicTagChangeImage(hostName: String, songId: SongId, oldType: MusicImageType, newType: MusicImageType): MythProtocolResult[Unit]
