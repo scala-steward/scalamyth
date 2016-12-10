@@ -8,6 +8,7 @@ import java.time.Instant
 import model._
 import model.EnumTypes.RecStatus
 import util.{ Base64String, ByteCount, Crc16, DecimalByteCount, MythDateTime, URIFactory }
+import RecordedId._
 
 sealed trait Event
 
@@ -40,15 +41,15 @@ object Event {
   case class  MusicScannerErrorEvent(hostName: String, errorMessage: String) extends Event
   case class  MusicScannerFinishedEvent(hostName: String, tracksTotal: Int, tracksAdded: Int, coverArtTotal: Int, coverArtAdded: Int) extends Event
   case class  MusicScannerStartedEvent(hostName: String) extends Event
-  case class  RecordingListAddEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
+  case class  RecordingListAddEvent(recordedId: RecordedId) extends Event
   case object RecordingListChangeEmptyEvent extends Event
-  case class  RecordingListDeleteEvent(chanId: ChanId, recStartTs: MythDateTime) extends Event
+  case class  RecordingListDeleteEvent(recordedId: RecordedId) extends Event
   case class  RecordingListUpdateEvent(rec: Recording) extends Event
   case object ScheduleChangeEvent extends Event
   case class  SignalEvent(cardId: CaptureCardId, values: Map[String, SignalMonitorValue]) extends Event
   case class  SignalMessageEvent(cardId: CaptureCardId, message: String) extends Event
   case class  ThumbAvailableEvent(imageId: ImageId) extends Event
-  case class  UpdateFileSizeEvent(chanId: ChanId, recStartTs: MythDateTime, size: ByteCount) extends Event
+  case class  UpdateFileSizeEvent(recordedId: RecordedId, size: ByteCount) extends Event
   case class  VideoListChangeEvent(changes: Map[String, Set[VideoId]]) extends Event
   case object VideoListNoChangeEvent extends Event
   case class  UnknownEvent(name: String, body: String*) extends Event
@@ -476,10 +477,14 @@ private[myth] abstract class EventProtocolRef extends EventParser with MythProto
       body.substring(name.length + 1).takeWhile(_ != ' ') match {
         case "ADD" =>
           val parts = body.substring(name.length + 5).split(' ')
-          RecordingListAddEvent(deserialize[ChanId](parts(0)), MythDateTime(deserialize[Instant](parts(1))))
+          val chanId = deserialize[ChanId](parts(0))
+          val recStartTs = MythDateTime(deserialize[Instant](parts(1)))
+          RecordingListAddEvent(RecordedIdChanTime(chanId, recStartTs))
         case "DELETE" =>
           val parts = body.substring(name.length + 8).split(' ')
-          RecordingListDeleteEvent(deserialize[ChanId](parts(0)), MythDateTime(deserialize[Instant](parts(1))))
+          val chanId = deserialize[ChanId](parts(0))
+          val recStartTs = MythDateTime(deserialize[Instant](parts(1)))
+          RecordingListDeleteEvent(RecordedIdChanTime(chanId, recStartTs))
         case "UPDATE" =>
           RecordingListUpdateEvent(deserialize[Recording](split.drop(2)))
         case _ => unknownEvent(name, split)
@@ -507,9 +512,10 @@ private[myth] abstract class EventProtocolRef extends EventParser with MythProto
 
   def parseUpdateFileSize(name: String, split: Array[String]): Event = {
     val parts = split(1).split(' ')
+    val chanId = deserialize[ChanId](parts(1))
+    val recStartTs = MythDateTime(deserialize[Instant](parts(2)))
     UpdateFileSizeEvent(
-      deserialize[ChanId](parts(1)),
-      MythDateTime(deserialize[Instant](parts(2))),
+      RecordedIdChanTime(chanId, recStartTs),
       DecimalByteCount(deserialize[Long](parts(3)))
     )
   }
@@ -561,7 +567,36 @@ private[myth] class EventProtocol77 extends EventProtocol75 {
 }
 
 private[myth] class EventProtocol88 extends EventProtocol77 {
+  import Event._
+
   override val programInfoSerializer: BackendObjectSerializer[Recording] = ProgramInfoSerializer88
+
+  override def parseRecordingListChange(name: String, split: Array[String]): Event = {
+    val body = split(1)
+    if (body.length > name.length) {
+      body.substring(name.length + 1).takeWhile(_ != ' ') match {
+        case "ADD" =>
+          val parts = body.substring(name.length + 5).split(' ')
+          val recordedId = deserialize[RecordedId](parts(0))
+          RecordingListAddEvent(recordedId)
+        case "DELETE" =>
+          val parts = body.substring(name.length + 8).split(' ')
+          val recordedId = deserialize[RecordedId](parts(0))
+          RecordingListDeleteEvent(recordedId)
+        case _ => super.parseRecordingListChange(name, split)
+      }
+    }
+    else super.parseRecordingListChange(name, split)
+  }
+
+  override def parseUpdateFileSize(name: String, split: Array[String]): Event = {
+    val parts = split(1).split(' ')
+    UpdateFileSizeEvent(
+      deserialize[RecordedId](parts(1)),
+      DecimalByteCount(deserialize[Long](parts(2)))
+    )
+    super.parseUpdateFileSize(name, split)
+  }
 }
 
 /*

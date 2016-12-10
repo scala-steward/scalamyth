@@ -74,8 +74,8 @@ private class RecordingTransfer(api: MythProtocolAPIConnection, @volatile privat
     }
 
     override def handle(event: Event): Unit = event match {
-      case UpdateFileSizeEvent(chanId, recStartTs, newSize) =>
-        if (chanId == rec.chanId && recStartTs == rec.recStartTS)
+      case UpdateFileSizeEvent(recordedId, newSize) =>
+        if (recordedId == rec.recordedId)
           xferChannel.updateSize(newSize.bytes)
       case RecordingListUpdateEvent(r: Recording) =>
         if (r.chanId == rec.chanId && r.startTime == rec.startTime)
