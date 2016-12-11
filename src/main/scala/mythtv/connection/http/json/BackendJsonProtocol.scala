@@ -11,35 +11,11 @@ import scala.util.{ DynamicVariable, Try }
 import spray.json.{ JsonFormat, RootJsonFormat, deserializationError, jsonWriter }
 import spray.json.{ JsArray, JsObject, JsString, JsValue }
 
-import util.{ DecimalByteCount, MythDateTime, MythFileHash, URIFactory }
-import services.PagedList
+import util.{ DecimalByteCount, MythFileHash, URIFactory }
 import model.EnumTypes._
 import model._
 
 // TODO default values for model elements need to be centralized somewhere (e.g. Inetref="000000...")
-
-/* ----------------------------------------------------------------- */
-
-// TODO Have guide result utilize this MythJsonObject trait?
-private[http] trait MythServicesObject[+T] {
-  def data: T
-  def asOf: MythDateTime
-  def mythVersion: String
-  def mythProtocolVersion: String
-}
-
-private[http] trait MythServicesObjectList[+T] extends MythServicesObject[List[T]] {
-  final def items: List[T] = data
-}
-
-private[http] trait MythServicesPagedList[+T]
-  extends PagedList[T] with MythServicesObjectList[T] {
-  def count: Int
-  def totalAvailable: Int
-  def startIndex: Int
-}
-
-/* ----------------------------------------------------------------- */
 
 private[http] trait MythServicesObjectListFormat[T]
   extends BaseMythJsonListFormat[T]

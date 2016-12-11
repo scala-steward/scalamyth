@@ -4,9 +4,29 @@ package http
 
 import scala.util.{ Failure, Success, Try }
 
-import services.{ Service, ServiceResult }
+import services.{ PagedList, Service, ServiceResult }
 import Service.ServiceFailure.ServiceFailureThrowable
-import util.{ OptionalCount, OptionalCountSome }
+import util.{ MythDateTime, OptionalCount, OptionalCountSome }
+
+// TODO Have guide result utilize this MythJsonObject trait?
+private[http] trait MythServicesObject[+T] {
+  def data: T
+  def asOf: MythDateTime
+  def mythVersion: String
+  def mythProtocolVersion: String
+}
+
+private[http] trait MythServicesObjectList[+T] extends MythServicesObject[List[T]] {
+  final def items: List[T] = data
+}
+
+private[http] trait MythServicesPagedList[+T]
+  extends PagedList[T] with MythServicesObjectList[T] {
+  def count: Int
+  def totalAvailable: Int
+  def startIndex: Int
+}
+
 
 trait MythServiceProtocol {
   self: Service =>
