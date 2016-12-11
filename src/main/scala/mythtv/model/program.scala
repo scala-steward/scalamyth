@@ -6,18 +6,22 @@ import java.time.{ LocalDate, Year }
 import EnumTypes._
 import util.{ BitmaskEnum, ByteCount, LooseEnum, MythDateTime }
 
-trait ProgramVideoBase {
+
+trait Titled {
   def title: String
   def subtitle: String
-  def description: String
-  def year: Option[Year]      // NB called 'airdate' in program table
-  def season: Option[Int]
-  def episode: Option[Int]
 
   def combinedTitle: String = combinedTitle(": ")
   def combinedTitle(sep: String): String =
     if (subtitle.nonEmpty) title + sep + subtitle
     else title
+}
+
+trait ProgramVideoBase extends Titled {
+  def description: String
+  def year: Option[Year]      // NB called 'airdate' in program table
+  def season: Option[Int]
+  def episode: Option[Int]
 }
 
 /* metadata acquired from the internet (e.g. TheTVDB.com or TheMovieDB.org (TMDb) or IMDb(?)) */
