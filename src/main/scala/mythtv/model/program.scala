@@ -125,6 +125,7 @@ sealed trait RecordedId {
 }
 
 object RecordedId {
+  final val empty: RecordedId = RecordedIdInt(0)
   case class RecordedIdInt(id: Int) extends RecordedId with IntegerIdentifier { def idString = id.toString }
   case class RecordedIdChanTime(chanId: ChanId, startTime: MythDateTime) extends RecordedId {
     def idString = chanId.id.toString + "_" + startTime.toMythFormat

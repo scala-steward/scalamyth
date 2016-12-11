@@ -9,6 +9,7 @@ import EnumTypes.ChannelCommDetectMethod
 final case class ChanId(id: Int) extends AnyVal with IntegerIdentifier
 
 object ChanId {
+  final val empty: ChanId = ChanId(0)
   object ChanIdOrdering extends Ordering[ChanId] {
     def compare(x: ChanId, y: ChanId): Int = x.id compare y.id
   }
