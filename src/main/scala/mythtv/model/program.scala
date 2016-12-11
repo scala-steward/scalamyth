@@ -29,24 +29,18 @@ trait InternetMetadata {
   def inetRef: Option[String]
 }
 
-trait Program extends ProgramVideoBase {
-  def totalEpisodes: Option[Int]           // starting in MythTV 0.28
-  def syndicatedEpisode: String
-  def category: String
-  def categoryType: Option[CategoryType]   // only really seems to be populated in program guide stuff
+// fields returned from Services API when Details=false
+trait ProgramBrief extends Titled {
   def chanId: ChanId
   def startTime: MythDateTime
   def endTime: MythDateTime
-  def seriesId: String
-  def programId: String
-  def stars: Option[Double]
-  def originalAirDate: Option[LocalDate]
+  def category: String
+  def categoryType: Option[CategoryType]   // only really seems to be populated in program guide stuff
   def audioProps: AudioProperties
   def videoProps: VideoProperties
   def subtitleType: SubtitleType   // TODO do we only know this after recording?, in program table
-  def partNumber: Option[Int]
-  def partTotal: Option[Int]
-  def programFlags: ProgramFlags
+
+  def isRepeat: Boolean
 
   def stereo: Boolean    = audioProps contains AudioProperties.Stereo
   def subtitled: Boolean = subtitleType != SubtitleType.Unknown
@@ -57,6 +51,18 @@ trait Program extends ProgramVideoBase {
   def closeCaptioned: Boolean =
     (subtitleType contains SubtitleType.HardHear) ||
       (audioProps contains AudioProperties.HardHear)
+}
+
+trait Program extends ProgramBrief with ProgramVideoBase {
+  def totalEpisodes: Option[Int]           // starting in MythTV 0.28
+  def syndicatedEpisode: String
+  def seriesId: String
+  def programId: String
+  def stars: Option[Double]
+  def originalAirDate: Option[LocalDate]
+  def partNumber: Option[Int]
+  def partTotal: Option[Int]
+  def programFlags: ProgramFlags
 
   def isRepeat: Boolean = programFlags contains ProgramFlags.Repeat
 }
