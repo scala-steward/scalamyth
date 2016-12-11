@@ -73,7 +73,7 @@ class JsonChannelService(conn: BackendJsonConnection)
     for {
       response <- request("GetVideoSourceList")
       root     <- responseRoot(response, "VideoSourceList")
-      result   <- Try(root.convertTo[MythServicesObjectList[ListingSource]])
+      result   <- Try(root.convertTo[MythServicesObject[List[ListingSource]]])
     } yield result.data
   }
 

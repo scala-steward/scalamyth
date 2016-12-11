@@ -17,28 +17,38 @@ import model._
 
 // TODO default values for model elements need to be centralized somewhere (e.g. Inetref="000000...")
 
-private[http] trait MythServicesObjectListFormat[T]
-  extends BaseMythJsonListFormat[T]
-     with RootJsonFormat[MythServicesObjectList[T]] {
+private[http] trait MythServicesObjectFormat[T] extends RootJsonFormat[MythServicesObject[T]] {
   import RichJsonObject._
 
-  def write(obj: MythServicesObjectList[T]): JsValue = JsObject(Map(
-    listFieldName -> writeItems(obj.data),
+  def dataFieldName: String
+  def readData(obj: JsObject): T
+  def writeData(data: T): JsValue
+
+  def write(obj: MythServicesObject[T]): JsValue = JsObject(Map(
+    dataFieldName -> writeData(obj.data),
     "AsOf"        -> JsString(obj.asOf.toIsoFormat),
     "Version"     -> JsString(obj.mythVersion),
     "ProtoVer"    -> JsString(obj.mythProtocolVersion)
   ))
 
-  def read(value: JsValue): MythServicesObjectList[T] = {
+  def read(value: JsValue): MythServicesObject[T] = {
     val obj = value.asJsObject
-    val itemList = readItems(obj)
-    new MythServicesObjectList[T] {
-      def data = itemList
+    val dataValue = readData(obj)
+    new MythServicesObject[T] {
+      def data = dataValue
       def asOf = obj.dateTimeField("AsOf")
       def mythVersion = obj.stringField("Version")
       def mythProtocolVersion = obj.stringField("ProtoVer")
     }
   }
+}
+
+private[http] trait MythServicesObjectListFormat[T]
+  extends BaseMythJsonListFormat[T]
+     with MythServicesObjectFormat[List[T]] {
+  def dataFieldName = listFieldName
+  def writeData(data: List[T]) = writeItems(data)
+  def readData(obj: JsObject): List[T] = readItems(obj)
 }
 
 /* Top level object will contain a field for the list,
@@ -1212,7 +1222,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       val obj = value.asJsObject
 
       // FIXME avoid intermediate conversion to list
-      val channelGuideList = value.convertTo[List[GuideBriefTuple]]
+      val channelGuideList = obj.convertTo[List[GuideBriefTuple]]
       val channelGuide = channelGuideList.toMap
 
       new Guide[Channel, ProgramBrief] {
@@ -1245,7 +1255,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       val obj = value.asJsObject
 
       // FIXME avoid intermediate conversion to list
-      val channelGuideList = value.convertTo[List[GuideTuple]]
+      val channelGuideList = obj.convertTo[List[GuideTuple]]
       val channelGuide = channelGuideList.toMap
 
       new Guide[ChannelDetails, Program] {

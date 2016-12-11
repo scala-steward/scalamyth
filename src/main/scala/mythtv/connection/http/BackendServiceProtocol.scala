@@ -16,17 +16,9 @@ private[http] trait MythServicesObject[+T] {
   def mythProtocolVersion: String
 }
 
-private[http] trait MythServicesObjectList[+T] extends MythServicesObject[List[T]] {
+private[http] trait MythServicesPagedList[+T] extends PagedList[T] with MythServicesObject[List[T]] {
   final def items: List[T] = data
 }
-
-private[http] trait MythServicesPagedList[+T]
-  extends PagedList[T] with MythServicesObjectList[T] {
-  def count: Int
-  def totalAvailable: Int
-  def startIndex: Int
-}
-
 
 trait MythServiceProtocol {
   self: Service =>
