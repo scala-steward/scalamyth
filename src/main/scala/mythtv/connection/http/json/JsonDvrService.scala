@@ -73,7 +73,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- request("GetRecordedList", params)
       root     <- responseRoot(response, "ProgramList")
-      result   <- Try(root.convertTo[MythJsonPagedObjectList[Recording]])
+      result   <- Try(root.convertTo[MythServicesPagedList[Recording]])
     } yield result
   }
 
@@ -82,7 +82,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- request("GetExpiringList", params)
       root     <- responseRoot(response, "ProgramList")
-      result   <- Try(root.convertTo[MythJsonPagedObjectList[Recording]])
+      result   <- Try(root.convertTo[MythServicesPagedList[Recording]])
     } yield result
   }
 
@@ -100,7 +100,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- request("GetUpcomingList", params)
       root     <- responseRoot(response, "ProgramList")
-      result   <- Try(root.convertTo[MythJsonPagedObjectList[Recordable]])
+      result   <- Try(root.convertTo[MythServicesPagedList[Recordable]])
     } yield result
   }
 
@@ -114,7 +114,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- request("GetConflictList", params)
       root     <- responseRoot(response, "ProgramList")
-      result   <- Try(root.convertTo[MythJsonPagedObjectList[Recordable]])
+      result   <- Try(root.convertTo[MythServicesPagedList[Recordable]])
     } yield result
   }
 
@@ -138,7 +138,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- request("GetRecordScheduleList", params)
       root     <- responseRoot(response, "RecRuleList")
-      result   <- Try(root.convertTo[MythJsonPagedObjectList[RecordRule]])
+      result   <- Try(root.convertTo[MythServicesPagedList[RecordRule]])
     } yield result
   }
 
@@ -493,7 +493,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     for {
       response <- request("GetRecRuleFilterList")
       root     <- responseRoot(response, "RecRuleFilterList")
-      result   <- Try(root.convertTo[MythJsonPagedObjectList[RecRuleFilter]].items)
+      result   <- Try(root.convertTo[MythServicesPagedList[RecRuleFilter]].items)
     } yield result
   }
 
