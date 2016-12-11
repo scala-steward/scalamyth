@@ -103,6 +103,13 @@ object RecordRule {
   }
 }
 
+trait RecRuleFilter {   // this is a "dynamic enum", defined in the database
+def id: Int
+  def name: String
+
+  override def toString = s"<RecRuleFilter $id $name>"
+}
+
 object DupCheckIn extends BitmaskEnum[Int] {
   type DupCheckIn = Base
   val Recorded      = Value(0x01)

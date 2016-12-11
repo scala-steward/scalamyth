@@ -89,10 +89,3 @@ trait BackendDetails {
 }
 
 trait KnownFrontendInfo extends FrontendInfo with OnlineStatus
-
-trait RecRuleFilter {   // this is a "dynamic enum", defined in the database
-  def id: Int
-  def name: String
-
-  override def toString = s"<RecRuleFilter $id $name>"
-}
