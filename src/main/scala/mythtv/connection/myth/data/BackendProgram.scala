@@ -19,7 +19,7 @@ private[myth] class BackendProgram(data: Seq[String], fieldOrder: IndexedSeq[Str
 
   private def findRecordedId: RecordedId = {
     if (fields contains "recordedId") RecordedIdInt(fields("recordedId").toInt)
-    else if (filename.isEmpty)        RecordedIdInt(0)
+    else if (filename.isEmpty)        RecordedId.empty
     else                              RecordedIdChanTime(chanId, recStartTS)
   }
 

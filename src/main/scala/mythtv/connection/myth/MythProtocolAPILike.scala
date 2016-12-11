@@ -722,7 +722,7 @@ private[myth] trait MythProtocolAPILike {
 
   def queryRecorderGetNextProgramInfo(cardId: CaptureCardId, channum: ChannelNumber, dir: ChannelBrowseDirection,
     startTime: MythDateTime): MythProtocolResult[UpcomingProgram] = {
-    val result = sendCommand("QUERY_RECORDER", cardId, "GET_NEXT_PROGRAM_INFO", channum, ChanId(0), dir, startTime)
+    val result = sendCommand("QUERY_RECORDER", cardId, "GET_NEXT_PROGRAM_INFO", channum, ChanId.empty, dir, startTime)
     result map { case QueryRecorderNextProgramInfo(p) => p }
   }
 

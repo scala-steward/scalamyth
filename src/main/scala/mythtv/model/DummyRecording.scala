@@ -12,7 +12,7 @@ class DummyRecording extends Recording {
   def syndicatedEpisode = ""
   def category          = ""
   def categoryType      = None
-  def chanId            = ChanId(0)
+  def chanId            = ChanId.empty
   def startTime         = MythDateTime.fromTimestamp(0)
   def endTime           = MythDateTime.fromTimestamp(0)
   def seriesId          = ""
@@ -54,5 +54,5 @@ class DummyRecording extends Recording {
   def episode           = None
   def totalEpisodes     = None
   def inetRef           = None
-  def recordedId        = RecordedIdInt(0)
+  def recordedId        = RecordedId.empty
 }

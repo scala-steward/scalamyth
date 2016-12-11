@@ -288,7 +288,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
           val startTs = rec.dateTimeField("StartTs")
           RecordedIdChanTime(chanId, startTs)
         }
-        else RecordedIdInt(0)
+        else RecordedId.empty
       }
 
       new Recording {
