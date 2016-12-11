@@ -2,36 +2,58 @@ package mythtv
 package services
 
 import model.EnumTypes.RecSearchType
-import model.{ ChanId, Channel, ChannelGroup, ChannelGroupId, Guide, Program }
+import model.{ ChanId, Channel, ChannelDetails, ChannelGroup, ChannelGroupId, Guide, Program, ProgramBrief }
 import util.{ OptionalCount, MythDateTime }
 import connection.http.HttpStreamResponse
 
 trait GuideService extends BackendService {
   final def serviceName: String = "Guide"
 
-  // TODO separate getProgramGuide methods for details=True/False (with different return types)
   // for MythTV 0.28, this gains a ChannelGroupId parameter, and loses numChannels and startChanId
   def getProgramGuide(
     startTime: MythDateTime,
     endTime: MythDateTime,
-    startChanId: ChanId = ChanId(0),
+    startChanId: ChanId = ChanId.empty,
     numChannels: OptionalCount[Int] = OptionalCount.all,
-    channelGroupId: ChannelGroupId = ChannelGroupId(0),
-    details: Boolean = false
-  ): ServiceResult[Guide[Channel, Program]]
+    channelGroupId: ChannelGroupId = ChannelGroupId(0)
+  ): ServiceResult[Guide[Channel, ProgramBrief]]
+
+  // NB this fills out ChannelDetails with dummy data until MythTV 0.28
+  def getProgramGuideDetails(
+    startTime: MythDateTime,
+    endTime: MythDateTime,
+    startChanId: ChanId = ChanId.empty,
+    numChannels: OptionalCount[Int] = OptionalCount.all,
+    channelGroupId: ChannelGroupId = ChannelGroupId(0)
+  ): ServiceResult[Guide[ChannelDetails, Program]]
 
   def getProgramDetails(chanId: ChanId, startTime: MythDateTime): ServiceResult[Program]
 
-  // TODO separate getProgramList methods for details=True/False (with different return types)
   // getProgramList is new for MythTV 0.28
   def getProgramList(
     startTime: MythDateTime,
     endTime: MythDateTime,
     startIndex: Int = 0,
     count: OptionalCount[Int] = OptionalCount.all,
-    details: Boolean = false,
     /* filters */
-    chanId: ChanId = ChanId(0),
+    chanId: ChanId = ChanId.empty,
+    title: String = "",
+    category: String = "",
+    person: String = "",
+    keyword: String = "",
+    onlyNew: Boolean = false,
+    /* ordering */
+    sortBy: String = "",    // one of { starttime (default), title, channel, duration }
+    descending: Boolean = false
+  ): ServiceResult[PagedList[ProgramBrief]]
+
+  def getProgramListDetails(
+    startTime: MythDateTime,
+    endTime: MythDateTime,
+    startIndex: Int = 0,
+    count: OptionalCount[Int] = OptionalCount.all,
+    /* filters */
+    chanId: ChanId = ChanId.empty,
     title: String = "",
     category: String = "",
     person: String = "",

@@ -537,7 +537,54 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
          partNumber
          partTotal */
     }
+  }
 
+  implicit object ProgramBriefJsonFormat extends RootJsonFormat[ProgramBrief] {
+    def write(p: ProgramBrief): JsValue = JsObject(Map(
+      // TODO nested Channel object
+      // TODO nested Recording object
+      // TODO nested Artwork object
+      "Title"        -> JsString(p.title),
+      "SubTitle"     -> JsString(p.subtitle),
+      "StartTime"    -> JsString(p.startTime.toString),
+      "EndTime"      -> JsString(p.endTime.toString),
+      "Category"     -> JsString(p.category),
+      "CatType"      -> JsString(p.categoryType.map(_.toString).getOrElse("")),
+      "AudioProps"   -> JsString(p.audioProps.id.toString),
+      "VideoProps"   -> JsString(p.videoProps.id.toString),
+      "SubProps"     -> JsString(p.subtitleType.id.toString),
+      "Repeat"       -> JsString(p.isRepeat.toString)
+    ))
+    def read(value: JsValue): ProgramBrief = {
+      val obj = value.asJsObject
+
+      val channel: RichJsonObject =  // inner object
+        if (obj.fields contains "Channel") obj.fields("Channel").asJsObject
+        else channelContext.value
+
+      // TODO test whether should be a Recording or Recordable
+      new ProgramBrief {
+        override def toString: String = s"<JsonProgramBrief $chanId, $startTime: $combinedTitle>"
+
+        def title        = obj.stringField("Title")
+        def subtitle     = obj.stringField("SubTitle")
+        def chanId       = ChanId(channel.intFieldOrElse("ChanId", 0))
+        def startTime    = obj.dateTimeField("StartTime")
+        def endTime      = obj.dateTimeField("EndTime")
+        def category     = obj.stringField("Category")
+        def categoryType = obj.stringFieldOption("CatType", "") map CategoryType.withName
+        def audioProps   = AudioProperties(obj.intField("AudioProps"))
+        def videoProps   = VideoProperties(obj.intField("VideoProps"))
+        def subtitleType = SubtitleType(obj.intField("SubProps"))
+        def isRepeat     = obj.booleanField("Repeat")
+      }
+    }
+  }
+
+  implicit object PagedProgramBriefListJsonFormat extends MythJsonPagedObjectListFormat[ProgramBrief] {
+    def listFieldName = "Programs"
+    def convertElement(value: JsValue): ProgramBrief = value.convertTo[ProgramBrief]
+    def elementToJson(elem: ProgramBrief): JsValue = jsonWriter[ProgramBrief].write(elem)
   }
 
   implicit object PagedProgramListJsonFormat extends MythJsonPagedObjectListFormat[Program] {
@@ -559,6 +606,12 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
   }
 
   // used for reading Guide
+  implicit object ProgramBriefListJsonFormat extends MythJsonListFormat[ProgramBrief] {
+    def listFieldName = "Programs"
+    def convertElement(value: JsValue): ProgramBrief = value.convertTo[ProgramBrief]
+    def elementToJson(elem: ProgramBrief): JsValue = jsonWriter[ProgramBrief].write(elem)
+  }
+
   implicit object ProgramListJsonFormat extends MythJsonListFormat[Program] {
     def listFieldName = "Programs"
     def convertElement(value: JsValue): Program = value.convertTo[Program]
@@ -580,7 +633,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def name     = obj.stringField("ChannelName")
         def number   = ChannelNumber(obj.stringField("ChanNum"))
         def callsign = obj.stringField("CallSign")
-        def sourceId = ???  //ListingSourceId(obj.intField("SourceId"))  not present
+        def sourceId = ListingSourceId(0) //ListingSourceId(obj.intField("SourceId"))  not present
       }
     }
   }
@@ -1067,18 +1120,58 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
-  // TODO need to support abbreviated (non-detailed guide as well!)
-
-  implicit object ChannelGuideJsonFormat extends RootJsonFormat[GuideTuple] {
-    def write(tuple: GuideTuple): JsValue = {
+  implicit object ChannelGuideBriefJsonFormat extends RootJsonFormat[GuideBriefTuple] {
+    def write(tuple: GuideBriefTuple): JsValue = {
       val (chan, progs) = tuple
       JsObject(Map(
         "ChanId"      -> JsString(chan.chanId.id.toString),
         "ChanNum"     -> JsString(chan.number.num),
         "ChannelName" -> JsString(chan.name),
         "CallSign"    -> JsString(chan.callsign),
-        "IconURL"     -> JsString(""),  // TODO not in Channel?
-        "Programs"    -> jsonWriter[List[Program]].write(progs.toList)
+        "IconURL"     -> JsString(""),  // not in Channel
+        "Programs"    -> jsonWriter[List[ProgramBrief]].write(progs.toList)
+      ))
+    }
+
+    def read(value: JsValue): GuideBriefTuple = {
+      val obj = value.asJsObject
+
+      val progs = channelContext.withValue(obj) { obj.convertTo[List[ProgramBrief]] }
+      val chan = new Channel {
+        def chanId   = ChanId(obj.intField("ChanId"))
+        def name     = obj.stringField("ChannelName")
+        def number   = ChannelNumber(obj.stringField("ChanNum"))
+        def callsign = obj.stringField("CallSign")
+        def sourceId = ListingSourceId(0)  // not serialized in services API w/Details=false
+      }
+      (chan, progs)
+    }
+  }
+
+  implicit object ChannelGuideJsonFormat extends RootJsonFormat[GuideTuple] {
+    def write(tuple: GuideTuple): JsValue = {
+      val (chan, progs) = tuple
+      JsObject(Map(
+        "ChanId"           -> JsString(chan.chanId.id.toString),
+        "ChannelName"      -> JsString(chan.name),
+        "ChanNum"          -> JsString(chan.number.num),
+        "CallSign"         -> JsString(chan.callsign),
+        "SourceId"         -> JsString(chan.sourceId.toString),
+        "FrequencyId"      -> JsString(chan.freqId.getOrElse("")),
+        "IconURL"          -> JsString(chan.iconPath),
+        "FineTune"         -> JsString(chan.fineTune.getOrElse(0).toString),
+        "XMLTVID"          -> JsString(chan.xmltvId),
+        "Format"           -> JsString(chan.format),
+        "Visible"          -> JsString(chan.visible.toString),
+        "ChanFilters"      -> JsString(chan.outputFilters.getOrElse("")),
+        "UseEIT"           -> JsString(chan.useOnAirGuide.toString),
+        "MplexId"          -> JsString(chan.mplexId.map(_.id).getOrElse(0).toString),
+        "ServiceId"        -> JsString(chan.serviceId.getOrElse(0).toString),
+        "ATSCMajorChan"    -> JsString(chan.atscMajorChan.getOrElse(0).toString),
+        "ATSCMinorChan"    -> JsString(chan.atscMinorChan.getOrElse(0).toString),
+        "DefaultAuthority" -> JsString(chan.defaultAuthority.getOrElse("")),
+        "CommFree"         -> JsString(if (chan.isCommercialFree) "1" else "0'"),
+        "Programs"         -> jsonWriter[List[Program]].write(progs.toList)
       ))
     }
 
@@ -1086,15 +1179,36 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       val obj = value.asJsObject
 
       val progs = channelContext.withValue(obj) { obj.convertTo[List[Program]] }
-      val chan = new Channel {
-        def chanId   = ChanId(obj.intField("ChanId"))
-        def name     = obj.stringField("ChannelName")
-        def number   = ChannelNumber(obj.stringField("ChanNum"))
-        def callsign = obj.stringField("CallSign")
-        def sourceId = ???
+      val chan = new ChannelDetails {
+        def chanId           = ChanId(obj.intField("ChanId"))
+        def name             = obj.stringField("ChannelName")
+        def number           = ChannelNumber(obj.stringField("ChanNum"))
+        def callsign         = obj.stringField("CallSign")
+        def sourceId         = ListingSourceId(obj.intField("SourceId"))
+        def freqId           = obj.stringFieldOption("FrequencyId", "")
+        def iconPath         = obj.stringField("IconURL")
+        def fineTune         = obj.intFieldOption("FineTune", 0)
+        def xmltvId          = obj.stringField("XMLTVID")
+        def format           = obj.stringField("Format")
+        def visible          = obj.booleanField("Visible")
+        def outputFilters    = obj.stringFieldOption("ChanFilters", "")
+        def useOnAirGuide    = obj.booleanField("UseEIT")
+        def mplexId          = obj.intFieldOption("MplexId", 0) map MultiplexId
+        def serviceId        = obj.intFieldOption("ServiceId", 0)
+        def atscMajorChan    = obj.intFieldOption("ATSCMajorChan", 0)
+        def atscMinorChan    = obj.intFieldOption("ATSCMinorChan", 0)
+        def defaultAuthority = obj.stringFieldOption("DefaultAuth", "")
+        def commMethod       = if (obj.intFieldOrElse("CommFree", 0) != 0) ChannelCommDetectMethod.CommFree
+                               else ChannelCommDetectMethod.Uninitialized
       }
       (chan, progs)
     }
+  }
+
+  implicit object ChannelGuideBriefListJsonFormat extends MythJsonListFormat[GuideBriefTuple] {
+    def listFieldName = "Channels"
+    def convertElement(value: JsValue) = value.convertTo[GuideBriefTuple]
+    def elementToJson(elem: GuideBriefTuple): JsValue = jsonWriter[GuideBriefTuple].write(elem)
   }
 
   implicit object ChannelGuideListJsonFormat extends MythJsonListFormat[GuideTuple] {
@@ -1103,14 +1217,47 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     def elementToJson(elem: GuideTuple): JsValue = jsonWriter[GuideTuple].write(elem)
   }
 
-  implicit object GuideJsonFormat extends RootJsonFormat[Guide[Channel, Program]] {
-    def write(g: Guide[Channel, Program]): JsValue = JsObject(Map(
+  implicit object GuideBriefJsonFormat extends RootJsonFormat[Guide[Channel, ProgramBrief]] {
+    def write(g: Guide[Channel, ProgramBrief]): JsValue = JsObject(Map(
       "StartTime"     -> JsString(g.startTime.toIsoFormat),
       "EndTime"       -> JsString(g.endTime.toIsoFormat),
       "StartChanId"   -> JsString(g.startChanId.id.toString),
       "EndChanId"     -> JsString(g.endChanId.id.toString),
       "Count"         -> JsString(g.programCount.toString),
-      "Details"       -> JsString(""),   // TODO
+      "Details"       -> JsString("false"),
+      "AsOf"          -> JsString(""),   // TODO
+      "Version"       -> JsString(""),   // TODO
+      "ProtoVer"      -> JsString(""),   // TODO
+      "NumOfChannels" -> JsString(g.programs.size.toString),
+      "Channels"      -> jsonWriter[List[GuideBriefTuple]].write(g.programs.toList)
+    ))
+
+    def read(value: JsValue): Guide[Channel, ProgramBrief] = {
+      val obj = value.asJsObject
+
+      // FIXME avoid intermediate conversion to list
+      val channelGuideList = value.convertTo[List[GuideBriefTuple]]
+      val channelGuide = channelGuideList.toMap
+
+      new Guide[Channel, ProgramBrief] {
+        def startTime    = obj.dateTimeField("StartTime")
+        def endTime      = obj.dateTimeField("EndTime")
+        def startChanId  = ChanId(obj.intField("StartChanId"))
+        def endChanId    = ChanId(obj.intField("EndChanId"))
+        def programCount = obj.intField("Count")
+        def programs     = channelGuide
+      }
+    }
+  }
+
+  implicit object GuideJsonFormat extends RootJsonFormat[Guide[ChannelDetails, Program]] {
+    def write(g: Guide[ChannelDetails, Program]): JsValue = JsObject(Map(
+      "StartTime"     -> JsString(g.startTime.toIsoFormat),
+      "EndTime"       -> JsString(g.endTime.toIsoFormat),
+      "StartChanId"   -> JsString(g.startChanId.id.toString),
+      "EndChanId"     -> JsString(g.endChanId.id.toString),
+      "Count"         -> JsString(g.programCount.toString),
+      "Details"       -> JsString("true"),
       "AsOf"          -> JsString(""),   // TODO
       "Version"       -> JsString(""),   // TODO
       "ProtoVer"      -> JsString(""),   // TODO
@@ -1118,14 +1265,14 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       "Channels"      -> jsonWriter[List[GuideTuple]].write(g.programs.toList)
     ))
 
-    def read(value: JsValue): Guide[Channel, Program] = {
+    def read(value: JsValue): Guide[ChannelDetails, Program] = {
       val obj = value.asJsObject
 
       // FIXME avoid intermediate conversion to list
       val channelGuideList = value.convertTo[List[GuideTuple]]
       val channelGuide = channelGuideList.toMap
 
-      new Guide[Channel, Program] {
+      new Guide[ChannelDetails, Program] {
         def startTime    = obj.dateTimeField("StartTime")
         def endTime      = obj.dateTimeField("EndTime")
         def startChanId  = ChanId(obj.intField("StartChanId"))

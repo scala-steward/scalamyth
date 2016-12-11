@@ -6,7 +6,7 @@ import EnumTypes.ListingSourceType
 
 // This structure optimized for channel-based access rather than time-based access.
 // This mirrors what is returned by the Services API GetProgramGuide
-trait Guide[Chan <: Channel, +Prog <: Program] {
+trait Guide[Chan <: Channel, +Prog <: ProgramBrief] {
   def startTime: MythDateTime
   def endTime: MythDateTime
   def startChanId: ChanId

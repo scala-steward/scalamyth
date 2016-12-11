@@ -7,7 +7,7 @@ import scala.util.Try
 
 import model.EnumTypes.RecSearchType
 import services.{ GuideService, PagedList, ServiceResult }
-import model.{ ChanId, Channel, ChannelGroup, ChannelGroupId, Guide, Program }
+import model.{ ChanId, Channel, ChannelDetails, ChannelGroup, ChannelGroupId, Guide, Program, ProgramBrief }
 import util.{ MythDateTime, OptionalCount, OptionalCountSome }
 
 class JsonGuideService(conn: BackendJsonConnection)
@@ -18,16 +18,14 @@ class JsonGuideService(conn: BackendJsonConnection)
     endTime: MythDateTime,
     startChanId: ChanId,
     numChannels: OptionalCount[Int],
-    channelGroupId: ChannelGroupId,
-    details: Boolean
-  ): ServiceResult[Guide[Channel, Program]] = {
+    channelGroupId: ChannelGroupId
+  ): ServiceResult[Guide[Channel, ProgramBrief]] = {
     // There seems to be an off-by-one error on my 0.27 backend implementation of NumChannels
     // NumChannels=1 returns 1 channels, NumChannels={n|n>1} returns n-1 channels
     // FIXME UPSTREAM: this is because it ignores channel visibility when computing start/end chanid
     var params: Map[String, Any] = Map("StartTime" -> startTime.toIsoFormat, "EndTime" -> endTime.toIsoFormat)
     if (channelGroupId.id != 0) params += "ChannelGroupId" -> channelGroupId.id
     if (startChanId.id != 0)    params += "StartChanId" -> startChanId.id
-    if (details)                params += "Details" -> details
     numChannels match {
       case OptionalCountSome(n) => params += "NumChannels" -> n
       case _ => ()
@@ -35,7 +33,32 @@ class JsonGuideService(conn: BackendJsonConnection)
     for {
       response <- request("GetProgramGuide", params)
       root     <- responseRoot(response, "ProgramGuide")
-      result   <- Try(root.convertTo[Guide[Channel, Program]])
+      result   <- Try(root.convertTo[Guide[Channel, ProgramBrief]])
+    } yield result
+  }
+
+  def getProgramGuideDetails(
+    startTime: MythDateTime,
+    endTime: MythDateTime,
+    startChanId: ChanId = ChanId.empty,
+    numChannels: OptionalCount[Int] = OptionalCount.all,
+    channelGroupId: ChannelGroupId = ChannelGroupId(0)
+  ): ServiceResult[Guide[ChannelDetails, Program]] = {
+    var params: Map[String, Any] = Map(
+      "StartTime" -> startTime.toIsoFormat,
+      "EndTime" -> endTime.toIsoFormat,
+      "Details" -> true
+    )
+    if (channelGroupId.id != 0) params += "ChannelGroupId" -> channelGroupId.id
+    if (startChanId.id != 0)    params += "StartChanId" -> startChanId.id
+    numChannels match {
+      case OptionalCountSome(n) => params += "NumChannels" -> n
+      case _ => ()
+    }
+    for {
+      response <- request("GetProgramGuide", params)
+      root     <- responseRoot(response, "ProgramGuide")
+      result   <- Try(root.convertTo[Guide[ChannelDetails, Program]])
     } yield result
   }
 
@@ -60,7 +83,39 @@ class JsonGuideService(conn: BackendJsonConnection)
     endTime: MythDateTime,
     startIndex: Int,
     count: OptionalCount[Int],
-    details: Boolean,
+    chanId: ChanId,
+    title: String,
+    category: String,
+    person: String,
+    keyword: String,
+    onlyNew: Boolean,
+    sortBy: String,
+    descending: Boolean
+  ): ServiceResult[PagedList[ProgramBrief]] = {
+    var params = buildStartCountParams(startIndex, count) ++ Map(
+      "StartTime" -> startTime.toIsoFormat,
+      "EndTime"   -> endTime.toIsoFormat
+    )
+    if (chanId.id != 0)    params += "ChanId"         -> chanId.id
+    if (title.nonEmpty)    params += "TitleFilter"    -> title
+    if (category.nonEmpty) params += "CategoryFilter" -> category
+    if (person.nonEmpty)   params += "PersonFilter"   -> person
+    if (keyword.nonEmpty)  params += "KeywordFilter"  -> keyword
+    if (onlyNew)           params += "OnlyNew"        -> onlyNew
+    if (sortBy.nonEmpty)   params += "Sort"           -> sortBy
+    if (descending)        params += "Descending"     -> descending
+    for {
+      response <- request("GetProgramList", params)
+      root     <- responseRoot(response, "ProgramList")
+      result   <- Try(root.convertTo[MythJsonPagedObjectList[ProgramBrief]])
+    } yield result
+  }
+
+  def getProgramListDetails(
+    startTime: MythDateTime,
+    endTime: MythDateTime,
+    startIndex: Int,
+    count: OptionalCount[Int],
     chanId: ChanId,
     title: String,
     category: String,
@@ -72,9 +127,9 @@ class JsonGuideService(conn: BackendJsonConnection)
   ): ServiceResult[PagedList[Program]] = {
     var params = buildStartCountParams(startIndex, count) ++ Map(
       "StartTime" -> startTime.toIsoFormat,
-      "EndTime"   -> endTime.toIsoFormat
+      "EndTime"   -> endTime.toIsoFormat,
+      "Details"   -> true
     )
-    if (details)           params += "Details"        -> details
     if (chanId.id != 0)    params += "ChanId"         -> chanId.id
     if (title.nonEmpty)    params += "TitleFilter"    -> title
     if (category.nonEmpty) params += "CategoryFilter" -> category
