@@ -3,15 +3,13 @@ package services
 
 import model.{ ImageId, ImageFileId, ImageSyncStatus }
 
-trait ImageInfo // TODO TEMP
-
 // ImageService is new with MythTV 0.28
 trait ImageService extends BackendService {
   final def serviceName: String = "Image"
 
-  def getImageInfo(imageId: ImageFileId, exifTag: String): ServiceResult[String]  // NOT YET IMPLEMENTED (NOP) on the backend?
+  //def getImageInfo(imageId: ImageFileId, exifTag: String): ServiceResult[String]  // NOT YET IMPLEMENTED (NOP) on the backend?
 
-  def getImageInfoList(imageId: ImageFileId): ServiceResult[List[ImageInfo]]      // NOT FULLY IMPLEMENTED on backend (no useful info?)
+  //def getImageInfoList(imageId: ImageFileId): ServiceResult[List[ImageInfo]]      // NOT FULLY IMPLEMENTED on backend (no useful info?)
 
   def removeImage(imageId: ImageId): ServiceResult[Boolean]
 

@@ -9,13 +9,13 @@ import spray.json.DefaultJsonProtocol.StringJsonFormat
 
 import model.{ ImageId, ImageFileId, ImageSyncStatus }
 import services.{ ImageService, ServiceResult }
-import services.ImageInfo // TEMP
 import RichJsonObject._
 
 class JsonImageService(conn: BackendJsonConnection)
   extends JsonBackendService(conn)
      with ImageService {
 
+  /*
   def getImageInfo(imageId: ImageFileId, exifTag: String): ServiceResult[String] = {
     val params: Map[String, Any] = Map("Id" -> imageId.id, "Tag" -> exifTag)
     for {
@@ -26,6 +26,7 @@ class JsonImageService(conn: BackendJsonConnection)
   }
 
   def getImageInfoList(imageId: ImageFileId): ServiceResult[List[ImageInfo]] = ???
+  */
 
   def removeImage(imageId: ImageId): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map("Id" -> imageId.id)
