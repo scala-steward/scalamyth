@@ -17,25 +17,25 @@ import model._
 
 // TODO default values for model elements need to be centralized somewhere (e.g. Inetref="000000...")
 
-private[http] trait MythServicesObjectFormat[T] extends RootJsonFormat[MythServicesObject[T]] {
+private[http] trait MythServicesObjectFormat[T] extends RootJsonFormat[ServicesObject[T]] {
   import RichJsonObject._
 
   def dataFieldName: String
   def readData(obj: JsObject): T
   def writeData(data: T): JsValue
-  def writeExtraFields(obj: MythServicesObject[T]): Map[String, JsValue] = Map.empty
+  def writeExtraFields(obj: ServicesObject[T]): Map[String, JsValue] = Map.empty
 
-  def write(obj: MythServicesObject[T]): JsValue = JsObject(Map(
+  def write(obj: ServicesObject[T]): JsValue = JsObject(Map(
     dataFieldName -> writeData(obj.data),
     "AsOf"        -> JsString(obj.asOf.toIsoFormat),
     "Version"     -> JsString(obj.mythVersion),
     "ProtoVer"    -> JsString(obj.mythProtocolVersion)
   ) ++ writeExtraFields(obj))
 
-  def read(value: JsValue): MythServicesObject[T] = {
+  def read(value: JsValue): ServicesObject[T] = {
     val obj = value.asJsObject
     val dataValue = readData(obj)
-    new MythServicesObject[T] {
+    new ServicesObject[T] {
       def data = dataValue
       def asOf = obj.dateTimeField("AsOf")
       def mythVersion = obj.stringField("Version")
@@ -1757,7 +1757,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     def dataFieldName = "Channels"
     def readChannelGuide(obj: JsObject): Map[C, Seq[P]]
 
-    override def writeExtraFields(obj: MythServicesObject[Guide[C, P]]): Map[String, JsValue] = {
+    override def writeExtraFields(obj: ServicesObject[Guide[C, P]]): Map[String, JsValue] = {
       val g = obj.data
       Map(
         "StartTime"     -> JsString(g.startTime.toIsoFormat),
@@ -1783,7 +1783,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     override def writeData(g: Guide[Channel, ProgramBrief]): JsValue =
       jsonWriter[List[GuideBriefTuple]].write(g.programs.toList)
 
-    override def writeExtraFields(obj: MythServicesObject[Guide[Channel, ProgramBrief]]): Map[String, JsValue] =
+    override def writeExtraFields(obj: ServicesObject[Guide[Channel, ProgramBrief]]): Map[String, JsValue] =
       Map("Details" -> JsString("false")) ++ super.writeExtraFields(obj)
 
     def readChannelGuide(obj: JsObject): Map[Channel, Seq[ProgramBrief]] = {
@@ -1798,7 +1798,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     def writeData(g: Guide[ChannelDetails, Program]): JsValue =
       jsonWriter[List[GuideTuple]].write(g.programs.toList)
 
-    override def writeExtraFields(obj: MythServicesObject[Guide[ChannelDetails, Program]]): Map[String, JsValue] =
+    override def writeExtraFields(obj: ServicesObject[Guide[ChannelDetails, Program]]): Map[String, JsValue] =
       Map("Details" -> JsString("true")) ++ super.writeExtraFields(obj)
 
     def readChannelGuide(obj: JsObject): Map[ChannelDetails, Seq[Program]] = {
