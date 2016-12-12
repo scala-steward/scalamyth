@@ -254,7 +254,7 @@ class JsonMythService(conn: BackendJsonConnection)
     for {
       response <- post("ChangePassword", params)
       root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool"))  // TODO test
+      result   <- Try(root.booleanField("bool"))
     } yield result
   }
 
