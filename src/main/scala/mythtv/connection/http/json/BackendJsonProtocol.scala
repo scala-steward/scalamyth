@@ -278,7 +278,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         else RecordedId.empty
       }
 
-      new Recording {
+      new Recording with HasArtworkInfo {
         override def toString: String = s"<JsonRecording $chanId, $startTime: $combinedTitle>"
 
         def title                   = obj.stringField("Title")
@@ -383,7 +383,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         if (obj.fields contains "Recording") obj.fields("Recording").asJsObject
         else EmptyJsonObject
 
-      new Recordable {
+      new Recordable with HasArtworkInfo {
         override def toString: String = s"<JsonRecordable $chanId, $startTime: $combinedTitle>"
 
         def title                   = obj.stringField("Title")
@@ -488,7 +488,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         if (obj.stringFieldOption("FileName", "").nonEmpty) RecordingJsonFormat.read(value)
         else                                                RecordableJsonFormat.read(value)
       }
-      else new Program {
+      else new Program with HasArtworkInfo {
         override def toString: String = s"<JsonProgram $chanId, $startTime: $combinedTitle>"
 
         def title                   = obj.stringField("Title")
