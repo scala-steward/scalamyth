@@ -7,7 +7,7 @@ import scala.util.Try
 
 import model._
 import util.OptionalCount
-import services.{ ChannelService, PagedList, ServiceResult }
+import services.{ ChannelService, PagedList, ServiceResult, ServicesObject }
 import services.Service.ServiceFailure._
 import RichJsonObject._
 

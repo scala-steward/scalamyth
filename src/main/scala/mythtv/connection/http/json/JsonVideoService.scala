@@ -8,7 +8,7 @@ import scala.util.Try
 import util.OptionalCount
 import model.EnumTypes.MetadataGrabberType
 import model.{ BlurayInfo, MetadataGrabberType, Video, VideoId, VideoLookup }
-import services.{ VideoService, PagedList, ServiceResult }
+import services.{ PagedList, ServiceResult, ServicesObject, VideoService }
 import services.Service.ServiceFailure.ServiceNoResult
 import RichJsonObject._
 

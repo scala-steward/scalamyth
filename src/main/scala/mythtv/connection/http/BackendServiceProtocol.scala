@@ -4,16 +4,9 @@ package http
 
 import scala.util.{ Failure, Success, Try }
 
-import services.{ PagedList, Service, ServiceResult }
+import services.{ PagedList, Service, ServiceResult, ServicesObject }
 import Service.ServiceFailure.ServiceFailureThrowable
 import util.{ MythDateTime, OptionalCount, OptionalCountSome }
-
-trait ServicesObject[+T] {
-  def data: T
-  def asOf: MythDateTime
-  def mythVersion: String
-  def mythProtocolVersion: String
-}
 
 private[http] trait MythServicesPagedList[+T] extends PagedList[T] with ServicesObject[List[T]] {
   final def items: List[T] = data

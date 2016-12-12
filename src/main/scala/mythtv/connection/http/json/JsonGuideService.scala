@@ -6,7 +6,7 @@ package json
 import scala.util.Try
 
 import model.EnumTypes.RecSearchType
-import services.{ GuideService, PagedList, ServiceResult }
+import services.{ GuideService, PagedList, ServiceResult, ServicesObject }
 import model.{ ChanId, Channel, ChannelDetails, ChannelGroup, ChannelGroupId, Guide, Program, ProgramBrief }
 import util.{ MythDateTime, OptionalCount, OptionalCountSome }
 
