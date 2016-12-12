@@ -18,7 +18,7 @@ abstract class AbstractHttpConnection(val protocol: String, val host: String, va
   def setupConnection(conn: HttpURLConnection): Unit = {
     // TODO need a centralized mechanism for specifying default HTTP connect and read timeouts
     conn.setConnectTimeout(10000)
-    conn.setReadTimeout(10000)
+    conn.setReadTimeout(90000)
   }
 
   // TODO do we need to pick up errorStream and read it out?
