@@ -113,6 +113,9 @@ trait MythService extends BackendService {
   /**
     * Changes password stored at HTTP/Protected/Password, used for some services? URLs,
     * specified by HTTP/Protected/Urls ? See libs/libmythupnp/httprequest.cpp for more info.
+    *
+    * This API appears to be useless, at least in 0.28, as nothing seems to use this password,
+    * and I can't find a way to set the initial value other than editing the database directly.
     */
   def changePassword(userName: String, oldPassword: String, newPassword: String): ServiceResult[Boolean]
 
