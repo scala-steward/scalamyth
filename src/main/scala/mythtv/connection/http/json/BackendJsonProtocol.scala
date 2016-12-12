@@ -73,7 +73,7 @@ private[http] trait MythServicesObjectListFormat[T]
  * Exceptions include:
  *    StringList, StorageGroupDirList, ...
  */
-private[http] trait MythServicesPagedListFormat[T]
+private[http] trait MythServicesPagedListFormat[T]  // TODO leverage ServicesObject format...
   extends BaseMythJsonListFormat[T]
      with RootJsonFormat[MythServicesPagedList[T]] {
   import RichJsonObject._
@@ -1496,7 +1496,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       "UserRating"    -> JsString(v.userRating.toString),
       "Length"        -> JsString(v.length.toString),
       "Language"      -> JsString(v.language),
-      "Countries"     -> ???,
+      "Countries"     -> jsonWriter[List[String]].write(v.countries),  // FIXME this will actually write a "StringList" field object...
       "Popularity"    -> JsString(v.popularity.getOrElse(0).toString),
       "Budget"        -> JsString(v.budget.getOrElse(0).toString),
       "Revenue"       -> JsString(v.revenue.toString),
