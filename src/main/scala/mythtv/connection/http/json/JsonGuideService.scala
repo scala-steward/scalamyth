@@ -13,6 +13,7 @@ import util.{ MythDateTime, OptionalCount, OptionalCountSome }
 class JsonGuideService(conn: BackendJsonConnection)
   extends JsonBackendService(conn)
      with GuideService {
+
   def getProgramGuide(
     startTime: MythDateTime,
     endTime: MythDateTime,
@@ -33,8 +34,8 @@ class JsonGuideService(conn: BackendJsonConnection)
     for {
       response <- request("GetProgramGuide", params)
       root     <- responseRoot(response, "ProgramGuide")
-      result   <- Try(root.convertTo[Guide[Channel, ProgramBrief]])
-    } yield result
+      result   <- Try(root.convertTo[MythServicesObject[Guide[Channel, ProgramBrief]]])
+    } yield result.data
   }
 
   def getProgramGuideDetails(
@@ -58,8 +59,8 @@ class JsonGuideService(conn: BackendJsonConnection)
     for {
       response <- request("GetProgramGuide", params)
       root     <- responseRoot(response, "ProgramGuide")
-      result   <- Try(root.convertTo[Guide[ChannelDetails, Program]])
-    } yield result
+      result   <- Try(root.convertTo[MythServicesObject[Guide[ChannelDetails, Program]]])
+    } yield result.data
   }
 
   /*

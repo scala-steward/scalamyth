@@ -23,13 +23,14 @@ private[http] trait MythServicesObjectFormat[T] extends RootJsonFormat[MythServi
   def dataFieldName: String
   def readData(obj: JsObject): T
   def writeData(data: T): JsValue
+  def writeExtraFields(obj: MythServicesObject[T]): Map[String, JsValue] = Map.empty
 
   def write(obj: MythServicesObject[T]): JsValue = JsObject(Map(
     dataFieldName -> writeData(obj.data),
     "AsOf"        -> JsString(obj.asOf.toIsoFormat),
     "Version"     -> JsString(obj.mythVersion),
     "ProtoVer"    -> JsString(obj.mythProtocolVersion)
-  ))
+  ) ++ writeExtraFields(obj))
 
   def read(value: JsValue): MythServicesObject[T] = {
     val obj = value.asJsObject
@@ -1203,72 +1204,6 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     def elementToJson(elem: GuideTuple): JsValue = jsonWriter[GuideTuple].write(elem)
   }
 
-  implicit object GuideBriefJsonFormat extends RootJsonFormat[Guide[Channel, ProgramBrief]] {
-    def write(g: Guide[Channel, ProgramBrief]): JsValue = JsObject(Map(
-      "StartTime"     -> JsString(g.startTime.toIsoFormat),
-      "EndTime"       -> JsString(g.endTime.toIsoFormat),
-      "StartChanId"   -> JsString(g.startChanId.id.toString),
-      "EndChanId"     -> JsString(g.endChanId.id.toString),
-      "Count"         -> JsString(g.programCount.toString),
-      "Details"       -> JsString("false"),
-      "AsOf"          -> JsString(""),   // TODO
-      "Version"       -> JsString(""),   // TODO
-      "ProtoVer"      -> JsString(""),   // TODO
-      "NumOfChannels" -> JsString(g.programs.size.toString),
-      "Channels"      -> jsonWriter[List[GuideBriefTuple]].write(g.programs.toList)
-    ))
-
-    def read(value: JsValue): Guide[Channel, ProgramBrief] = {
-      val obj = value.asJsObject
-
-      // FIXME avoid intermediate conversion to list
-      val channelGuideList = obj.convertTo[List[GuideBriefTuple]]
-      val channelGuide = channelGuideList.toMap
-
-      new Guide[Channel, ProgramBrief] {
-        def startTime    = obj.dateTimeField("StartTime")
-        def endTime      = obj.dateTimeField("EndTime")
-        def startChanId  = ChanId(obj.intField("StartChanId"))
-        def endChanId    = ChanId(obj.intField("EndChanId"))
-        def programCount = obj.intField("Count")
-        def programs     = channelGuide
-      }
-    }
-  }
-
-  implicit object GuideJsonFormat extends RootJsonFormat[Guide[ChannelDetails, Program]] {
-    def write(g: Guide[ChannelDetails, Program]): JsValue = JsObject(Map(
-      "StartTime"     -> JsString(g.startTime.toIsoFormat),
-      "EndTime"       -> JsString(g.endTime.toIsoFormat),
-      "StartChanId"   -> JsString(g.startChanId.id.toString),
-      "EndChanId"     -> JsString(g.endChanId.id.toString),
-      "Count"         -> JsString(g.programCount.toString),
-      "Details"       -> JsString("true"),
-      "AsOf"          -> JsString(""),   // TODO
-      "Version"       -> JsString(""),   // TODO
-      "ProtoVer"      -> JsString(""),   // TODO
-      "NumOfChannels" -> JsString(g.programs.size.toString),
-      "Channels"      -> jsonWriter[List[GuideTuple]].write(g.programs.toList)
-    ))
-
-    def read(value: JsValue): Guide[ChannelDetails, Program] = {
-      val obj = value.asJsObject
-
-      // FIXME avoid intermediate conversion to list
-      val channelGuideList = obj.convertTo[List[GuideTuple]]
-      val channelGuide = channelGuideList.toMap
-
-      new Guide[ChannelDetails, Program] {
-        def startTime    = obj.dateTimeField("StartTime")
-        def endTime      = obj.dateTimeField("EndTime")
-        def startChanId  = ChanId(obj.intField("StartChanId"))
-        def endChanId    = ChanId(obj.intField("EndChanId"))
-        def programCount = obj.intField("Count")
-        def programs     = channelGuide
-      }
-    }
-  }
-
   implicit object VideoJsonFormat extends RootJsonFormat[Video] {
     def write(v: Video): JsValue = JsObject(Map(
       "Id"               -> JsString(v.id.id.toString),
@@ -1818,4 +1753,56 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
+  trait MSOGuideJsonFormat[C <: Channel, P <: ProgramBrief] extends MythServicesObjectFormat[Guide[C, P]] {
+    def dataFieldName = "Channels"
+    def readChannelGuide(obj: JsObject): Map[C, Seq[P]]
+
+    override def writeExtraFields(obj: MythServicesObject[Guide[C, P]]): Map[String, JsValue] = {
+      val g = obj.data
+      Map(
+        "StartTime"     -> JsString(g.startTime.toIsoFormat),
+        "EndTime"       -> JsString(g.endTime.toIsoFormat),
+        "StartChanId"   -> JsString(g.startChanId.id.toString),
+        "EndChanId"     -> JsString(g.endChanId.id.toString),
+        "NumOfChannels" -> JsString(g.programs.size.toString),
+        "Count"         -> JsString(g.programCount.toString)
+      )
+    }
+
+    def readData(obj: JsObject): Guide[C, P] = new Guide[C, P] {
+      def startTime    = obj.dateTimeField("StartTime")
+      def endTime      = obj.dateTimeField("EndTime")
+      def startChanId  = ChanId(obj.intField("StartChanId"))
+      def endChanId    = ChanId(obj.intField("EndChanId"))
+      def programCount = obj.intField("Count")
+      def programs     = readChannelGuide(obj)
+    }
+  }
+
+  implicit object MSOGuideBriefJsonFormat extends MSOGuideJsonFormat[Channel, ProgramBrief] {
+    override def writeData(g: Guide[Channel, ProgramBrief]): JsValue =
+      jsonWriter[List[GuideBriefTuple]].write(g.programs.toList)
+
+    override def writeExtraFields(obj: MythServicesObject[Guide[Channel, ProgramBrief]]): Map[String, JsValue] =
+      Map("Details" -> JsString("false")) ++ super.writeExtraFields(obj)
+
+    def readChannelGuide(obj: JsObject): Map[Channel, Seq[ProgramBrief]] = {
+      // FIXME avoid intermediate conversion to list
+      val channelGuideList = obj.convertTo[List[GuideBriefTuple]]
+      val channelGuide = channelGuideList.toMap
+      channelGuide
+    }
+  }
+
+  implicit object MSOGuideJsonFormat extends MSOGuideJsonFormat[ChannelDetails, Program] {
+    def writeData(g: Guide[ChannelDetails, Program]): JsValue =
+      jsonWriter[List[GuideTuple]].write(g.programs.toList)
+
+    override def writeExtraFields(obj: MythServicesObject[Guide[ChannelDetails, Program]]): Map[String, JsValue] =
+      Map("Details" -> JsString("true")) ++ super.writeExtraFields(obj)
+
+    def readChannelGuide(obj: JsObject): Map[ChannelDetails, Seq[Program]] = {
+      obj.convertTo[List[GuideTuple]].toMap
+    }
+  }
 }

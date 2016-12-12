@@ -8,7 +8,6 @@ import services.{ PagedList, Service, ServiceResult }
 import Service.ServiceFailure.ServiceFailureThrowable
 import util.{ MythDateTime, OptionalCount, OptionalCountSome }
 
-// TODO Have guide result utilize this MythJsonObject trait?
 private[http] trait MythServicesObject[+T] {
   def data: T
   def asOf: MythDateTime
