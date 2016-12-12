@@ -17,7 +17,7 @@ import model._
 
 // TODO default values for model elements need to be centralized somewhere (e.g. Inetref="000000...")
 
-private[http] trait MythServicesObjectFormat[T] extends RootJsonFormat[ServicesObject[T]] {
+private[http] trait ServicesObjectFormat[T] extends RootJsonFormat[ServicesObject[T]] {
   import RichJsonObject._
 
   def dataFieldName: String
@@ -46,7 +46,7 @@ private[http] trait MythServicesObjectFormat[T] extends RootJsonFormat[ServicesO
 
 private[http] trait MythServicesObjectListFormat[T]
   extends BaseMythJsonListFormat[T]
-     with MythServicesObjectFormat[List[T]] {
+     with ServicesObjectFormat[List[T]] {
   def dataFieldName = listFieldName
   def writeData(data: List[T]) = writeItems(data)
   def readData(obj: JsObject): List[T] = readItems(obj)
@@ -1753,7 +1753,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
-  trait MSOGuideJsonFormat[C <: Channel, P <: ProgramBrief] extends MythServicesObjectFormat[Guide[C, P]] {
+  trait MSOGuideJsonFormat[C <: Channel, P <: ProgramBrief] extends ServicesObjectFormat[Guide[C, P]] {
     def dataFieldName = "Channels"
     def readChannelGuide(obj: JsObject): Map[C, Seq[P]]
 
