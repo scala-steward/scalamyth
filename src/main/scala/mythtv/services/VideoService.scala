@@ -28,6 +28,14 @@ trait VideoService extends BackendService {
      Is there a problem with the TMDB grabber or processing its output? A query for Title=Gravity
      with the grabber directly fails with KeyError=25, while Juno returns results with the grabber
      but they are not reflected in the results of this service call.
+
+     This seems to be working better on my test 0.28 installation, as the movies "Juno" and "Gravity"
+     appeart first in their respective result set.
+   */
+
+  /*
+   * The lookupVideo calls may take significant time to complete, which may result in a timeout
+   * if the timeout threshold is set too low.
    */
 
   // perform metadata lookup for a video
