@@ -21,7 +21,7 @@ class JsonContentService(conn: BackendJsonConnection)
     val params: Map[String, Any] = Map("StorageGroup" -> storageGroup)
     for {
       response <- request("GetDirList", params)
-      root     <- responseRoot(response)
+      root     <- responseRoot(response, "StringList")
       result   <- Try(root.convertTo[List[String]])
     } yield result
   }
@@ -30,7 +30,7 @@ class JsonContentService(conn: BackendJsonConnection)
     val params: Map[String, Any] = Map("StorageGroup" -> storageGroup)
     for {
       response <- request("GetFileList", params)
-      root     <- responseRoot(response)
+      root     <- responseRoot(response, "StringList")
       result   <- Try(root.convertTo[List[String]])
     } yield result
   }
@@ -63,7 +63,7 @@ class JsonContentService(conn: BackendJsonConnection)
     if (fileName.nonEmpty) params += "FileName" -> fileName
     for {
       response <- request("GetLiveStreamList", params)
-      root     <- responseRoot(response, "LiveStreamInfoList")
+      root     <- responseRoot(response, "LiveStreamInfoList", "LiveStreamInfos")
       result   <- Try(root.convertTo[List[LiveStream]])
     } yield result
   }
@@ -184,7 +184,7 @@ class JsonContentService(conn: BackendJsonConnection)
     )
     for {
       response <- request("GetRecordingArtworkList", params)
-      root     <- responseRoot(response, "ArtworkInfoList")
+      root     <- responseRoot(response, "ArtworkInfoList", "ArtworkInfos")
       result   <- Try(root.convertTo[List[ArtworkInfo]])
     } yield result
   }
@@ -194,7 +194,7 @@ class JsonContentService(conn: BackendJsonConnection)
       val params: Map[String, Any] = Map("RecordedId" -> id)
       for {
         response <- request("GetRecordingArtworkList", params)
-        root     <- responseRoot(response, "ArtworkInfoList")
+        root     <- responseRoot(response, "ArtworkInfoList", "ArtworkInfos")
         result   <- Try(root.convertTo[List[ArtworkInfo]])
       } yield result
     case RecordedIdChanTime(chanId, startTime) => getRecordingArtworkList(chanId, startTime)
@@ -207,7 +207,7 @@ class JsonContentService(conn: BackendJsonConnection)
     )
     for {
       response <- request("GetProgramArtworkList", params)
-      root     <- responseRoot(response, "ArtworkInfoList")
+      root     <- responseRoot(response, "ArtworkInfoList", "ArtworkInfos")
       result   <- Try(root.convertTo[List[ArtworkInfo]])
     } yield result
   }

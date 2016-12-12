@@ -102,7 +102,7 @@ class JsonChannelService(conn: BackendJsonConnection)
     val params: Map[String, Any] = Map("SourceID" -> sourceId.id)
     for {
       response <- request("GetXMLTVIdList", params)
-      root     <- responseRoot(response)
+      root     <- responseRoot(response, "StringList")
       result   <- Try(root.convertTo[List[String]])
     } yield result
   }
@@ -112,7 +112,7 @@ class JsonChannelService(conn: BackendJsonConnection)
     if (provider.nonEmpty) params += "Source" -> provider
     for {
       response <- post("GetDDLineupList", params)
-      root     <- responseRoot(response, "LineupList")
+      root     <- responseRoot(response, "LineupList", "Lineups")
       result   <- Try(root.convertTo[List[Lineup]])
     } yield result
   }

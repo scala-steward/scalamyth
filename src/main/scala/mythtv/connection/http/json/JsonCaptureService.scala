@@ -28,7 +28,7 @@ class JsonCaptureService(conn: BackendJsonConnection)
     if (cardType.nonEmpty) params += "CardType" -> cardType
     for {
       response <- request("GetCaptureCardList", params)
-      root     <- responseRoot(response, "CaptureCardList")
+      root     <- responseRoot(response, "CaptureCardList", "CaptureCards")
       result   <- Try(root.convertTo[List[CaptureCard]])
     } yield result
   }

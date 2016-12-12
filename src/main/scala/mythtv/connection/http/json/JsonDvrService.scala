@@ -121,7 +121,7 @@ class JsonDvrService(conn: BackendJsonConnection)
   def getEncoderList: ServiceResult[List[RemoteEncoderState]] = {
     for {
       response <- request("GetEncoderList")
-      root     <- responseRoot(response, "EncoderList")
+      root     <- responseRoot(response, "EncoderList", "Encoders")
       result   <- Try(root.convertTo[List[RemoteEncoderState]])
     } yield result
   }
@@ -190,7 +190,7 @@ class JsonDvrService(conn: BackendJsonConnection)
   def getRecGroupList: ServiceResult[List[String]] = {
     for {
       response <- request("GetRecGroupList")
-      root     <- responseRoot(response)
+      root     <- responseRoot(response, "StringList")
       result   <- Try(root.convertTo[List[String]])
     } yield result
   }
@@ -200,7 +200,7 @@ class JsonDvrService(conn: BackendJsonConnection)
     if (recGroup.nonEmpty) params += "RecGroup" -> recGroup
     for {
       response <- request("GetTitleList", params)
-      root     <- responseRoot(response)
+      root     <- responseRoot(response, "StringList")
       result   <- Try(root.convertTo[List[String]])
     } yield result
   }
@@ -208,7 +208,7 @@ class JsonDvrService(conn: BackendJsonConnection)
   def getTitleInfoList: ServiceResult[List[TitleInfo]] = {
     for {
       response <- request("GetTitleInfoList")
-      root     <- responseRoot(response, "TitleInfoList")
+      root     <- responseRoot(response, "TitleInfoList", "TitleInfos")
       result   <- Try(root.convertTo[List[TitleInfo]])
     } yield result
   }
@@ -468,7 +468,7 @@ class JsonDvrService(conn: BackendJsonConnection)
   def getInputList: ServiceResult[List[Input]] = {
     for {
       response <- request("GetInputList")
-      root     <- responseRoot(response, "InputList")
+      root     <- responseRoot(response, "InputList", "Inputs")
       result   <- Try(root.convertTo[List[Input]])
     } yield result
   }
@@ -476,7 +476,7 @@ class JsonDvrService(conn: BackendJsonConnection)
   def getRecStorageGroupList: ServiceResult[List[String]] = {
     for {
       response <- request("GetRecStorageGroupList")
-      root     <- responseRoot(response)
+      root     <- responseRoot(response, "StringList")
       result   <- Try(root.convertTo[List[String]])
     } yield result
   }
@@ -484,7 +484,7 @@ class JsonDvrService(conn: BackendJsonConnection)
   def getPlayGroupList: ServiceResult[List[String]] = {
     for {
       response <- request("GetPlayGroupList")
-      root     <- responseRoot(response)
+      root     <- responseRoot(response, "StringList")
       result   <- Try(root.convertTo[List[String]])
     } yield result
   }

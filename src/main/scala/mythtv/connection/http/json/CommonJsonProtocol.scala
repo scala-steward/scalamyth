@@ -29,23 +29,24 @@ private[http] trait BaseMythJsonListFormat[T] {
   }
 }
 
-private[http] trait MythJsonListFormat[T]
-  extends BaseMythJsonListFormat[T]
-     with RootJsonFormat[List[T]] {
-
-  def write(list: List[T]): JsValue = writeItems(list)
-
-  def read(value: JsValue): List[T] = {
-    val obj = value.asJsObject
-    readItems(obj)
-  }
-}
-
 private[http] trait CommonJsonProtocol {
 
-  implicit object StringListJsonFormat extends MythJsonListFormat[String] {
+  trait BasicListFormat[T] extends RootJsonFormat[List[T]] {  // TODO remove this and replace with DefaultProtocol listFormat? (implicit def)
+    def convertElement(value: JsValue): T
+    def elementToJson(elem: T): JsValue
+
+    def write(list: List[T]): JsValue =
+      JsArray(list.map(elementToJson).toVector)
+
+    def read(value: JsValue): List[T] = value match {
+      case JsArray(elements) => elements.map(convertElement)(scala.collection.breakOut)
+      case x => deserializationError(s"expected array but got $x")
+    }
+  }
+
+  implicit object StringListJsonFormat extends BasicListFormat[String] {
     import DefaultJsonProtocol.StringJsonFormat
-    def listFieldName = "StringList"
+    //def listFieldName = "StringList"
     def convertElement(value: JsValue): String = value.convertTo[String]
     def elementToJson(elem: String): JsValue = jsonWriter[String].write(elem)
   }

@@ -47,7 +47,7 @@ class JsonMythService(conn: BackendJsonConnection)
     if (onlyOnline) params += "OnLine" -> onlyOnline
     for {
       response <- request("GetFrontends", params)
-      root     <- responseRoot(response, "FrontendList")
+      root     <- responseRoot(response, "FrontendList", "Frontends")
       result   <- Try(root.convertTo[List[KnownFrontendInfo]])
     } yield result
   }
@@ -63,7 +63,7 @@ class JsonMythService(conn: BackendJsonConnection)
   def getHosts: ServiceResult[List[String]] = {
     for {
       response <- request("GetHosts")
-      root     <- responseRoot(response)
+      root     <- responseRoot(response, "StringList")
       result   <- Try(root.convertTo[List[String]])
     } yield result
   }
@@ -71,7 +71,7 @@ class JsonMythService(conn: BackendJsonConnection)
   def getKeys: ServiceResult[List[String]] = {
     for {
       response <- request("GetKeys")
-      root     <- responseRoot(response)
+      root     <- responseRoot(response, "StringList")
       result   <- Try(root.convertTo[List[String]])
     } yield result
   }
@@ -103,7 +103,7 @@ class JsonMythService(conn: BackendJsonConnection)
     if (groupName.nonEmpty) params += "GroupName" -> groupName
     for {
       response <- request("GetStorageGroupDirs", params)
-      root     <- responseRoot(response, "StorageGroupDirList")
+      root     <- responseRoot(response, "StorageGroupDirList", "StorageGroupDirs")
       result   <- Try(root.convertTo[List[StorageGroupDir]])
     } yield result
   }
@@ -157,16 +157,16 @@ class JsonMythService(conn: BackendJsonConnection)
   def getLogHostNames: ServiceResult[List[String]] = {
     for {
       response <- request("GetLogs")
-      root     <- responseRoot(response, "LogMessageList")
-      result   <- Try(root.asJsObject.fields("HostNames").convertTo[List[LabelValue]] map (_.value))
+      root     <- responseRoot(response, "LogMessageList", "HostNames")
+      result   <- Try(root.convertTo[List[LabelValue]] map (_.value))
     } yield result
   }
 
   def getLogApplications: ServiceResult[List[String]] = {
     for {
       response <- request("GetLogs")
-      root     <- responseRoot(response, "LogMessageList")
-      result   <- Try(root.asJsObject.fields("Applications").convertTo[List[LabelValue]] map (_.value))
+      root     <- responseRoot(response, "LogMessageList", "Applications")
+      result   <- Try(root.convertTo[List[LabelValue]] map (_.value))
     } yield result
   }
 
@@ -199,7 +199,7 @@ class JsonMythService(conn: BackendJsonConnection)
     if (msgContains.nonEmpty)    params += "MsgContains" -> msgContains
     for {
       response <- request("GetLogs", params)
-      root     <- responseRoot(response, "LogMessageList")
+      root     <- responseRoot(response, "LogMessageList", "LogMessages")
       result   <- Try(root.convertTo[List[LogMessage]])
     } yield result
   }

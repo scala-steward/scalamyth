@@ -160,7 +160,7 @@ class JsonGuideService(conn: BackendJsonConnection)
   def getCategoryList: ServiceResult[List[String]] = {
     for {
       response <- request("GetCategoryList")
-      root     <- responseRoot(response)
+      root     <- responseRoot(response, "StringList")
       result   <- Try(root.convertTo[List[String]])
     } yield result
   }
@@ -170,7 +170,7 @@ class JsonGuideService(conn: BackendJsonConnection)
     if (includeEmpty) params += "IncludeEmpty" -> includeEmpty
     for {
       response <- request("GetChannelGroupList", params)
-      root     <- responseRoot(response, "ChannelGroupList")
+      root     <- responseRoot(response, "ChannelGroupList", "ChannelGroups")
       result   <- Try(root.convertTo[List[ChannelGroup]])
     } yield result
   }
@@ -179,7 +179,7 @@ class JsonGuideService(conn: BackendJsonConnection)
     val params: Map[String, Any] = Map("Type" -> RecSearchTypeJsonFormat.id2Description(searchType))
     for {
       response <- request("GetStoredSearches", params)
-      root     <- responseRoot(response)
+      root     <- responseRoot(response, "StringList")
       result   <- Try(root.convertTo[List[String]])
     } yield result
   }

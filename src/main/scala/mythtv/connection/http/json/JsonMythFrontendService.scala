@@ -33,7 +33,7 @@ class JsonMythFrontendService(conn: FrontendJsonConnection)
   def getContextList: ServiceResult[List[String]] = {
     for {
       response <- request("GetContextList")
-      root     <- responseRoot(response)
+      root     <- responseRoot(response, "StringList")
       result   <- Try(root.convertTo[List[String]])
     } yield result
   }
