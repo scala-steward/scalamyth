@@ -44,7 +44,7 @@ private[http] trait ServicesObjectFormat[T] extends RootJsonFormat[ServicesObjec
   }
 }
 
-private[http] trait MythServicesObjectListFormat[T]
+private[http] trait ServicesObjectListFormat[T]
   extends BaseMythJsonListFormat[T]
      with ServicesObjectFormat[List[T]] {
   def dataFieldName = listFieldName
@@ -73,12 +73,12 @@ private[http] trait MythServicesObjectListFormat[T]
  * Exceptions include:
  *    StringList, StorageGroupDirList, ...
  */
-private[http] trait MythServicesPagedListFormat[T]  // TODO leverage ServicesObject format...
+private[http] trait ServicesPagedListFormat[T]
   extends BaseMythJsonListFormat[T]
-     with RootJsonFormat[MythServicesPagedList[T]] {
+     with RootJsonFormat[ServicesPagedList[T]] {
   import RichJsonObject._
 
-  def write(obj: MythServicesPagedList[T]): JsValue = JsObject(Map(
+  def write(obj: ServicesPagedList[T]): JsValue = JsObject(Map(
     listFieldName    -> writeItems(obj.data),
     "Count"          -> JsString(obj.count.toString),
     "TotalAvailable" -> JsString(obj.totalAvailable.toString),
@@ -88,11 +88,11 @@ private[http] trait MythServicesPagedListFormat[T]  // TODO leverage ServicesObj
     "ProtoVer"       -> JsString(obj.mythProtocolVersion)
   ))
 
-  def read(value: JsValue): MythServicesPagedList[T] = {
+  def read(value: JsValue): ServicesPagedList[T] = {
     val obj = value.asJsObject
     val itemList = readItems(obj)
 
-    new MythServicesPagedList[T] {
+    new ServicesPagedList[T] {
       def data = itemList
       def count = obj.intField("Count")
       def totalAvailable = obj.intField("TotalAvailable")
@@ -569,25 +569,25 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
-  implicit object PagedProgramBriefListJsonFormat extends MythServicesPagedListFormat[ProgramBrief] {
+  implicit object PagedProgramBriefListJsonFormat extends ServicesPagedListFormat[ProgramBrief] {
     def listFieldName = "Programs"
     def convertElement(value: JsValue): ProgramBrief = value.convertTo[ProgramBrief]
     def elementToJson(elem: ProgramBrief): JsValue = jsonWriter[ProgramBrief].write(elem)
   }
 
-  implicit object PagedProgramListJsonFormat extends MythServicesPagedListFormat[Program] {
+  implicit object PagedProgramListJsonFormat extends ServicesPagedListFormat[Program] {
     def listFieldName = "Programs"
     def convertElement(value: JsValue): Program = value.convertTo[Program]
     def elementToJson(elem: Program): JsValue = jsonWriter[Program].write(elem)
   }
 
-  implicit object PagedRecordableListJsonFormat extends MythServicesPagedListFormat[Recordable] {
+  implicit object PagedRecordableListJsonFormat extends ServicesPagedListFormat[Recordable] {
     def listFieldName = "Programs"
     def convertElement(value: JsValue): Recordable = value.convertTo[Recordable]
     def elementToJson(elem: Recordable): JsValue = jsonWriter[Recordable].write(elem)
   }
 
-  implicit object PagedRecordingListJsonFormat extends MythServicesPagedListFormat[Recording] {
+  implicit object PagedRecordingListJsonFormat extends ServicesPagedListFormat[Recording] {
     def listFieldName = "Programs"
     def convertElement(value: JsValue): Recording = value.convertTo[Recording]
     def elementToJson(elem: Recording): JsValue = jsonWriter[Recording].write(elem)
@@ -626,7 +626,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
-  implicit object ChannelListJsonFormat extends MythServicesPagedListFormat[Channel] {
+  implicit object ChannelListJsonFormat extends ServicesPagedListFormat[Channel] {
     def listFieldName = "ChannelInfos"
     def convertElement(value: JsValue): Channel = value.convertTo[Channel]
     def elementToJson(elem: Channel): JsValue = jsonWriter[Channel].write(elem)
@@ -682,7 +682,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
-  implicit object ChannelDetailsListJsonFormat extends MythServicesPagedListFormat[ChannelDetails] {
+  implicit object ChannelDetailsListJsonFormat extends ServicesPagedListFormat[ChannelDetails] {
     def listFieldName = "ChannelInfos"
     def convertElement(value: JsValue): ChannelDetails = value.convertTo[ChannelDetails]
     def elementToJson(elem: ChannelDetails): JsValue = jsonWriter[ChannelDetails].write(elem)
@@ -813,7 +813,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
-  implicit object RecordRuleListJsonFormat extends MythServicesPagedListFormat[RecordRule] {
+  implicit object RecordRuleListJsonFormat extends ServicesPagedListFormat[RecordRule] {
     def listFieldName = "RecRules"
     def convertElement(value: JsValue): RecordRule = value.convertTo[RecordRule]
     def elementToJson(elem: RecordRule): JsValue = jsonWriter[RecordRule].write(elem)
@@ -833,7 +833,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
-  implicit object PagedRecRuleFilterListJsonFormat extends MythServicesPagedListFormat[RecRuleFilter] {
+  implicit object PagedRecRuleFilterListJsonFormat extends ServicesPagedListFormat[RecRuleFilter] {
     def listFieldName = "RecRuleFilters"
     def convertElement(value: JsValue): RecRuleFilter = value.convertTo[RecRuleFilter]
     def elementToJson(elem: RecRuleFilter): JsValue = jsonWriter[RecRuleFilter].write(elem)
@@ -1065,7 +1065,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
-  implicit object ListingSourceListJsonFormat extends MythServicesObjectListFormat[ListingSource] {
+  implicit object ListingSourceListJsonFormat extends ServicesObjectListFormat[ListingSource] {
     def listFieldName = "VideoSources"
     def convertElement(value: JsValue): ListingSource = value.convertTo[ListingSource]
     def elementToJson(elem: ListingSource): JsValue = jsonWriter[ListingSource].write(elem)
@@ -1267,7 +1267,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
-  implicit object VideoListJsonFormat extends MythServicesPagedListFormat[Video] {
+  implicit object VideoListJsonFormat extends ServicesPagedListFormat[Video] {
     def listFieldName = "VideoMetadataInfos"
     def convertElement(value: JsValue): Video = value.convertTo[Video]
     def elementToJson(elem: Video): JsValue = jsonWriter[Video].write(elem)
@@ -1332,7 +1332,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
-  implicit object VideoMultiplexListJsonFormat extends MythServicesPagedListFormat[VideoMultiplex] {
+  implicit object VideoMultiplexListJsonFormat extends ServicesPagedListFormat[VideoMultiplex] {
     def listFieldName = "VideoMultiplexes"
     def convertElement(value: JsValue): VideoMultiplex = value.convertTo[VideoMultiplex]
     def elementToJson(elem: VideoMultiplex): JsValue = jsonWriter[VideoMultiplex].write(elem)
@@ -1535,7 +1535,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
-  implicit object VideoLookupListJsonFormat extends MythServicesObjectListFormat[VideoLookup] {
+  implicit object VideoLookupListJsonFormat extends ServicesObjectListFormat[VideoLookup] {
     def listFieldName = "VideoLookups"
     def convertElement(value: JsValue): VideoLookup = value.convertTo[VideoLookup]
     def elementToJson(elem: VideoLookup): JsValue = jsonWriter[VideoLookup].write(elem)

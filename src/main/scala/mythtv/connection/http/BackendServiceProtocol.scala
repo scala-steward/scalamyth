@@ -8,7 +8,7 @@ import services.{ PagedList, Service, ServiceResult, ServicesObject }
 import Service.ServiceFailure.ServiceFailureThrowable
 import util.{ MythDateTime, OptionalCount, OptionalCountSome }
 
-private[http] trait MythServicesPagedList[+T] extends PagedList[T] with ServicesObject[List[T]] {
+private[http] trait ServicesPagedList[+T] extends PagedList[T] with ServicesObject[List[T]] {
   final def items: List[T] = data
 }
 

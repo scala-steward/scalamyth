@@ -36,7 +36,7 @@ class JsonChannelService(conn: BackendJsonConnection)
     for {
       response <- request("GetChannelInfoList", params)
       root     <- responseRoot(response, "ChannelInfoList")
-      result   <- Try(root.convertTo[MythServicesPagedList[Channel]])
+      result   <- Try(root.convertTo[ServicesPagedList[Channel]])
     } yield result
   }
 
@@ -54,7 +54,7 @@ class JsonChannelService(conn: BackendJsonConnection)
     for {
       response <- request("GetChannelInfoList", params)
       root     <- responseRoot(response, "ChannelInfoList")
-      result   <- Try(root.convertTo[MythServicesPagedList[ChannelDetails]])
+      result   <- Try(root.convertTo[ServicesPagedList[ChannelDetails]])
     } yield result
   }
 
@@ -94,7 +94,7 @@ class JsonChannelService(conn: BackendJsonConnection)
     for {
       response <- request("GetVideoMultiplexList", params)
       root     <- responseRoot(response, "VideoMultiplexList")
-      result   <- Try(root.convertTo[MythServicesPagedList[VideoMultiplex]])
+      result   <- Try(root.convertTo[ServicesPagedList[VideoMultiplex]])
     } yield result
   }
 

@@ -108,7 +108,7 @@ class JsonGuideService(conn: BackendJsonConnection)
     for {
       response <- request("GetProgramList", params)
       root     <- responseRoot(response, "ProgramList")
-      result   <- Try(root.convertTo[MythServicesPagedList[ProgramBrief]])
+      result   <- Try(root.convertTo[ServicesPagedList[ProgramBrief]])
     } yield result
   }
 
@@ -142,7 +142,7 @@ class JsonGuideService(conn: BackendJsonConnection)
     for {
       response <- request("GetProgramList", params)
       root     <- responseRoot(response, "ProgramList")
-      result   <- Try(root.convertTo[MythServicesPagedList[Program]])
+      result   <- Try(root.convertTo[ServicesPagedList[Program]])
     } yield result
   }
 

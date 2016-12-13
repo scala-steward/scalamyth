@@ -50,7 +50,7 @@ class JsonVideoService(conn: BackendJsonConnection)
     for {
       response <- request("GetVideoList", params)
       root     <- responseRoot(response, "VideoMetadataInfoList")
-      result   <- Try(root.convertTo[MythServicesPagedList[Video]])
+      result   <- Try(root.convertTo[ServicesPagedList[Video]])
     } yield result
   }
 
