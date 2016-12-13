@@ -757,7 +757,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       "LastDeleted"       -> JsString(r.lastDelete.map(_.toString).getOrElse("")),
       "StorageGroup"      -> JsString(r.storageGroup),
       "AverageDelay"      -> JsString(r.averageDelay.toString),
-      "Filter"            -> JsString(r.filter.getOrElse(0).toString)
+      "Filter"            -> JsString(r.filters.getOrElse(0).toString)
     ))
 
     def read(value: JsValue): RecordRule = {
@@ -808,7 +808,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def lastDelete      = obj.dateTimeFieldOption("LastDeleted")
         def storageGroup    = obj.stringField("StorageGroup")
         def averageDelay    = obj.intField("AverageDelay")
-        def filter          = obj.intFieldOption("Filter", 0)
+        def filters         = obj.intFieldOption("Filter", 0)
       }
     }
   }
