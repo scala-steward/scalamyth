@@ -5,7 +5,7 @@ package json
 
 import scala.util.Try
 
-import spray.json.DefaultJsonProtocol
+import spray.json.DefaultJsonProtocol.{ listFormat, StringJsonFormat }
 
 import services.{ ContentService, ServiceResult }
 import model.{ ArtworkInfo, ChanId, LiveStreamId, LiveStream, RecordedId, VideoId }
@@ -36,7 +36,6 @@ class JsonContentService(conn: BackendJsonConnection)
   }
 
   def getHash(storageGroup: String, fileName: String): ServiceResult[MythFileHash] = {
-    import DefaultJsonProtocol.StringJsonFormat
     val params: Map[String, Any] = Map("StorageGroup" -> storageGroup, "FileName" -> fileName)
     for {
       response <- request("GetHash", params)

@@ -5,9 +5,11 @@ package json
 
 import scala.util.Try
 
+import spray.json.DefaultJsonProtocol.{ listFormat, StringJsonFormat }
+
 import model.EnumTypes.RecSearchType
-import services.{ GuideService, PagedList, ServiceResult, ServicesObject }
 import model.{ ChanId, Channel, ChannelDetails, ChannelGroup, ChannelGroupId, Guide, Program, ProgramBrief }
+import services.{ GuideService, PagedList, ServiceResult, ServicesObject }
 import util.{ MythDateTime, OptionalCount, OptionalCountSome }
 
 class JsonGuideService(conn: BackendJsonConnection)

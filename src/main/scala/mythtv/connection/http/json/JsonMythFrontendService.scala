@@ -7,6 +7,8 @@ import java.time.Duration
 
 import scala.util.Try
 
+import spray.json.DefaultJsonProtocol.{ listFormat, StringJsonFormat }
+
 import model._
 import util.MythDateTime
 import services.{ MythFrontendService, ServiceResult }

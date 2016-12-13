@@ -5,6 +5,8 @@ package json
 
 import scala.util.Try
 
+import spray.json.DefaultJsonProtocol.listFormat
+
 import services.{ CaptureService, ServiceResult }
 import model.{ CaptureCard, CaptureCardId, CardInput, InputId }
 import RichJsonObject._

@@ -5,6 +5,8 @@ package json
 
 import scala.util.Try
 
+import spray.json.DefaultJsonProtocol.{ listFormat, StringJsonFormat }
+
 import model._
 import util.OptionalCount
 import services.{ ChannelService, PagedList, ServiceResult, ServicesObject }

@@ -8,7 +8,7 @@ import java.time.{ Duration, Instant }
 
 import scala.util.Try
 
-import spray.json.DefaultJsonProtocol.StringJsonFormat
+import spray.json.DefaultJsonProtocol.{ listFormat, StringJsonFormat }
 
 import model._
 import util.{ MythDateTime, URIFactory }

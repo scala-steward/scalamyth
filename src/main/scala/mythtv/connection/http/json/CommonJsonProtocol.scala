@@ -5,7 +5,7 @@ package json
 
 import java.time.{ DayOfWeek, Instant, ZoneOffset }
 
-import spray.json.{ DefaultJsonProtocol, JsonFormat, RootJsonFormat, deserializationError, jsonWriter }
+import spray.json.{ JsonFormat, deserializationError }
 import spray.json.{ JsArray, JsObject, JsString, JsValue }
 
 private[http] trait BaseMythJsonListFormat[T] {
@@ -30,26 +30,6 @@ private[http] trait BaseMythJsonListFormat[T] {
 }
 
 private[http] trait CommonJsonProtocol {
-
-  trait BasicListFormat[T] extends RootJsonFormat[List[T]] {  // TODO remove this and replace with DefaultProtocol listFormat? (implicit def)
-    def convertElement(value: JsValue): T
-    def elementToJson(elem: T): JsValue
-
-    def write(list: List[T]): JsValue =
-      JsArray(list.map(elementToJson).toVector)
-
-    def read(value: JsValue): List[T] = value match {
-      case JsArray(elements) => elements.map(convertElement)(scala.collection.breakOut)
-      case x => deserializationError(s"expected array but got $x")
-    }
-  }
-
-  implicit object StringListJsonFormat extends BasicListFormat[String] {
-    import DefaultJsonProtocol.StringJsonFormat
-    //def listFieldName = "StringList"
-    def convertElement(value: JsValue): String = value.convertTo[String]
-    def elementToJson(elem: String): JsValue = jsonWriter[String].write(elem)
-  }
 
   implicit object StringMapJsonFormat extends JsonFormat[Map[String, String]] {
     def write(m: Map[String, String]): JsValue =
