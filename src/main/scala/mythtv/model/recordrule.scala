@@ -1,7 +1,7 @@
 package mythtv
 package model
 
-import java.time.LocalTime
+import java.time.{ DayOfWeek, LocalTime }
 
 import EnumTypes._
 import util.{ BitmaskEnum, LooseEnum, MythDateTime }
@@ -43,7 +43,7 @@ trait RecordRule {
   def autoUserJob3: Boolean
   def autoUserJob4: Boolean
   def autoMetadata: Boolean
-  def findDay: Int      // TODO is this really a day-of-week integer?
+  def findDay: Option[DayOfWeek]
   def findTime: Option[LocalTime]
   def inactive: Boolean
   def parentId: Option[RecordRuleId]

@@ -4,7 +4,7 @@ package http
 package json
 
 import java.net.InetAddress
-import java.time.{ Duration, Instant, LocalTime, ZoneOffset }
+import java.time.{ DayOfWeek, Duration, Instant, LocalTime, ZoneOffset }
 
 import scala.util.{ DynamicVariable, Try }
 
@@ -745,7 +745,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       "AutoUserJob3"      -> JsString(r.autoUserJob3.toString),
       "AutoUserJob4"      -> JsString(r.autoUserJob4.toString),
       "AutoMetaLookup"    -> JsString(r.autoMetadata.toString),
-      "FindDay"           -> JsString(r.findDay.toString),
+      "FindDay"           -> jsonWriter[Option[DayOfWeek]].write(r.findDay),
       "FindTime"          -> JsString(r.findTime.getOrElse(LocalTime.MIN).toString),
       "Inactive"          -> JsString(r.inactive.toString),
       "ParentId"          -> JsString(r.parentId.map(_.id).getOrElse(0).toString),
@@ -796,7 +796,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         def autoUserJob3    = obj.booleanField("AutoUserJob3")
         def autoUserJob4    = obj.booleanField("AutoUserJob4")
         def autoMetadata    = obj.booleanField("AutoMetaLookup")
-        def findDay         = obj.intField("FindDay")
+        def findDay         = obj.fields("FindDay").convertTo[Option[DayOfWeek]]
         def findTime        = obj.timeFieldOption("FindTime", LocalTime.MIN)
         def inactive        = obj.booleanField("Inactive")
         def parentId        = obj.intFieldOption("ParentId", 0) map RecordRuleId
