@@ -117,9 +117,6 @@ private[http] trait EnumDescriptionFormat[T] extends JsonFormat[T] {
 
 /* Inheriting from DefaultJsonProtocol can cause huge bytecode bloat */
 private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
-
-  // NB StorageGroupDirList has a single field StorageGroupDirs which is an array of StorageGroupDir items
-
   import RichJsonObject._
 
   private val channelContext = new DynamicVariable[RichJsonObject](EmptyJsonObject)
@@ -251,6 +248,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         "Season"   -> JsString(r.season.getOrElse(0).toString),
         "Episode"  -> JsString(r.episode.getOrElse(0).toString),
         "Inetref"  -> JsString(r.inetRef.getOrElse(""))
+        // TODO add FileName, FileSize to Recording inner object as well
       ))
     }
 
@@ -351,7 +349,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
         case _ => throw new RuntimeException("ProgramJsonFormat failed to create a JsObject")
       }
       JsObject(pmap ++ Map(
-        // TODO inner Channel object overrides: SourceId, InputId, ChanNum, CallSign, ChannelName
+        // TODO inner Channel object overrides: SourceId, InputId, ChanNum, CallSign, ChannelName (also add HostName to inner Recording obj)
         "HostName"     -> JsString(r.hostname),
         "LastModified" -> JsString(r.lastModified.toString),
         "Recording"    -> JsObject(Map(
@@ -442,9 +440,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
 
   implicit object ProgramJsonFormat extends RootJsonFormat[Program] {
     def write(p: Program): JsValue = JsObject(Map(
-      // TODO nested Channel object
-      // TODO nested Recording object
-      // TODO nested Artwork object
+      // TODO nested Channel, Recording, Artwork objects
       "Title"        -> JsString(p.title),
       "SubTitle"     -> JsString(p.subtitle),
       "Description"  -> JsString(p.description),
@@ -461,9 +457,9 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       "SubProps"     -> JsString(p.subtitleType.id.toString),
       "ProgramFlags" -> JsString(p.programFlags.id.toString),
       "Repeat"       -> JsString(p.isRepeat.toString),
-      "FileSize"     -> JsString("0"),   // does not exist in Program
-      "FileName"     -> JsString(""),    // does not exist in Program
-      "HostName"     -> JsString(""),    // does not exist in Program
+      "FileSize"     -> JsString("0"),   // does not exist in Program, DEPRECATED
+      "FileName"     -> JsString(""),    // does not exist in Program, DEPRECATED
+      "HostName"     -> JsString(""),    // does not exist in Program, DEPRECATED
       "LastModified" -> JsString(""),    // does not exist in Program
       "Inetref"      -> JsString(""),    // does not exist in Program
       "Season"       -> JsString("0"),   // does not exist in Program
@@ -529,9 +525,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
 
   implicit object ProgramBriefJsonFormat extends RootJsonFormat[ProgramBrief] {
     def write(p: ProgramBrief): JsValue = JsObject(Map(
-      // TODO nested Channel object
-      // TODO nested Recording object
-      // TODO nested Artwork object
+      // TODO nested Channel/Recording/Artwork objects
       "Title"        -> JsString(p.title),
       "SubTitle"     -> JsString(p.subtitle),
       "StartTime"    -> JsString(p.startTime.toString),
@@ -912,7 +906,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       new RemoteEncoderState {
         def cardId           = CaptureCardId(obj.intField("Id"))
         def host             = obj.stringField("HostName")
-        def port             = 0   // TODO
+        def port             = 0   // NB not serialized in services API
 
         def local            = obj.booleanField("Local")
         def connected        = obj.booleanField("Connected")

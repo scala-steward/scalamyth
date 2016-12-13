@@ -74,8 +74,7 @@ object RecordRule {
     }
   }
 
-  // TODO build our own default rather than throw an exception if we fail
-  // to discover the default template
+  // TODO build our own default rather than throw an exception if we fail to discover the default template
   def default(host: String): RecordRule = template(host, "Default").get
 
   def template(host: String, template: String): Option[RecordRule] = {
@@ -104,7 +103,7 @@ object RecordRule {
 }
 
 trait RecRuleFilter {   // this is a "dynamic enum", defined in the database
-def id: Int
+  def id: Int
   def name: String
 
   override def toString = s"<RecRuleFilter $id $name>"
