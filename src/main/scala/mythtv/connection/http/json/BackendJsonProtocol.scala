@@ -104,10 +104,10 @@ private[http] trait MythServicesPagedListFormat[T]  // TODO leverage ServicesObj
   }
 }
 
-// FIXME ineffecient, maps rebuilt on each operation
 private[http] trait EnumDescriptionFormat[T] extends JsonFormat[T] {
   def id2Description: Map[T, String]
-  def description2Id: Map[String, T] = id2Description map (_.swap)
+  lazy val description2Id: Map[String, T] = id2Description map (_.swap)
+
   def write(p: T): JsValue = JsString(id2Description(p))
   def read(value: JsValue): T = value match {
     case JsString(s) => description2Id(s)
