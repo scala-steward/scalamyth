@@ -457,13 +457,13 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       "SubProps"     -> JsString(p.subtitleType.id.toString),
       "ProgramFlags" -> JsString(p.programFlags.id.toString),
       "Repeat"       -> JsString(p.isRepeat.toString),
+      "Season"       -> JsString(p.season.getOrElse(0).toString),
+      "Episode"      -> JsString(p.episode.getOrElse(0).toString),
       "FileSize"     -> JsString("0"),   // does not exist in Program, DEPRECATED
       "FileName"     -> JsString(""),    // does not exist in Program, DEPRECATED
       "HostName"     -> JsString(""),    // does not exist in Program, DEPRECATED
       "LastModified" -> JsString(""),    // does not exist in Program
-      "Inetref"      -> JsString(""),    // does not exist in Program
-      "Season"       -> JsString("0"),   // does not exist in Program
-      "Episode"      -> JsString("0")    // does not exist in Program
+      "Inetref"      -> JsString("")     // does not exist in Program
     ))
 
     def read(value: JsValue): Program = {
