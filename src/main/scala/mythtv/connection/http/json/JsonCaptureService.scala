@@ -39,10 +39,10 @@ class JsonCaptureService(conn: BackendJsonConnection)
 
   def addCaptureCard(card: CaptureCard): ServiceResult[CaptureCardId] = {
     val params: Map[String, Any] = Map(
-      "VideoDevice"        -> card.videoDevice.getOrElse(""),   // this is required TODO
+      "VideoDevice"        -> card.videoDevice.getOrElse(""),   // NB this is required/checked by the backend
       "AudioDevice"        -> card.audioDevice.getOrElse(""),
       "VBIDevice"          -> card.vbiDevice.getOrElse(""),
-      "CardType"           -> card.cardType.getOrElse(""),      // this is required TODO
+      "CardType"           -> card.cardType.getOrElse(""),      // NB this is required/checked by the backend
       "AudioRateLimit"     -> card.audioRateLimit.getOrElse(0),
       "HostName"           -> card.hostName,                    // this is required
       "DVBSWFilter"        -> card.dvbSwFilter.getOrElse(0),

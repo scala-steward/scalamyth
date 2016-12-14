@@ -65,7 +65,7 @@ trait ChannelDetails extends Channel with XmlTvChannel {
   def serviceId: Option[Int]          // MPEG service/program number when describing a DVB service
   def atscMajorChan: Option[Int]      // sometimes set to "0" even when data is avail (e.g. in return from GetRecorded...)
   def atscMinorChan: Option[Int]      //     "       "  "   "
-  def defaultAuthority: Option[String]  // TODO what is this?
+  def defaultAuthority: Option[String]
   def commMethod: ChannelCommDetectMethod
 
   /* TODO fields from DB 'channel' table not in ChannelInfo from ChannelService:

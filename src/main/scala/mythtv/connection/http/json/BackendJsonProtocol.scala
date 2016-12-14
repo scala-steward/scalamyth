@@ -1583,7 +1583,7 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       Map("Details" -> JsString("false")) ++ super.writeExtraFields(obj)
 
     def readChannelGuide(obj: JsValue): Map[Channel, Seq[ProgramBrief]] = {
-      // FIXME avoid intermediate conversion to list
+      // TODO OPTIMIZE avoid intermediate conversion to list
       val channelGuideList = obj.convertTo[List[GuideBriefTuple]]
       val channelGuide = channelGuideList.toMap
       channelGuide
