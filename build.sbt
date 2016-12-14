@@ -25,3 +25,5 @@ libraryDependencies += "io.spray" %%  "spray-json" % "1.3.2"
 libraryDependencies += "net.straylightlabs" % "hola" % "0.2.2"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.0" % "test"
+
+libraryDependencies += "com.storm-enroute" %% "scalameter" % "0.8.2"
