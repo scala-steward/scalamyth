@@ -8,6 +8,27 @@ import services.{ PagedList, Service, ServiceResult, ServicesObject }
 import Service.ServiceFailure.ServiceFailureThrowable
 import util.{ MythDateTime, OptionalCount, OptionalCountSome }
 
+/* Top level object will contain a field for the list,
+ *    e.g. RecRuleList or ProgramList, etc.
+ *
+ *  This List object will then contain fields:
+ *
+ "AsOf": "2016-10-23T06:06:17Z",
+ "Count": "171",
+ "StartIndex": "0",
+ "TotalAvailable": "171",
+ "ProtoVer": "77",
+ "Version": "0.27.20140323-1"
+ *
+ *  plus a field for the objects, e.g.
+ *
+ "Programs": [ ... ]
+ *
+ *
+ * Not all of the "*List" objects follow, this pattern.
+ * Exceptions include:
+ *    StringList, StorageGroupDirList, ...
+ */
 private[http] trait ServicesPagedList[+T] extends PagedList[T] with ServicesObject[List[T]] {
   final def items: List[T] = data
 }

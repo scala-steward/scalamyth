@@ -5,29 +5,7 @@ package json
 
 import java.time.{ DayOfWeek, Instant, ZoneOffset }
 
-import spray.json.{ JsonFormat, deserializationError }
-import spray.json.{ JsArray, JsObject, JsString, JsValue }
-
-private[http] trait BaseMythJsonListFormat[T] {
-  def listFieldName: String
-
-  def convertElement(value: JsValue): T
-  def elementToJson(elem: T): JsValue
-
-  def writeItems(list: List[T]): JsValue =
-    JsArray(list.map(elementToJson).toVector)
-
-  def readItems(obj: JsObject): List[T] = {
-    if (!(obj.fields contains listFieldName))
-      deserializationError(s"expected to find field name $listFieldName")
-
-    val itemList: List[T] = obj.fields(listFieldName) match {
-      case JsArray(elements) => elements.map(convertElement)(scala.collection.breakOut)
-      case x => deserializationError(s"expected array in $listFieldName but got $x")
-    }
-    itemList
-  }
-}
+import spray.json.{ JsonFormat, JsObject, JsString, JsValue }
 
 private[http] trait CommonJsonProtocol {
 
