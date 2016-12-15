@@ -37,6 +37,11 @@ object EnumTypes {
   type VideoProperties = model.VideoProperties.Base
 }
 
+trait EnumWithDescription[T] {
+  def description(value: T): String
+  def withDescription(description: String): T
+}
+
 object MetadataGrabberType extends Enumeration {
   type MetadataGrabberType = Value
   val Unknown    = Value

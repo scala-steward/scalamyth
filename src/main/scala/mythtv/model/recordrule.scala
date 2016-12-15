@@ -109,24 +109,49 @@ trait RecRuleFilter {   // this is a "dynamic enum", defined in the database
   override def toString = s"<RecRuleFilter $id $name>"
 }
 
-object DupCheckIn extends BitmaskEnum[Int] {
+object DupCheckIn extends BitmaskEnum[Int] /* with EnumWithDescription[DupCheckIn#Base] */ {
   type DupCheckIn = Base
   val Recorded      = Value(0x01)
   val OldRecorded   = Value(0x02)
   val All           =  Mask(0x0f)
   val NewEpisodes   = Value(0x10)  // this should always be combined with DupsInAll ??
+
+  private val id2Description: Map[Base, String] = Map(
+    DupCheckIn.Recorded    -> "Current Recordings",
+    DupCheckIn.OldRecorded -> "Previous Recordings",
+    DupCheckIn.All         -> "All Recordings",
+    DupCheckIn.NewEpisodes -> "New Episodes Only"
+  )
+
+  private lazy val description2Id: Map[String, Base] = id2Description map (_.swap)
+
+  def description(value: Base): String = id2Description(value)
+  def withDescription(description: String): Base = description2Id(description)
 }
 
-object DupCheckMethod extends BitmaskEnum[Int] {
+object DupCheckMethod extends BitmaskEnum[Int] /* with EnumWithDescription[DupCheckMethod#Base] */ {
   type DupCheckMethod = Base
   val None             = Value(0x01)
   val Subtitle         = Value(0x02)
   val Description      = Value(0x04)
   val SubtitleDesc     =  Mask(0x06)
   val SubtitleThenDesc = Value(0x08) // subtitle, then description
+
+  private val id2Description: Map[DupCheckMethod, String] = Map(
+    DupCheckMethod.None             -> "None",
+    DupCheckMethod.Subtitle         -> "Subtitle",
+    DupCheckMethod.Description      -> "Description",
+    DupCheckMethod.SubtitleDesc     -> "Subtitle and Description",
+    DupCheckMethod.SubtitleThenDesc -> "Subtitle then Description"
+  )
+
+  private lazy val description2Id: Map[String, Base] = id2Description map (_.swap)
+
+  def description(value: Base): String = id2Description(value)
+  def withDescription(description: String): Base = description2Id(description)
 }
 
-object RecSearchType extends LooseEnum {
+object RecSearchType extends LooseEnum /* with EnumWithDescription[RecSearchType#Value] */ {
   type RecSearchType = Value
   val NoSearch      = Value(0)
   val PowerSearch   = Value(1)
@@ -134,9 +159,22 @@ object RecSearchType extends LooseEnum {
   val KeywordSearch = Value(3)
   val PeopleSearch  = Value(4)
   val ManualSearch  = Value(5)
+
+  private val id2Description: Map[Value, String] = Map(
+    RecSearchType.NoSearch      -> "None",
+    RecSearchType.PowerSearch   -> "Power Search",
+    RecSearchType.TitleSearch   -> "Title Search",
+    RecSearchType.KeywordSearch -> "Keyword Search",
+    RecSearchType.PeopleSearch  -> "People Search",
+    RecSearchType.ManualSearch  -> "Manual Search"
+  )
+  private lazy val description2Id: Map[String, Value] = id2Description map (_.swap)
+
+  def description(value: Value): String = id2Description(value)
+  def withDescription(description: String): Value = description2Id(description)
 }
 
-object RecType extends LooseEnum {
+object RecType extends LooseEnum /* with EnumWithDescription[RecType#Value] */ {
   type RecType = Value
   val NotRecording     = Value(0)
   val SingleRecord     = Value(1)
@@ -159,4 +197,26 @@ object RecType extends LooseEnum {
   @deprecated("", "MythTV 0.27")
   val FindWeeklyRecord = Value(10)
   val TemplateRecord   = Value(11)
+
+  // TODO this description mapping is tricker because the map may have duplicate keys!
+  //   (see libs/libmyth/recordingtypes.cpp: toRawString(RecordingType)
+  // This also means there may be a loss of precision between a record rule
+  // RecType and how it is described in the services API representation.
+  // TODO this mapping changed between Myth versions (0.26 -> 0.27?)
+  private val id2Description: Map[Value, String] = Map(
+    RecType.NotRecording   -> "Not Recording",
+    RecType.SingleRecord   -> "Single Record",
+    RecType.AllRecord      -> "Record All",
+    RecType.OneRecord      -> "Record One",
+    RecType.DailyRecord    -> "Record Daily",
+    RecType.WeeklyRecord   -> "Record Weekly",
+    RecType.OverrideRecord -> "Override Recording",
+    RecType.DontRecord     -> "Do not Record",
+    RecType.TemplateRecord -> "Recording Template"
+  )
+
+  private lazy val description2Id: Map[String, Value] = id2Description map (_.swap)
+
+  def description(value: Value): String = id2Description(value)
+  def withDescription(description: String): Value = description2Id(description)
 }

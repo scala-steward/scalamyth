@@ -3,7 +3,7 @@ package model
 
 import java.time.Instant
 
-import util.BitmaskEnum
+import util.{ BitmaskEnum, LooseEnum }
 import EnumTypes.MythLogLevel
 
 trait LogMessage {
@@ -23,7 +23,7 @@ trait LogMessage {
     s"$messageTime $hostName $application[$pid] ${level.toString.head} $thread $fileName:$lineNum ($function) $message"
 }
 
-object MythLogLevel extends Enumeration {
+object MythLogLevel extends LooseEnum /* with EnumWithDescription[MythLogLevel#Value] */{
   type MythLogLevel = Value
   val Any        = Value(-1)
   val Emerg      = Value(0)
@@ -35,6 +35,10 @@ object MythLogLevel extends Enumeration {
   val Info       = Value(6)
   val Debug      = Value(7)
   val Unknown    = Value(8)
+
+  def description(value: Value): String = value.toString.toLowerCase
+  def withDescription(description: String): Value =
+    withName(description(0).toUpper + description.substring(1))
 }
 
 // To get strings used for verbose arguments, convert name to lowercase

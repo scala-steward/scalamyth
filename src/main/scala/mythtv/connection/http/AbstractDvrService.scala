@@ -218,7 +218,6 @@ trait AbstractDvrService extends ServiceProtocol with DvrService {
 
   // All parameters are technically optional and will be filled in with defaults?
   def addRecordSchedule(rule: RecordRule): ServiceResult[RecordRuleId] = {
-    import mythtv.connection.http.json.JsonResultConverter.{ RecTypeJsonFormat, RecSearchTypeJsonFormat, DupCheckMethodJsonFormat, DupCheckInJsonFormat }  // FIXME
     val params: Map[String, Any] = Map(
       "Title"          -> rule.title,
       "Subtitle"       -> rule.subtitle,
@@ -237,14 +236,14 @@ trait AbstractDvrService extends ServiceProtocol with DvrService {
       "Season"         -> rule.season.getOrElse(0),
       "Episode"        -> rule.episode.getOrElse(0),
       "Inetref"        -> rule.inetRef.getOrElse(""),
-      "Type"           -> RecTypeJsonFormat.id2Description(rule.recType),
-      "SearchType"     -> RecSearchTypeJsonFormat.id2Description(rule.searchType),
+      "Type"           -> RecType.description(rule.recType),
+      "SearchType"     -> RecSearchType.description(rule.searchType),
       "RecPriority"    -> rule.recPriority,
       "PreferredInput" -> rule.preferredInput.map(_.id).getOrElse(0),
       "StartOffset"    -> rule.startOffset,
       "EndOffset"      -> rule.endOffset,
-      "DupMethod"      -> DupCheckMethodJsonFormat.id2Description(rule.dupMethod),
-      "DupIn"          -> DupCheckInJsonFormat.id2Description(rule.dupIn),
+      "DupMethod"      -> DupCheckMethod.description(rule.dupMethod),
+      "DupIn"          -> DupCheckIn.description(rule.dupIn),
       "Filter"         -> rule.filters.getOrElse(0),
       "RecProfile"     -> rule.recProfile,
       "RecGroup"       -> rule.recGroup,
@@ -266,7 +265,6 @@ trait AbstractDvrService extends ServiceProtocol with DvrService {
   }
 
   def updateRecordSchedule(rule: RecordRule): ServiceResult[Boolean] = {
-    import mythtv.connection.http.json.JsonResultConverter.{ RecTypeJsonFormat, RecSearchTypeJsonFormat, DupCheckMethodJsonFormat, DupCheckInJsonFormat }  // FIXME
     val params: Map[String, Any] = Map(
       "RecordId"       -> rule.id.id,
       "Title"          -> rule.title,
@@ -285,14 +283,14 @@ trait AbstractDvrService extends ServiceProtocol with DvrService {
       "Season"         -> rule.season.getOrElse(0),
       "Episode"        -> rule.episode.getOrElse(0),
       "Inetref"        -> rule.inetRef.getOrElse(""),
-      "Type"           -> RecTypeJsonFormat.id2Description(rule.recType),
-      "SearchType"     -> RecSearchTypeJsonFormat.id2Description(rule.searchType),
+      "Type"           -> RecType.description(rule.recType),
+      "SearchType"     -> RecSearchType.description(rule.searchType),
       "RecPriority"    -> rule.recPriority,
       "PreferredInput" -> rule.preferredInput.map(_.id).getOrElse(0),
       "StartOffset"    -> rule.startOffset,
       "EndOffset"      -> rule.endOffset,
-      "DupMethod"      -> DupCheckMethodJsonFormat.id2Description(rule.dupMethod),
-      "DupIn"          -> DupCheckInJsonFormat.id2Description(rule.dupIn),
+      "DupMethod"      -> DupCheckMethod.description(rule.dupMethod),
+      "DupIn"          -> DupCheckIn.description(rule.dupIn),
       "Filter"         -> rule.filters.getOrElse(0),
       "RecProfile"     -> rule.recProfile,
       "RecGroup"       -> rule.recGroup,
@@ -392,37 +390,25 @@ trait AbstractDvrService extends ServiceProtocol with DvrService {
 
   // NB the DupMethodToXXXX service expects a *String* parameter, not an enum int id
   def dupMethodToString(dupMethod: DupCheckMethod): ServiceResult[String] = {
-    import mythtv.connection.http.json.JsonResultConverter.DupCheckMethodJsonFormat  // FIXME
-    val params: Map[String, Any] = Map(
-      "DupMethod" -> DupCheckMethodJsonFormat.id2Description(dupMethod)
-    )
+    val params: Map[String, Any] = Map("DupMethod" -> DupCheckMethod.description(dupMethod))
     request("DupMethodToString", params)()
   }
 
   // NB the DupMethodToXXXX service expects a *String* parameter, not an enum int id
   def dupMethodToDescription(dupMethod: DupCheckMethod): ServiceResult[String] = {
-    import mythtv.connection.http.json.JsonResultConverter.DupCheckMethodJsonFormat  // FIXME
-    val params: Map[String, Any] = Map(
-      "DupMethod" -> DupCheckMethodJsonFormat.id2Description(dupMethod)
-    )
+    val params: Map[String, Any] = Map("DupMethod" -> DupCheckMethod.description(dupMethod))
     request("DupMethodToDescription", params)()
   }
 
   // NB the DupInToXXXX service expects a *String* parameter, not an enum int id
   def dupInToString(dupIn: DupCheckIn): ServiceResult[String] = {
-    import mythtv.connection.http.json.JsonResultConverter.DupCheckInJsonFormat  // FIXME
-    val params: Map[String, Any] = Map(
-      "DupIn" -> DupCheckInJsonFormat.id2Description(dupIn)
-    )
+    val params: Map[String, Any] = Map("DupIn" -> DupCheckIn.description(dupIn))
     request("DupInToString", params)()
   }
 
   // NB the DupInToXXXX service expects a *String* parameter, not an enum int id
   def dupInToDescription(dupIn: DupCheckIn): ServiceResult[String] = {
-    import mythtv.connection.http.json.JsonResultConverter.DupCheckInJsonFormat  // FIXME
-    val params: Map[String, Any] = Map(
-      "DupIn" -> DupCheckInJsonFormat.id2Description(dupIn)
-    )
+    val params: Map[String, Any] = Map("DupIn" -> DupCheckIn.description(dupIn))
     request("DupInToDescription", params)()
   }
 }

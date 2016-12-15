@@ -144,8 +144,7 @@ trait AbstractGuideService extends ServiceProtocol with GuideService {
   }
 
   def getStoredSearches(searchType: RecSearchType): ServiceResult[List[String]] = {
-    import mythtv.connection.http.json.JsonResultConverter.RecSearchTypeJsonFormat  // FIXME
-    val params: Map[String, Any] = Map("Type" -> RecSearchTypeJsonFormat.id2Description(searchType))
+    val params: Map[String, Any] = Map("Type" -> RecSearchType.description(searchType))
     request("GetStoredSearches", params)()
   }
 }

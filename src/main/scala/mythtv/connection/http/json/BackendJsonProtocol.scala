@@ -75,8 +75,8 @@ private[json] trait ServicesObjectGuideJsonFormat[C <: Channel, P <: ProgramBrie
 }
 
 private[json] trait EnumDescriptionFormat[T] extends JsonFormat[T] {
-  def id2Description: Map[T, String]
-  lazy val description2Id: Map[String, T] = id2Description map (_.swap)
+  def id2Description: (T) => String
+  def description2Id: (String) => T
 
   def write(p: T): JsValue = JsString(id2Description(p))
   def read(value: JsValue): T = value match {
@@ -135,67 +135,28 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
   }
 
   implicit object RecSearchTypeJsonFormat extends EnumDescriptionFormat[RecSearchType] {
-    val id2Description: Map[RecSearchType, String] = Map(
-      RecSearchType.NoSearch      -> "None",
-      RecSearchType.PowerSearch   -> "Power Search",
-      RecSearchType.TitleSearch   -> "Title Search",
-      RecSearchType.KeywordSearch -> "Keyword Search",
-      RecSearchType.PeopleSearch  -> "People Search",
-      RecSearchType.ManualSearch  -> "Manual Search"
-    )
+    def id2Description: (RecSearchType) => String = RecSearchType.description
+    def description2Id: (String) => RecSearchType = RecSearchType.withDescription
   }
 
-  // TODO this one is tricker because the map may have duplicate keys!
-  //   (see libs/libmyth/recordingtypes.cpp: toRawString(RecordingType)
-  // This also means there may be a loss of precision between a record rule
-  // RecType and how it is described in the services API representation.
-  // TODO this mapping changed between Myth versions (0.26 -> 0.27?)
   implicit object RecTypeJsonFormat extends EnumDescriptionFormat[RecType] {
-    val id2Description: Map[RecType, String] = Map(
-      RecType.NotRecording   -> "Not Recording",
-      RecType.SingleRecord   -> "Single Record",
-      RecType.AllRecord      -> "Record All",
-      RecType.OneRecord      -> "Record One",
-      RecType.DailyRecord    -> "Record Daily",
-      RecType.WeeklyRecord   -> "Record Weekly",
-      RecType.OverrideRecord -> "Override Recording",
-      RecType.DontRecord     -> "Do not Record",
-      RecType.TemplateRecord -> "Recording Template"
-    )
+    def id2Description: (RecType) => String = RecType.description
+    def description2Id: (String) => RecType = RecType.withDescription
   }
 
   implicit object DupCheckInJsonFormat extends EnumDescriptionFormat[DupCheckIn] {
-    val id2Description: Map[DupCheckIn, String] = Map(
-      DupCheckIn.Recorded    -> "Current Recordings",
-      DupCheckIn.OldRecorded -> "Previous Recordings",
-      DupCheckIn.All         -> "All Recordings",
-      DupCheckIn.NewEpisodes -> "New Episodes Only"
-    )
+    def id2Description: (DupCheckIn) => String = DupCheckIn.description
+    def description2Id: (String) => DupCheckIn = DupCheckIn.withDescription
   }
 
   implicit object DupCheckMethodJsonFormat extends EnumDescriptionFormat[DupCheckMethod] {
-    val id2Description: Map[DupCheckMethod, String] = Map(
-      DupCheckMethod.None             -> "None",
-      DupCheckMethod.Subtitle         -> "Subtitle",
-      DupCheckMethod.Description      -> "Description",
-      DupCheckMethod.SubtitleDesc     -> "Subtitle and Description",
-      DupCheckMethod.SubtitleThenDesc -> "Subtitle then Description"
-    )
+    def id2Description: (DupCheckMethod) => String = DupCheckMethod.description
+    def description2Id: (String) => DupCheckMethod = DupCheckMethod.withDescription
   }
 
   implicit object MythLogLevelJsonFormat extends EnumDescriptionFormat[MythLogLevel] {
-    val id2Description: Map[MythLogLevel, String] = Map(
-      MythLogLevel.Any     -> "any" ,
-      MythLogLevel.Emerg   -> "emerg",
-      MythLogLevel.Alert   -> "alert",
-      MythLogLevel.Crit    -> "crit",
-      MythLogLevel.Err     -> "err",
-      MythLogLevel.Warning -> "warning",
-      MythLogLevel.Notice  -> "notice",
-      MythLogLevel.Info    -> "info",
-      MythLogLevel.Debug   -> "debug",
-      MythLogLevel.Unknown -> "unknown"
-    )
+    def id2Description: (MythLogLevel) => String = MythLogLevel.description
+    def description2Id: (String) => MythLogLevel = MythLogLevel.withDescription
   }
 
   trait IntegerIdentifierJsonFormat[T <: IntegerIdentifier] extends JsonFormat[T] {
