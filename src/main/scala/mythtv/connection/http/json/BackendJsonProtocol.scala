@@ -9,7 +9,7 @@ import java.time.{ DayOfWeek, Duration, Instant, LocalTime, ZoneOffset }
 import scala.util.{ DynamicVariable, Try }
 
 import spray.json.{ JsonFormat, RootJsonFormat, jsonWriter }
-import spray.json.{ JsObject, JsString, JsValue }
+import spray.json.{ JsNumber, JsObject, JsString, JsValue }
 import spray.json.DefaultJsonProtocol.{ listFormat, StringJsonFormat }
 
 import util.{ DecimalByteCount, MythFileHash, URIFactory }
@@ -19,7 +19,7 @@ import model._
 
 // TODO default values for model elements need to be centralized somewhere (e.g. Inetref="000000...")
 
-private[http] trait ServicesObjectFormat[T] extends RootJsonFormat[ServicesObject[T]] {
+private[json] trait ServicesObjectFormat[T] extends RootJsonFormat[ServicesObject[T]] {
   import RichJsonObject._
 
   def dataFieldName: String
@@ -46,7 +46,7 @@ private[http] trait ServicesObjectFormat[T] extends RootJsonFormat[ServicesObjec
   }
 }
 
-private[http] trait ServicesObjectGuideJsonFormat[C <: Channel, P <: ProgramBrief] extends ServicesObjectFormat[Guide[C, P]] {
+private[json] trait ServicesObjectGuideJsonFormat[C <: Channel, P <: ProgramBrief] extends ServicesObjectFormat[Guide[C, P]] {
   import RichJsonObject._
 
   def dataFieldName = "Channels"
@@ -74,7 +74,7 @@ private[http] trait ServicesObjectGuideJsonFormat[C <: Channel, P <: ProgramBrie
   }
 }
 
-private[http] trait EnumDescriptionFormat[T] extends JsonFormat[T] {
+private[json] trait EnumDescriptionFormat[T] extends JsonFormat[T] {
   def id2Description: Map[T, String]
   lazy val description2Id: Map[String, T] = id2Description map (_.swap)
 
@@ -86,9 +86,12 @@ private[http] trait EnumDescriptionFormat[T] extends JsonFormat[T] {
 }
 
 /* Inheriting from DefaultJsonProtocol can cause huge bytecode bloat */
-private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
+private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
   import RichJsonObject._
   import scala.language.implicitConversions
+
+  type GuideTuple = (ChannelDetails, Seq[Program])
+  type GuideBriefTuple = (Channel, Seq[ProgramBrief])
 
   private val channelContext = new DynamicVariable[RichJsonObject](EmptyJsonObject)
 
@@ -194,6 +197,24 @@ private[http] trait BackendJsonProtocol extends CommonJsonProtocol {
       MythLogLevel.Unknown -> "unknown"
     )
   }
+
+  trait IntegerIdentifierJsonFormat[T <: IntegerIdentifier] extends JsonFormat[T] {
+    def factory: (Int) => T
+    def write(i: T): JsValue = JsString(i.id.toString)
+    def read(value: JsValue): T = {
+      val i = value match {
+        case JsString(s) => s.toInt
+        case JsNumber(x) => x.intValue
+        case x => x.toString.toInt
+      }
+      factory(i)
+    }
+  }
+
+  implicit object CaptureCardIdJsonFormat   extends IntegerIdentifierJsonFormat[CaptureCardId]   { def factory = CaptureCardId.apply }
+  implicit object InputIdJsonFormat         extends IntegerIdentifierJsonFormat[InputId]         { def factory = InputId.apply }
+  implicit object ListingSourceIdJsonFormat extends IntegerIdentifierJsonFormat[ListingSourceId] { def factory = ListingSourceId.apply }
+  implicit object RecordRuleIdJsonFormat    extends IntegerIdentifierJsonFormat[RecordRuleId]    { def factory = RecordRuleId.apply }
 
   implicit object ArtworkInfoJsonFormat extends RootJsonFormat[ArtworkInfo] {
     def write(a: ArtworkInfo): JsValue = JsObject(Map(

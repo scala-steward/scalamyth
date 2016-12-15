@@ -1,13 +1,10 @@
 package mythtv
 package connection
 package http
-package json
 
 import java.time.Duration
 
 import scala.util.Try
-
-import spray.json.DefaultJsonProtocol.{ listFormat, StringJsonFormat }
 
 import model._
 import util.MythDateTime
@@ -16,36 +13,20 @@ import EnumTypes.{ NotificationPriority, NotificationType, NotificationVisibilit
 import MythFrontend.KeyName
 import RecordedId._
 
-import RichJsonObject._
-
-class JsonMythFrontendService(conn: FrontendJsonConnection)
-  extends JsonFrontendService(conn)
-     with MythFrontendService {
+trait AbstractMythFrontendService extends ServiceProtocol with MythFrontendService {
 
   def getActionList(context: String = ""): ServiceResult[FrontendActionMap] = {
     var params: Map[String, Any] = Map.empty
     if (context.nonEmpty) params += "Context" -> context
-    for {
-      response <- request("GetActionList", params)
-      root     <- responseRoot(response, "FrontendActionList")
-      result   <- Try(root.convertTo[FrontendActionMap])
-    } yield result
+    request("GetActionList", params)("FrontendActionList")
   }
 
   def getContextList: ServiceResult[List[String]] = {
-    for {
-      response <- request("GetContextList")
-      root     <- responseRoot(response, "StringList")
-      result   <- Try(root.convertTo[List[String]])
-    } yield result
+    request("GetContextList")()
   }
 
   def getStatus: ServiceResult[FrontendStatus] = {
-    for {
-      response <- request("GetStatus")
-      root     <- responseRoot(response, "FrontendStatus")
-      result   <- Try(root.convertTo[FrontendStatus])
-    } yield result
+    request("GetStatus")("FrontendStatus")
   }
 
   def getScreenshot[U](format: ScreenshotFormat, width: Int, height: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
@@ -54,7 +35,7 @@ class JsonMythFrontendService(conn: FrontendJsonConnection)
     if (height != 0)     params += "height" -> height
     val path = buildPath("MythFE", "GetScreenShot", params)  // Note this has a different service prefix
     Try {
-      val response = conn.requestStream(path)
+      val response = requestStream(path)
       streamResponse(response, f)
     }
   }
@@ -62,64 +43,37 @@ class JsonMythFrontendService(conn: FrontendJsonConnection)
   // post methods
 
   def playRecording(chanId: ChanId, startTime: MythDateTime): ServiceResult[Boolean] = {
-    val params: Map[String, Any] = Map(
-      "ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
-    for {
-      response <- post("PlayRecording", params)
-      root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool"))
-    } yield result
+    val params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
+    post("PlayRecording", params)()
   }
 
   def playRecording(recordedId: RecordedId): ServiceResult[Boolean] = recordedId match {
-    case RecordedIdInt(id) =>
-      val params: Map[String, Any] = Map("RecordedId" -> id)
-      for {
-        response <- post("PlayRecording", params)
-        root     <- responseRoot(response)
-        result   <- Try(root.booleanField("bool"))
-      } yield result
+    case RecordedIdInt(id) => post("PlayRecording", Map("RecordedId" -> id))()
     case RecordedIdChanTime(chanId, startTime) => playRecording(chanId, startTime)
   }
 
   def playVideo(id: VideoId, useBookmark: Boolean = false): ServiceResult[Boolean] = {
     var params: Map[String, Any] = Map("Id" -> id.id)
     if (useBookmark) params += "UseBookmark" -> useBookmark
-    for {
-      response <- post("PlayVideo", params)
-      root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool"))
-    } yield result
+    post("PlayVideo", params)()
   }
 
   // TODO support screenshot action by parsing WxH out of value string?
   def sendAction(action: Action, value: String): ServiceResult[Boolean] = {
     var params: Map[String, Any] = Map("Action" -> action)
     if (value.nonEmpty) params += "Value" -> value
-    for {
-      response <- post("SendAction", params)
-      root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool"))
-    } yield result
+    post("SendAction", params)()
   }
 
   def sendKey(key: KeyName): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map("Key" -> key)
-    for {
-      response <- post("SendKey", params)
-      root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool"))
-    } yield result
+    post("SendKey", params)()
   }
 
   def sendMessage(message: String, timeout: Duration): ServiceResult[Boolean] = {
     var params: Map[String, Any] = Map("Message" -> message)
     if (!timeout.isZero) params += "Timeout" -> timeout.getSeconds
-    for {
-      response <- post("SendMessage", params)
-      root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool"))
-    } yield result
+    post("SendMessage", params)()
   }
 
   def sendNotification(
@@ -146,11 +100,6 @@ class JsonMythFrontendService(conn: FrontendJsonConnection)
     if (notifyType != NotificationType.New)       params +=       "Type" -> notifyType.toString.toLowerCase
     if (priority != NotificationPriority.Default) params +=   "Priority" -> priority.id
     if (visibility != NotificationVisibility.All) params += "Visibility" -> visibility.id
-
-    for {
-      response <- post("SendNotification", params)
-      root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool"))
-    } yield result
+    post("SendNotification", params)()
   }
 }

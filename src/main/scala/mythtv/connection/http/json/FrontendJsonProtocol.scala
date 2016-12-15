@@ -8,7 +8,7 @@ import spray.json.{ JsObject, JsValue }
 
 import model.{ FrontendActionMap, FrontendState, FrontendStatus }
 
-trait FrontendJsonProtocol extends CommonJsonProtocol {
+private[json] trait FrontendJsonProtocol extends CommonJsonProtocol {
 
   // ActionList is a Map[String, String] from actionName -> description
   implicit object FrontendActionMapJsonFormat extends JsonFormat[FrontendActionMap] {

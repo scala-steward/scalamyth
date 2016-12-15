@@ -22,15 +22,11 @@ trait JsonConnection extends AbstractHttpConnection {
       JsonResponse(status, headers, json)
   }
 
-  override def post(path: String, params: Map[String, Any]): JsonResponse =
-    super.post(path, params) match {
-      case HttpStreamResponse(status, headers, stream) =>
-        val json = parseJson(stream)
-        JsonResponse(status, headers, json)
-    }
-
-  def requestStream(path: String): HttpStreamResponse =
-    super.request(path) match { case r: HttpStreamResponse => r }
+  override def post(path: String, params: Map[String, Any]): JsonResponse = super.post(path, params) match {
+    case HttpStreamResponse(status, headers, stream) =>
+      val json = parseJson(stream)
+      JsonResponse(status, headers, json)
+  }
 
   private def parseJson(stream: InputStream): JsValue = {
     val reader = new BufferedReader(new InputStreamReader(stream))

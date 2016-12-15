@@ -1,173 +1,96 @@
 package mythtv
 package connection
 package http
-package json
 
 import java.net.URI
 import java.time.{ Duration, Instant }
 
-import scala.util.Try
-
-import spray.json.DefaultJsonProtocol.{ listFormat, StringJsonFormat }
-
 import model._
-import util.{ MythDateTime, URIFactory }
 import services.{ MythService, ServiceResult }
+import util.MythDateTime
 import EnumTypes.{ NotificationPriority, NotificationType, NotificationVisibility }
-import RichJsonObject._
 
-private[json] trait LabelValue {
-  def label: String
-  def value: String
-}
-
-class JsonMythService(conn: BackendJsonConnection)
-  extends JsonBackendService(conn)
-     with MythService {
+trait AbstractMythService extends ServiceProtocol with MythService {
 
   def getBackendInfo: ServiceResult[BackendDetails] = {
-    for {
-      response <- request("GetBackendInfo")
-      root     <- responseRoot(response, "BackendInfo")
-      result   <- Try(root.convertTo[BackendDetails])
-    } yield result
+    request("GetBackendInfo")("BackendInfo")
   }
 
   def getConnectionInfo(pin: String): ServiceResult[ConnectionInfo] = {
     val params: Map[String, Any] = Map("Pin" -> pin)
-    for {
-      response <- post("GetConnectionInfo", params)
-      root     <- responseRoot(response, "ConnectionInfo")
-      result   <- Try(root.convertTo[ConnectionInfo])
-    } yield result
+    post("GetConnectionInfo", params)("ConnectionInfo")
   }
 
   def getFrontends(onlyOnline: Boolean): ServiceResult[List[KnownFrontendInfo]] = {
     var params: Map[String, Any] = Map.empty
     if (onlyOnline) params += "OnLine" -> onlyOnline
-    for {
-      response <- request("GetFrontends", params)
-      root     <- responseRoot(response, "FrontendList", "Frontends")
-      result   <- Try(root.convertTo[List[KnownFrontendInfo]])
-    } yield result
+    request("GetFrontends", params)("FrontendList", "Frontends")
   }
 
   def getHostName: ServiceResult[String] = {
-    for {
-      response <- request("GetHostName")
-      root     <- responseRoot(response, "String")
-      result   <- Try(root.convertTo[String])
-    } yield result
+    request("GetHostName")()
   }
 
   def getHosts: ServiceResult[List[String]] = {
-    for {
-      response <- request("GetHosts")
-      root     <- responseRoot(response, "StringList")
-      result   <- Try(root.convertTo[List[String]])
-    } yield result
+    request("GetHosts")()
   }
 
   def getKeys: ServiceResult[List[String]] = {
-    for {
-      response <- request("GetKeys")
-      root     <- responseRoot(response, "StringList")
-      result   <- Try(root.convertTo[List[String]])
-    } yield result
+    request("GetKeys")()
   }
 
   def getSettings(hostName: String, key: String): ServiceResult[Settings] = {
     var params: Map[String, Any] = Map.empty
     if (hostName.nonEmpty) params += "HostName" -> hostName
     if (key.nonEmpty)      params += "Key" -> key
-    for {
-      response <- request("GetSetting", params)
-      root     <- responseRoot(response, "SettingList")
-      result   <- Try(root.convertTo[Settings])
-    } yield result
+    request("GetSetting", params)("SettingList")
   }
 
   def getSettingList(hostName: String = ""): ServiceResult[Settings] = {
     var params: Map[String, Any] = Map.empty
     if (hostName.nonEmpty) params += "HostName" -> hostName
-    for {
-      response <- request("GetSettingList", params)
-      root     <- responseRoot(response, "SettingList")
-      result   <- Try(root.convertTo[Settings])
-    } yield result
+    request("GetSettingList", params)("SettingList")
   }
 
   def getStorageGroupDirs(hostName: String, groupName: String): ServiceResult[List[StorageGroupDir]] = {
     var params: Map[String, Any] = Map.empty
     if (hostName.nonEmpty) params += "HostName" -> hostName
     if (groupName.nonEmpty) params += "GroupName" -> groupName
-    for {
-      response <- request("GetStorageGroupDirs", params)
-      root     <- responseRoot(response, "StorageGroupDirList", "StorageGroupDirs")
-      result   <- Try(root.convertTo[List[StorageGroupDir]])
-    } yield result
+    request("GetStorageGroupDirs", params)("StorageGroupDirList", "StorageGroupDirs")
   }
 
   def getFormatDate(dateTime: MythDateTime, shortDate: Boolean = false): ServiceResult[String] = {
     var params: Map[String, Any] = Map("Date" -> dateTime.toIsoFormat)
     if (shortDate) params += "ShortDate" -> shortDate
-    for {
-      response <- request("GetFormatDate", params)
-      root     <- responseRoot(response, "String")
-      result   <- Try(root.convertTo[String])
-    } yield result
+    request("GetFormatDate", params)()
   }
 
   def getFormatDateTime(dateTime: MythDateTime, shortDate: Boolean = false): ServiceResult[String] = {
     var params: Map[String, Any] = Map("DateTime" -> dateTime.toIsoFormat)
     if (shortDate) params += "ShortDate" -> shortDate
-    for {
-      response <- request("GetFormatDateTime", params)
-      root     <- responseRoot(response, "String")
-      result   <- Try(root.convertTo[String])
-    } yield result
+    request("GetFormatDateTime", params)()
   }
 
   def getFormatTime(dateTime: MythDateTime): ServiceResult[String] = {
     val params: Map[String, Any] = Map("Time" -> dateTime.toIsoFormat)
-    for {
-      response <- request("GetFormatTime", params)
-      root     <- responseRoot(response, "String")
-      result   <- Try(root.convertTo[String])
-    } yield result
+    request("GetFormatTime", params)()
   }
 
   def getTimeZone: ServiceResult[TimeZoneInfo] = {
-    for {
-      response <- request("GetTimeZone")
-      root     <- responseRoot(response, "TimeZoneInfo")
-      result   <- Try(root.convertTo[TimeZoneInfo])
-    } yield result
+    request("GetTimeZone")("TimeZoneInfo")
   }
 
   def parseIsoDateString(dateTimeString: String): ServiceResult[MythDateTime] = {
     val params: Map[String, Any] = Map("DateTime" -> dateTimeString)
-    for {
-      response <- request("ParseISODateString", params)
-      root     <- responseRoot(response, "DateTime")
-      result   <- Try(MythDateTime.fromIso(root.convertTo[String]))
-    } yield result
+    request("ParseISODateString", params)("DateTime")
   }
 
   def getLogHostNames: ServiceResult[List[String]] = {
-    for {
-      response <- request("GetLogs")
-      root     <- responseRoot(response, "LogMessageList", "HostNames")
-      result   <- Try(root.convertTo[List[LabelValue]] map (_.value))
-    } yield result
+    request("GetLogs")("LogMessageList", "HostNames")
   }
 
   def getLogApplications: ServiceResult[List[String]] = {
-    for {
-      response <- request("GetLogs")
-      root     <- responseRoot(response, "LogMessageList", "Applications")
-      result   <- Try(root.convertTo[List[LabelValue]] map (_.value))
-    } yield result
+    request("GetLogs")("LogMessageList", "Applications")
   }
 
   def getLogs(
@@ -197,11 +120,7 @@ class JsonMythService(conn: BackendJsonConnection)
     if (toTime != Instant.MIN)   params += "ToTime" -> toTime
     if (level.nonEmpty)          params += "Level" -> level
     if (msgContains.nonEmpty)    params += "MsgContains" -> msgContains
-    for {
-      response <- request("GetLogs", params)
-      root     <- responseRoot(response, "LogMessageList", "LogMessages")
-      result   <- Try(root.convertTo[List[LogMessage]])
-    } yield result
+    request("GetLogs", params)("LogMessageList", "LogMessages")
   }
 
   /* mutating POST methods */
@@ -212,11 +131,7 @@ class JsonMythService(conn: BackendJsonConnection)
       "DirName"   -> dirName,
       "HostName"  -> hostName
     )
-    for {
-      response <- post("AddStorageGroupDir", params)
-      root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool"))
-    } yield result
+    post("AddStorageGroupDir", params)()
   }
 
   def removeStorageGroupDir(storageGroup: String, dirName: String, hostName: String): ServiceResult[Boolean] = {
@@ -225,11 +140,7 @@ class JsonMythService(conn: BackendJsonConnection)
       "DirName"   -> dirName,
       "HostName"  -> hostName
     )
-    for {
-      response <- post("RemoveStorageGroupDir", params)
-      root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool"))
-    } yield result
+    post("RemoveStorageGroupDir", params)()
   }
 
   def putSetting(hostName: String, key: String, value: String): ServiceResult[Boolean] = {
@@ -238,11 +149,7 @@ class JsonMythService(conn: BackendJsonConnection)
       "Key"      -> key,
       "Value"    -> value
     )
-    for {
-      response <- post("PutSetting", params)
-      root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool"))
-    } yield result
+    post("PutSetting", params)()
   }
 
   def changePassword(userName: String, oldPassword: String, newPassword: String): ServiceResult[Boolean] = {
@@ -251,11 +158,7 @@ class JsonMythService(conn: BackendJsonConnection)
       "OldPassword" -> oldPassword,
       "NewPassword" -> newPassword
     )
-    for {
-      response <- post("ChangePassword", params)
-      root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool"))
-    } yield result
+    post("ChangePassword", params)()
   }
 
   def testDbSettings(hostName: String, userName: String, password: String, dbName: String, dbPort: Int): ServiceResult[Boolean] = {
@@ -266,11 +169,7 @@ class JsonMythService(conn: BackendJsonConnection)
     )
     if (dbName.nonEmpty) params += "DBName" -> dbName
     if (dbPort != 0)     params += "dbPort" -> dbPort
-    for {
-      response <- post("TestDBSettings", params)
-      root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool"))
-    } yield result
+    post("TestDBSettings", params)()
   }
 
   def sendMessage(message: String, address: String, udpPort: Int, timeout: Duration): ServiceResult[Boolean] = {
@@ -278,11 +177,7 @@ class JsonMythService(conn: BackendJsonConnection)
     if (address.nonEmpty) params += "Address" -> address
     if (udpPort != 0)     params += "udpPort" -> udpPort
     if (!timeout.isZero)  params += "Timeout" -> timeout.getSeconds
-    for {
-      response <- post("SendMessage", params)
-      root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool"))
-    } yield result
+    post("SendMessage", params)()
   }
 
   def sendNotification(
@@ -313,68 +208,36 @@ class JsonMythService(conn: BackendJsonConnection)
     if (visibility != NotificationVisibility.All) params += "Visibility" -> visibility.id
     if (address.nonEmpty)      params +=      "Address" -> address
     if (udpPort != 0)          params +=      "udpPort" -> udpPort
-    for {
-      response <- post("SendNotification", params)
-      root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool"))
-    } yield result
+    post("SendNotification", params)()
   }
 
   def backupDatabase(): ServiceResult[Boolean] = {
-    for {
-      response <- post("BackupDatabase")
-      root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool"))
-    } yield result
+    post("BackupDatabase")()
   }
 
   def checkDatabase(repair: Boolean): ServiceResult[Boolean] = {
     var params: Map[String, Any] = Map.empty
     if (repair) params += "Repair" -> repair
-    for {
-      response <- post("CheckDatabase", params)
-      root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool"))
-    } yield result
+    post("CheckDatabase", params)()
   }
 
   def profileSubmit(): ServiceResult[Boolean] = {
-    for {
-      response <- post("ProfileSubmit")
-      root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool"))
-    } yield result
+    post("ProfileSubmit")()
   }
 
   def profileDelete(): ServiceResult[Boolean] = {
-    for {
-      response <- post("ProfileDelete")
-      root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool"))
-    } yield result
+    post("ProfileDelete")()
   }
 
   def profileUrl: ServiceResult[URI] = {
-    for {
-      response <- request("ProfileURL")
-      root     <- responseRoot(response, "String")
-      result   <- Try(URIFactory(root.convertTo[String]))
-    } yield result
+    request("ProfileURL")("String")
   }
 
   def profileUpdated: ServiceResult[String] = {
-    for {
-      response <- request("ProfileUpdated")
-      root     <- responseRoot(response, "String")
-      result   <- Try(root.convertTo[String])
-    } yield result
+    request("ProfileUpdated")()
   }
 
   def profileText(): ServiceResult[String] = {
-    for {
-      response <- request("ProfileText")
-      root     <- responseRoot(response, "String")
-      result   <- Try(root.convertTo[String])
-    } yield result
+    request("ProfileText")()
   }
 }

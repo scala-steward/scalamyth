@@ -1,20 +1,15 @@
 package mythtv
 package connection
 package http
-package json
 
 import scala.util.Try
 
-import spray.json.DefaultJsonProtocol.{ listFormat, StringJsonFormat }
-
-import model.EnumTypes.RecSearchType
-import model.{ ChanId, Channel, ChannelDetails, ChannelGroup, ChannelGroupId, Guide, Program, ProgramBrief }
-import services.{ GuideService, PagedList, ServiceResult, ServicesObject }
+import model._
+import services.{ GuideService, PagedList, ServiceResult }
 import util.{ MythDateTime, OptionalCount, OptionalCountSome }
+import EnumTypes.RecSearchType
 
-class JsonGuideService(conn: BackendJsonConnection)
-  extends JsonBackendService(conn)
-     with GuideService {
+trait AbstractGuideService extends ServiceProtocol with GuideService {
 
   def getProgramGuide(
     startTime: MythDateTime,
@@ -33,11 +28,7 @@ class JsonGuideService(conn: BackendJsonConnection)
       case OptionalCountSome(n) => params += "NumChannels" -> n
       case _ => ()
     }
-    for {
-      response <- request("GetProgramGuide", params)
-      root     <- responseRoot(response, "ProgramGuide")
-      result   <- Try(root.convertTo[ServicesObject[Guide[Channel, ProgramBrief]]])
-    } yield result.data
+    request("GetProgramGuide", params)("ProgramGuide")
   }
 
   def getProgramGuideDetails(
@@ -58,11 +49,7 @@ class JsonGuideService(conn: BackendJsonConnection)
       case OptionalCountSome(n) => params += "NumChannels" -> n
       case _ => ()
     }
-    for {
-      response <- request("GetProgramGuide", params)
-      root     <- responseRoot(response, "ProgramGuide")
-      result   <- Try(root.convertTo[ServicesObject[Guide[ChannelDetails, Program]]])
-    } yield result.data
+    request("GetProgramGuide", params)("ProgramGuide")
   }
 
   /*
@@ -74,11 +61,7 @@ class JsonGuideService(conn: BackendJsonConnection)
    */
   def getProgramDetails(chanId: ChanId, startTime: MythDateTime): ServiceResult[Program] = {
     val params: Map[String, Any] = Map("StartTime" -> startTime.toIsoFormat, "ChanId" -> chanId.id)
-    for {
-      response <- request("GetProgramDetails", params)
-      root     <- responseRoot(response, "Program")
-      result   <- Try(root.convertTo[Program])
-    } yield result
+    request("GetProgramDetails", params)("Program")
   }
 
   def getProgramList(
@@ -107,11 +90,7 @@ class JsonGuideService(conn: BackendJsonConnection)
     if (onlyNew)           params += "OnlyNew"        -> onlyNew
     if (sortBy.nonEmpty)   params += "Sort"           -> sortBy
     if (descending)        params += "Descending"     -> descending
-    for {
-      response <- request("GetProgramList", params)
-      root     <- responseRoot(response, "ProgramList")
-      result   <- Try(root.convertTo[ServicesPagedList[ProgramBrief]])
-    } yield result
+    request("GetProgramList", params)("ProgramList")
   }
 
   def getProgramListDetails(
@@ -141,18 +120,13 @@ class JsonGuideService(conn: BackendJsonConnection)
     if (onlyNew)           params += "OnlyNew"        -> onlyNew
     if (sortBy.nonEmpty)   params += "Sort"           -> sortBy
     if (descending)        params += "Descending"     -> descending
-    for {
-      response <- request("GetProgramList", params)
-      root     <- responseRoot(response, "ProgramList")
-      result   <- Try(root.convertTo[ServicesPagedList[Program]])
-    } yield result
+    request("GetProgramList", params)("ProgramList")
   }
 
   def getChannelIcon[U](chanId: ChanId, width: Int, height: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
     var params: Map[String, Any] = Map("ChanId" -> chanId.id)
     if (width != 0)  params += "Width" -> width
     if (height != 0) params += "Height" -> height
-
     Try {
       val response = requestStream("GetChannelIcon", params)
       streamResponse(response, f)
@@ -160,29 +134,18 @@ class JsonGuideService(conn: BackendJsonConnection)
   }
 
   def getCategoryList: ServiceResult[List[String]] = {
-    for {
-      response <- request("GetCategoryList")
-      root     <- responseRoot(response, "StringList")
-      result   <- Try(root.convertTo[List[String]])
-    } yield result
+    request("GetCategoryList")()
   }
 
   def getChannelGroupList(includeEmpty: Boolean): ServiceResult[List[ChannelGroup]] = {
     var params: Map[String, Any] = Map.empty
     if (includeEmpty) params += "IncludeEmpty" -> includeEmpty
-    for {
-      response <- request("GetChannelGroupList", params)
-      root     <- responseRoot(response, "ChannelGroupList", "ChannelGroups")
-      result   <- Try(root.convertTo[List[ChannelGroup]])
-    } yield result
+    request("GetChannelGroupList", params)("ChannelGroupList", "ChannelGroups")
   }
 
   def getStoredSearches(searchType: RecSearchType): ServiceResult[List[String]] = {
+    import mythtv.connection.http.json.JsonResultConverter.RecSearchTypeJsonFormat  // FIXME
     val params: Map[String, Any] = Map("Type" -> RecSearchTypeJsonFormat.id2Description(searchType))
-    for {
-      response <- request("GetStoredSearches", params)
-      root     <- responseRoot(response, "StringList")
-      result   <- Try(root.convertTo[List[String]])
-    } yield result
+    request("GetStoredSearches", params)()
   }
 }

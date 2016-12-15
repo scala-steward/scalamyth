@@ -2,9 +2,8 @@ package mythtv
 package connection
 package http
 
-import model.{ Channel, ChannelDetails, Program, ProgramBrief }
+import spray.json.JsValue
 
 package object json {
-  type GuideTuple = (ChannelDetails, Seq[Program])
-  type GuideBriefTuple = (Channel, Seq[ProgramBrief])
+  implicit class JsonValueResultNode(val value: JsValue) extends AnyVal with ServiceResultNode
 }

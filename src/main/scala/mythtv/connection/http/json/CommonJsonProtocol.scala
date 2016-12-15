@@ -5,9 +5,26 @@ package json
 
 import java.time.{ DayOfWeek, Instant, ZoneOffset }
 
-import spray.json.{ JsonFormat, JsObject, JsString, JsValue }
+import spray.json.{ JsNumber, JsObject, JsString, JsValue, JsonFormat }
 
-private[http] trait CommonJsonProtocol {
+private[json] trait CommonJsonProtocol {
+
+  implicit object BooleanJsonFormat extends JsonFormat[Boolean] {
+    def write(b: Boolean): JsValue = JsString(b.toString)
+    def read(value: JsValue): Boolean = value match {
+      case JsString(s) => s.toBoolean
+      case x => x.toString.toBoolean
+    }
+  }
+
+  implicit object IntJsonFormat extends JsonFormat[Int] {
+    def write(i: Int): JsValue = JsString(i.toString)
+    def read(value: JsValue): Int = value match {
+      case JsString(s) => s.toInt
+      case JsNumber(x) => x.intValue
+      case x => x.toString.toInt
+    }
+  }
 
   implicit object StringMapJsonFormat extends JsonFormat[Map[String, String]] {
     def write(m: Map[String, String]): JsValue =

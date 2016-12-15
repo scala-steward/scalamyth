@@ -1,41 +1,24 @@
 package mythtv
 package connection
 package http
-package json
 
-import scala.util.Try
-
-import spray.json.DefaultJsonProtocol.listFormat
-
-import services.{ CaptureService, ServiceResult }
 import model.{ CaptureCard, CaptureCardId, CardInput, InputId }
-import RichJsonObject._
+import services.{ CaptureService, ServiceResult }
 
-class JsonCaptureService(conn: BackendJsonConnection)
-  extends JsonBackendService(conn)
-     with CaptureService {
+trait AbstractCaptureService extends ServiceProtocol with CaptureService {
 
+  // TODO needs to detect dummy response and return appropriate value
   def getCaptureCard(cardId: CaptureCardId): ServiceResult[CaptureCard] = {
     val params: Map[String, Any] = Map("CardId" -> cardId.id)
-    for {
-      response <- request("GetCaptureCard", params)
-      root     <- responseRoot(response, "CaptureCard")
-      result   <- Try(root.convertTo[CaptureCard])
-    } yield result
+    request("GetCaptureCard", params)("CaptureCard")
   }
 
   def getCaptureCardList(hostName: String, cardType: String): ServiceResult[List[CaptureCard]] = {
     var params: Map[String, Any] = Map.empty
     if (hostName.nonEmpty) params += "HostName" -> hostName
     if (cardType.nonEmpty) params += "CardType" -> cardType
-    for {
-      response <- request("GetCaptureCardList", params)
-      root     <- responseRoot(response, "CaptureCardList", "CaptureCards")
-      result   <- Try(root.convertTo[List[CaptureCard]])
-    } yield result
+    request("GetCaptureCardList", params)("CaptureCardList", "CaptureCards")
   }
-
-  /* mutating POST methods */
 
   def addCaptureCard(card: CaptureCard): ServiceResult[CaptureCardId] = {
     val params: Map[String, Any] = Map(
@@ -64,20 +47,12 @@ class JsonCaptureService(conn: BackendJsonConnection)
       "DiSEqCId"           -> card.diseqcId.getOrElse(0),  // TODO s/b NULL not 0 ??
       "DVBEITScan"         -> card.dvbEitScan
     )
-    for {
-      response <- post("AddCaptureCard", params)
-      root     <- responseRoot(response)
-      result   <- Try(CaptureCardId(root.intField("int")))
-    } yield result
+    post("AddCaptureCard", params)()
   }
 
   def removeCaptureCard(cardId: CaptureCardId): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map("CardId" -> cardId.id)
-    for {
-      response <- post("RemoveCaptureCard", params)
-      root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool"))
-    } yield result
+    post("RemoveCaptureCard", params)()
   }
 
   def updateCaptureCard(cardId: CaptureCardId, setting: String, value: String): ServiceResult[Boolean] = {
@@ -86,11 +61,7 @@ class JsonCaptureService(conn: BackendJsonConnection)
       "Setting" -> setting,
       "Value"   -> value
     )
-    for {
-      response <- post("UpdateCaptureCard", params)
-      root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool"))
-    } yield result
+    post("UpdateCaptureCard", params)()
   }
 
   // TODO we don't have enough details in CardInput trait currently to support all of addCardInput
@@ -114,20 +85,12 @@ class JsonCaptureService(conn: BackendJsonConnection)
       */
       "LiveTVOrder"     -> input.liveTvOrder
     )
-    for {
-      response <- post("AddCardInput", params)
-      root     <- responseRoot(response)
-      result   <- Try(InputId(root.intField("int")))
-    } yield result
+    post("AddCardInput", params)()
   }
 
   def removeCardInput(inputId: InputId): ServiceResult[Boolean] = {
     val params: Map[String, Any] = Map("CardInputId" -> inputId.id)
-    for {
-      response <- post("RemoveCardInput", params)
-      root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool"))
-    } yield result
+    post("RemoveCardInput", params)()
   }
 
   def updateCardInput(inputId: InputId, setting: String, value: String): ServiceResult[Boolean] = {
@@ -136,10 +99,6 @@ class JsonCaptureService(conn: BackendJsonConnection)
       "Setting"     -> setting,
       "Value"       -> value
     )
-    for {
-      response <- post("UpdateCardInput", params)
-      root     <- responseRoot(response)
-      result   <- Try(root.booleanField("bool"))
-    } yield result
+    post("UpdateCardInput", params)()
   }
 }
