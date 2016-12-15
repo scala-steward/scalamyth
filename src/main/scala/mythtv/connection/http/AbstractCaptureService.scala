@@ -4,13 +4,15 @@ package http
 
 import model.{ CaptureCard, CaptureCardId, CardInput, InputId }
 import services.{ CaptureService, ServiceResult }
+import services.Service.ServiceFailure.ServiceNoResult
 
 trait AbstractCaptureService extends ServiceProtocol with CaptureService {
 
-  // TODO needs to detect dummy response and return appropriate value
   def getCaptureCard(cardId: CaptureCardId): ServiceResult[CaptureCard] = {
     val params: Map[String, Any] = Map("CardId" -> cardId.id)
-    request("GetCaptureCard", params)("CaptureCard")
+    val cardTry = request[CaptureCard]("GetCaptureCard", params)("CaptureCard")
+    if (cardTry.isSuccess && cardTry.get.cardId.id == 0) Left(ServiceNoResult)
+    else cardTry
   }
 
   def getCaptureCardList(hostName: String, cardType: String): ServiceResult[List[CaptureCard]] = {
