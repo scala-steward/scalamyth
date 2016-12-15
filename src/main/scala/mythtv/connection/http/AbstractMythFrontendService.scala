@@ -15,7 +15,7 @@ import RecordedId._
 
 trait AbstractMythFrontendService extends ServiceProtocol with MythFrontendService {
 
-  def getActionList(context: String = ""): ServiceResult[FrontendActionMap] = {
+  def getActionList(context: String): ServiceResult[FrontendActionMap] = {
     var params: Map[String, Any] = Map.empty
     if (context.nonEmpty) params += "Context" -> context
     request("GetActionList", params)("FrontendActionList")

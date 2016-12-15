@@ -147,10 +147,7 @@ trait AbstractContentService extends ServiceProtocol with ContentService {
   }
 
   def getRecordingArtworkList(chanId: ChanId, startTime: MythDateTime): ServiceResult[List[ArtworkInfo]] = {
-    val params: Map[String, Any] = Map(
-      "ChanId" -> chanId.id,
-      "StartTime" -> startTime.toIsoFormat
-    )
+    val params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
     request("GetRecordingArtworkList", params)("ArtworkInfoList", "ArtworkInfos")
   }
 
@@ -205,24 +202,9 @@ trait AbstractContentService extends ServiceProtocol with ContentService {
     post("AddRecordingLiveStream", params)("LiveStreamInfo")
   }
 
-  def addRecordingLiveStream(chanId: ChanId, startTime: MythDateTime): ServiceResult[LiveStream] =  // TODO move this to base ContentService trait?
-    addRecordingLiveStream(
-      chanId,
-      startTime,
-      LiveStream.DefaultMaxSegments,
-      LiveStream.DefaultWidth,
-      LiveStream.DefaultHeight,
-      LiveStream.DefaultBitrate,
-      LiveStream.DefaultAudioBitrate,
-      LiveStream.DefaultSampleRate
-    )
-
   def addRecordingLiveStream(chanId: ChanId, startTime: MythDateTime, maxSegments: Int,
     width: Int, height: Int, bitrate: Int, audioBitrate: Int, sampleRate: Int): ServiceResult[LiveStream] = {
-    val params: Map[String, Any] = Map(
-      "ChanId"       -> chanId.id,
-      "StartTime"    -> startTime.toIsoFormat
-    )
+    val params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
     internalAddRecordingLiveStream(params, maxSegments, width, height, bitrate, audioBitrate, sampleRate)
   }
 

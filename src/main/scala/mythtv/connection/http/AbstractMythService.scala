@@ -46,7 +46,7 @@ trait AbstractMythService extends ServiceProtocol with MythService {
     request("GetSetting", params)("SettingList")
   }
 
-  def getSettingList(hostName: String = ""): ServiceResult[Settings] = {
+  def getSettingList(hostName: String): ServiceResult[Settings] = {
     var params: Map[String, Any] = Map.empty
     if (hostName.nonEmpty) params += "HostName" -> hostName
     request("GetSettingList", params)("SettingList")
@@ -59,13 +59,13 @@ trait AbstractMythService extends ServiceProtocol with MythService {
     request("GetStorageGroupDirs", params)("StorageGroupDirList", "StorageGroupDirs")
   }
 
-  def getFormatDate(dateTime: MythDateTime, shortDate: Boolean = false): ServiceResult[String] = {
+  def getFormatDate(dateTime: MythDateTime, shortDate: Boolean): ServiceResult[String] = {
     var params: Map[String, Any] = Map("Date" -> dateTime.toIsoFormat)
     if (shortDate) params += "ShortDate" -> shortDate
     request("GetFormatDate", params)()
   }
 
-  def getFormatDateTime(dateTime: MythDateTime, shortDate: Boolean = false): ServiceResult[String] = {
+  def getFormatDateTime(dateTime: MythDateTime, shortDate: Boolean): ServiceResult[String] = {
     var params: Map[String, Any] = Map("DateTime" -> dateTime.toIsoFormat)
     if (shortDate) params += "ShortDate" -> shortDate
     request("GetFormatDateTime", params)()

@@ -55,7 +55,17 @@ trait ContentService extends BackendService {
   def addRecordingLiveStream(
     chanId: ChanId,
     startTime: MythDateTime
-  ): ServiceResult[LiveStream]
+  ): ServiceResult[LiveStream] =
+    addRecordingLiveStream(
+      chanId,
+      startTime,
+      LiveStream.DefaultMaxSegments,
+      LiveStream.DefaultWidth,
+      LiveStream.DefaultHeight,
+      LiveStream.DefaultBitrate,
+      LiveStream.DefaultAudioBitrate,
+      LiveStream.DefaultSampleRate
+    )
 
   def addRecordingLiveStream(
     chanId: ChanId,

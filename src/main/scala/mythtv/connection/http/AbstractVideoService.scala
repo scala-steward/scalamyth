@@ -43,8 +43,15 @@ trait AbstractVideoService extends ServiceProtocol with VideoService {
     else bdTry
   }
 
-  def lookupVideo(title: String, subtitle: String, inetRef: String, season: Int, episode: Int,
-    grabberType: MetadataGrabberType, allowGeneric: Boolean): ServiceResult[List[VideoLookup]] = {
+  def lookupVideo(
+    title: String,
+    subtitle: String,
+    inetRef: String,
+    season: Int,
+    episode: Int,
+    grabberType: MetadataGrabberType,
+    allowGeneric: Boolean
+  ): ServiceResult[List[VideoLookup]] = {
     var params: Map[String, Any] = Map.empty
     if (title.nonEmpty)    params += "Title"    -> title
     if (subtitle.nonEmpty) params += "Subtitle" -> subtitle
