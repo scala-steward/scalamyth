@@ -11,7 +11,9 @@ trait AbstractChannelService extends ServiceProtocol with ChannelService {
 
   def getChannelInfo(chanId: ChanId): ServiceResult[ChannelDetails] = {
     val params: Map[String, Any] = Map("ChanID" -> chanId.id)
-    request("GetChannelInfo", params)("ChannelInfo")
+    val chanTry = request[ChannelDetails]("GetChannelInfo", params)("ChannelInfo")
+    if (chanTry.isSuccess && chanTry.get.chanId.id == 0) Left(ServiceNoResult)
+    else chanTry
   }
 
   // TODO simulate onlyVisible for older versions? also startIndex and count? Also, older versions have unsorted results...
