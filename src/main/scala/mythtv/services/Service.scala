@@ -3,6 +3,7 @@ package services
 
 trait Service {
   def serviceName: String
+  def endpoints: Map[String, ServiceEndpoint]
 }
 
 /**

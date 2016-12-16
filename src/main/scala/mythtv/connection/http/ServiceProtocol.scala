@@ -5,7 +5,7 @@ package http
 import scala.util.{ Failure, Success, Try }
 
 import util.{ OptionalCount, OptionalCountSome }
-import services.{ PagedList, Service, ServiceResult, ServicesObject }
+import services.{ PagedList, Service, ServiceEndpoint, ServiceResult, ServicesObject }
 import Service.ServiceFailure.ServiceFailureThrowable
 
 private[http] trait LabelValue {
@@ -188,6 +188,11 @@ trait ServiceProtocol extends ServiceResultReaderImplicits {
   self: Service =>
 
   def connection: AbstractHttpConnection
+
+  def endpoints: Map[String, ServiceEndpoint] = {
+    val wsdlUrl = connection.url(buildPath("wsdl"))
+    (WsdlReader(wsdlUrl).endpoints map (p => (p.name, p))).toMap
+  }
 
   def request[T: ServiceResultReader](endpoint: String, params: Map[String, Any] = Map.empty)
     (level0Field: String = "", level1Field: String = ""): ServiceResult[T]
