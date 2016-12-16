@@ -10,7 +10,7 @@ trait ChannelService extends BackendService {
 
   def getChannelInfo(chanId: ChanId): ServiceResult[ChannelDetails]
 
-  // for MythTV 0.28 gains parameters: StartIndex, Count, OnlyVisible, Details
+  // for MythTV 0.28 gains parameters: (StartIndex, Count) ?? , OnlyVisible, Details
   // different methods for details/non-details, because different return type...
   def getChannelInfoList(
     sourceId: ListingSourceId,

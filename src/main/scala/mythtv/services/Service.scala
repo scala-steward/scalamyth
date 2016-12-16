@@ -5,7 +5,14 @@ trait Service {
   def serviceName: String
 }
 
+/**
+  * A marker trait used to indicate services provided by the MythTV backend.
+  */
 trait BackendService extends Service
+
+/**
+  * A marker trait used to indicate services provided by the MythTV frontend.
+  */
 trait FrontendService extends Service
 
 object Service {

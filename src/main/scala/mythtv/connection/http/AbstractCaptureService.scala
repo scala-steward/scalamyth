@@ -46,7 +46,7 @@ trait AbstractCaptureService extends ServiceProtocol with CaptureService {
       "Brightness"         -> card.brightness,
       "Colour"             -> card.colour,
       "Hue"                -> card.hue,
-      "DiSEqCId"           -> card.diseqcId.getOrElse(0),  // TODO s/b NULL not 0 ??
+      "DiSEqCId"           -> card.diseqcId.getOrElse(0),
       "DVBEITScan"         -> card.dvbEitScan
     )
     post("AddCaptureCard", params)()
