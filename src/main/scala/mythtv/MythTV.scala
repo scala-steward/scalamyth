@@ -36,8 +36,9 @@ object MythTV {
   // either of them; which one is undefined.
   def discoverMasterBackend: BackendInfo = {
     val backends = ServiceDiscovery.discoverBackends
-    val trialBackend = backends.head // TODO check that we got some results
+    if (backends.isEmpty) throw new NoSuchElementException("No MythTV backends discovered")
 
+    val trialBackend = backends.head
     val host = trialBackend.addresses.head.getHostAddress
     val port = trialBackend.port
     val myth = ServiceProvider.mythService(host, port)
