@@ -21,20 +21,22 @@ abstract class AbstractHttpConnection(val protocol: String, val host: String, va
     conn.setReadTimeout(90000)
   }
 
+  def url(path: String): URL = new URL(protocol, host, port, path)
+
   // TODO do we need to pick up errorStream and read it out?
   def request(path: String): HttpResponse = {
-    val url = new URL(protocol, host, port, path)
-    //println("Requesting: " + url)
-    url.openConnection() match {
+    val requestUrl = url(path)
+    //println("Requesting: " + requestUrl)
+    requestUrl.openConnection() match {
       case conn: HttpURLConnection =>
         setupConnection(conn)
-        response(url, conn)
+        response(requestUrl, conn)
     }
   }
 
   def post(path: String, params: Map[String, Any]): HttpResponse = {
-    val url = new URL(protocol, host, port, path)
-    url.openConnection() match {
+    val requestUrl = url(path)
+    requestUrl.openConnection() match {
       case conn: HttpURLConnection =>
         setupConnection(conn)
 
@@ -49,7 +51,7 @@ abstract class AbstractHttpConnection(val protocol: String, val host: String, va
         writer.write(data)
         writer.close()
 
-        response(url, conn)
+        response(requestUrl, conn)
     }
   }
 
