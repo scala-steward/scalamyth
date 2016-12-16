@@ -1,5 +1,6 @@
 package mythtv
 
+import java.io.InputStream
 import java.time.{ Duration, Instant }
 import java.net.InetAddress
 
@@ -88,7 +89,7 @@ trait BackendOperations {
 
 trait FrontendOperations {
   def play(media: PlayableMedia): Boolean
-  def screenshot(format: String, width: Int, height: Int): Array[Byte]
+  def screenshot[U](format: ScreenshotFormat, width: Int = 0, height: Int = 0)(f: (InputStream) => U): Unit
 
   def uptime: Duration
   def loadAverages: List[Double]
