@@ -5,6 +5,16 @@ package http
 import java.io.InputStream
 import java.net.URL
 
+sealed trait HttpRequestMethod {
+  def name: String
+  override def toString: String = name
+}
+
+object HttpRequestMethod {
+  case object Get extends HttpRequestMethod { def name = "GET" }
+  case object Post extends HttpRequestMethod { def name = "POST" }
+}
+
 trait HttpResponse {
   def statusCode: Int
   def headers: HttpHeaders
