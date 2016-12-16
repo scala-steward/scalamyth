@@ -3,7 +3,7 @@ package model
 
 import java.time.LocalDateTime
 
-import util.{ BitmaskEnum, LooseEnum }
+import util.{ IntBitmaskEnum, LooseEnum }
 import EnumTypes.{ JobFlags, JobStatus, JobType }
 
 final case class JobId(id: Int) extends AnyVal
@@ -31,7 +31,7 @@ object JobCommand extends LooseEnum {
   val Restart = Value(0x0008)
 }
 
-object JobFlags extends BitmaskEnum[Int] {
+object JobFlags extends IntBitmaskEnum {
   type JobFlags = Base
   val None       =  Mask(0x0000)
   val UseCutlist = Value(0x0001)

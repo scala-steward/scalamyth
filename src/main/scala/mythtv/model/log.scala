@@ -3,7 +3,7 @@ package model
 
 import java.time.Instant
 
-import util.{ BitmaskEnum, LooseEnum }
+import util.{ LongBitmaskEnum, LooseEnum }
 import EnumTypes.MythLogLevel
 
 trait LogMessage {
@@ -42,7 +42,7 @@ object MythLogLevel extends LooseEnum /* with EnumWithDescription[MythLogLevel#V
 }
 
 // To get strings used for verbose arguments, convert name to lowercase
-object MythVerboseLevel extends BitmaskEnum[Long] {
+object MythVerboseLevel extends LongBitmaskEnum {
   type MythVerboseLevel = Base
   val None       =  Mask(0)
   val All        =  Mask(0xffffffffffffffffL)

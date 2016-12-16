@@ -4,7 +4,7 @@ package model
 import java.time.{ DayOfWeek, LocalTime }
 
 import EnumTypes._
-import util.{ BitmaskEnum, LooseEnum, MythDateTime }
+import util.{ IntBitmaskEnum, LooseEnum, MythDateTime }
 
 final case class RecordRuleId(id: Int) extends AnyVal with IntegerIdentifier
 
@@ -109,7 +109,7 @@ trait RecRuleFilter {   // this is a "dynamic enum", defined in the database
   override def toString = s"<RecRuleFilter $id $name>"
 }
 
-object DupCheckIn extends BitmaskEnum[Int] /* with EnumWithDescription[DupCheckIn#Base] */ {
+object DupCheckIn extends IntBitmaskEnum /* with EnumWithDescription[DupCheckIn#Base] */ {
   type DupCheckIn = Base
   val Recorded      = Value(0x01)
   val OldRecorded   = Value(0x02)
@@ -129,7 +129,7 @@ object DupCheckIn extends BitmaskEnum[Int] /* with EnumWithDescription[DupCheckI
   def withDescription(description: String): Base = description2Id(description)
 }
 
-object DupCheckMethod extends BitmaskEnum[Int] /* with EnumWithDescription[DupCheckMethod#Base] */ {
+object DupCheckMethod extends IntBitmaskEnum /* with EnumWithDescription[DupCheckMethod#Base] */ {
   type DupCheckMethod = Base
   val None             = Value(0x01)
   val Subtitle         = Value(0x02)

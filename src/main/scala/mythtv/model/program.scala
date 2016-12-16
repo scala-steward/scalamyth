@@ -4,7 +4,7 @@ package model
 import java.time.{ LocalDate, Year }
 
 import EnumTypes._
-import util.{ BitmaskEnum, ByteCount, LooseEnum, MythDateTime }
+import util.{ IntBitmaskEnum, ByteCount, LooseEnum, MythDateTime }
 
 
 trait Titled {
@@ -142,7 +142,7 @@ object RecordedId {
   }
 }
 
-object ProgramFlags extends BitmaskEnum[Int] {
+object ProgramFlags extends IntBitmaskEnum {
   type ProgramFlags = Base
   val None           =  Mask(0x00000000)
   val CommFlag       = Value(0x00000001)
@@ -217,7 +217,7 @@ object RecStatus extends LooseEnum {
   val OtherShowing      = Value(13)
 }
 
-object AudioProperties extends BitmaskEnum[Int] {
+object AudioProperties extends IntBitmaskEnum {
   type AudioProperties = Base
   val Unknown      =  Mask(0x00)
   val Stereo       = Value(0x01)
@@ -228,7 +228,7 @@ object AudioProperties extends BitmaskEnum[Int] {
   val VisualImpair = Value(0x20)
 }
 
-object VideoProperties extends BitmaskEnum[Int] {
+object VideoProperties extends IntBitmaskEnum {
   type VideoProperties = Base
   val Unknown    =  Mask(0x00)
   val Hdtv       = Value(0x01)
@@ -240,7 +240,7 @@ object VideoProperties extends BitmaskEnum[Int] {
   val ThreeD     = Value(0x40)
 }
 
-object SubtitleType extends BitmaskEnum[Int] {
+object SubtitleType extends IntBitmaskEnum {
   type SubtitleType = Base
   val Unknown  =  Mask(0x00)
   val HardHear = Value(0x01)

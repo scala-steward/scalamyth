@@ -61,7 +61,7 @@ object MythProtocolSerializable {
     override def serialize(in: T, builder: StringBuilder): StringBuilder = builder.append(in.id)
   }
 
-  trait IntBitmaskEnumSerializer[T <: BitmaskEnum[Int]#Base] extends MythProtocolSerializable[T] {
+  trait IntBitmaskEnumSerializer[T <: IntBitmaskEnum#Base] extends MythProtocolSerializable[T] {
     def factory: (Int) => T
     def deserialize(in: String): T = factory(in.toInt)
     def serialize(in: T): String = in.id.toString

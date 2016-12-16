@@ -4,7 +4,7 @@ package util
 import org.scalatest.FunSuite
 
 class BitmaskEnumSuite extends FunSuite {
-  object Days extends BitmaskEnum[Int] {
+  object Days extends IntBitmaskEnum {
     val Monday    = Value
     val Tuesday   = Value
     val Wednesday = Value
@@ -16,7 +16,7 @@ class BitmaskEnumSuite extends FunSuite {
     val Weekend   = Mask(Saturday | Sunday)
   }
 
-  abstract class AbstractOrdinals extends BitmaskEnum[Int] {
+  abstract class AbstractOrdinals extends IntBitmaskEnum {
     val First         = Value
     val Second        = Value
     val Third         = Value
@@ -118,12 +118,12 @@ class BitmaskEnumSuite extends FunSuite {
   }
 
   test("Value equality") {
-    object A extends BitmaskEnum[Int] {
+    object A extends IntBitmaskEnum {
       val One = Value
       val Two = Value
     }
 
-    object B extends BitmaskEnum[Int] {
+    object B extends IntBitmaskEnum {
       val One = Value
       val Two = Value
     }
@@ -166,7 +166,7 @@ class BitmaskEnumSuite extends FunSuite {
     assert(Days.Weekend equals Days.Mask(Days.Saturday | Days.Sunday))
     assert(!(Days.Weekend equals Days.Weekday))
 
-    object Binary extends BitmaskEnum[Int] {
+    object Binary extends IntBitmaskEnum {
       val Zero = Mask(0)
       val One  = Value(1)
     }
@@ -187,7 +187,7 @@ class BitmaskEnumSuite extends FunSuite {
       val ThirtyThird   = Value
     }
     intercept[AssertionError] {  // TODO should throw a different exception to indicate fullness?
-      val x = ExtraOrdinals.First
+      val _ = ExtraOrdinals.First
     }
   }
 }

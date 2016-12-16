@@ -1,37 +1,26 @@
 package mythtv
 package util
 
-// TODO check when we have run out of bits!
-// TODO override newBuilder in Mask object?
-// TODO investigate java.lang.Long.lowestOneBit
-
 import java.lang.reflect.{ Field => JField, Method => JMethod }
 import scala.collection.{ mutable, immutable, AbstractIterator, AbstractSet, GenSet, Set, SortedSetLike }
 import scala.reflect.NameTransformer.{ MODULE_SUFFIX_STRING, NAME_JOIN_STRING }
 import scala.util.matching.Regex
 
-abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
+abstract class IntBitmaskEnum {
   thisenum =>
 
-  private val vmap: mutable.Map[T, Value] = new mutable.HashMap
-  private val umap: mutable.Map[T, Value] = new mutable.HashMap
-  private val mmap: mutable.Map[T, Mask] = new mutable.HashMap // TODO use a weak map here?
-  private val nmap: mutable.Map[T, String] = new mutable.HashMap
-  private var vset: Mask = _
-  private var nextId: T = _
-
-  // work around specialization bugs with initializing fields
-  private def init() = {
-    vset = Mask.empty
-    nextId = implicitly[BitWise[T]].one
-  }
-  init()
+  private val vmap: mutable.LongMap[Value] = new mutable.LongMap
+  private val umap: mutable.LongMap[Value] = new mutable.LongMap
+  private val mmap: mutable.LongMap[Mask] = new mutable.LongMap
+  private val nmap: mutable.LongMap[String] = new mutable.LongMap
+  private var vset: Mask = Mask.empty
+  private var nextId: Int = 1
 
   override def toString =
     ((getClass.getName stripSuffix MODULE_SUFFIX_STRING split '.').last split
       Regex.quote(NAME_JOIN_STRING)).last
 
-  final def apply(x: T): Base =
+  final def apply(x: Int): Base =
     try vmap(x)
     catch { case _: NoSuchElementException => Mask(x, null, cache = false) }
 
@@ -40,8 +29,8 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
   protected final def Value: Value = Value(nextId)
   protected final def Value(name: String): Value = Value(nextId, name)
 
-  protected final def Value(i: T): Value = new Val(i)
-  protected final def Value(i: T, name: String): Value = new Val(i, name)
+  protected final def Value(i: Int): Value = new Val(i)
+  protected final def Value(i: Int, name: String): Value = new Val(i, name)
 
   /* Use Java reflection to populate the name map */
   private def populateNameMap() = {
@@ -52,31 +41,29 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
     val methods: Array[JMethod] = getClass.getMethods filter (m =>
         m.getParameterTypes.isEmpty &&
         classOf[Base].isAssignableFrom(m.getReturnType) &&
-        m.getDeclaringClass != classOf[BitmaskEnum[_]] &&
+        m.getDeclaringClass != classOf[IntBitmaskEnum] &&
         isValDef(m))
 
     methods foreach { m =>
       val name = m.getName
       val value = m.invoke(this).asInstanceOf[Base]
       if (value.outerEnum eq thisenum) {
-        val id = implicitly[BitWise[T]].unbox(classOf[Base] getMethod "id" invoke value)
+        val id = Int.unbox(classOf[Base] getMethod "id" invoke value)
         nmap += ((id, name))
       }
     }
   }
 
-  private def nameOf(i: T): String =
+  private def nameOf(i: Int): String =
     synchronized { nmap.getOrElse(i, { populateNameMap() ; nmap(i) }) }
 
-  private def undefined(i: T): Value =
+  private def undefined(i: Int): Value =
     synchronized { umap.getOrElseUpdate(i, new UndefinedVal(i)) }
 
-  import BitWise.BitwiseOps   // TODO can we eliminate this import?
-
   trait Base {
-    private[BitmaskEnum] val outerEnum = thisenum
+    private[IntBitmaskEnum] val outerEnum = thisenum
 
-    def id: T
+    def id: Int
     def contains(elem: Value): Boolean
 
     final def containsAny(mask: Mask): Boolean = (id & mask.id) != 0
@@ -88,11 +75,11 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
     final def ^ (elem: Value): Mask = transientMask(id ^ elem.id)
     final def unary_~ : Mask = transientMask(~id)
 
-    protected def transientMask(id: T): Mask = Mask(id, null, cache = false)
+    protected def transientMask(id: Int): Mask = Mask(id, null, cache = false)
 
     override def equals(other: Any) = other match {
-      case that: BitmaskEnum[_]#Base => (outerEnum eq that.outerEnum) && (id == that.id)
-      case _                         => false
+      case that: IntBitmaskEnum#Base => (outerEnum eq that.outerEnum) && (id == that.id)
+      case _ => false
     }
     override def hashCode: Int = id.##
   }
@@ -113,10 +100,10 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
   }
 
   object Mask {
-    val empty = new Mask(implicitly[BitWise[T]].zero, "<empty>", false)
+    val empty = new Mask(0, "<empty>", false)
 
-    def apply(i: T): Mask = Mask(i, null, cache = true)
-    def apply(i: T, name: String): Mask = Mask(i, name, cache = true)
+    def apply(i: Int): Mask = Mask(i, null, cache = true)
+    def apply(i: Int, name: String): Mask = Mask(i, name, cache = true)
 
     def apply(v: Value): Mask = Mask(v.id, null, cache = true)
     def apply(v: Value, name: String): Mask = Mask(v.id, name, cache = true)
@@ -124,13 +111,13 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
     def apply(m: Mask): Mask = Mask(m.id, m.name, cache = true)
     def apply(m: Mask, name: String): Mask = new Mask(m.id, name, cache = true) // special case, may be renaming a Mask already cached
 
-    /*private[BitmaskEnum]*/ def apply(id: T, name: String, cache: Boolean): Mask = {
+    /*private[IntBitmaskEnum]*/ def apply(id: Int, name: String, cache: Boolean): Mask = {
       if (mmap contains id) mmap(id)
       else new Mask(id, name, cache)
     }
   }
 
-  class Mask private(m: T, private val name: String, cache: Boolean)
+  class Mask private(m: Int, private val name: String, cache: Boolean)
     extends AbstractSet[Value]
        with immutable.SortedSet[Value]
        with SortedSetLike[Value, Mask]
@@ -142,22 +129,21 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
 
     def iterator: Iterator[Value] = new MaskIterator(id)
     override def empty: Mask = Mask.empty
-    override def size = implicitly[BitWise[T]].bitCount(id)
+    override def size = java.lang.Integer.bitCount(id)
     override def stringPrefix = thisenum + ".Mask"
 
     override def foreach[U](f: Value => U): Unit = {
       var bits = id
       var shifts = 0
-      val ev: BitWise[T] = implicitly[BitWise[T]]
 
-      while (ev.bitCount(bits) != 0) {
-        val nz = ev.numberOfTrailingZeros(bits)
+      while (java.lang.Integer.bitCount(bits) != 0) {
+        val nz = java.lang.Integer.numberOfTrailingZeros(bits)
         if (nz > 0) {
           bits >>= nz
           shifts += nz
         }
 
-        val i = ev.one << shifts
+        val i = 1 << shifts
         val v =
           if (vmap contains i) vmap(i)
           else undefined(i)
@@ -169,19 +155,19 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
     }
 
     def keysIteratorFrom(start: Value): Iterator[Value] = {
-      val nz = implicitly[BitWise[T]].numberOfTrailingZeros(start.id)
-      new MaskIterator(id & (implicitly[BitWise[T]].minusone << nz))
+      val nz = java.lang.Integer.numberOfTrailingZeros(start.id)
+      new MaskIterator(id & (-1 << nz))
     }
 
     def rangeImpl(from: Option[Value], until: Option[Value]): Mask = {
       var span = id
       if (from.isDefined) {
-        val nz = implicitly[BitWise[T]].numberOfTrailingZeros(from.get.id)
-        span &= (implicitly[BitWise[T]].minusone << nz)
+        val nz = java.lang.Integer.numberOfTrailingZeros(from.get.id)
+        span &= (-1 << nz)
       }
       if (until.isDefined) {
-        val nz = implicitly[BitWise[T]].numberOfTrailingZeros(until.get.id)
-        span &= ~(implicitly[BitWise[T]].minusone << nz)
+        val nz = java.lang.Integer.numberOfTrailingZeros(until.get.id)
+        span &= ~(-1 << nz)
       }
       transientMask(span)
     }
@@ -217,18 +203,18 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
       }
   }
 
-  private class MaskIterator(private[this] var bits: T) extends AbstractIterator[Value] {
+  private class MaskIterator(private[this] var bits: Int) extends AbstractIterator[Value] {
     private[this] var shifts: Int = 0
 
-    def hasNext = implicitly[BitWise[T]].bitCount(bits) != 0
+    def hasNext = java.lang.Integer.bitCount(bits) != 0
     def next(): Value = {
-      val nz = implicitly[BitWise[T]].numberOfTrailingZeros(bits)
+      val nz = java.lang.Integer.numberOfTrailingZeros(bits)
       if (nz > 0) {
         bits >>= nz
         shifts += nz
       }
 
-      val i = implicitly[BitWise[T]].one << shifts
+      val i = 1 << shifts
       bits >>= 1
       shifts += 1
 
@@ -237,11 +223,11 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
     }
   }
 
-  private class Val(i: T, name: String) extends Value {
-    def this(i: T) = this(i, null)
+  private class Val(i: Int, name: String) extends Value {
+    def this(i: Int) = this(i, null)
 
     assert(!vmap.contains(i), "Duplicate id: " + i)
-    assert(implicitly[BitWise[T]].bitCount(i) == 1, s"value 0x${i.toHexString} contains more than one bit")
+    assert(java.lang.Integer.bitCount(i) == 1, s"value 0x${i.toHexString} contains more than one bit")
     vmap(i) = this
     vset |= this
     nextId = i << 1
@@ -255,7 +241,7 @@ abstract class BitmaskEnum[@specialized(Int,Long) T: BitWise] {
       catch { case _: NoSuchElementException => s"<Invalid enum: no field for #$i>" }
   }
 
-  private class UndefinedVal(i: T) extends Value {
+  private class UndefinedVal(i: Int) extends Value {
     def id = i
     final def isDefined = false
     override def toString = s"<undefined $thisenum.Value 0x${i.toHexString}>"

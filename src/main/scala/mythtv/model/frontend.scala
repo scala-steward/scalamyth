@@ -1,7 +1,7 @@
 package mythtv
 package model
 
-import util.{ BitmaskEnum, LooseEnum }
+import util.{ IntBitmaskEnum, LooseEnum }
 import EnumTypes.FrontendState
 
 // TODO an object for jump points that appear in the GetActionList also..
@@ -43,7 +43,7 @@ object NotificationPriority extends LooseEnum {
   val Highest  = Value(5)
 }
 
-object NotificationVisibility extends BitmaskEnum[Int] {
+object NotificationVisibility extends IntBitmaskEnum {
   type NotificationVisibility = Base
   val None       =  Mask(0)
   val All        =  Mask(~None)
