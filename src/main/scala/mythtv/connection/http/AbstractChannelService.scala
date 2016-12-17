@@ -16,7 +16,8 @@ trait AbstractChannelService extends ServiceProtocol with ChannelService {
     else chanTry
   }
 
-  // TODO simulate onlyVisible for older versions? also startIndex and count? Also, older versions have unsorted results...
+  // The onlyVisible parameter is simulated for MythTV version < 0.28.
+  // Also, older versions have arbitrarily sorted results...
   def getChannelInfoList(
     sourceId: ListingSourceId,
     startIndex: Int,
@@ -24,10 +25,23 @@ trait AbstractChannelService extends ServiceProtocol with ChannelService {
     onlyVisible: Boolean
   ): ServiceResult[PagedList[Channel]] = {
     var params = buildStartCountParams(startIndex, count) + ("SourceID" -> sourceId.id)
-    if (onlyVisible) params += "OnlyVisible" -> onlyVisible
-    request("GetChannelInfoList", params)("ChannelInfoList")
+    var needsVisibleFilter = false
+
+    if (onlyVisible) {
+      if (endpoints("GetChannelInfoList").parameters contains "OnlyVisible")
+        params += "OnlyVisible" -> onlyVisible
+      else needsVisibleFilter = true
+    }
+
+    if (needsVisibleFilter) {
+      val results = request[PagedList[ChannelDetails]]("GetChannelInfoList", params)("ChannelInfoList")
+      results map (_ filter (_.visible))
+    }
+    else request("GetChannelInfoList", params)("ChannelInfoList")
   }
 
+  // The onlyVisible parameter is simulated for MythTV version < 0.28.
+  // Also, older versions have arbitrarily sorted results...
   def getChannelInfoDetailsList(
     sourceId: ListingSourceId,
     startIndex: Int = 0,
@@ -38,8 +52,16 @@ trait AbstractChannelService extends ServiceProtocol with ChannelService {
       "SourceID" -> sourceId.id,
       "Details"  -> true
     )
-    if (onlyVisible) params += "OnlyVisible" -> onlyVisible
-    request("GetChannelInfoList", params)("ChannelInfoList")
+    var needsVisibleFilter = false
+
+    if (onlyVisible) {
+      if (endpoints("GetChannelInfoList").parameters contains "OnlyVisible")
+        params += "OnlyVisible" -> onlyVisible
+      else needsVisibleFilter = true
+    }
+
+    val results = request[PagedList[ChannelDetails]]("GetChannelInfoList", params)("ChannelInfoList")
+    if (needsVisibleFilter) results map (_ filter (_.visible)) else results
   }
 
   def getVideoSource(sourceId: ListingSourceId): ServiceResult[ListingSource] = {
