@@ -26,6 +26,15 @@ private[json] trait CommonJsonProtocol {
     }
   }
 
+  implicit object LongJsonFormat extends JsonFormat[Long] {
+    def write(i: Long): JsValue = JsString(i.toString)
+    def read(value: JsValue): Long = value match {
+      case JsString(s) => s.toLong
+      case JsNumber(x) => x.longValue
+      case x => x.toString.toLong
+    }
+  }
+
   implicit object StringMapJsonFormat extends JsonFormat[Map[String, String]] {
     def write(m: Map[String, String]): JsValue =
       JsObject(m mapValues (JsString(_)))
