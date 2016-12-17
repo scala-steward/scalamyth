@@ -345,7 +345,7 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
           "RecGroup"     -> JsString(r.recGroup),
           "PlayGroup"    -> JsString(r.playGroup),
           "StorageGroup" -> JsString(r.storageGroup),
-          "Profile"      -> JsString("Default")  // TODO not in Recordable/Recording
+          "Profile"      -> JsString("Default")  // RecProfile is not in Recordable/Recording
         ))
       ))
     }
