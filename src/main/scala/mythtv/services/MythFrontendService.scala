@@ -14,7 +14,8 @@ trait MythFrontendService extends FrontendService {
 
   // query methods
 
-  def getActionList(context: String = ""): ServiceResult[FrontendActionMap]
+  def getActionList: ServiceResult[FrontendActionMap] = getActionList("")
+  def getActionList(context: String): ServiceResult[FrontendActionMap]
   def getContextList: ServiceResult[List[String]]
   def getStatus: ServiceResult[FrontendStatus]
 
