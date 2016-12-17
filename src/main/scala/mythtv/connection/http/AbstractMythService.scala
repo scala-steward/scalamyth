@@ -68,11 +68,12 @@ trait AbstractMythService extends ServiceProtocol with MythService {
     }
   }
 
-  // TODO make this work for versions prior to 0.28
   def getSettingList(hostName: String): ServiceResult[Settings] = {
     var params: Map[String, Any] = Map.empty
     if (hostName.nonEmpty && hostName != "_GLOBAL_") params += "HostName" -> hostName
-    request("GetSettingList", params)("SettingList")
+
+    if (endpoints contains "GetSettingList") request("GetSettingList", params)("SettingList")
+    else                                     request("GetSetting", params)("SettingList")
   }
 
   def getStorageGroupDirs(hostName: String, groupName: String): ServiceResult[List[StorageGroupDir]] = {
