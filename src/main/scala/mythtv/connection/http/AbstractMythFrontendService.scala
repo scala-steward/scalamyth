@@ -58,10 +58,17 @@ trait AbstractMythFrontendService extends ServiceProtocol with MythFrontendServi
     post("PlayVideo", params)()
   }
 
-  // TODO support screenshot action by parsing WxH out of value string?
+  // support screenshot action by parsing WxH out of value string
   def sendAction(action: Action, value: String): ServiceResult[Boolean] = {
     var params: Map[String, Any] = Map("Action" -> action)
-    if (value.nonEmpty) params += "Value" -> value
+    if (action == FrontendActions.ScreenShot) {
+      val dimensions = """(\d+)x(\d+)""".r
+      value match {
+        case dimensions(width, height) => params ++= Map("Width" -> width, "Height" -> height)
+        case _ => throw new IllegalArgumentException("missing or invalid dimensions value for screenshot action")
+      }
+    }
+    else if (value.nonEmpty) params += "Value" -> value
     post("SendAction", params)()
   }
 
