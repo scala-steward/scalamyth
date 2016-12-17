@@ -14,7 +14,8 @@ trait Settings {
   def hostName: String
   def settings: Map[String, String]
 
-  override def toString: String = s"<Settings for $hostName (${settings.size})>"
+  def displayHostName: String = if (hostName != "") hostName else "_GLOBAL_"
+  override def toString: String = s"<Settings for $displayHostName (${settings.size})>"
 }
 
 trait TimeZoneInfo {

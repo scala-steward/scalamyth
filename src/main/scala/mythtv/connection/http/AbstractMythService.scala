@@ -6,8 +6,9 @@ import java.net.URI
 import java.time.{ Duration, Instant }
 
 import model._
-import services.{ MythService, ServiceResult }
 import util.MythDateTime
+import services.{ MythService, ServiceResult }
+import services.Service.ServiceFailure.ServiceNoResult
 import EnumTypes.{ NotificationPriority, NotificationType, NotificationVisibility }
 
 trait AbstractMythService extends ServiceProtocol with MythService {
@@ -39,16 +40,37 @@ trait AbstractMythService extends ServiceProtocol with MythService {
     request("GetKeys")()
   }
 
-  def getSettings(hostName: String, key: String): ServiceResult[Settings] = {
-    var params: Map[String, Any] = Map.empty
-    if (hostName.nonEmpty) params += "HostName" -> hostName
-    if (key.nonEmpty)      params += "Key" -> key
-    request("GetSetting", params)("SettingList")
+  // Extract a single setting from a full Settings result
+  private def extractSetting(key: String)(s: Settings): ServiceResult[String] = {
+    val settings = s.settings
+    if (settings contains key) Right(settings(key))
+    else                       Left(ServiceNoResult)
+  }
+
+  def getSetting(hostName: String, key: String): ServiceResult[String] = {
+    require(key.nonEmpty)
+    var params: Map[String, Any] = Map("Key" -> key)
+
+    // The introduction of the use of "_GLOBAL_" as a dummy hostname (commit deceaa46)
+    // was not coincident with changing the return type of the GetSetting endpoint to String (commit 9f7d4d25)
+    // However, we use this a sufficient proxy for released versions. (both changes first appear in 0.28)
+
+    endpoints("GetSetting").resultType match {
+      case "xs:string" =>
+        params += "HostName" -> (if (hostName.isEmpty) "_GLOBAL_" else hostName)
+        request[String]("GetSetting", params)()
+
+      case "tns:SettingList" =>
+        params += "HostName" -> (if (hostName == "_GLOBAL_") "" else hostName)
+        request[Settings]("GetSetting", params)("SettingList") flatMap extractSetting(key)
+
+      case x => throw new RuntimeException(s"unsupported result type '$x' for GetSetting endpoint")
+    }
   }
 
   def getSettingList(hostName: String): ServiceResult[Settings] = {
     var params: Map[String, Any] = Map.empty
-    if (hostName.nonEmpty) params += "HostName" -> hostName
+    if (hostName.nonEmpty && hostName != "_GLOBAL_") params += "HostName" -> hostName
     request("GetSettingList", params)("SettingList")
   }
 
