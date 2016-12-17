@@ -9,19 +9,6 @@ import spray.json.DefaultJsonProtocol.indexedSeqFormat
 import model.{ FrontendActionMap, FrontendState, FrontendStatus }
 
 private[json] trait FrontendJsonProtocol extends CommonJsonProtocol {
-
-  // ActionList is a Map[String, String] from actionName -> description
-  implicit object FrontendActionMapJsonFormat extends JsonFormat[FrontendActionMap] {
-    def write(a: FrontendActionMap): JsValue = JsObject(Map(
-      "ActionList" -> jsonWriter[Map[String, String]].write(a.actions)
-    ))
-
-    def read(value: JsValue): FrontendActionMap = {
-      val obj = value.asJsObject
-      FrontendActionMap(obj.fields("ActionList").convertTo[Map[String, String]])
-    }
-  }
-
   implicit object FrontendStatusJsonFormat extends JsonFormat[FrontendStatus] {
     def write(s: FrontendStatus): JsValue = JsObject(Map(
       "State"          -> jsonWriter[Map[String, String]].write(s.stateMap),

@@ -17,7 +17,6 @@ trait ServiceResultConverter {
   def captureCardId(r: ServiceResultNode): CaptureCardId
   def channelDetails(r: ServiceResultNode): ChannelDetails
   def connectionInfo(r: ServiceResultNode): ConnectionInfo
-  def frontendActionMap(r: ServiceResultNode): FrontendActionMap
   def frontendStatus(r: ServiceResultNode): FrontendStatus
   def guideBrief(r: ServiceResultNode): Guide[Channel, ProgramBrief]
   def guideDetails(r: ServiceResultNode): Guide[ChannelDetails, Program]
@@ -60,6 +59,7 @@ trait ServiceResultConverter {
   def settings(r: ServiceResultNode): Settings
   def soListListingSource(r: ServiceResultNode): ServicesObject[List[ListingSource]]
   def string(r: ServiceResultNode): String
+  def stringMap(r: ServiceResultNode): Map[String, String]
   def timeZoneInfo(r: ServiceResultNode): TimeZoneInfo
   def uri(r: ServiceResultNode): URI
   def video(r: ServiceResultNode): Video
@@ -117,10 +117,6 @@ trait ServiceResultReaderImplicits {
 
   implicit object ConnectionInfoReader extends ServiceResultReader[ConnectionInfo] {
     def read(r: ServiceResultNode): ConnectionInfo = converter.connectionInfo(r)
-  }
-
-  implicit object FrontendActionMapReader extends ServiceResultReader[FrontendActionMap] {
-    def read(r: ServiceResultNode): FrontendActionMap = converter.frontendActionMap(r)
   }
 
   implicit object FrontendStatusReader extends ServiceResultReader[FrontendStatus] {
@@ -259,6 +255,10 @@ trait ServiceResultReaderImplicits {
   implicit object StringListReader extends ServiceResultReader[List[String]] {
     def read(r: ServiceResultNode): List[String] = converter.listString(r)
     override def defaultField = "StringList"
+  }
+
+  implicit object StringMapReader extends ServiceResultReader[Map[String, String]] {
+    def read(r: ServiceResultNode): Map[String, String] = converter.stringMap(r)
   }
 
   implicit object TimeZoneInfoReader extends ServiceResultReader[TimeZoneInfo] {

@@ -4,8 +4,6 @@ package model
 import util.{ IntBitmaskEnum, LooseEnum }
 import EnumTypes.FrontendState
 
-// TODO an object for jump points that appear in the GetActionList also..  can't we just use FrontendActionMap ?
-
 trait FrontendStatus {
   def state: FrontendState
   def stateMap: Map[String, String]        // map of state item key -> value
@@ -62,8 +60,6 @@ object ScreenshotFormat {
   case object Jpg extends ScreenshotFormat { def formatString = "jpg" }
   case object Png extends ScreenshotFormat { def formatString = "png" }
 }
-
-case class FrontendActionMap(actions: Map[Action, String])
 
 object FrontendActions {
   ////////////////////////

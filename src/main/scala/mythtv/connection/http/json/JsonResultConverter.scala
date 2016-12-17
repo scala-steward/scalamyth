@@ -28,7 +28,6 @@ object JsonResultConverter extends ServiceResultConverter with FrontendJsonProto
   def captureCardId(r: RN): CaptureCardId                     = value(r).convertTo[CaptureCardId]
   def channelDetails(r: RN): ChannelDetails                   = value(r).convertTo[ChannelDetails]
   def connectionInfo(r: RN): ConnectionInfo                   = value(r).convertTo[ConnectionInfo]
-  def frontendActionMap(r: RN): FrontendActionMap             = value(r).convertTo[FrontendActionMap]
   def frontendStatus(r: RN): FrontendStatus                   = value(r).convertTo[FrontendStatus]
   def guideBrief(r: RN): Guide[Channel, ProgramBrief]         = value(r).convertTo[SO[Guide[Channel, ProgramBrief]]].data
   def guideDetails(r: RN): Guide[ChannelDetails, Program]     = value(r).convertTo[SO[Guide[ChannelDetails, Program]]].data
@@ -71,6 +70,7 @@ object JsonResultConverter extends ServiceResultConverter with FrontendJsonProto
   def settings(r: RN): Settings                               = value(r).convertTo[Settings]
   def soListListingSource(r: RN): SOL[ListingSource]          = value(r).convertTo[ServicesObject[List[ListingSource]]]
   def string(r: RN): String                                   = value(r).convertTo[String]
+  def stringMap(r: RN): Map[String, String]                   = value(r).convertTo[Map[String, String]]
   def timeZoneInfo(r: RN): TimeZoneInfo                       = value(r).convertTo[TimeZoneInfo]
   def uri(r: RN): URI                                         = URIFactory(string(r))
   def video(r: RN): Video                                     = value(r).convertTo[Video]

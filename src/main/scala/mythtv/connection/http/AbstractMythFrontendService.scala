@@ -18,7 +18,7 @@ trait AbstractMythFrontendService extends ServiceProtocol with MythFrontendServi
   def getActionList(context: String): ServiceResult[FrontendActionMap] = {
     var params: Map[String, Any] = Map.empty
     if (context.nonEmpty) params += "Context" -> context
-    request("GetActionList", params)("FrontendActionList")
+    request("GetActionList", params)("FrontendActionList", "ActionList")
   }
 
   def getContextList: ServiceResult[List[String]] = {
