@@ -4,7 +4,7 @@ package model
 import util.{ IntBitmaskEnum, LooseEnum }
 import EnumTypes.FrontendState
 
-// TODO an object for jump points that appear in the GetActionList also..
+// TODO an object for jump points that appear in the GetActionList also..  can't we just use FrontendActionMap ?
 
 trait FrontendStatus {
   def state: FrontendState
@@ -16,6 +16,7 @@ trait FrontendStatus {
   override def toString: String = s"<FrontendStatus $state>"
 }
 
+// Note that this inherits many enumeration vals from AbstractTvStateEnum
 object FrontendState extends AbstractTvStateEnum {
   type FrontendState = Value
   val Idle    = Value("idle")
