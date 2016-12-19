@@ -37,8 +37,7 @@ object MythLogLevel extends LooseEnum /* with EnumWithDescription[MythLogLevel#V
   val Unknown    = Value(8)
 
   def description(value: Value): String = value.toString.toLowerCase
-  def withDescription(description: String): Value =
-    withName(description(0).toUpper + description.substring(1))
+  def withDescription(description: String): Value = withName(description.capitalize)
 }
 
 // To get strings used for verbose arguments, convert name to lowercase
