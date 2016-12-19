@@ -102,11 +102,11 @@ object RecordRule {
   }
 }
 
-trait RecRuleFilter {   // this is a "dynamic enum", defined in the database
+trait RecRuleFilterItem {   // these are elements of a "dynamic enum", defined in the database
   def id: Int
   def name: String
 
-  override def toString = s"<RecRuleFilter $id $name>"
+  override def toString = s"<RecRuleFilterItem $id $name>"
 }
 
 object DupCheckIn extends IntBitmaskEnum /* with EnumWithDescription[DupCheckIn#Base] */ {

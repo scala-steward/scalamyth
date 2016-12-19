@@ -123,7 +123,7 @@ trait DvrService extends BackendService {
 
   /* Enumeration services -- new for MythTV 0.28 */
 
-  def getRecRuleFilterList: ServiceResult[List[RecRuleFilter]]
+  def getRecRuleFilterList: ServiceResult[List[RecRuleFilterItem]]
 
   def recStatusToString(recStatus: RecStatus): ServiceResult[String]
   def recStatusToDescription(recStatus: RecStatus, recType: RecType, recStartTs: MythDateTime): ServiceResult[String]

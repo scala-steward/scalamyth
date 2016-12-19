@@ -919,14 +919,14 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
-  implicit object RecRuleFilterJsonFormat extends JsonFormat[RecRuleFilter] {
-    def write(f: RecRuleFilter): JsValue = JsObject(Map(
+  implicit object RecRuleFilterItemJsonFormat extends JsonFormat[RecRuleFilterItem] {
+    def write(f: RecRuleFilterItem): JsValue = JsObject(Map(
       "Id"          -> JsString(f.id.toString),
       "Description" -> JsString(f.name)
     ))
-    def read(value: JsValue): RecRuleFilter = {
+    def read(value: JsValue): RecRuleFilterItem = {
       val obj = value.asJsObject
-      new RecRuleFilter {
+      new RecRuleFilterItem {
         def id   = obj.intField("Id")
         def name = obj.stringField("Description")
       }

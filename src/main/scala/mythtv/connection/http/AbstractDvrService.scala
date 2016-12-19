@@ -359,8 +359,8 @@ trait AbstractDvrService extends ServiceProtocol with DvrService {
     request("GetPlayGroupList")()
   }
 
-  def getRecRuleFilterList: ServiceResult[List[RecRuleFilter]] = {
-    val pl = request[PagedList[RecRuleFilter]]("GetRecRuleFilterList")("RecRuleFilterList")
+  def getRecRuleFilterList: ServiceResult[List[RecRuleFilterItem]] = {
+    val pl = request[PagedList[RecRuleFilterItem]]("GetRecRuleFilterList")("RecRuleFilterList")
     pl map (_.items)
   }
 

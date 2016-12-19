@@ -21,7 +21,7 @@ private[mythtv] object IsServicesListObject {
   implicit object ListingSourceIsServicesListObject  extends IsServicesListObject[ListingSource]  { def listFieldName = "VideoSources" }
   implicit object ProgramIsServicesListObject        extends IsServicesListObject[Program]        { def listFieldName = "Programs" }
   implicit object ProgramBriefIsServicesListObject   extends IsServicesListObject[ProgramBrief]   { def listFieldName = "Programs" }
-  implicit object RecRuleFilterIsServicesListObject  extends IsServicesListObject[RecRuleFilter]  { def listFieldName = "RecRuleFilters" }
+  implicit object RecRuleFilterIsServicesListObject  extends IsServicesListObject[RecRuleFilterItem]  { def listFieldName = "RecRuleFilters" }
   implicit object RecordRuleIsServicesListObject     extends IsServicesListObject[RecordRule]     { def listFieldName = "RecRules"}
   implicit object RecordableIsServicesListObject     extends IsServicesListObject[Recordable]     { def listFieldName = "Programs" }
   implicit object RecordingIsServicesListObject      extends IsServicesListObject[Recording]      { def listFieldName = "Programs" }

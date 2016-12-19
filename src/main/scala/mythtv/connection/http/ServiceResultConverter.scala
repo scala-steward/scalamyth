@@ -31,7 +31,7 @@ trait ServiceResultConverter {
   def listLineup(r: ServiceResultNode): List[Lineup]
   def listLiveStream(r: ServiceResultNode): List[LiveStream]
   def listLogMessage(r: ServiceResultNode): List[LogMessage]
-  def listRecRuleFilter(r: ServiceResultNode): List[RecRuleFilter]
+  def listRecRuleFilter(r: ServiceResultNode): List[RecRuleFilterItem]
   def listRemoteEncoderState(r: ServiceResultNode): List[RemoteEncoderState]
   def listStorageGroupDir(r: ServiceResultNode): List[StorageGroupDir]
   def listString(r: ServiceResultNode): List[String]
@@ -46,7 +46,7 @@ trait ServiceResultConverter {
   def pagedListChannelDetails(r: ServiceResultNode): PagedList[ChannelDetails]
   def pagedListProgram(r: ServiceResultNode): PagedList[Program]
   def pagedListProgramBrief(r: ServiceResultNode): PagedList[ProgramBrief]
-  def pagedListRecRuleFilter(r: ServiceResultNode): PagedList[RecRuleFilter]
+  def pagedListRecRuleFilter(r: ServiceResultNode): PagedList[RecRuleFilterItem]
   def pagedListRecordRule(r: ServiceResultNode): PagedList[RecordRule]
   def pagedListRecordable(r: ServiceResultNode): PagedList[Recordable]
   def pagedListRecording(r: ServiceResultNode): PagedList[Recording]
@@ -198,12 +198,12 @@ trait ServiceResultReaderImplicits {
     def read(r: ServiceResultNode): PagedList[ProgramBrief] = converter.pagedListProgramBrief(r)
   }
 
-  implicit object RecRuleFilterListReader extends ServiceResultReader[List[RecRuleFilter]] {
-    def read(r: ServiceResultNode): List[RecRuleFilter] = converter.listRecRuleFilter(r)
+  implicit object RecRuleFilterListReader extends ServiceResultReader[List[RecRuleFilterItem]] {
+    def read(r: ServiceResultNode): List[RecRuleFilterItem] = converter.listRecRuleFilter(r)
   }
 
-  implicit object RecRuleFilterPagedListReader extends ServiceResultReader[PagedList[RecRuleFilter]] {
-    def read(r: ServiceResultNode): PagedList[RecRuleFilter] = converter.pagedListRecRuleFilter(r)
+  implicit object RecRuleFilterPagedListReader extends ServiceResultReader[PagedList[RecRuleFilterItem]] {
+    def read(r: ServiceResultNode): PagedList[RecRuleFilterItem] = converter.pagedListRecRuleFilter(r)
   }
 
   implicit object RecordRuleReader extends ServiceResultReader[RecordRule] {
