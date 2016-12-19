@@ -81,35 +81,41 @@ trait UpcomingProgram {
   def programId: String
 }
 
-trait Recordable extends Program {
+trait RecordableBrief extends ProgramBrief {
+  def recStatus: RecStatus
+  def recPriority: Int
+  def recStartTS: MythDateTime
+  def recEndTS: MythDateTime
+  def chanNum: ChannelNumber
+  def callsign: String
+  def chanName: String
+}
+
+trait Recordable extends Program with RecordableBrief {
   def findId: Int
   def hostname: String
   def sourceId: ListingSourceId
   def cardId: CaptureCardId
   def inputId: InputId
-  def recPriority: Int
-  def recStatus: RecStatus
   def recordId: RecordRuleId
   def recType: RecType
   def dupIn: DupCheckIn
   def dupMethod: DupCheckMethod
-  def recStartTS: MythDateTime
-  def recEndTS: MythDateTime
   def recGroup: String
   def storageGroup: String
   def playGroup: String
   def lastModified: MythDateTime
-  def chanNum: ChannelNumber
-  def callsign: String
-  def chanName: String
   def outputFilters: String
   def parentId: Option[RecordRuleId]
 
   def recPriority2: Int            // TODO only surfaced by MythProtocol? Is it useful to be here?
 }
 
-trait Recording extends Recordable with InternetMetadata {
+trait RecordingBrief extends RecordableBrief {
   def recordedId: RecordedId
+}
+
+trait Recording extends Recordable with RecordingBrief with InternetMetadata {
   def filename: String
   def filesize: ByteCount
 
