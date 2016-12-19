@@ -17,8 +17,6 @@ import services.{ IsServicesListObject, ServicesObject }
 import model.EnumTypes._
 import model._
 
-// TODO default values for model elements need to be centralized somewhere (e.g. Inetref="000000...")
-
 private[json] trait ServicesObjectFormat[T] extends RootJsonFormat[ServicesObject[T]] {
   import RichJsonObject._
 
@@ -84,6 +82,13 @@ private[json] trait EnumDescriptionFormat[T] extends JsonFormat[T] {
     case x => description2Id(x.toString)
   }
 }
+
+/*
+ * NOTES
+ *
+ * Starting in MythTV 0.28, RecStatus is serialized different in XML vs JSON:
+ *   XML is serialized as name text, JSON is serialized as an integer enum id
+ */
 
 /* Inheriting from DefaultJsonProtocol can cause huge bytecode bloat */
 private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
@@ -217,24 +222,35 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
   }
 
   implicit object RecordingJsonFormat extends RootJsonFormat[Recording] {
+    import RecordedId._
+
     def write(r: Recording): JsValue = {
       val rmap: Map[String, JsValue] = RecordableJsonFormat.write(r) match {
         case JsObject(fields) => fields
         case _ => throw new RuntimeException("RecordableJsonFormat.write failed to create a JsObject")
       }
+      val recmap: Map[String, JsValue] = rmap("Recording") match {
+        case JsObject(fields) => fields
+        case _ => throw new RuntimeException("RecordableJsonFormat failed to add a Recording node")
+      }
+      val recIdMap: Map[String, JsValue] = r.recordedId match {
+        case RecordedIdInt(id) => Map("RecordedId" -> JsString(id.toString))
+        case RecordedIdChanTime(_, _) => Map.empty
+      }
       JsObject(rmap ++ Map(
-        "FileName" -> JsString(r.filename),
-        "FileSize" -> JsString(r.filesize.bytes.toString),
-        "Season"   -> JsString(r.season.getOrElse(0).toString),
-        "Episode"  -> JsString(r.episode.getOrElse(0).toString),
-        "Inetref"  -> JsString(r.inetRef.getOrElse(""))
-        // TODO add FileName, FileSize to Recording inner object as well
+        "FileName"   -> JsString(r.filename),
+        "FileSize"   -> JsString(r.filesize.bytes.toString),
+        "Season"     -> JsString(r.season.getOrElse(0).toString),
+        "Episode"    -> JsString(r.episode.getOrElse(0).toString),
+        "Inetref"    -> JsString(r.inetRef.getOrElse("")),
+        "Recording"  -> JsObject(recmap ++ recIdMap ++ Map(
+          "FileName"   -> JsString(r.filename),
+          "FileSize"   -> JsString(r.filesize.bytes.toString)
+        ))
       ))
     }
 
     def read(value: JsValue): Recording = {
-      import RecordedId._
-
       val obj = value.asJsObject
 
       val channel: RichJsonObject =  // inner object
@@ -328,10 +344,20 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
         case JsObject(fields) => fields
         case _ => throw new RuntimeException("ProgramJsonFormat failed to create a JsObject")
       }
+      val cmap: Map[String, JsValue] = pmap("Channel") match {
+        case JsObject(fields) => fields
+        case _ => throw new RuntimeException("ProgramJsonFormat failed to add a Channel node")
+      }
       JsObject(pmap ++ Map(
-        // TODO inner Channel object overrides: SourceId, InputId, ChanNum, CallSign, ChannelName (also add HostName to inner Recording obj)
-        "HostName"     -> JsString(r.hostname),
-        "LastModified" -> JsString(r.lastModified.toString),
+        "HostName"       -> JsString(r.hostname),                 // deprecated to serialize here, starting with 0.28
+        "LastModified"   -> JsString(r.lastModified.toString),    // deprecated to serialize here, starting with 0.28
+        "Channel"      -> JsObject(cmap ++ Map(
+          "ChanNum"      -> JsString(r.chanNum.num),
+          "CallSign"     -> JsString(r.callsign),
+          "ChannelName"  -> JsString(r.chanName),
+          "SourceId"     -> JsString(r.sourceId.id.toString),
+          "InputId"      -> JsString(r.inputId.id.toString)
+        )),
         "Recording"    -> JsObject(Map(
           "EncoderId"    -> JsString(r.cardId.id.toString),
           "Priority"     -> JsString(r.recPriority.toString),
@@ -342,6 +368,8 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
           "DupMethod"    -> JsString(r.dupMethod.id.toString),
           "StartTs"      -> JsString(r.recStartTS.toString),
           "EndTs"        -> JsString(r.recEndTS.toString),
+          "HostName"     -> JsString(r.hostname),               // serialized here starting with MythTV 0.28
+          "LastModified" -> JsString(r.lastModified.toString),  // serialized here starting with MythTV 0.28
           "RecGroup"     -> JsString(r.recGroup),
           "PlayGroup"    -> JsString(r.playGroup),
           "StorageGroup" -> JsString(r.storageGroup),
@@ -413,14 +441,12 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
         def outputFilters           = channel.stringFieldOrElse("ChanFilters", "")
 
         def artworkInfo             = obj.fields("Artwork").asJsObject.fields("ArtworkInfos").convertTo[List[ArtworkInfo]]
-
       }
     }
   }
 
   implicit object ProgramJsonFormat extends RootJsonFormat[Program] {
     def write(p: Program): JsValue = JsObject(Map(
-      // TODO nested Channel, Recording, Artwork objects
       "Title"        -> JsString(p.title),
       "SubTitle"     -> JsString(p.subtitle),
       "Description"  -> JsString(p.description),
@@ -443,8 +469,21 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
       "FileName"     -> JsString(""),    // does not exist in Program, DEPRECATED
       "HostName"     -> JsString(""),    // does not exist in Program, DEPRECATED
       "LastModified" -> JsString(""),    // does not exist in Program
-      "Inetref"      -> JsString("")     // does not exist in Program
+      "Inetref"      -> JsString(""),    // does not exist in Program
+      "Channel"      -> JsObject(Map(
+        "ChanId"     -> JsString(p.chanId.id.toString)
+      )),
+      "Recording"    -> JsObject(Map.empty[String, JsValue]),
+      "Artwork"      -> writeArtwork(p)
     ))
+
+    private[BackendJsonProtocol] def writeArtwork(p: ProgramBrief): JsValue = {
+      val art = p match {
+        case a: HasArtworkInfo => a.artworkInfo
+        case _ => Nil
+      }
+      JsObject(Map("ArtworkInfos" -> jsonWriter[List[ArtworkInfo]].write(art)))
+    }
 
     def read(value: JsValue): Program = {
       val obj = value.asJsObject
@@ -503,9 +542,138 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
+  implicit object RecordingBriefJsonFormat extends RootJsonFormat[RecordingBrief] {
+    import RecordedId._
+
+    def write(r: RecordingBrief): JsValue = {
+      val rmap: Map[String, JsValue] = RecordableBriefJsonFormat.write(r) match {
+        case JsObject(fields) => fields
+        case _ => throw new RuntimeException("RecordableBriefJsonFormat.write failed to create a JsObject")
+      }
+      val recmap: Map[String, JsValue] = rmap("Recording") match {
+        case JsObject(fields) => fields
+        case _ => throw new RuntimeException("RecordableJsonFormat failed to add a Recording node")
+      }
+      val recIdMap: Map[String, JsValue] = r.recordedId match {
+        case RecordedIdInt(id) => Map("RecordedId" -> JsString(id.toString))
+        case RecordedIdChanTime(_, _) => Map.empty
+      }
+      JsObject(rmap ++ Map(
+        "Recording"  -> JsObject(recmap ++ recIdMap)
+      ))
+    }
+
+    def read(value: JsValue): RecordingBrief = {
+      val obj = value.asJsObject
+
+      val channel: RichJsonObject =  // inner object
+        if (obj.fields contains "Channel") obj.fields("Channel").asJsObject
+        else channelContext.value
+
+      val rec: RichJsonObject =      // inner object
+        if (obj.fields contains "Recording") obj.fields("Recording").asJsObject
+        else EmptyJsonObject
+
+      val inferredRecordedId: RecordedId = {
+        rec.intFieldOption("RecordedId") map RecordedIdInt
+      } getOrElse {
+        val chanId = ChanId(channel.intFieldOrElse("ChanId", 0))
+        val startTs = rec.dateTimeField("StartTs")
+        RecordedIdChanTime(chanId, startTs)
+      }
+
+      new RecordingBrief {
+        override def toString: String = s"<JsonRecordingBrief $chanId, $startTime: $combinedTitle>"
+
+        def title        = obj.stringField("Title")
+        def subtitle     = obj.stringField("SubTitle")
+        def chanId       = ChanId(channel.intFieldOrElse("ChanId", 0))
+        def startTime    = obj.dateTimeField("StartTime")
+        def endTime      = obj.dateTimeField("EndTime")
+        def category     = obj.stringField("Category")
+        def categoryType = obj.stringFieldOption("CatType", "") map CategoryType.withName
+        def audioProps   = AudioProperties(obj.intField("AudioProps"))
+        def videoProps   = VideoProperties(obj.intField("VideoProps"))
+        def subtitleType = SubtitleType(obj.intField("SubProps"))
+        def isRepeat     = obj.booleanField("Repeat")
+
+        def recStatus    = RecStatus.applyOrUnknown(rec.intField("Status"))
+        def recPriority  = rec.intField("Priority")
+        def recStartTS   = rec.dateTimeField("StartTs")
+        def recEndTS     = rec.dateTimeField("EndTs")
+        def chanNum      = ChannelNumber(channel.stringFieldOrElse("ChanNum", ""))
+        def callsign     = channel.stringFieldOrElse("CallSign", "")
+        def chanName     = channel.stringFieldOrElse("ChannelName", "")
+
+        def recordedId   = inferredRecordedId
+      }
+    }
+  }
+
+  implicit object RecordableBriefJsonFormat extends RootJsonFormat[RecordableBrief] {
+    def write(r: RecordableBrief): JsValue = {
+      val pmap: Map[String, JsValue] = ProgramBriefJsonFormat.write(r) match {
+        case JsObject(fields) => fields
+        case _ => throw new RuntimeException("ProgramBriefJsonFormat failed to create a JsObject")
+      }
+      val cmap: Map[String, JsValue] = pmap("Channel") match {
+        case JsObject(fields) => fields
+        case _ => throw new RuntimeException("ProgramBriefJsonFormat failed to add a Channel node")
+      }
+      JsObject(pmap ++ Map(
+        "Channel"      -> JsObject(cmap ++ Map(
+          "ChanNum"      -> JsString(r.chanNum.num),
+          "CallSign"     -> JsString(r.callsign),
+          "ChannelName"  -> JsString(r.chanName)
+        )),
+        "Recording"    -> JsObject(Map(
+          "Priority"     -> JsString(r.recPriority.toString),
+          "Status"       -> JsString(r.recStatus.id.toString),
+          "StartTs"      -> JsString(r.recStartTS.toString),
+          "EndTs"        -> JsString(r.recEndTS.toString)
+        ))
+      ))
+    }
+
+    def read(value: JsValue): RecordableBrief = {
+      val obj = value.asJsObject
+
+      val channel: RichJsonObject =  // inner object
+        if (obj.fields contains "Channel") obj.fields("Channel").asJsObject
+        else channelContext.value
+
+      val rec: RichJsonObject =      // inner object
+        if (obj.fields contains "Recording") obj.fields("Recording").asJsObject
+        else EmptyJsonObject
+
+      new RecordableBrief {
+        override def toString: String = s"<JsonRecordableBrief $chanId, $startTime: $combinedTitle>"
+
+        def title        = obj.stringField("Title")
+        def subtitle     = obj.stringField("SubTitle")
+        def chanId       = ChanId(channel.intFieldOrElse("ChanId", 0))
+        def startTime    = obj.dateTimeField("StartTime")
+        def endTime      = obj.dateTimeField("EndTime")
+        def category     = obj.stringField("Category")
+        def categoryType = obj.stringFieldOption("CatType", "") map CategoryType.withName
+        def audioProps   = AudioProperties(obj.intField("AudioProps"))
+        def videoProps   = VideoProperties(obj.intField("VideoProps"))
+        def subtitleType = SubtitleType(obj.intField("SubProps"))
+        def isRepeat     = obj.booleanField("Repeat")
+
+        def recStatus    = RecStatus.applyOrUnknown(rec.intField("Status"))
+        def recPriority  = rec.intField("Priority")
+        def recStartTS   = rec.dateTimeField("StartTs")
+        def recEndTS     = rec.dateTimeField("EndTs")
+        def chanNum      = ChannelNumber(channel.stringFieldOrElse("ChanNum", ""))
+        def callsign     = channel.stringFieldOrElse("CallSign", "")
+        def chanName     = channel.stringFieldOrElse("ChannelName", "")
+      }
+    }
+  }
+
   implicit object ProgramBriefJsonFormat extends RootJsonFormat[ProgramBrief] {
     def write(p: ProgramBrief): JsValue = JsObject(Map(
-      // TODO nested Channel/Recording/Artwork objects
       "Title"        -> JsString(p.title),
       "SubTitle"     -> JsString(p.subtitle),
       "StartTime"    -> JsString(p.startTime.toString),
@@ -515,7 +683,12 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
       "AudioProps"   -> JsString(p.audioProps.id.toString),
       "VideoProps"   -> JsString(p.videoProps.id.toString),
       "SubProps"     -> JsString(p.subtitleType.id.toString),
-      "Repeat"       -> JsString(p.isRepeat.toString)
+      "Repeat"       -> JsString(p.isRepeat.toString),
+      "Channel"      -> JsObject(Map(
+        "ChanId"     -> JsString(p.chanId.id.toString)
+      )),
+      "Recording"    -> JsObject(Map.empty[String, JsValue]),
+      "Artwork"      -> ProgramJsonFormat.writeArtwork(p)
     ))
     def read(value: JsValue): ProgramBrief = {
       val obj = value.asJsObject
@@ -524,8 +697,22 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
         if (obj.fields contains "Channel") obj.fields("Channel").asJsObject
         else channelContext.value
 
-      // TODO test whether should be a Recording or Recordable
-      new ProgramBrief {
+      val rec: RichJsonObject =      // inner object
+        if (obj.fields contains "Recording") obj.fields("Recording").asJsObject
+        else EmptyJsonObject
+
+      def statusHasRecording(rs: Int): Boolean = {
+        val status = RecStatus.applyOrUnknown(rs)
+        status == RecStatus.Recorded || status == RecStatus.Recording
+      }
+
+      // test whether result should be a RecordingBrief or RecordableBrief
+      if (rec.stringFieldOption("StartTs", "").nonEmpty) {
+        if (rec.intFieldOption("RecordedId", 0).nonEmpty)    RecordingBriefJsonFormat.read(value)
+        else if (statusHasRecording(rec.intField("Status"))) RecordingBriefJsonFormat.read(value)
+        else                                                 RecordableBriefJsonFormat.read(value)
+      }
+      else new ProgramBrief {
         override def toString: String = s"<JsonProgramBrief $chanId, $startTime: $combinedTitle>"
 
         def title        = obj.stringField("Title")
@@ -788,9 +975,14 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
       "Connected"      -> JsString(e.connected.toString),
       "LowOnFreeSpace" -> JsString(e.lowFreeSpace.toString),
       "State"          -> JsString(e.state.id.toString),
-      "SleepStatus"    -> JsString(e.sleepStatus.id.toString)
-        // TODO embedded Recording object
+      "SleepStatus"    -> JsString(e.sleepStatus.id.toString),
+      "Recording"      -> writeEmbeddedRecording(e)
     ))
+
+    private def writeEmbeddedRecording(e: RemoteEncoderState): JsValue = e.currentRecording match {
+      case Some(rec) => jsonWriter[Recording].write(rec)
+      case None      => JsObject(Map.empty[String, JsValue])
+    }
 
     def read(value: JsValue): RemoteEncoderState = {
       val obj = value.asJsObject
