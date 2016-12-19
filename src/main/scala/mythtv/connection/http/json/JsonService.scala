@@ -18,7 +18,6 @@ abstract class JsonService(conn: JsonConnection)
   override def converter: ServiceResultConverter = JsonResultConverter
 
   override def request[T: ServiceResultReader](endpoint: String, params: Map[String, Any])(f0: String, f1: String): ServiceResult[T] = {
-    println("Using my new request method for endpoint: " + endpoint)
     for {
       response <- requestJson(endpoint, params)
       root     <- responseRoot(response, f0, f1, implicitly[ServiceResultReader[T]].defaultField)
@@ -27,7 +26,6 @@ abstract class JsonService(conn: JsonConnection)
   }
 
   override def post[T: ServiceResultReader](endpoint: String, params: Map[String, Any])(f0: String, f1: String): ServiceResult[T] = {
-    println("Using my new post method for endpoint: " + endpoint)
     for {
       response <- postJson(endpoint, params)
       root     <- responseRoot(response, f0, f1, implicitly[ServiceResultReader[T]].defaultField)
