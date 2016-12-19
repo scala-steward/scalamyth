@@ -13,6 +13,10 @@ trait Guide[Chan <: Channel, +Prog <: ProgramBrief] {
   def endChanId: ChanId
   def programCount: Int
   def programs: Map[Chan, Seq[Prog]]
+
+  // Convenience methods for extracting a single channel of guide data
+  def programs(chanId: ChanId): Map[Chan, Seq[Prog]]         = programs filter (_._1.chanId == chanId)
+  def programs(channum: ChannelNumber): Map[Chan, Seq[Prog]] = programs filter (_._1.number == channum)
 }
 
 trait ProgramGuideEntry extends Program {
