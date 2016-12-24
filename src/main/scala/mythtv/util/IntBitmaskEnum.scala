@@ -1,6 +1,7 @@
 package mythtv
 package util
 
+import java.lang.{ Integer => JInteger }
 import java.lang.reflect.{ Field => JField, Method => JMethod }
 import scala.collection.{ mutable, immutable, AbstractIterator, AbstractSet, GenSet, Set, SortedSetLike }
 import scala.reflect.NameTransformer.{ MODULE_SUFFIX_STRING, NAME_JOIN_STRING }
@@ -60,19 +61,31 @@ abstract class IntBitmaskEnum {
   private def undefined(i: Int): Value =
     synchronized { umap.getOrElseUpdate(i, new UndefinedVal(i)) }
 
-  trait Base {
+  sealed trait Base {
     private[IntBitmaskEnum] val outerEnum = thisenum
 
     def id: Int
+    def toMask: Mask
     def contains(elem: Value): Boolean
 
+    final def contains(elem: Base): Boolean = (id & elem.id) == elem.id
     final def containsAny(mask: Mask): Boolean = (id & mask.id) != 0
 
+    final def + (elem: Base): Mask  = | (elem)
+    final def - (elem: Base): Mask  = transientMask(id & ~elem.id)
+
+    // not redundant; used to implement abstract methods on Set in Mask class
     final def + (elem: Value): Mask = | (elem)
     final def - (elem: Value): Mask = transientMask(id & ~elem.id)
-    final def | (elem: Value): Mask = transientMask(id | elem.id)
-    final def & (elem: Value): Mask = transientMask(id & elem.id)
-    final def ^ (elem: Value): Mask = transientMask(id ^ elem.id)
+
+    final def | (elem: Base): Mask  = transientMask(id | elem.id)
+    final def & (elem: Base): Mask  = transientMask(id & elem.id)
+    final def ^ (elem: Base): Mask  = transientMask(id ^ elem.id)
+
+    // not redundant; used to avoid ambiguous overloads with Set methods inherited in Mask class
+    final def | (elem: Mask): Mask  = transientMask(id | elem.id)
+    final def & (elem: Mask): Mask  = transientMask(id & elem.id)
+
     final def unary_~ : Mask = transientMask(~id)
 
     protected def transientMask(id: Int): Mask = Mask(id, null, cache = false)
@@ -81,6 +94,7 @@ abstract class IntBitmaskEnum {
       case that: IntBitmaskEnum#Base => (outerEnum eq that.outerEnum) && (id == that.id)
       case _ => false
     }
+
     override def hashCode: Int = id.##
   }
 
@@ -123,23 +137,24 @@ abstract class IntBitmaskEnum {
        with SortedSetLike[Value, Mask]
        with Base {
     final def id = m
+    final def toMask = this
     final def contains(elem: Value) = (id & elem.id) != 0
     implicit final def ordering: Ordering[Value] = ValueOrdering
     if (cache) mmap(id) = this
 
     def iterator: Iterator[Value] = new MaskIterator(id)
     override def empty: Mask = Mask.empty
-    override def size = java.lang.Integer.bitCount(id)
+    override def size = JInteger.bitCount(id)
     override def stringPrefix = thisenum + ".Mask"
 
     override def foreach[U](f: Value => U): Unit = {
       var bits = id
       var shifts = 0
 
-      while (java.lang.Integer.bitCount(bits) != 0) {
-        val nz = java.lang.Integer.numberOfTrailingZeros(bits)
+      while (JInteger.bitCount(bits) != 0) {
+        val nz = JInteger.numberOfTrailingZeros(bits)
         if (nz > 0) {
-          bits >>= nz
+          bits >>>= nz
           shifts += nz
         }
 
@@ -149,24 +164,24 @@ abstract class IntBitmaskEnum {
           else undefined(i)
         f(v)
 
-        bits >>= 1
+        bits >>>= 1
         shifts += 1
       }
     }
 
     def keysIteratorFrom(start: Value): Iterator[Value] = {
-      val nz = java.lang.Integer.numberOfTrailingZeros(start.id)
+      val nz = JInteger.numberOfTrailingZeros(start.id)
       new MaskIterator(id & (-1 << nz))
     }
 
     def rangeImpl(from: Option[Value], until: Option[Value]): Mask = {
       var span = id
       if (from.isDefined) {
-        val nz = java.lang.Integer.numberOfTrailingZeros(from.get.id)
+        val nz = JInteger.numberOfTrailingZeros(from.get.id)
         span &= (-1 << nz)
       }
       if (until.isDefined) {
-        val nz = java.lang.Integer.numberOfTrailingZeros(until.get.id)
+        val nz = JInteger.numberOfTrailingZeros(until.get.id)
         span &= ~(-1 << nz)
       }
       transientMask(span)
@@ -206,16 +221,16 @@ abstract class IntBitmaskEnum {
   private class MaskIterator(private[this] var bits: Int) extends AbstractIterator[Value] {
     private[this] var shifts: Int = 0
 
-    def hasNext = java.lang.Integer.bitCount(bits) != 0
+    def hasNext = JInteger.bitCount(bits) != 0
     def next(): Value = {
-      val nz = java.lang.Integer.numberOfTrailingZeros(bits)
+      val nz = JInteger.numberOfTrailingZeros(bits)
       if (nz > 0) {
-        bits >>= nz
+        bits >>>= nz
         shifts += nz
       }
 
       val i = 1 << shifts
-      bits >>= 1
+      bits >>>= 1
       shifts += 1
 
       if (vmap contains i) vmap(i)
@@ -227,7 +242,7 @@ abstract class IntBitmaskEnum {
     def this(i: Int) = this(i, null)
 
     assert(!vmap.contains(i), "Duplicate id: " + i)
-    assert(java.lang.Integer.bitCount(i) == 1, s"value 0x${i.toHexString} contains more than one bit")
+    assert(JInteger.bitCount(i) == 1, s"value 0x${i.toHexString} contains more than one bit")
     vmap(i) = this
     vset |= this
     nextId = i << 1
