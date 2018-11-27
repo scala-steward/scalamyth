@@ -41,7 +41,17 @@ trait Video extends ProgramVideoBase with InternetMetadata with HasArtworkInfo {
   // def playCommand: String   // not serialized in JSON ?
   // def category: Int         // not serialized in JSON ?
 
+  // Cast list element present in services results beginning with MythTV 0.28 (but doesn't seem to be populated)
+  //    --> was added to the MythTV codebase in commit 7f0a6196bd993408addeda439c4bbe08d5713fb3
+
+  // Genres list present in services API results beginning with MythTV 29
+  def genres: Set[String]
+
   override def toString: String = s"<Video $id $combinedTitle>"
+}
+
+private[mythtv] trait VideoGenre {
+  def name: String
 }
 
 trait VideoLookup {

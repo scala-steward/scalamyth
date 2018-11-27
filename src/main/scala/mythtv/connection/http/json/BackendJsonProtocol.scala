@@ -1409,6 +1409,16 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
+  implicit object VideoGenreJsonFormat extends JsonFormat[VideoGenre] {
+    override def write(g: VideoGenre): JsValue = JsObject(Map("Name" -> JsString(g.name)))
+    override def read(value: JsValue): VideoGenre = {
+      val obj = value.asJsObject
+      new VideoGenre {
+        def name = obj.stringField("Name")
+      }
+    }
+  }
+
   implicit object VideoJsonFormat extends RootJsonFormat[Video] {
     def write(v: Video): JsValue = JsObject(Map(
       "Id"               -> JsString(v.id.id.toString),
@@ -1480,8 +1490,17 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
         def screenshot      = obj.stringField("Screenshot")
         def banner          = obj.stringField("Banner")
         def fanart          = obj.stringField("Fanart")
+        def genres          = readGenres(obj)
         def artworkInfo     = obj.fields("Artwork").asJsObject.fields("ArtworkInfos").convertTo[List[ArtworkInfo]]
       }
+    }
+
+    private def readGenres(obj: JsObject): Set[String] = {
+      val genres =
+        if (obj.fields contains "Genres")
+          obj.fields("Genres").asJsObject.fields("GenreList").convertTo[List[VideoGenre]]
+        else Nil
+      genres.map(_.name).toSet
     }
   }
 
