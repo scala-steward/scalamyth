@@ -661,6 +661,30 @@ trait AbstractDvrService extends ServiceProtocol with DvrService {
     } yield segments
   }
 
+  def getRecordedSeekBytes(recordedId: RecordedId): ServiceResult[List[RecordedSeekBytes]] = recordedId match {
+    case RecordedIdInt(id) =>
+      val params: Map[String, Any] = Map("RecordedId" -> id, "OffsetType" -> "BYTES")
+      request("GetRecordedSeek", params)("CutList", "Cuttings")
+    case RecordedIdChanTime(chanId, startTime) =>
+      for {
+        rec <- getRecorded(chanId, startTime)
+        recordedId <- validRecordedId(rec)
+        result <- getRecordedSeekBytes(recordedId)
+      } yield result
+  }
+
+  def getRecordedSeekMs(recordedId: RecordedId): ServiceResult[List[RecordedSeekMilliseconds]] = recordedId match {
+    case RecordedIdInt(id) =>
+      val params: Map[String, Any] = Map("RecordedId" -> id, "OffsetType" -> "DURATION")
+      request("GetRecordedSeek", params)("CutList", "Cuttings")
+    case RecordedIdChanTime(chanId, startTime) =>
+      for {
+        rec <- getRecorded(chanId, startTime)
+        recordedId <- validRecordedId(rec)
+        result <- getRecordedSeekMs(recordedId)
+      } yield result
+  }
+
   def getOldRecordedList(
     title: String,
     seriesId: String,

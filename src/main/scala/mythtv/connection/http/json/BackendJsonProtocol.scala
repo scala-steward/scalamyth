@@ -1028,6 +1028,39 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
     def posfactory = VideoPositionBytes.apply
   }
 
+  trait RecordedSeekJsonFormat[VP <: VideoPosition] extends JsonFormat[RecordedSeek[VP]] {
+    def factory: (VideoPositionFrame, VP) => RecordedSeek[VP]
+    def posfactory: Long => VP
+
+    def write(seek: RecordedSeek[VP]): JsValue = JsObject(Map(
+      "Mark"   -> JsString(seek.mark.pos.toString),
+      "Offset" -> JsString(seek.offset.pos.toString)
+    ))
+
+    def read(value: JsValue): RecordedSeek[VP] = {
+      val obj = value.asJsObject
+      val mark = VideoPositionFrame(obj.longField("Mark"))
+      val offset = posfactory(obj.longField("Offset"))
+      factory(mark, offset)
+    }
+  }
+
+  implicit object RecordedSeekBytesJsonFormat extends RecordedSeekJsonFormat[VideoPositionBytes] {
+    def factory = (_mark, _off) => new RecordedSeekBytes {
+      def mark   = _mark
+      def offset = _off
+    }
+    def posfactory = VideoPositionBytes.apply
+  }
+
+  implicit object RecordedSeekMsJsonFormat extends RecordedSeekJsonFormat[VideoPositionMilliseconds] {
+    def factory = (_mark, _off) => new RecordedSeekMilliseconds {
+      def mark   = _mark
+      def offset = _off
+    }
+    def posfactory = VideoPositionMilliseconds.apply
+  }
+
   implicit object StorageGroupDirJsonFormat extends RootJsonFormat[StorageGroupDir] {
     def write(sg: StorageGroupDir): JsValue = JsObject(Map(
       "Id"        -> JsString(sg.id.id.toString),

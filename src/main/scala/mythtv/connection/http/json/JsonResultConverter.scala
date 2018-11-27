@@ -46,6 +46,8 @@ object JsonResultConverter extends ServiceResultConverter with FrontendJsonProto
   def listRecordedMarkup(r: RN): List[RecordedMarkupFrame]    = value(r).convertTo[List[RecordedMarkupFrame]]
   def listRecordedMarkupBytes(r: RN): List[RecordedMarkupBytes] = value(r).convertTo[List[RecordedMarkupBytes]]
   def listRecordedMarkupMs(r: RN): List[RecordedMarkupMilliseconds] = value(r).convertTo[List[RecordedMarkupMilliseconds]]
+  def listRecordedSeekBytes(r: RN): List[RecordedSeekBytes]   = value(r).convertTo[List[RecordedSeekBytes]]
+  def listRecordedSeekMs(r: RN): List[RecordedSeekMilliseconds] = value(r).convertTo[List[RecordedSeekMilliseconds]]
   def listRemoteEncoderState(r: RN): List[RemoteEncoderState] = value(r).convertTo[List[RemoteEncoderState]]
   def listStorageGroupDir(r: RN): List[StorageGroupDir]       = value(r).convertTo[List[StorageGroupDir]]
   def listString(r: RN): List[String]                         = value(r).convertTo[List[String]]

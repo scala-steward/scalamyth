@@ -76,6 +76,14 @@ trait RecordedMarkup[VP <: VideoPosition] {
   override def toString: String = s"<RecordedMarkup $tag $position>"
 }
 
+// NB Only VideoPositionBytes and VideoPositionMilliseconds are valid with RecordedSeek
+trait RecordedSeek[VP <: VideoPosition] {
+  def mark: VideoPositionFrame
+  def offset: VP
+
+  override def toString: String = s"<RecordedSeek $mark $offset>"
+}
+
 object Markup extends LooseEnum {
   type Markup = Value
   val All           = Value(-100)

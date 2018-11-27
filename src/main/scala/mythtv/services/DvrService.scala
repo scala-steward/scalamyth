@@ -83,6 +83,10 @@ trait DvrService extends BackendService {
   // recordedIdForPathname is new for MythTV 29
   def recordedIdForPathname(pathName: String): ServiceResult[RecordedId]
 
+  // getRecordedSeek* is new for MythTV 29
+  def getRecordedSeekBytes(recordedId: RecordedId): ServiceResult[List[RecordedSeekBytes]]
+  def getRecordedSeekMs(recordedId: RecordedId): ServiceResult[List[RecordedSeekMilliseconds]]
+
   // getSavedBookmark* is new for MythTV 29
   def getSavedBookmark(recordedId: RecordedId): ServiceResult[VideoPositionFrame]
   def getSavedBookmark(chanId: ChanId, startTime: MythDateTime): ServiceResult[VideoPositionFrame]
