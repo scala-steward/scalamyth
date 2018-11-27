@@ -151,6 +151,50 @@ trait AbstractDvrService extends ServiceProtocol with DvrService {
     request("GetTitleInfoList")("TitleInfoList", "TitleInfos")
   }
 
+  def getSavedBookmark(recordedId: RecordedId): ServiceResult[VideoPositionFrame] = recordedId match {
+    case RecordedIdChanTime(chanId, startTime) => getSavedBookmark(chanId, startTime)
+    case RecordedIdInt(id) =>
+      val params: Map[String, Any] = Map("RecordedId" -> id)
+      request("GetSavedBookmark", params)()
+  }
+
+  def getSavedBookmark(chanId: ChanId, startTime: MythDateTime): ServiceResult[VideoPositionFrame] = {
+    val params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
+    request("GetSavedBookmark", params)()
+  }
+
+  def getSavedBookmarkMilliseconds(recordedId: RecordedId): ServiceResult[VideoPositionMilliseconds] = recordedId match {
+    case RecordedIdChanTime(chanId, startTime) => getSavedBookmarkMilliseconds(chanId, startTime)
+    case RecordedIdInt(id) =>
+      val params: Map[String, Any] = Map("RecordedId" -> id, "OffsetType" -> "duration")
+      request("GetSavedBookmark", params)()
+  }
+
+  def getSavedBookmarkMilliseconds(chanId: ChanId, startTime: MythDateTime): ServiceResult[VideoPositionMilliseconds] = {
+    val params: Map[String, Any] = Map(
+      "ChanId" -> chanId.id,
+      "StartTime" -> startTime.toIsoFormat,
+      "OffsetType" -> "duration"
+    )
+    request("GetSavedBookmark", params)()
+  }
+
+  def getSavedBookmarkByteOffset(recordedId: RecordedId): ServiceResult[VideoPositionBytes] = recordedId match {
+    case RecordedIdChanTime(chanId, startTime) => getSavedBookmarkByteOffset(chanId, startTime)
+    case RecordedIdInt(id) =>
+      val params: Map[String, Any] = Map("RecordedId" -> id, "OffsetType" -> "position")
+      request("GetSavedBookmark", params)()
+  }
+
+  def getSavedBookmarkByteOffset(chanId: ChanId, startTime: MythDateTime): ServiceResult[VideoPositionBytes] = {
+    val params: Map[String, Any] = Map(
+      "ChanId" -> chanId.id,
+      "StartTime" -> startTime.toIsoFormat,
+      "OffsetType" -> "position"
+    )
+    request("GetSavedBookmark", params)()
+  }
+
   /* POST methods */
 
   private def internalRemoveRecorded(
@@ -385,6 +429,30 @@ trait AbstractDvrService extends ServiceProtocol with DvrService {
   def updateRecordedWatchedStatus(recordedId: RecordedId, watched: Boolean): ServiceResult[Boolean] = recordedId match {
     case RecordedIdInt(id) => internalUpdateRecordedWatchedStatus(Map("RecordedId" -> id), watched)
     case RecordedIdChanTime(chanId, startTime) => updateRecordedWatchedStatus(chanId, startTime, watched)
+  }
+
+  private def internalSetSavedBookmark(partialParams: Map[String, Any], pos: VideoPosition): ServiceResult[Boolean] = {
+    val (offset, offsetType) = pos match {
+      case VideoPositionFrame(f) => (f, "")
+      case VideoPositionBytes(b) => (b, "position")
+      case VideoPositionSeconds(s) => (s * 1000, "duration")
+      case VideoPositionMilliseconds(ms) => (ms, "duration")
+    }
+    val params = partialParams ++ Map(
+      "OffsetType" -> offsetType,
+      "Offset" -> offset
+    )
+    post("SetSavedBookmark", params)()
+  }
+
+  def setSavedBookmark(chanId: ChanId, startTime: MythDateTime, pos: VideoPosition): ServiceResult[Boolean] = {
+    val params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
+    internalSetSavedBookmark(params, pos)
+  }
+
+  def setSavedBookmark(recordedId: RecordedId, pos: VideoPosition): ServiceResult[Boolean] = recordedId match {
+    case RecordedIdInt(id) => internalSetSavedBookmark(Map("RecordedId" -> id), pos)
+    case RecordedIdChanTime(chanId, startTime) => setSavedBookmark(chanId, startTime, pos)
   }
 
   def getInputList: ServiceResult[List[Input]] = {

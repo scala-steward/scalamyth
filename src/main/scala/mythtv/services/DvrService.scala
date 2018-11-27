@@ -83,6 +83,16 @@ trait DvrService extends BackendService {
   // recordedIdForPathname is new for MythTV 29
   def recordedIdForPathname(pathName: String): ServiceResult[RecordedId]
 
+  // getSavedBookmark* is new for MythTV 29
+  def getSavedBookmark(recordedId: RecordedId): ServiceResult[VideoPositionFrame]
+  def getSavedBookmark(chanId: ChanId, startTime: MythDateTime): ServiceResult[VideoPositionFrame]
+
+  def getSavedBookmarkMilliseconds(recordedId: RecordedId): ServiceResult[VideoPositionMilliseconds]
+  def getSavedBookmarkMilliseconds(chanId: ChanId, startTime: MythDateTime): ServiceResult[VideoPositionMilliseconds]
+
+  def getSavedBookmarkByteOffset(recordedId: RecordedId): ServiceResult[VideoPositionBytes]
+  def getSavedBookmarkByteOffset(chanId: ChanId, startTime: MythDateTime): ServiceResult[VideoPositionBytes]
+
   /* mutating POST methods */
 
   // for 0.28, removeRecorded gains RecordedId, ForceDelete, AllowRerecord parameters
@@ -126,6 +136,10 @@ trait DvrService extends BackendService {
   /* Added to API on 6 Apr 2016 */
   def updateRecordedWatchedStatus(chanId: ChanId, startTime: MythDateTime, watched: Boolean): ServiceResult[Boolean]
   def updateRecordedWatchedStatus(recordedId: RecordedId, watched: Boolean): ServiceResult[Boolean]
+
+  // setSavedBookmark is new for MythTV 29
+  def setSavedBookmark(recordedId: RecordedId, pos: VideoPosition): ServiceResult[Boolean]
+  def setSavedBookmark(chanId: ChanId, startTime: MythDateTime, pos: VideoPosition): ServiceResult[Boolean]
 
   // getInputList is new for MythTV 0.28
   def getInputList: ServiceResult[List[Input]]

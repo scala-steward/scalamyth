@@ -196,6 +196,31 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
+  trait VideoPositionJsonFormat[VP <: VideoPosition] extends RootJsonFormat[VP] {
+    def factory: Long => VP
+    def write(pos: VP): JsValue = JsString(pos.pos.toString)
+    def read(value: JsValue): VP = {
+      val f = value match {
+        case JsString(s) => s.toLong
+        case JsNumber(x) => x.longValue
+        case x => x.toString.toLong
+      }
+      factory(f)
+    }
+  }
+
+  implicit object VideoPositionBytesFormat extends VideoPositionJsonFormat[VideoPositionBytes] {
+    def factory = VideoPositionBytes.apply
+  }
+
+  implicit object VideoPositionFrameFormat extends VideoPositionJsonFormat[VideoPositionFrame] {
+    def factory = VideoPositionFrame.apply
+  }
+
+  implicit object VideoPositionMillisecondsFormat extends VideoPositionJsonFormat[VideoPositionMilliseconds] {
+    def factory = VideoPositionMilliseconds.apply
+  }
+
   implicit object ArtworkInfoJsonFormat extends RootJsonFormat[ArtworkInfo] {
     def write(a: ArtworkInfo): JsValue = JsObject(Map(
       "URL"          -> JsString(a.uri.toString),

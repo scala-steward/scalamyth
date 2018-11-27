@@ -76,4 +76,7 @@ object JsonResultConverter extends ServiceResultConverter with FrontendJsonProto
   def uri(r: RN): URI                                         = URIFactory(string(r))
   def video(r: RN): Video                                     = value(r).convertTo[Video]
   def videoMultiplex(r: RN): VideoMultiplex                   = value(r).convertTo[VideoMultiplex]
+  def videoPositionBytes(r: RN): VideoPositionBytes           = value(r).convertTo[VideoPositionBytes]
+  def videoPositionFrame(r: RN): VideoPositionFrame           = value(r).convertTo[VideoPositionFrame]
+  def videoPositionMilliseconds(r: RN): VideoPositionMilliseconds = value(r).convertTo[VideoPositionMilliseconds]
 }

@@ -65,6 +65,9 @@ trait ServiceResultConverter {
   def uri(r: ServiceResultNode): URI
   def video(r: ServiceResultNode): Video
   def videoMultiplex(r: ServiceResultNode): VideoMultiplex
+  def videoPositionBytes(r: ServiceResultNode): VideoPositionBytes
+  def videoPositionFrame(r: ServiceResultNode): VideoPositionFrame
+  def videoPositionMilliseconds(r: ServiceResultNode): VideoPositionMilliseconds
 }
 
 trait ServiceResultReaderImplicits {
@@ -297,5 +300,20 @@ trait ServiceResultReaderImplicits {
 
   implicit object VideoMultiplexPagedListReader extends ServiceResultReader[PagedList[VideoMultiplex]] {
     def read(r: ServiceResultNode): PagedList[VideoMultiplex] = converter.pagedListVideoMultiplex(r)
+  }
+
+  implicit object VideoPositionBytesReader extends ServiceResultReader[VideoPositionBytes] {
+    def read(r: ServiceResultNode): VideoPositionBytes = converter.videoPositionBytes(r)
+    override def defaultField = "long"
+  }
+
+  implicit object VideoPositionFrameReader extends ServiceResultReader[VideoPositionFrame] {
+    def read(r: ServiceResultNode): VideoPositionFrame = converter.videoPositionFrame(r)
+    override def defaultField = "long"
+  }
+
+  implicit object VideoPositionMillisecondsReader extends ServiceResultReader[VideoPositionMilliseconds] {
+    def read(r: ServiceResultNode): VideoPositionMilliseconds = converter.videoPositionMilliseconds(r)
+    override def defaultField = "long"
   }
 }
