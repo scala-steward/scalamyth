@@ -1,7 +1,7 @@
 package mythtv
 package model
 
-import util.LooseEnum
+import util.{ BinaryByteCount, ByteCount, DecimalByteCount, DecimalByteCounter, LooseEnum }
 import EnumTypes.Markup
 
 /* We define the Ordering objects in companion objects to the case classes
@@ -26,6 +26,26 @@ final case class VideoPositionSeconds(pos: Long) extends AnyVal with VideoPositi
   def units = "s"
 }
 
+/**
+  * Represents the position of a video stream as number of milliseconds from the beginning.
+  */
+final case class VideoPositionMilliseconds(pos: Long) extends AnyVal with VideoPosition {
+  def units = "ms"
+}
+
+final case class VideoPositionBytes(pos: Long) extends AnyVal with VideoPosition with ByteCount with DecimalByteCounter {
+  def units = "b"
+  def bytes = pos
+
+  def toBinaryByteCount = BinaryByteCount(pos)
+  def toDecimalByteCount = DecimalByteCount(pos)
+
+  def + (that: ByteCount): ByteCount = VideoPositionBytes(bytes + that.bytes)
+  def - (that: ByteCount): ByteCount = VideoPositionBytes(bytes - that.bytes)
+  def * (that: ByteCount): ByteCount = VideoPositionBytes(bytes * that.bytes)
+  def / (that: ByteCount): ByteCount = VideoPositionBytes(bytes / that.bytes)
+}
+
 private[model] trait GenericVideoPositionCompanion[T <: VideoPosition] {
   /* This ordering object is only intended to be used on like subclasses of VideoPosition,
      e.g. comparing a VideoPositionFrame with a VideoPositionFrame, or a VideoPositionSeconds
@@ -40,6 +60,8 @@ private[model] trait GenericVideoPositionCompanion[T <: VideoPosition] {
 object VideoPosition extends GenericVideoPositionCompanion[VideoPosition]
 object VideoPositionFrame extends GenericVideoPositionCompanion[VideoPositionFrame]
 object VideoPositionSeconds extends GenericVideoPositionCompanion[VideoPositionSeconds]
+object VideoPositionMilliseconds extends GenericVideoPositionCompanion[VideoPositionMilliseconds]
+object VideoPositionBytes extends GenericVideoPositionCompanion[VideoPositionBytes]
 
 trait VideoSegment {
   def start: VideoPositionFrame
