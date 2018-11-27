@@ -67,6 +67,19 @@ trait DvrService extends BackendService {
 
   def getTitleInfoList: ServiceResult[List[TitleInfo]]
 
+  // getOldRecordedList is new for MythTV 29
+  def getOldRecordedList(
+    title: String = "",
+    seriesId: String = "",
+    recordRuleId: RecordRuleId = RecordRuleId(0),
+    startTime: MythDateTime = MythDateTime.empty,
+    endTime: MythDateTime = MythDateTime.empty,
+    startIndex: Int = 0,
+    count: OptionalCount[Int] = OptionalCount.all,
+    sortBy: String = "",    // starttime is the default (title is other option)
+    descending: Boolean = false
+  ): ServiceResult[PagedList[Recording]]
+
   // recordedIdForPathname is new for MythTV 29
   def recordedIdForPathname(pathName: String): ServiceResult[RecordedId]
 

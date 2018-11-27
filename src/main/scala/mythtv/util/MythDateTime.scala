@@ -37,6 +37,8 @@ class MythDateTime(val instant: Instant) extends AnyVal {
 object MythDateTime {
   final val FORMATTER_MYTH = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
 
+  final val empty = new MythDateTime(Instant.MIN)
+
   def apply(instant: Instant) = new MythDateTime(instant)
 
   def apply(year: Int, month: Int, day: Int, hour: Int, minute: Int, second: Int) =

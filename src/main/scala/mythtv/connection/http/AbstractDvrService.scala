@@ -416,4 +416,26 @@ trait AbstractDvrService extends ServiceProtocol with DvrService {
     val params: Map[String, Any] = Map("DupIn" -> DupCheckIn.description(dupIn))
     request("DupInToDescription", params)()
   }
+
+  def getOldRecordedList(
+    title: String,
+    seriesId: String,
+    recordRuleId: RecordRuleId,
+    startTime: MythDateTime,
+    endTime: MythDateTime,
+    startIndex: Int,
+    count: OptionalCount[Int],
+    sortBy: String,    // starttime is the default (title is other option)
+    descending: Boolean
+  ): ServiceResult[PagedList[Recording]] = {
+    var params = buildStartCountParams(startIndex, count)
+    if (title.nonEmpty)                  params += "Title"      -> title
+    if (seriesId.nonEmpty)               params += "SeriesId"   -> seriesId
+    if (recordRuleId.id != 0)            params += "RecordId"   -> recordRuleId.id
+    if (startTime != MythDateTime.empty) params += "StartTime"  -> startTime.toIsoFormat
+    if (endTime != MythDateTime.empty)   params += "EndTime"    -> endTime.toIsoFormat
+    if (sortBy.nonEmpty)                 params += "Sort"       -> sortBy
+    if (descending)                      params += "Descending" -> descending
+    request("GetOldRecordedList", params)("ProgramList")
+  }
 }
