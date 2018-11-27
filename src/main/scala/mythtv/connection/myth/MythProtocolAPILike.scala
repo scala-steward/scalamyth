@@ -867,14 +867,14 @@ private[myth] trait MythProtocolAPILike {
     result map { case QueryRemoteEncoderAcknowledgement => () }
   }
 
-  def querySGGetFileList(hostName: String, storageGroup: String, path: String): MythProtocolResult[List[String]] = {
+  def querySGGetFileList(hostName: String, storageGroup: String, path: String): MythProtocolResult[List[StorageGroupInfo]] = {
     val result = sendCommand("QUERY_SG_GETFILELIST", hostName, storageGroup, path)
-    result map { case xs: List[_] => xs.asInstanceOf[List[String]] }
+    result map { case xs: List[_] => xs.asInstanceOf[List[StorageGroupInfo]] }
   }
 
-  def querySGGetFileList(hostName: String, storageGroup: String, path: String, fileNamesOnly: Boolean): MythProtocolResult[List[String]] = {
+  def querySGGetFileList(hostName: String, storageGroup: String, path: String, fileNamesOnly: Boolean): MythProtocolResult[List[StorageGroupInfo]] = {
     val result = sendCommand("QUERY_SG_GETFILELIST", hostName, storageGroup, path, fileNamesOnly)
-    result map { case xs: List[_] => xs.asInstanceOf[List[String]] }
+    result map { case xs: List[_] => xs.asInstanceOf[List[StorageGroupInfo]] }
   }
 
   def querySGFileQuery(hostName: String, storageGroup: String, fileName: String): MythProtocolResult[(String, MythDateTime, ByteCount)] = {

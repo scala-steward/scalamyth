@@ -648,13 +648,11 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     /*
      * QUERY_SG_GETFILELIST [] [%s, %s, %s {, %b}]  <hostName> <storageGroup> <path> { fileNamesOnly> }
      *  @responds always
-     *  @returns  list of filenames or list of storage group URLS (?)
+     *  @returns  list of filenames or list of storage group URLs
      *        or ["EMPTY LIST"]               if wrong number of parameters given or no results
      *        or ["SLAVE UNREACHABLE: ", %s]  if slave specified and unreachable
      * NB: if a non-existent storage group name is specified, it will be replaced with "Default" by
      *     the server and the corresponding results returned
-     *  TODO parse formats... they may have file:: or sgdir:: or sgdir:: or such prefixed, or nothing...
-     *  TODO are path and fileNamesOnly sort of mutually exclusive?
      */
     "QUERY_SG_GETFILELIST" -> ((serializeQuerySGGetFileList, handleQuerySGGetFileList)),
 
@@ -2068,10 +2066,13 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     }
   }
 
-  protected def handleQuerySGGetFileList(request: BackendRequest, response: BackendResponse): MythProtocolResult[List[String]] = {
+  protected def handleQuerySGGetFileList(request: BackendRequest, response: BackendResponse): MythProtocolResult[List[StorageGroupInfo]] = {
     val items = response.split
-    if (items(0) == "EMPTY LIST" || items(0).startsWith("SLAVE UNREACHABLE")) Left(MythProtocolFailureMessage(items mkString " "))
-    else Right(items.toList)
+    if (items(0).startsWith("SLAVE UNREACHABLE")) Left(MythProtocolFailureMessage(items mkString " "))
+    if (items(0) == "EMPTY LIST") Right(Nil)
+    else Try {
+      items.toList map deserialize[StorageGroupInfo]
+    }
   }
 
   protected def handleQueryTimeZone(request: BackendRequest, response: BackendResponse): MythProtocolResult[TimeZoneInfo] = {

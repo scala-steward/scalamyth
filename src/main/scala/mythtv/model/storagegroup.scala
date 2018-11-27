@@ -55,3 +55,9 @@ trait StorageGroupDir {
 
   override def toString: String = s"<StorageGroupDir $id $groupName@$hostName: $dirName>"
 }
+
+// Only used in Myth protocol, querySGGetFileList
+sealed trait StorageGroupInfo
+final case class StorageGroupInfoRoot(rootDir: String) extends StorageGroupInfo
+final case class StorageGroupInfoDir(dirName: String) extends StorageGroupInfo
+final case class StorageGroupInfoFile(fileName: String, size: ByteCount, fullPath: String) extends StorageGroupInfo

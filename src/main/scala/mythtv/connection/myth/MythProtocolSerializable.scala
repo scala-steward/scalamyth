@@ -278,6 +278,27 @@ object MythProtocolSerializable {
     }
   }
 
+  implicit object StorageGroupInfoSerializer extends MythProtocolSerializable[StorageGroupInfo] {
+    def deserialize(in: String): StorageGroupInfo = deserialize(in split "::")
+    override def deserialize(in: Seq[String]): StorageGroupInfo = {
+      in(0) match {
+        case "sgdir" => StorageGroupInfoRoot(in(1))
+        case "dir"   => StorageGroupInfoDir(in(1))
+        case "file"  => StorageGroupInfoFile(in(1), DecimalByteCount(MythProtocol.deserialize[Long](in(2))), in(3))
+        case _       => ???
+      }
+    }
+    def serialize(in: StorageGroupInfo): String = {
+      val parts = in match {
+        case StorageGroupInfoRoot(rootDir) => List("sgdir", rootDir)
+        case StorageGroupInfoDir(dirName) => List("dir", dirName, "0")
+        case StorageGroupInfoFile(fileName, size, fullPath) =>
+          List("file", fileName, size.b.toString, fullPath)
+      }
+      parts mkString "::"
+    }
+  }
+
   /**** UTILITY OBJECTS (not MythTV specific) ******/
 
   implicit object FileStatsSerializer extends MythProtocolSerializable[FileStats] {
