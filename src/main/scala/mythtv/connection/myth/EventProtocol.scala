@@ -64,6 +64,7 @@ object SystemEvent {
   case class CecCommandReceivedEvent(opcode: CecOpcode, sender: String) extends SystemEvent
   case class ClientConnectedEvent(hostName: String, sender: String) extends SystemEvent
   case class ClientDisconnectedEvent(hostName: String, sender: String) extends SystemEvent
+  case class LiveTvEndedEvent(sender: String) extends SystemEvent
   case class LiveTvStartedEvent(sender: String) extends SystemEvent
   case class MasterShutdownEvent(sender: String) extends SystemEvent
   case class MasterStartedEvent(sender: String) extends SystemEvent
@@ -78,7 +79,9 @@ object SystemEvent {
   case class PlayUnpausedEvent(hostName: String, chanId: ChanId, startTime: MythDateTime, sender: String) extends SystemEvent
   case class RecordingDeletedEvent(chanId: ChanId, recStartTs: MythDateTime, sender: String) extends SystemEvent
   case class RecordingExpiredEvent(hostName: String, chanId: ChanId, recStartTs: MythDateTime, sender: String) extends SystemEvent
+  case class RecordingFailingEvent(cardId: CaptureCardId, chanId: ChanId, recStartTs: MythDateTime, status: RecStatus, sender: String) extends SystemEvent
   case class RecordingFinishedEvent(cardId: CaptureCardId, chanId: ChanId, recStartTs: MythDateTime, status: RecStatus, sender: String) extends SystemEvent
+  case class RecordingPreFailEvent(cardId: CaptureCardId, chanId: ChanId, recStartTs: MythDateTime, status: RecStatus, sender: String) extends SystemEvent
   case class RecordingStartedEvent(cardId: CaptureCardId, chanId: ChanId, recStartTs: MythDateTime, status: RecStatus, sender: String) extends SystemEvent
   case class RecordingStartedWritingEvent(cardId: CaptureCardId, chanId: ChanId, recStartTs: MythDateTime, status: RecStatus, sender: String) extends SystemEvent
   case class RecordPendingEvent(secondsUntilStart: Int, cardId: CaptureCardId, chanId: ChanId, startTime: MythDateTime, status: RecStatus, sender: String) extends SystemEvent
@@ -176,6 +179,7 @@ private[myth] abstract class EventProtocolRef extends EventParser with MythProto
         case "CEC_COMMAND_RECEIVED"       => cecCommandReceivedEvent(evt, body, sender)
         case "CLIENT_CONNECTED"           => hostnameEvent(ClientConnectedEvent, evt, body, sender)
         case "CLIENT_DISCONNECTED"        => hostnameEvent(ClientDisconnectedEvent, evt, body, sender)
+        case "LIVETV_ENDED"               => LiveTvEndedEvent(sender)
         case "LIVETV_STARTED"             => LiveTvStartedEvent(sender)
         case "MASTER_SHUTDOWN"            => MasterShutdownEvent(sender)
         case "MASTER_STARTED"             => MasterStartedEvent(sender)
@@ -189,8 +193,10 @@ private[myth] abstract class EventProtocolRef extends EventParser with MythProto
         case "PLAY_UNPAUSED"              => playEvent(PlayUnpausedEvent, evt, body, sender)
         case "REC_DELETED"                => recDeletedEvent(RecordingDeletedEvent, evt, body, sender)
         case "REC_EXPIRED"                => playEvent(RecordingExpiredEvent, evt, body, sender)
+        case "REC_FAILING"                => recEvent(RecordingFailingEvent, evt, body, sender)
         case "REC_FINISHED"               => recEvent(RecordingFinishedEvent, evt, body, sender)
         case "REC_PENDING"                => recPendingEvent(RecordPendingEvent, evt, body, sender)
+        case "REC_PREFAIL"                => recEvent(RecordingPreFailEvent, evt, body, sender)
         case "REC_STARTED"                => recEvent(RecordingStartedEvent, evt, body, sender)
         case "REC_STARTED_WRITING"        => recEvent(RecordingStartedWritingEvent, evt, body, sender)
         case "SCHEDULER_RAN"              => SchedulerRanEvent(sender)
