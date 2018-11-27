@@ -337,6 +337,10 @@ trait AbstractDvrService extends ServiceProtocol with DvrService {
     post("AddDontRecordSchedule", params)()
   }
 
+  def rescheduleRecordings(): ServiceResult[Boolean] = {
+    post("RescheduleRecordings")()
+  }
+
   private def internalUpdateRecordedWatchedStatus(partialParams: Map[String, Any], watched: Boolean): ServiceResult[Boolean] = {
     val params: Map[String, Any] = partialParams + ("Watched" -> watched)
     post("UpdateRecordedWatchedStatus", params)()

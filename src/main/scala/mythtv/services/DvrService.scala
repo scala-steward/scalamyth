@@ -136,6 +136,9 @@ trait DvrService extends BackendService {
       GetRecordedCutList(RecordedId, ChanId, StartTime, OffsetType)   -> CutList  (List[VideoSegment])
       GetRecordedCommBreak(RecordedId, ChanId, StartTime, OffsetType)  -> CutList (List[VideoSegment])
    */
+  // rescheduleRecordings is new for MythTV 29
+  def rescheduleRecordings(): ServiceResult[Boolean]
+
 
   /* Enumeration services -- new for MythTV 0.28 */
 
