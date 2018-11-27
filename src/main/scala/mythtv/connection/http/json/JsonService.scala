@@ -56,6 +56,7 @@ class JsonContentService(conn: BackendJsonConnection) extends JsonService(conn) 
 class JsonDvrService(conn: BackendJsonConnection) extends JsonService(conn) with AbstractDvrService
 class JsonGuideService(conn: BackendJsonConnection) extends JsonService(conn) with AbstractGuideService
 class JsonImageService(conn: BackendJsonConnection) extends JsonService(conn) with AbstractImageService
+class JsonMusicService(conn: BackendJsonConnection) extends JsonService(conn) with AbstractMusicService
 class JsonMythService(conn: BackendJsonConnection) extends JsonService(conn) with AbstractMythService
 class JsonVideoService(conn: BackendJsonConnection) extends JsonService(conn) with AbstractVideoService
 

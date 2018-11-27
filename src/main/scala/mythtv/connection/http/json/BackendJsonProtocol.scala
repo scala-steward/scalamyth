@@ -4,7 +4,7 @@ package http
 package json
 
 import java.net.InetAddress
-import java.time.{ DayOfWeek, Duration, Instant, LocalTime, ZoneOffset }
+import java.time.{ DayOfWeek, Duration, Instant, LocalTime, Year, ZoneOffset }
 
 import scala.util.{ DynamicVariable, Try }
 
@@ -1365,6 +1365,47 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
                                else ChannelCommDetectMethod.Uninitialized
       }
       (chan, progs)
+    }
+  }
+
+  implicit object SongJsonFormat extends RootJsonFormat[Song] {
+    def write(s: Song): JsValue = JsObject(Map(
+      "Id"                -> JsString(s.songId.id.toString),
+      "Title"             -> JsString(s.title),
+      "Artist"            -> JsString(s.artist),
+      "CompilationArtist" -> JsString(s.compilationArtist),
+      "Album"             -> JsString(s.album),
+      "TrackNo"           -> JsString(s.trackNumber.toString),
+      "Genre"             -> JsString(s.genre),
+      "Year"              -> JsString(s.year.getOrElse(0).toString),
+      "Compilation"       -> JsString(s.isCompilation.toString),
+      "Length"            -> JsString(s.length.toMillis.toString),
+      "Rating"            -> JsString(s.rating.toString),
+      "FileName"          -> JsString(s.fileName),
+      "HostName"          -> JsString(s.hostName),
+      "PlayCount"         -> JsString(s.playCount.toString),
+      "LastPlayed"        -> JsString(s.lastPlayed.map(_.toIsoFormat).getOrElse(""))
+    ))
+
+    def read(value: JsValue): Song = {
+      val obj = value.asJsObject
+      new Song {
+        def songId            = SongId(obj.intField("Id"))
+        def title             = obj.stringField("Title")
+        def artist            = obj.stringField("Artist")
+        def compilationArtist = obj.stringField("CompilationArtist")
+        def album             = obj.stringField("Album")
+        def trackNumber       = obj.intField("TrackNo")
+        def genre             = obj.stringField("Genre")
+        def year              = obj.intFieldOption("Year", 0) map (x => Year.of(x))
+        def isCompilation     = obj.booleanField("Compilation")
+        def length            = Duration.ofMillis(obj.intField("Length"))
+        def rating            = obj.intField("Rating")
+        def fileName          = obj.stringField("FileName")
+        def hostName          = obj.stringField("HostName")
+        def playCount         = obj.intField("PlayCount")
+        def lastPlayed        = obj.dateTimeFieldOption("LastPlayed")
+      }
     }
   }
 

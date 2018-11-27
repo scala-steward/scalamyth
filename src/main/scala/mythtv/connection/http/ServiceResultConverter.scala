@@ -55,6 +55,7 @@ trait ServiceResultConverter {
   def pagedListRecordRule(r: ServiceResultNode): PagedList[RecordRule]
   def pagedListRecordable(r: ServiceResultNode): PagedList[Recordable]
   def pagedListRecording(r: ServiceResultNode): PagedList[Recording]
+  def pagedListSong(r: ServiceResultNode): PagedList[Song]
   def pagedListVideo(r: ServiceResultNode): PagedList[Video]
   def pagedListVideoMultiplex(r: ServiceResultNode): PagedList[VideoMultiplex]
   def program(r: ServiceResultNode): Program
@@ -64,6 +65,7 @@ trait ServiceResultConverter {
   def recordRuleId(r: ServiceResultNode): RecordRuleId
   def settings(r: ServiceResultNode): Settings
   def soListListingSource(r: ServiceResultNode): ServicesObject[List[ListingSource]]
+  def song(r: ServiceResultNode): Song
   def string(r: ServiceResultNode): String
   def stringMap(r: ServiceResultNode): Map[String, String]
   def timeZoneInfo(r: ServiceResultNode): TimeZoneInfo
@@ -275,6 +277,14 @@ trait ServiceResultReaderImplicits {
 
   implicit object SOListingSourceListReader extends ServiceResultReader[ServicesObject[List[ListingSource]]] {
     def read(r: ServiceResultNode): ServicesObject[List[ListingSource]] = converter.soListListingSource(r)
+  }
+
+  implicit object SongPagedListReader extends ServiceResultReader[PagedList[Song]] {
+    def read(r: ServiceResultNode): PagedList[Song] = converter.pagedListSong(r)
+  }
+
+  implicit object SongReader extends ServiceResultReader[Song] {
+    def read(r: ServiceResultNode): Song = converter.song(r)
   }
 
   implicit object StorageGroupDirListReader extends ServiceResultReader[List[StorageGroupDir]] {

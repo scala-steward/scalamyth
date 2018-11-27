@@ -53,6 +53,10 @@ private[json] trait JsonServiceFactoryImplicits {
     def newInstance(conn: BackendJsonConnection): ImageService = new JsonImageService(conn)
   }
 
+  implicit object JsonMusicServiceFactory extends BackendJsonServiceFactory[MusicService] {
+    def newInstance(conn: BackendJsonConnection): MusicService = new JsonMusicService(conn)
+  }
+
   implicit object JsonMythServiceFactory extends BackendJsonServiceFactory[MythService] {
     def newInstance(conn: BackendJsonConnection): MythService = new JsonMythService(conn)
   }
@@ -86,6 +90,9 @@ object JsonServiceProvider extends ServiceProvider {
 
   def imageService(host: String): ImageService = f.JsonImageServiceFactory(host)
   def imageService(host: String, port: Int): ImageService = f.JsonImageServiceFactory(host, port)
+
+  def musicService(host: String): MusicService = f.JsonMusicServiceFactory(host)
+  def musicService(host: String, port: Int): MusicService = f.JsonMusicServiceFactory(host, port)
 
   def mythService(host: String): MythService = f.JsonMythServiceFactory(host)
   def mythService(host: String, port: Int): MythService = f.JsonMythServiceFactory(host, port)
