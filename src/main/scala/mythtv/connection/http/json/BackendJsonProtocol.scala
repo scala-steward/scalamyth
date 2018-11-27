@@ -1434,6 +1434,7 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
       "Processed"        -> JsString(v.processed.toString),
       "UserRating"       -> JsString(v.userRating.toString),
       "Certification"    -> JsString(v.rating),
+      "ParentalLevel"    -> JsString(v.parentalLevel.id.toString),
       "Collectionref"    -> JsString(v.collectionRef.getOrElse(-1).toString),
       "ReleaseDate"      -> JsString(v.releasedDate.map(_.toString).getOrElse("")),
       "Trailer"          -> JsString(v.trailer),
@@ -1471,6 +1472,7 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
         def processed       = obj.booleanField("Processed")
         def userRating      = obj.doubleField("UserRating")
         def rating          = obj.stringField("Certification")
+        def parentalLevel   = ParentalLevel.applyOrUnknown(obj.intField("ParentalLevel"))
         def collectionRef   = obj.intFieldOption("Collectionref", -1)
         def releasedDate    = obj.dateTimeFieldOption("ReleaseDate").map(_.toLocalDateTime().toLocalDate)
         def trailer         = obj.stringField("Trailer")

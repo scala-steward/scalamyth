@@ -3,8 +3,8 @@ package model
 
 import java.time.{ Duration, Instant, LocalDate }
 
-import util.MythFileHash
-import EnumTypes.VideoContentType
+import util.{ LooseEnum, MythFileHash }
+import EnumTypes.{ ParentalLevel, VideoContentType }
 
 final case class VideoId(id: Int) extends AnyVal with IntegerIdentifier
 
@@ -26,6 +26,7 @@ trait Video extends ProgramVideoBase with InternetMetadata with HasArtworkInfo {
   def processed: Boolean
   def userRating: Double
   def rating: String       // This is MPPA or some such rating/certification
+  def parentalLevel: ParentalLevel
   def collectionRef: Option[Int]
   def releasedDate: Option[LocalDate]
   def trailer: String
@@ -35,7 +36,6 @@ trait Video extends ProgramVideoBase with InternetMetadata with HasArtworkInfo {
   def fanart: String
 
   // Fields in the 'videometadata' DB table but not serialized? (at least not directly)
-  // def showLevel: Int        // not serialized in JSON ?
   // def childId: Int          // not serialized in JSON ?
   // def browse: Boolean       // not serialized in JSON ?
   // def playCommand: String   // not serialized in JSON ?
@@ -92,6 +92,15 @@ trait BlurayInfo {
   def bdplusDetected: Boolean
   def libbdplusDetected: Boolean
   def bdplusHandled: Boolean
+}
+
+object ParentalLevel extends LooseEnum {
+  type ParentalLevel = Value
+  final val None   = Value(0)
+  final val Lowest = Value(1)
+  final val Low    = Value(2)
+  final val Medium = Value(3)
+  final val High   = Value(4)
 }
 
 object VideoContentType extends Enumeration {
