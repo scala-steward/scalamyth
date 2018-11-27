@@ -6,7 +6,7 @@ import java.net.URI
 import java.time.Instant
 
 import model._
-import model.EnumTypes.RecStatus
+import model.EnumTypes.{ CecOpcode, RecStatus }
 import util.{ Base64String, ByteCount, Crc16, DecimalByteCount, MythDateTime, URIFactory }
 import RecordedId._
 
@@ -61,6 +61,7 @@ object SystemEvent {
   case class AirPlayNewConnectionEvent(sender: String) extends SystemEvent
   case class AirTunesDeleteConnectionEvent(sender: String) extends SystemEvent
   case class AirTunesNewConnectionEvent(sender: String) extends SystemEvent
+  case class CecCommandReceivedEvent(opcode: CecOpcode, sender: String) extends SystemEvent
   case class ClientConnectedEvent(hostName: String, sender: String) extends SystemEvent
   case class ClientDisconnectedEvent(hostName: String, sender: String) extends SystemEvent
   case class LiveTvStartedEvent(sender: String) extends SystemEvent
@@ -120,6 +121,7 @@ private[myth] abstract class EventProtocolRef extends EventParser with MythProto
   private val RecEventPattern   = """CARDID (.+) CHANID (.+) STARTTIME (.+) RECSTATUS (.+)""".r
   private val RecPendingPattern = """SECS (.+) CARDID (.+) CHANID (.+) STARTTIME (.+) RECSTATUS (.+)""".r
 
+  private val CommandPattern         = """COMMAND (.+)""".r
   private val ScreenCreatedPattern   = """CREATED (.+)""".r
   private val ScreenDestroyedPattern = """DESTROYED (.+)""".r
   private val ThemeInstalledPattern  = """PATH (.+)""".r
@@ -171,6 +173,7 @@ private[myth] abstract class EventProtocolRef extends EventParser with MythProto
         case "AIRPLAY_NEW_CONNECTION"     => AirPlayNewConnectionEvent(sender)
         case "AIRTUNES_DELETE_CONNECTION" => AirTunesDeleteConnectionEvent(sender)
         case "AIRTUNES_NEW_CONNECTION"    => AirTunesNewConnectionEvent(sender)
+        case "CEC_COMMAND_RECEIVED"       => cecCommandReceivedEvent(evt, body, sender)
         case "CLIENT_CONNECTED"           => hostnameEvent(ClientConnectedEvent, evt, body, sender)
         case "CLIENT_DISCONNECTED"        => hostnameEvent(ClientDisconnectedEvent, evt, body, sender)
         case "LIVETV_STARTED"             => LiveTvStartedEvent(sender)
@@ -200,6 +203,14 @@ private[myth] abstract class EventProtocolRef extends EventParser with MythProto
         case _ => unknownSystemEvent(evt, body, sender)
       }
       case _ => unknownEvent(name, split)
+    }
+  }
+
+  def cecCommandReceivedEvent(evt: String, body: String, sender: String): SystemEvent = {
+    if (body eq null) unknownSystemEvent(evt, body, sender)
+    else body match {
+      case CommandPattern(opcodeId) => CecCommandReceivedEvent(CecOpcode(deserialize[Int](opcodeId)), sender)
+      case _  => unknownSystemEvent(evt, body, sender)
     }
   }
 
