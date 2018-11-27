@@ -39,12 +39,29 @@ object ByteCount {
   implicit def bc2decbc(v: ByteCount): DecimalByteCount = DecimalByteCount(v.bytes)
 }
 
-case class BinaryByteCount(bytes: Long) extends AnyVal with ByteCount {
+trait BinaryByteCounter extends Any {
+  self: ByteCount =>
   def kilobytes: Long = bytes >> 10
   def megabytes: Long = bytes >> 20
   def gigabytes: Long = bytes >> 30
   def terabytes: Long = bytes >> 40
 
+  def displayUnits = Array("B", "KiB", "MiB", "GiB", "TiB")
+  def thresholds = Array(0, 1024, 1048576, 1073741824, 1099511627776L)
+}
+
+trait DecimalByteCounter extends Any {
+  self: ByteCount =>
+  def kilobytes: Long = bytes /  1000L
+  def megabytes: Long = bytes / (1000L * 1000)
+  def gigabytes: Long = bytes / (1000L * 1000 * 1000)
+  def terabytes: Long = bytes / (1000L * 1000 * 1000 * 1000)
+
+  def displayUnits = Array("B", "kB", "MB", "GB", "TB")
+  def thresholds = Array(0, 1000, 1000000, 1000000000, 1000000000000L)
+}
+
+case class BinaryByteCount(bytes: Long) extends AnyVal with ByteCount with BinaryByteCounter {
   def + (that: ByteCount): BinaryByteCount = BinaryByteCount(bytes + that.bytes)
   def - (that: ByteCount): BinaryByteCount = BinaryByteCount(bytes - that.bytes)
   def * (that: ByteCount): BinaryByteCount = BinaryByteCount(bytes * that.bytes)
@@ -54,18 +71,11 @@ case class BinaryByteCount(bytes: Long) extends AnyVal with ByteCount {
   def toDecimalByteCount = DecimalByteCount(bytes)
 
   override def toString: String = {
-    val units = Array("B", "KiB", "MiB", "GiB", "TiB")
-    val thresholds = Array(0, 1024, 1048576, 1073741824, 1099511627776L)
-    super.toString(units, thresholds)
+    super.toString(displayUnits, thresholds)
   }
 }
 
-case class DecimalByteCount(bytes: Long) extends AnyVal with ByteCount {
-  def kilobytes: Long = bytes /  1000L
-  def megabytes: Long = bytes / (1000L * 1000)
-  def gigabytes: Long = bytes / (1000L * 1000 * 1000)
-  def terabytes: Long = bytes / (1000L * 1000 * 1000 * 1000)
-
+case class DecimalByteCount(bytes: Long) extends AnyVal with ByteCount with DecimalByteCounter {
   def + (that: ByteCount): DecimalByteCount = DecimalByteCount(bytes + that.bytes)
   def - (that: ByteCount): DecimalByteCount = DecimalByteCount(bytes - that.bytes)
   def * (that: ByteCount): DecimalByteCount = DecimalByteCount(bytes * that.bytes)
@@ -75,8 +85,6 @@ case class DecimalByteCount(bytes: Long) extends AnyVal with ByteCount {
   def toDecimalByteCount = this
 
   override def toString: String = {
-    val units = Array("B", "kB", "MB", "GB", "TB")
-    val thresholds = Array(0, 1000, 1000000, 1000000000, 1000000000000L)
-    super.toString(units, thresholds)
+    super.toString(displayUnits, thresholds)
   }
 }
