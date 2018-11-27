@@ -143,6 +143,22 @@ trait AbstractGuideService extends ServiceProtocol with GuideService {
     request("GetChannelGroupList", params)("ChannelGroupList", "ChannelGroups")
   }
 
+  def addToChannelGroup(channelGroupId: ChannelGroupId, chanId: ChanId): ServiceResult[Boolean] = {
+    val params: Map[String, Any] = Map(
+      "ChannelGroupId" -> channelGroupId.id,
+      "ChanId" -> chanId.id
+    )
+    post("AddToChannelGroup", params)()
+  }
+
+  def removeFromChannelGroup(channelGroupId: ChannelGroupId, chanId: ChanId): ServiceResult[Boolean] = {
+    val params: Map[String, Any] = Map(
+      "ChannelGroupId" -> channelGroupId.id,
+      "ChanId" -> chanId.id
+    )
+    post("RemoveFromChannelGroup", params)()
+  }
+
   def getStoredSearches(searchType: RecSearchType): ServiceResult[List[String]] = {
     val params: Map[String, Any] = Map("Type" -> RecSearchType.description(searchType))
     request("GetStoredSearches", params)()

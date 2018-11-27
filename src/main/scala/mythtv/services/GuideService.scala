@@ -75,4 +75,8 @@ trait GuideService extends BackendService {
 
   // getStoredSearches is new for MythTV 0.28
   def getStoredSearches(searchType: RecSearchType): ServiceResult[List[String]]
+
+  // addToChannelGroup and removeFromChannelGroup are new for MythTV 29
+  def addToChannelGroup(channelGroupId: ChannelGroupId, chanId: ChanId): ServiceResult[Boolean]
+  def removeFromChannelGroup(channelGroupId: ChannelGroupId, chanId: ChanId): ServiceResult[Boolean]
 }
