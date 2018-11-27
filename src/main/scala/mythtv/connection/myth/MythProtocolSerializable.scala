@@ -323,16 +323,16 @@ object MythProtocolSerializable {
 
   /**** BACKEND OBJECTS (protocol version neutral)  ***/
 
-  implicit object RecordedMarkupSerializer extends MythProtocolSerializable[RecordedMarkup] {
-    def deserialize(in: String): RecordedMarkup = deserialize(in split MythProtocol.SplitPattern)
-    override def deserialize(in: Seq[String]): RecordedMarkup = {
+  implicit object RecordedMarkupSerializer extends MythProtocolSerializable[RecordedMarkupFrame] {
+    def deserialize(in: String): RecordedMarkupFrame = deserialize(in split MythProtocol.SplitPattern)
+    override def deserialize(in: Seq[String]): RecordedMarkupFrame = {
       assert(in.lengthCompare(1) > 0)
       BackendRecordedMarkup(
         Markup.applyOrUnknown(MythProtocol.deserialize[Int](in(0))),
         MythProtocol.deserialize[VideoPositionFrame](in(1))
       )
     }
-    def serialize(in: RecordedMarkup): String = throw new UnsupportedOperationException
+    def serialize(in: RecordedMarkupFrame): String = throw new UnsupportedOperationException
   }
 }
 

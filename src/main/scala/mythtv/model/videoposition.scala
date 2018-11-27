@@ -69,9 +69,11 @@ trait VideoSegment {
   override def toString: String = start.pos + ":" + end.pos
 }
 
-trait RecordedMarkup {
+trait RecordedMarkup[VP <: VideoPosition] {
   def tag: Markup
-  def position: VideoPositionFrame
+  def position: VP
+
+  override def toString: String = s"<RecordedMarkup $tag $position>"
 }
 
 object Markup extends LooseEnum {

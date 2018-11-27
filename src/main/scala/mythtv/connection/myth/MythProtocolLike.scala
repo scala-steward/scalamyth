@@ -1578,9 +1578,9 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       if (count == 0) Nil
       else {
         // we also assume that the number of start/end marks are balanced and in sorted order
-        val marks = items.iterator drop 1 grouped 2 withPartial false map deserialize[RecordedMarkup]
+        val marks = items.iterator drop 1 grouped 2 withPartial false map deserialize[RecordedMarkupFrame]
         val segments = marks grouped 2 map {
-          case Seq(start: RecordedMarkup, end: RecordedMarkup) =>
+          case Seq(start: RecordedMarkupFrame, end: RecordedMarkupFrame) =>
             assert(start.tag == Markup.CommStart)
             assert(end.tag == Markup.CommEnd)
             BackendVideoSegment(start.position, end.position)
@@ -1599,9 +1599,9 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       if (count == 0) Nil
       else {
         // we also assume that the number of start/end marks are balanced and in sorted order
-        val marks = items.iterator drop 1 grouped 2 withPartial false map deserialize[RecordedMarkup]
+        val marks = items.iterator drop 1 grouped 2 withPartial false map deserialize[RecordedMarkupFrame]
         val segments = marks grouped 2 map {
-          case Seq(start: RecordedMarkup, end: RecordedMarkup) =>
+          case Seq(start: RecordedMarkupFrame, end: RecordedMarkupFrame) =>
             assert(start.tag == Markup.CutStart)
             assert(end.tag == Markup.CutEnd)
             BackendVideoSegment(start.position, end.position)
