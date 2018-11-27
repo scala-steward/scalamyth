@@ -40,3 +40,13 @@ private[myth] object BackendInput extends BackendInputFactory {
 
   def apply(data: Seq[String]): BackendInput = new BackendInput(data, FIELD_ORDER)
 }
+
+private[myth] object BackendInput91 extends BackendInputFactory {
+  // 'cardId' field has been removed
+  final val FIELD_ORDER = IndexedSeq(
+    "name", "sourceId", "inputId", "mplexId", "liveTvOrder",
+    "displayName", "recPriority", "scheduleOrder", "quickTune", "chanId"
+  )
+
+  def apply(data: Seq[String]): BackendInput = new BackendInput(data, FIELD_ORDER)
+}

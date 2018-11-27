@@ -408,6 +408,12 @@ private[myth] object InputSerializerRef
   def otherSerializer = ???
 }
 
+private[myth] object InputSerializer91
+  extends GenericBackendObjectSerializer[Input, BackendInputFactory, InputOtherSerializer] {
+  def newFactory = BackendInput91
+  def otherSerializer = ???
+}
+
 private[myth] object LiveTvChainSerializerRef
   extends GenericBackendObjectSerializer[LiveTvChain, BackendLiveTvChainFactory, LiveTvChainOtherSerializer] {
   def newFactory = BackendLiveTvChain

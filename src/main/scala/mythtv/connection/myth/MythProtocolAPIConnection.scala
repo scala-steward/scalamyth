@@ -12,7 +12,8 @@ object MythProtocolAPIConnection {
   private val supportedVersions = Map[Int, MythProtocolAPIConnectionFactory](
     75 -> MythProtocolAPIConnection75,
     77 -> MythProtocolAPIConnection77,
-    88 -> MythProtocolAPIConnection88
+    88 -> MythProtocolAPIConnection88,
+    91 -> MythProtocolAPIConnection91,
   )
 
   def apply(
@@ -56,6 +57,12 @@ private class MythProtocolAPIConnection88(host: String, port: Int, timeout: Int)
     with MythProtocolApi88
     with MythProtocolAPILike
 
+private class MythProtocolAPIConnection91(host: String, port: Int, timeout: Int)
+  extends BackendConnection91(host, port, timeout)
+    with MythProtocolAPIConnection
+    with MythProtocolApi91
+    with MythProtocolAPILike
+
 private object MythProtocolAPIConnection75 extends MythProtocolAPIConnectionFactory {
   def apply(host: String, port: Int, timeout: Int) = new MythProtocolAPIConnection75(host, port, timeout)
 }
@@ -66,4 +73,8 @@ private object MythProtocolAPIConnection77 extends MythProtocolAPIConnectionFact
 
 private object MythProtocolAPIConnection88 extends MythProtocolAPIConnectionFactory {
   def apply(host: String, port: Int, timeout: Int) = new MythProtocolAPIConnection88(host, port, timeout)
+}
+
+private object MythProtocolAPIConnection91 extends MythProtocolAPIConnectionFactory {
+  def apply(host: String, port: Int, timeout: Int) = new MythProtocolAPIConnection91(host, port, timeout)
 }

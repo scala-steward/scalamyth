@@ -216,3 +216,7 @@ trait MythProtocolApi88 extends MythProtocolApi77 {
   def queryFindFile(fileName: String, storageGroup: String = "", hostName: String= "", useRegex: Boolean = false, allowFallback: Boolean = true): MythProtocolResult[List[URI]]
   def scanMusic(): MythProtocolResult[Unit]
 }
+
+trait MythProtocolApi91 extends MythProtocolApi88 {
+  // no new APIs since version 88
+}

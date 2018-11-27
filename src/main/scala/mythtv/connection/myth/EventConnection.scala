@@ -217,6 +217,13 @@ private class EventConnection88(host: String, port: Int, eventMode: MythProtocol
   override protected val eventProtocol = new EventProtocol88
 }
 
+private class EventConnection91(host: String, port: Int, eventMode: MythProtocolEventMode, listener: EventListener)
+ extends AbstractEventConnection(host, port, eventMode, listener)
+    with MythProtocol91
+    with AnnouncingConnection {
+  override protected val eventProtocol = new EventProtocol91
+}
+
 private object EventConnection75 extends EventConnectionFactory {
   def apply(host: String, port: Int, eventMode: MythProtocolEventMode, listener: EventListener) =
     new EventConnection75(host, port, eventMode, listener)
@@ -232,11 +239,17 @@ private object EventConnection88 extends EventConnectionFactory {
     new EventConnection88(host, port, eventMode, listener)
 }
 
+private object EventConnection91 extends EventConnectionFactory {
+  def apply(host: String, port: Int, eventMode: MythProtocolEventMode, listener: EventListener) =
+    new EventConnection91(host, port, eventMode, listener)
+}
+
 object EventConnection {
   private val supportedVersions = Map[Int, EventConnectionFactory](
     75 -> EventConnection75,
     77 -> EventConnection77,
-    88 -> EventConnection88
+    88 -> EventConnection88,
+    91 -> EventConnection91,
   )
 
   def apply(

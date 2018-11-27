@@ -599,6 +599,10 @@ private[myth] class EventProtocol88 extends EventProtocol77 {
   }
 }
 
+private[myth] class EventProtocol91 extends EventProtocol88 {
+  // no changes from version 88
+}
+
 /*
  * Some BACKEND_MESSAGE examples
  *

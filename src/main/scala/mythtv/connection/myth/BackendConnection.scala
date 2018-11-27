@@ -178,6 +178,8 @@ private class BackendConnection77(host: String, port: Int, timeout: Int)
 private class BackendConnection88(host: String, port: Int, timeout: Int)
     extends AbstractBackendConnection(host, port, timeout) with MythProtocol88
 
+private class BackendConnection91(host: String, port: Int, timeout: Int)
+    extends AbstractBackendConnection(host, port, timeout) with MythProtocol91
 
 private sealed trait BackendConnectionFactory {
   def apply(host: String, port: Int, timeout: Int): BackendConnection
@@ -195,6 +197,9 @@ private object BackendConnection88 extends BackendConnectionFactory {
   def apply(host: String, port: Int, timeout: Int) = new BackendConnection88(host, port, timeout)
 }
 
+private object BackendConnection91 extends BackendConnectionFactory {
+  def apply(host: String, port: Int, timeout: Int) = new BackendConnection91(host, port, timeout)
+}
 
 object BackendConnection {
   final val DefaultPort = 6543
@@ -203,10 +208,11 @@ object BackendConnection {
   private val supportedVersions = Map[Int, BackendConnectionFactory](
     75 -> BackendConnection75,
     77 -> BackendConnection77,
-    88 -> BackendConnection88
+    88 -> BackendConnection88,
+    91 -> BackendConnection91,
   )
 
-  private[myth] val DefaultVersion = 88
+  private[myth] val DefaultVersion = 91
 
   def apply(host: String, port: Int = DefaultPort, timeout: Int = DefaultTimeout): BackendConnection = {
     try {

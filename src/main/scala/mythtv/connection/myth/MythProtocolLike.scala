@@ -2756,3 +2756,7 @@ private[myth] trait MythProtocolLike88 extends MythProtocolLike77 {
   protected def handleScanMusic(request: BackendRequest, response: BackendResponse): MythProtocolResult[Unit] =
     genericHandleMusic(request, response)
 }
+
+private[myth] trait MythProtocolLike91 extends MythProtocolLike88 {
+  override val inputSerializer: BackendObjectSerializer[Input] = InputSerializer91
+}

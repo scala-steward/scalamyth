@@ -104,6 +104,11 @@ private trait MythProtocol88 extends MythProtocol with MythProtocolLike88 { // m
   final val ProtocolToken = "XmasGift"
 }
 
+private trait MythProtocol91 extends MythProtocol with MythProtocolLike91 { // myth 29
+  final val ProtocolVersion = 91
+  final val ProtocolToken = "BuzzOff"
+}
+
 /*
  * History of Myth Protocol version changes:
  *
@@ -151,5 +156,5 @@ private trait MythProtocol88 extends MythProtocol with MythProtocolLike88 { // m
  *  88*  6f6a5914c63  add LyricsView to MythMusic; unsure of impact on protocol -- event changes?
  *  89   1f8c275b814  add reclimit to InputInfo
  *  90   3e782baea08  add reccount to InputInfo
- *  91   0cd367d7a5b  revert reclimit/reccount changes
+ *  91*  0cd367d7a5b  revert reclimit/reccount changes
  */
