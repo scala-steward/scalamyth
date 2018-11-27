@@ -182,6 +182,20 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
   implicit object ListingSourceIdJsonFormat extends IntegerIdentifierJsonFormat[ListingSourceId] { def factory = ListingSourceId.apply }
   implicit object RecordRuleIdJsonFormat    extends IntegerIdentifierJsonFormat[RecordRuleId]    { def factory = RecordRuleId.apply }
 
+  implicit object RecordedIdJsonFormat extends RootJsonFormat[RecordedId] {
+    import RecordedId._
+    def write(recordedId: RecordedId): JsValue = JsString(recordedId.idString)
+    def read(value: JsValue): RecordedId = {
+      // we only support reading RecordedIdInt, not RecordedIdChanTime
+      val i = value match {
+        case JsString(s) => s.toInt
+        case JsNumber(x) => x.intValue
+        case x => x.toString.toInt
+      }
+      RecordedIdInt(i)
+    }
+  }
+
   implicit object ArtworkInfoJsonFormat extends RootJsonFormat[ArtworkInfo] {
     def write(a: ArtworkInfo): JsValue = JsObject(Map(
       "URL"          -> JsString(a.uri.toString),

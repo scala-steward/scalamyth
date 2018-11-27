@@ -53,6 +53,7 @@ trait ServiceResultConverter {
   def pagedListVideo(r: ServiceResultNode): PagedList[Video]
   def pagedListVideoMultiplex(r: ServiceResultNode): PagedList[VideoMultiplex]
   def program(r: ServiceResultNode): Program
+  def recordedId(r: ServiceResultNode): RecordedId
   def recording(r: ServiceResultNode): Recording
   def recordRule(r: ServiceResultNode): RecordRule
   def recordRuleId(r: ServiceResultNode): RecordRuleId
@@ -221,6 +222,11 @@ trait ServiceResultReaderImplicits {
 
   implicit object RecordablePagedListReader extends ServiceResultReader[PagedList[Recordable]] {
     def read(r: ServiceResultNode): PagedList[Recordable] = converter.pagedListRecordable(r)
+  }
+
+  implicit object RecordedIdReader extends ServiceResultReader[RecordedId] {
+    def read(r: ServiceResultNode): RecordedId = converter.recordedId(r)
+    override def defaultField = "int"
   }
 
   implicit object RecordingReader extends ServiceResultReader[Recording] {

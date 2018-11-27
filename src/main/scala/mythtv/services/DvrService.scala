@@ -67,6 +67,9 @@ trait DvrService extends BackendService {
 
   def getTitleInfoList: ServiceResult[List[TitleInfo]]
 
+  // recordedIdForPathname is new for MythTV 29
+  def recordedIdForPathname(pathName: String): ServiceResult[RecordedId]
+
   /* mutating POST methods */
 
   // for 0.28, removeRecorded gains RecordedId, ForceDelete, AllowRerecord parameters

@@ -64,6 +64,7 @@ object JsonResultConverter extends ServiceResultConverter with FrontendJsonProto
   def pagedListVideo(r: RN): PL[Video]                        = value(r).convertTo[ServicesPagedList[Video]]
   def pagedListVideoMultiplex(r: RN): PL[VideoMultiplex]      = value(r).convertTo[ServicesPagedList[VideoMultiplex]]
   def program(r: RN): Program                                 = value(r).convertTo[Program]
+  def recordedId(r: RN): RecordedId                           = value(r).convertTo[RecordedId]
   def recording(r: RN): Recording                             = value(r).convertTo[Recording]
   def recordRule(r: RN): RecordRule                           = value(r).convertTo[RecordRule]
   def recordRuleId(r: RN): RecordRuleId                       = value(r).convertTo[RecordRuleId]

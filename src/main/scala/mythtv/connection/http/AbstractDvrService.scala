@@ -56,6 +56,11 @@ trait AbstractDvrService extends ServiceProtocol with DvrService {
     request("GetRecordedList", params)("ProgramList")
   }
 
+  def recordedIdForPathname(pathName: String): ServiceResult[RecordedId] = {
+    val params: Map[String, Any] = Map("Pathname" -> pathName)
+    request("RecordedIdForPathname", params)()
+  }
+
   def getExpiringList(startIndex: Int, count: OptionalCount[Int]): ServiceResult[PagedList[Recording]] = {
     val params = buildStartCountParams(startIndex, count)
     request("GetExpiringList", params)("ProgramList")
