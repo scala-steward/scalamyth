@@ -11,7 +11,7 @@ import model._
 import services.{ DvrService, PagedList, ServiceResult }
 import services.Service.ServiceFailure.ServiceNoResult
 import util.{ MythDateTime, OptionalCount }
-import EnumTypes.{ DupCheckIn, DupCheckMethod, RecStatus, RecType }
+import EnumTypes.{ DupCheckIn, DupCheckMethod, Markup, RecStatus, RecType }
 import RecordedId._
 
 trait AbstractDvrService extends ServiceProtocol with DvrService {
@@ -518,6 +518,147 @@ trait AbstractDvrService extends ServiceProtocol with DvrService {
   def dupInToDescription(dupIn: DupCheckIn): ServiceResult[String] = {
     val params: Map[String, Any] = Map("DupIn" -> DupCheckIn.description(dupIn))
     request("DupInToDescription", params)()
+  }
+
+  private def videoSegmentsFromRecordedMarkup[VP <: VideoPosition](
+    marks: List[RecordedMarkup[VP]], markStart: Markup, markEnd: Markup): ServiceResult[List[VideoSegment[VP]]] = Try {
+    // TODO improved diagnostic if there are not an even number of marks, currently we capture for example:
+    //    scala.MatchError: List(<RecordedMarkup CommStart VideoPositionFrame(xxx)>)
+
+    val segments = marks grouped 2 map {
+      case Seq(startMark: RecordedMarkup[VP], endMark: RecordedMarkup[VP]) =>
+        assert(startMark.tag == markStart, s"start mark is ${startMark.tag}, expected $markStart")
+        assert(endMark.tag == markEnd, s"end mark is ${endMark.tag}, expected $markEnd")
+        new VideoSegment[VP] {
+          def start = startMark.position
+          def end = endMark.position
+        }
+    }
+    segments.toList
+  }
+
+  private def internalGetRecordedCutList(recordedId: RecordedId)(endpoint: String): ServiceResult[List[RecordedMarkupFrame]] = recordedId match {
+    case RecordedIdChanTime(chanId, startTime) => internalGetRecordedCutList(chanId, startTime)(endpoint)
+    case RecordedIdInt(id) =>
+      val params: Map[String, Any] = Map("RecordedId" -> id)
+      request(endpoint, params)("CutList", "Cuttings")
+  }
+
+  private def internalGetRecordedCutList(chanId: ChanId, startTime: MythDateTime)(endpoint: String): ServiceResult[List[RecordedMarkupFrame]] = {
+    val params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
+    request(endpoint, params)("CutList", "Cuttings")
+  }
+
+  private def internalGetRecordedCutListMs(recordedId: RecordedId)(endpoint: String): ServiceResult[List[RecordedMarkupMilliseconds]] = recordedId match {
+    case RecordedIdChanTime(chanId, startTime) => internalGetRecordedCutListMs(chanId, startTime)(endpoint)
+    case RecordedIdInt(id) =>
+      val params: Map[String, Any] = Map("RecordedId" -> id, "OffsetType" -> "Duration")
+      request(endpoint, params)("CutList", "Cuttings")
+  }
+
+  private def internalGetRecordedCutListMs(chanId: ChanId, startTime: MythDateTime)(endpoint: String): ServiceResult[List[RecordedMarkupMilliseconds]] = {
+    val params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat, "OffsetType" -> "Duration")
+    request(endpoint, params)("CutList", "Cuttings")
+  }
+
+  private def internalGetRecordedCutListBytes(recordedId: RecordedId)(endpoint: String): ServiceResult[List[RecordedMarkupBytes]] = recordedId match {
+    case RecordedIdChanTime(chanId, startTime) => internalGetRecordedCutListBytes(chanId, startTime)(endpoint)
+    case RecordedIdInt(id) =>
+      val params: Map[String, Any] = Map("RecordedId" -> id, "OffsetType" -> "Position")
+      request(endpoint, params)("CutList", "Cuttings")
+  }
+
+  private def internalGetRecordedCutListBytes(chanId: ChanId, startTime: MythDateTime)(endpoint: String): ServiceResult[List[RecordedMarkupBytes]] = {
+    val params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat, "OffsetType" -> "Position")
+    request(endpoint, params)("CutList", "Cuttings")
+  }
+
+  // ---
+
+  def getRecordedCommBreak(recordedId: RecordedId): ServiceResult[List[VideoSegmentFrames]] = {
+    for {
+      marks <- internalGetRecordedCutList(recordedId)("GetRecordedCommBreak")
+      segments <- videoSegmentsFromRecordedMarkup(marks, Markup.CommStart, Markup.CommEnd)
+    } yield segments
+  }
+
+  def getRecordedCommBreak(chanId: ChanId, startTime: MythDateTime): ServiceResult[List[VideoSegmentFrames]] = {
+    for {
+      marks <- internalGetRecordedCutList(chanId, startTime)("GetRecordedCommBreak")
+      segments <- videoSegmentsFromRecordedMarkup(marks, Markup.CommStart, Markup.CommEnd)
+    } yield segments
+  }
+
+  def getRecordedCommBreakMs(recordedId: RecordedId): ServiceResult[List[VideoSegmentMilliseconds]] = {
+    for {
+      marks <- internalGetRecordedCutListMs(recordedId)("GetRecordedCommBreak")
+      segments <- videoSegmentsFromRecordedMarkup(marks, Markup.CommStart, Markup.CommEnd)
+    } yield segments
+  }
+
+  def getRecordedCommBreakMs(chanId: ChanId, startTime: MythDateTime): ServiceResult[List[VideoSegmentMilliseconds]] = {
+    for {
+      marks <- internalGetRecordedCutListMs(chanId, startTime)("GetRecordedCommBreak")
+      segments <- videoSegmentsFromRecordedMarkup(marks, Markup.CommStart, Markup.CommEnd)
+    } yield segments
+  }
+
+  def getRecordedCommBreakBytes(recordedId: RecordedId): ServiceResult[List[VideoSegmentBytes]] = {
+    for {
+      marks <- internalGetRecordedCutListBytes(recordedId)("GetRecordedCommBreak")
+      segments <- videoSegmentsFromRecordedMarkup(marks, Markup.CommStart, Markup.CommEnd)
+    } yield segments
+  }
+
+  def getRecordedCommBreakBytes(chanId: ChanId, startTime: MythDateTime): ServiceResult[List[VideoSegmentBytes]] = {
+    for {
+      marks <- internalGetRecordedCutListBytes(chanId, startTime)("GetRecordedCommBreak")
+      segments <- videoSegmentsFromRecordedMarkup(marks, Markup.CommStart, Markup.CommEnd)
+    } yield segments
+  }
+
+  // ---
+
+  def getRecordedCutList(recordedId: RecordedId): ServiceResult[List[VideoSegmentFrames]] = {
+    for {
+      marks <- internalGetRecordedCutList(recordedId)("GetRecordedCutList")
+      segments <- videoSegmentsFromRecordedMarkup(marks, Markup.CutStart, Markup.CutEnd)
+    } yield segments
+  }
+
+  def getRecordedCutList(chanId: ChanId, startTime: MythDateTime): ServiceResult[List[VideoSegmentFrames]] = {
+    for {
+      marks <- internalGetRecordedCutList(chanId, startTime)("GetRecordedCutList")
+      segments <- videoSegmentsFromRecordedMarkup(marks, Markup.CutStart, Markup.CutEnd)
+    } yield segments
+  }
+
+  def getRecordedCutListMs(recordedId: RecordedId): ServiceResult[List[VideoSegmentMilliseconds]] = {
+    for {
+      marks <- internalGetRecordedCutListMs(recordedId)("GetRecordedCutList")
+      segments <- videoSegmentsFromRecordedMarkup(marks, Markup.CutStart, Markup.CutEnd)
+    } yield segments
+  }
+
+  def getRecordedCutListMs(chanId: ChanId, startTime: MythDateTime): ServiceResult[List[VideoSegmentMilliseconds]] = {
+    for {
+      marks <- internalGetRecordedCutListMs(chanId, startTime)("GetRecordedCutList")
+      segments <- videoSegmentsFromRecordedMarkup(marks, Markup.CutStart, Markup.CutEnd)
+    } yield segments
+  }
+
+  def getRecordedCutListBytes(recordedId: RecordedId): ServiceResult[List[VideoSegmentBytes]] = {
+    for {
+      marks <- internalGetRecordedCutListBytes(recordedId)("GetRecordedCutList")
+      segments <- videoSegmentsFromRecordedMarkup(marks, Markup.CutStart, Markup.CutEnd)
+    } yield segments
+  }
+
+  def getRecordedCutListBytes(chanId: ChanId, startTime: MythDateTime): ServiceResult[List[VideoSegmentBytes]] = {
+    for {
+      marks <- internalGetRecordedCutListBytes(chanId, startTime)("GetRecordedCutList")
+      segments <- videoSegmentsFromRecordedMarkup(marks, Markup.CutStart, Markup.CutEnd)
+    } yield segments
   }
 
   def getOldRecordedList(

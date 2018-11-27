@@ -150,15 +150,26 @@ trait DvrService extends BackendService {
   // getPlayGroupList is new for MythTV 0.28
   def getPlayGroupList: ServiceResult[List[String]]
 
- /* TODO new DvrService methods for 0.28:  figure out offset parameter type (Position=1, Duration=2, otherwise=0)
-      maybe 0 = exact frame; 1 = nearest keyframe, 2 = keyframe duration(?)
-      In any case I may need three different return types (and a type parameter to VideoSegment?)
-      GetRecordedCutList(RecordedId, ChanId, StartTime, OffsetType)   -> CutList  (List[VideoSegment])
-      GetRecordedCommBreak(RecordedId, ChanId, StartTime, OffsetType)  -> CutList (List[VideoSegment])
-   */
   // rescheduleRecordings is new for MythTV 29
   def rescheduleRecordings(): ServiceResult[Boolean]
 
+  // getRecordedCommBreak* is new for MythTV 0.28
+  def getRecordedCommBreak(recordedId: RecordedId): ServiceResult[List[VideoSegmentFrames]]
+  def getRecordedCommBreakMs(recordedId: RecordedId): ServiceResult[List[VideoSegmentMilliseconds]]
+  def getRecordedCommBreakBytes(recordedId: RecordedId): ServiceResult[List[VideoSegmentBytes]]
+
+  def getRecordedCommBreak(chanId: ChanId, startTime: MythDateTime): ServiceResult[List[VideoSegmentFrames]]
+  def getRecordedCommBreakMs(chanId: ChanId, startTime: MythDateTime): ServiceResult[List[VideoSegmentMilliseconds]]
+  def getRecordedCommBreakBytes(chanId: ChanId, startTime: MythDateTime): ServiceResult[List[VideoSegmentBytes]]
+
+  // getRecordedCutList* is new for MythTV 0.28
+  def getRecordedCutList(recordedId: RecordedId): ServiceResult[List[VideoSegmentFrames]]
+  def getRecordedCutListMs(recordedId: RecordedId): ServiceResult[List[VideoSegmentMilliseconds]]
+  def getRecordedCutListBytes(recordedId: RecordedId): ServiceResult[List[VideoSegmentBytes]]
+
+  def getRecordedCutList(chanId: ChanId, startTime: MythDateTime): ServiceResult[List[VideoSegmentFrames]]
+  def getRecordedCutListMs(chanId: ChanId, startTime: MythDateTime): ServiceResult[List[VideoSegmentMilliseconds]]
+  def getRecordedCutListBytes(chanId: ChanId, startTime: MythDateTime): ServiceResult[List[VideoSegmentBytes]]
 
   /* Enumeration services -- new for MythTV 0.28 */
 

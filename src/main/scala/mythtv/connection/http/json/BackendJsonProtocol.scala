@@ -987,6 +987,47 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
     }
   }
 
+  trait RecordedMarkupJsonFormat[VP <: VideoPosition] extends JsonFormat[RecordedMarkup[VP]] {
+    def factory: (Markup, VP) => RecordedMarkup[VP]
+    def posfactory: Long => VP
+
+    def write(mk: RecordedMarkup[VP]): JsValue = JsObject(Map(
+      "Mark"   -> JsString(mk.tag.id.toString),
+      "Offset" -> JsString(mk.position.pos.toString)
+    ))
+
+    def read(value: JsValue): RecordedMarkup[VP] = {
+      val obj = value.asJsObject
+      val tag = Markup.applyOrUnknown(obj.intField("Mark"))
+      val pos = posfactory(obj.longField("Offset"))
+      factory(tag, pos)
+    }
+  }
+
+  implicit object RecordedMarkupFrameJsonFormat extends RecordedMarkupJsonFormat[VideoPositionFrame] {
+    def factory = (_tag, _pos) => new RecordedMarkupFrame {
+      def tag      = _tag
+      def position = _pos
+    }
+    def posfactory = VideoPositionFrame.apply
+  }
+
+  implicit object RecordedMarkupMsJsonFormat extends RecordedMarkupJsonFormat[VideoPositionMilliseconds] {
+    def factory = (_tag, _pos) => new RecordedMarkupMilliseconds {
+      def tag      = _tag
+      def position = _pos
+    }
+    def posfactory = VideoPositionMilliseconds.apply
+  }
+
+  implicit object RecordedMarkupBytesJsonFormat extends RecordedMarkupJsonFormat[VideoPositionBytes] {
+    def factory = (_tag, _pos) => new RecordedMarkupBytes {
+      def tag      = _tag
+      def position = _pos
+    }
+    def posfactory = VideoPositionBytes.apply
+  }
+
   implicit object StorageGroupDirJsonFormat extends RootJsonFormat[StorageGroupDir] {
     def write(sg: StorageGroupDir): JsValue = JsObject(Map(
       "Id"        -> JsString(sg.id.id.toString),

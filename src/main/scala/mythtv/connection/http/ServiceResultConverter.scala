@@ -32,6 +32,9 @@ trait ServiceResultConverter {
   def listLiveStream(r: ServiceResultNode): List[LiveStream]
   def listLogMessage(r: ServiceResultNode): List[LogMessage]
   def listRecRuleFilter(r: ServiceResultNode): List[RecRuleFilterItem]
+  def listRecordedMarkup(r: ServiceResultNode): List[RecordedMarkupFrame]
+  def listRecordedMarkupBytes(r: ServiceResultNode): List[RecordedMarkupBytes]
+  def listRecordedMarkupMs(r: ServiceResultNode): List[RecordedMarkupMilliseconds]
   def listRemoteEncoderState(r: ServiceResultNode): List[RemoteEncoderState]
   def listStorageGroupDir(r: ServiceResultNode): List[StorageGroupDir]
   def listString(r: ServiceResultNode): List[String]
@@ -230,6 +233,18 @@ trait ServiceResultReaderImplicits {
   implicit object RecordedIdReader extends ServiceResultReader[RecordedId] {
     def read(r: ServiceResultNode): RecordedId = converter.recordedId(r)
     override def defaultField = "int"
+  }
+
+  implicit object RecordedMarkupListReader extends ServiceResultReader[List[RecordedMarkupFrame]] {
+    def read(r: ServiceResultNode): List[RecordedMarkupFrame] = converter.listRecordedMarkup(r)
+  }
+
+  implicit object RecordedMarkupBytesListReader extends ServiceResultReader[List[RecordedMarkupBytes]] {
+    def read(r: ServiceResultNode): List[RecordedMarkupBytes] = converter.listRecordedMarkupBytes(r)
+  }
+
+  implicit object RecordedMarkupMsListReader extends ServiceResultReader[List[RecordedMarkupMilliseconds]] {
+    def read(r: ServiceResultNode): List[RecordedMarkupMilliseconds] = converter.listRecordedMarkupMs(r)
   }
 
   implicit object RecordingReader extends ServiceResultReader[Recording] {
