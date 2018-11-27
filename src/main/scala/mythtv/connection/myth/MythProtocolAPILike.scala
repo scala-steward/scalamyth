@@ -503,8 +503,15 @@ private[myth] trait MythProtocolAPILike {
     val fileName = if (outputFile.isEmpty) "<EMPTY>" else outputFile
     val hasExtra = time.pos != -1 || outputFile.nonEmpty || width != 0 || height != 0
 
+    // Convert milliseconds to seconds here as a convenience.
+    // This Myth protocol API only accepts time values in seconds and frames.
+    val timeIn = time match {
+      case VideoPositionMilliseconds(ms) => VideoPositionSeconds(ms / 1000)
+      case pos => pos
+    }
+
     val result =
-      if (hasExtra) sendCommand("QUERY_GENPIXMAP2", sentToken, rec, time.units, time, fileName, width, height)
+      if (hasExtra) sendCommand("QUERY_GENPIXMAP2", sentToken, rec, timeIn.units, timeIn, fileName, width, height)
       else          sendCommand("QUERY_GENPIXMAP2", sentToken, rec)
 
     result map { case r: Boolean => r }
