@@ -5,6 +5,8 @@ package http
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
+import scala.util.Try
+
 import model._
 import services.{ DvrService, PagedList, ServiceResult }
 import services.Service.ServiceFailure.ServiceNoResult
@@ -219,6 +221,35 @@ trait AbstractDvrService extends ServiceProtocol with DvrService {
   def undeleteRecording(recordedId: RecordedId): ServiceResult[Boolean] = recordedId match {
     case RecordedIdInt(id) => post("UnDeleteRecording", Map("RecordedId" -> id))("bool")
     case RecordedIdChanTime(chanId, startTime) => undeleteRecording(chanId, startTime)
+  }
+
+  // Verify that the RecordedId of this Recording is of type RecordedIdInt
+  private def validRecordedId(rec: Recording): ServiceResult[RecordedId] = Try {
+    rec.recordedId match {
+      case RecordedIdInt(_) => rec.recordedId
+      case RecordedIdChanTime(_, _) =>
+        throw new IllegalArgumentException("recording does not have a valid integer recordedId")
+    }
+  }
+
+  def stopRecording(recordedId: RecordedId): ServiceResult[Boolean] = recordedId match {
+    case RecordedIdInt(id) => post("StopRecording", Map("RecordedId" -> id))()
+    case RecordedIdChanTime(chanId, startTime) =>
+      for {
+        rec <- getRecorded(chanId, startTime) // TODO does this work for an in progress recording?
+        recordedId <- validRecordedId(rec)
+        result <- stopRecording(recordedId)
+      } yield result
+  }
+
+  def reactivateRecording(recordedId: RecordedId): ServiceResult[Boolean] = recordedId match {
+    case RecordedIdInt(id) => post("ReactivateRecording", Map("RecordedId" -> id))()
+    case RecordedIdChanTime(chanId, startTime) =>
+      for {
+        rec <- getRecorded(chanId, startTime)
+        recordedId <- validRecordedId(rec)
+        result <- reactivateRecording(recordedId)
+      } yield result
   }
 
   // All parameters are technically optional and will be filled in with defaults?

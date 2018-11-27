@@ -104,6 +104,12 @@ trait DvrService extends BackendService {
 
   def undeleteRecording(recordedId: RecordedId): ServiceResult[Boolean]
 
+  // stopRecording is new for MythTV 29
+  def stopRecording(recordedId: RecordedId): ServiceResult[Boolean]
+
+  // reactivateRecording is new for MythTV 29
+  def reactivateRecording(recordedId: RecordedId): ServiceResult[Boolean]
+
   def addRecordSchedule(rule: RecordRule): ServiceResult[RecordRuleId]
 
   def updateRecordSchedule(rule: RecordRule): ServiceResult[Boolean]
