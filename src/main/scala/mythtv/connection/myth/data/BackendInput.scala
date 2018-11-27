@@ -16,7 +16,7 @@ private[myth] class BackendInput(data: Seq[String], fieldOrder: IndexedSeq[Strin
   override def toString: String = s"<BackendInput $inputId $sourceId $name>"
 
   def inputId       = InputId(fields("inputId").toInt)
-  def cardId        = CaptureCardId(fields("cardId").toInt)
+  def cardId        = CaptureCardId(fields.getOrElse("cardId", fields("inputId")).toInt)
   def sourceId      = ListingSourceId(fields("sourceId").toInt)
   def chanId        = optionalNonZeroIntField("chanId") map ChanId.apply
   def mplexId       = optionalNonZeroIntField("mplexId") map MultiplexId
