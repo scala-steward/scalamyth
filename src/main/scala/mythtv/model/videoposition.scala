@@ -63,10 +63,10 @@ object VideoPositionSeconds extends GenericVideoPositionCompanion[VideoPositionS
 object VideoPositionMilliseconds extends GenericVideoPositionCompanion[VideoPositionMilliseconds]
 object VideoPositionBytes extends GenericVideoPositionCompanion[VideoPositionBytes]
 
-trait VideoSegment {
-  def start: VideoPositionFrame
-  def end: VideoPositionFrame
-  override def toString: String = start.pos + ":" + end.pos
+trait VideoSegment[VP <: VideoPosition] {
+  def start: VP
+  def end: VP
+  override def toString: String = start.pos + ":" + end.pos + start.units
 }
 
 trait RecordedMarkup[VP <: VideoPosition] {

@@ -1569,7 +1569,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     else Left(MythProtocolNoResult)
   }
 
-  protected def handleQueryCommBreak(request: BackendRequest, response: BackendResponse): MythProtocolResult[List[VideoSegment]] = {
+  protected def handleQueryCommBreak(request: BackendRequest, response: BackendResponse): MythProtocolResult[List[VideoSegmentFrames]] = {
     val items = response.split
     Try {
       val count = deserialize[Int](items(0))
@@ -1590,7 +1590,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     }
   }
 
-  protected def handleQueryCutList(request: BackendRequest, response: BackendResponse): MythProtocolResult[List[VideoSegment]] = {
+  protected def handleQueryCutList(request: BackendRequest, response: BackendResponse): MythProtocolResult[List[VideoSegmentFrames]] = {
     val items = response.split
     Try {
       val count = deserialize[Int](items(0))

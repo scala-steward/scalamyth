@@ -3,12 +3,12 @@ package connection
 package myth
 package data
 
-import model.{ VideoPositionFrame, VideoSegment }
+import model.{ VideoPositionFrame, VideoSegmentFrames }
 
 private[myth] case class BackendVideoSegment(
   start: VideoPositionFrame,
   end: VideoPositionFrame
-) extends VideoSegment {
+) extends VideoSegmentFrames {
 
   override def toString: String = productPrefix + "(" + super.toString + ")"
 }

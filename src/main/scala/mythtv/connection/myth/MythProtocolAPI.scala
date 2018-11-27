@@ -62,8 +62,8 @@ trait MythProtocolAPI {
   def queryActiveBackends: MythProtocolResult[List[String]]
   def queryBookmark(chanId: ChanId, startTime: MythDateTime): MythProtocolResult[VideoPositionFrame]
   def queryCheckFile(rec: Recording, checkSlaves: Boolean = true): MythProtocolResult[String]
-  def queryCommBreak(chanId: ChanId, startTime: MythDateTime): MythProtocolResult[List[VideoSegment]]
-  def queryCutList(chanId: ChanId, startTime: MythDateTime): MythProtocolResult[List[VideoSegment]]
+  def queryCommBreak(chanId: ChanId, startTime: MythDateTime): MythProtocolResult[List[VideoSegmentFrames]]
+  def queryCutList(chanId: ChanId, startTime: MythDateTime): MythProtocolResult[List[VideoSegmentFrames]]
   def queryFileExists(fileName: String, storageGroup: String = ""): MythProtocolResult[(String, FileStats)]
   def queryFileHash(fileName: String, storageGroup: String, hostName: String = ""): MythProtocolResult[MythFileHash]
   def queryFileTransferDone(ftId: FileTransferId): Unit

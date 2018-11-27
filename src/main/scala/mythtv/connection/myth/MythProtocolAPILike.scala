@@ -414,14 +414,14 @@ private[myth] trait MythProtocolAPILike {
     result map { case s: String => s }
   }
 
-  def queryCommBreak(chanId: ChanId, startTime: MythDateTime): MythProtocolResult[List[VideoSegment]] = {
+  def queryCommBreak(chanId: ChanId, startTime: MythDateTime): MythProtocolResult[List[VideoSegmentFrames]] = {
     val result = sendCommand("QUERY_COMMBREAK", chanId, startTime)
-    result map { case xs: List[_] => xs.asInstanceOf[List[VideoSegment]] }
+    result map { case xs: List[_] => xs.asInstanceOf[List[VideoSegmentFrames]] }
   }
 
-  def queryCutList(chanId: ChanId, startTime: MythDateTime): MythProtocolResult[List[VideoSegment]] = {
+  def queryCutList(chanId: ChanId, startTime: MythDateTime): MythProtocolResult[List[VideoSegmentFrames]] = {
     val result = sendCommand("QUERY_CUTLIST", chanId, startTime)
-    result map { case xs: List[_] => xs.asInstanceOf[List[VideoSegment]] }
+    result map { case xs: List[_] => xs.asInstanceOf[List[VideoSegmentFrames]] }
   }
 
   def queryFileExists(fileName: String, storageGroup: String): MythProtocolResult[(String, FileStats)] = {

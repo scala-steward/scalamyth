@@ -5,4 +5,5 @@ package object model {
   type FrontendActionMap = Map[Action, String]
   type RecordedMarkupBytes = RecordedMarkup[VideoPositionBytes]
   type RecordedMarkupFrame = RecordedMarkup[VideoPositionFrame]
+  type VideoSegmentFrames = VideoSegment[VideoPositionFrame]
 }
