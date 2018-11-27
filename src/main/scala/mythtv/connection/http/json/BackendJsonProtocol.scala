@@ -1431,10 +1431,17 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
       "HostName"         -> JsString(v.hostName),
       "AddDate"          -> JsString(v.addedDate.map(_.toString).getOrElse("")),
       "Watched"          -> JsString(v.watched.toString),
+      "Processed"        -> JsString(v.processed.toString),
       "UserRating"       -> JsString(v.userRating.toString),
       "Certification"    -> JsString(v.rating),
       "Collectionref"    -> JsString(v.collectionRef.getOrElse(-1).toString),
-      "ReleaseDate"      -> JsString(v.releasedDate.map(_.toString).getOrElse(""))
+      "ReleaseDate"      -> JsString(v.releasedDate.map(_.toString).getOrElse("")),
+      "Trailer"          -> JsString(v.trailer),
+      "Coverart"         -> JsString(v.coverFile),
+      "Screenshot"       -> JsString(v.screenshot),
+      "Banner"           -> JsString(v.banner),
+      "Fanart"           -> JsString(v.fanart)
+      // TODO write out any artworkInfo
     ))
 
     def read(value: JsValue): Video = {
@@ -1461,11 +1468,16 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
         def hostName        = obj.stringField("HostName")
         def addedDate       = obj.dateTimeFieldOption("AddDate") map (_.toInstant)
         def watched         = obj.booleanField("Watched")
+        def processed       = obj.booleanField("Processed")
         def userRating      = obj.doubleField("UserRating")
         def rating          = obj.stringField("Certification")
         def collectionRef   = obj.intFieldOption("Collectionref", -1)
         def releasedDate    = obj.dateTimeFieldOption("ReleaseDate").map(_.toLocalDateTime().toLocalDate)
-
+        def trailer         = obj.stringField("Trailer")
+        def coverFile       = obj.stringField("Coverart")
+        def screenshot      = obj.stringField("Screenshot")
+        def banner          = obj.stringField("Banner")
+        def fanart          = obj.stringField("Fanart")
         def artworkInfo     = obj.fields("Artwork").asJsObject.fields("ArtworkInfos").convertTo[List[ArtworkInfo]]
       }
     }

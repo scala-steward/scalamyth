@@ -23,23 +23,23 @@ trait Video extends ProgramVideoBase with InternetMetadata with HasArtworkInfo {
   def hostName: String
   def addedDate: Option[Instant]  // database stores timestamp; VideoService returns valid date portion only
   def watched: Boolean
+  def processed: Boolean
   def userRating: Double
   def rating: String       // This is MPPA or some such rating/certification
   def collectionRef: Option[Int]
   def releasedDate: Option[LocalDate]
+  def trailer: String
+  def coverFile: String
+  def screenshot: String
+  def banner: String
+  def fanart: String
 
   // Fields in the 'videometadata' DB table but not serialized? (at least not directly)
   // def showLevel: Int        // not serialized in JSON ?
   // def childId: Int          // not serialized in JSON ?
   // def browse: Boolean       // not serialized in JSON ?
-  // def processed: Boolean    // not serialized in JSON ?
   // def playCommand: String   // not serialized in JSON ?
   // def category: Int         // not serialized in JSON ?
-  // def trailer: String       // not serialized in JSON ?
-  // def coverfile: String     // not serialized in JSON ?
-  // def screenshot: String    // not serialized in JSON ?
-  // def banner: String        // not serialized in JSON ?
-  // def fanart: String        // not serialized in JSON ?
 
   override def toString: String = s"<Video $id $combinedTitle>"
 }
