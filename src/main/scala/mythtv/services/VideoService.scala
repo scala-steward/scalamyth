@@ -1,9 +1,11 @@
 package mythtv
 package services
 
-import util.OptionalCount
-import model.{ BlurayInfo, MetadataGrabberType, VideoId, Video, VideoLookup }
-import model.EnumTypes.MetadataGrabberType
+import java.time.{ Duration, Instant, LocalDate, Year }
+
+import util.{ MythFileHash, OptionalCount }
+import model.{ BlurayInfo, MetadataGrabberType, Video, VideoId, VideoLookup }
+import model.EnumTypes.{ MetadataGrabberType, ParentalLevel, VideoContentType }
 
 trait VideoService extends BackendService {
   final def serviceName: String = "Video"
@@ -79,4 +81,49 @@ trait VideoService extends BackendService {
 
   /* Added to API on 6 Apr 2016 */
   def updateVideoWatchedStatus(videoId: VideoId, watched: Boolean): ServiceResult[Boolean]
+
+  // updateVideoMetadata is new for MythTV 29
+  def updateVideoMetadata(video: Video): ServiceResult[Boolean]
+  def updateVideoMetadata(videoId: VideoId, lookup: VideoLookup): ServiceResult[Boolean]
+
+  def updateVideoMetadata(
+    videoId: VideoId,
+    title: Option[String] = None,
+    subTitle: Option[String] = None,
+    tagLine: Option[String] = None,
+    director: Option[String] = None,
+    studio: Option[String] = None,
+    plot: Option[String] = None,
+    season: Option[Int] = None,
+    episode: Option[Int] = None,
+    rating: Option[String] = None,
+    inetRef: Option[String] = None,
+    homePage: Option[String] = None,
+    year: Option[Year] = None,
+    releasedDate: Option[LocalDate] = None,
+    userRating: Option[Double] = None,
+    length: Option[Duration] = None,
+    playCount: Option[Int] = None,
+    fileName: Option[String] = None,
+    hostName: Option[String] = None,
+    hash: Option[MythFileHash] = None,
+    parentalLevel: Option[ParentalLevel] = None,
+    browse: Option[Boolean] = None,
+    watched: Option[Boolean] = None,
+    processed: Option[Boolean] = None,
+    playCommand: Option[String] = None,
+    collectionRef: Option[Int] = None,
+    childId: Option[Int] = None,
+    categoryId: Option[Int] = None,
+    trailer: Option[String] = None,
+    coverFile: Option[String] = None,
+    screenshot: Option[String] = None,
+    banner: Option[String] = None,
+    fanart: Option[String] = None,
+    addedDate: Option[Instant] = None,
+    contentType: Option[VideoContentType] = None,
+    cast: List[String] = Nil,
+    genres: List[String] = Nil,
+    countries: List[String] = Nil
+  ): ServiceResult[Boolean]
 }
