@@ -30,5 +30,5 @@ trait ArtworkItem extends ArtworkBase {
 }
 
 trait HasArtworkInfo {
-  def artworkInfo: List[ArtworkInfo]  // TODO Better as a MAP keyed by artworkType?
+  def artworkInfo: List[ArtworkInfo]  // TODO Better as a MAP keyed by artworkType? It would need to be Map[String, List[ArtworkInfo]]
 }
