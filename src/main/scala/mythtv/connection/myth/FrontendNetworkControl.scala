@@ -12,11 +12,11 @@ import EnumTypes.PlaybackSpeed
 
 object PlaybackSpeed extends Enumeration {
   type PlaybackSpeed = Value
-  val Normal    = Value("1x")
-  val OneHalf   = Value("1/2x")
-  val OneThird  = Value("1/3x")
-  val OneFourth = Value("1/4x")
-  val OneEighth = Value("1/8x")
+  final val Normal    = Value("1x")
+  final val OneHalf   = Value("1/2x")
+  final val OneThird  = Value("1/3x")
+  final val OneFourth = Value("1/4x")
+  final val OneEighth = Value("1/8x")
 }
 
 trait FrontendJumper extends PartialFunction[JumpPoint, Boolean] {

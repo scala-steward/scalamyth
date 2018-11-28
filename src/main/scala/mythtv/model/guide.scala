@@ -46,8 +46,8 @@ trait ProgramGuideEntry extends Program {
 
 object ListingSourceType extends LooseEnum {
   type ListingSourceType = Value
-  val EIT             = Value(0x01)
-  val SchedulesDirect = Value(0x02)
-  val XMLTV           = Value(0x04)
-  val DBOX2EPG        = Value(0x08)
+  final val EIT             = Value(0x01)
+  final val SchedulesDirect = Value(0x02)
+  final val XMLTV           = Value(0x04)
+  final val DBOX2EPG        = Value(0x08)
 }

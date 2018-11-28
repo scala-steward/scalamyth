@@ -109,29 +109,29 @@ trait SignalMonitorValue {
 
 object ChannelBrowseDirection extends LooseEnum {
   type ChannelBrowseDirection = Value
-  val Invalid   = Value(-1)
-  val Same      = Value(0)  // Current channel and time
-  val Up        = Value(1)  // Previous channel
-  val Down      = Value(2)  // Next channel
-  val Left      = Value(3)  // Current channel in the past
-  val Right     = Value(4)  // Current channel in the future
-  val Favorite  = Value(5)  // Next favorite channel
+  final val Invalid   = Value(-1)
+  final val Same      = Value(0)  // Current channel and time
+  final val Up        = Value(1)  // Previous channel
+  final val Down      = Value(2)  // Next channel
+  final val Left      = Value(3)  // Current channel in the past
+  final val Right     = Value(4)  // Current channel in the future
+  final val Favorite  = Value(5)  // Next favorite channel
 }
 
 object ChannelChangeDirection extends LooseEnum {
   type ChannelChangeDirection = Value
-  val Up        = Value(0)
-  val Down      = Value(1)
-  val Favorite  = Value(2)
-  val Same      = Value(3)
+  final val Up        = Value(0)
+  final val Down      = Value(1)
+  final val Favorite  = Value(2)
+  final val Same      = Value(3)
 }
 
 object PictureAdjustType extends LooseEnum {
   type PictureAdjustType = Value
-  val None      = Value(0)
-  val Playback  = Value(1)
-  val Channel   = Value(2)
-  val Recording = Value(3)
+  final val None      = Value(0)
+  final val Playback  = Value(1)
+  final val Channel   = Value(2)
+  final val Recording = Value(3)
 }
 
 /* We explicitly specify the names for the values here because the reflection
@@ -139,16 +139,16 @@ object PictureAdjustType extends LooseEnum {
    we use the withName() method to translate state strings to values, so the
    names specified here must match those in MythTV's StateToString */
 private[model] abstract class AbstractTvStateEnum extends LooseEnum {
-  val Error               = Value(-1, "Error")
-  val None                = Value( 0, "None")
-  val WatchingLiveTv      = Value( 1, "WatchingLiveTV")
-  val WatchingPreRecorded = Value( 2, "WatchingPreRecorded")
-  val WatchingVideo       = Value( 3, "WatchingVideo")
-  val WatchingDvd         = Value( 4, "WatchingDVD")
-  val WatchingBd          = Value( 5, "WatchingBD")
-  val WatchingRecording   = Value( 6, "WatchingRecording")
-  val RecordingOnly       = Value( 7, "RecordingOnly")
-  val ChangingState       = Value( 8, "ChangingState")
+  final val Error               = Value(-1, "Error")
+  final val None                = Value( 0, "None")
+  final val WatchingLiveTv      = Value( 1, "WatchingLiveTV")
+  final val WatchingPreRecorded = Value( 2, "WatchingPreRecorded")
+  final val WatchingVideo       = Value( 3, "WatchingVideo")
+  final val WatchingDvd         = Value( 4, "WatchingDVD")
+  final val WatchingBd          = Value( 5, "WatchingBD")
+  final val WatchingRecording   = Value( 6, "WatchingRecording")
+  final val RecordingOnly       = Value( 7, "RecordingOnly")
+  final val ChangingState       = Value( 8, "ChangingState")
 }
 
 object TvState extends AbstractTvStateEnum {
@@ -157,9 +157,9 @@ object TvState extends AbstractTvStateEnum {
 
 object SleepStatus extends LooseEnum {
   type SleepStatus = Value
-  val Awake         = Value(0x0)
-  val Asleep        = Value(0x1)
-  val FallingAsleep = Value(0x3)
-  val Waking        = Value(0x5)
-  val Undefined     = Value(0x8)
+  final val Awake         = Value(0x0)
+  final val Asleep        = Value(0x1)
+  final val FallingAsleep = Value(0x3)
+  final val Waking        = Value(0x5)
+  final val Undefined     = Value(0x8)
 }

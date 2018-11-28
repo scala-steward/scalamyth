@@ -53,12 +53,12 @@ object LiveStream {
 
 object LiveStreamStatus extends LooseEnum {
   type LiveStreamStatus = Value
-  val Undefined  = Value(-1)
-  val Queued     = Value(0)
-  val Starting   = Value(1)
-  val Running    = Value(2)
-  val Completed  = Value(3)
-  val Errored    = Value(4)
-  val Stopping   = Value(5)
-  val Stopped    = Value(6)
+  final val Undefined  = Value(-1)
+  final val Queued     = Value(0)
+  final val Starting   = Value(1)
+  final val Running    = Value(2)
+  final val Completed  = Value(3)
+  final val Errored    = Value(4)
+  final val Stopping   = Value(5)
+  final val Stopped    = Value(6)
 }

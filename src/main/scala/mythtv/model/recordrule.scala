@@ -111,10 +111,10 @@ trait RecRuleFilterItem {   // these are elements of a "dynamic enum", defined i
 
 object DupCheckIn extends IntBitmaskEnum /* with EnumWithDescription[DupCheckIn#Base] */ {
   type DupCheckIn = Base
-  val Recorded      = Value(0x01)
-  val OldRecorded   = Value(0x02)
-  val All           =  Mask(0x0f)
-  val NewEpisodes   = Value(0x10)  // this should always be combined with DupsInAll ??
+  final val Recorded      = Value(0x01)
+  final val OldRecorded   = Value(0x02)
+  final val All           =  Mask(0x0f)
+  final val NewEpisodes   = Value(0x10)  // this should always be combined with DupsInAll ??
 
   private val id2Description: Map[Base, String] = Map(
     DupCheckIn.Recorded    -> "Current Recordings",
@@ -131,11 +131,11 @@ object DupCheckIn extends IntBitmaskEnum /* with EnumWithDescription[DupCheckIn#
 
 object DupCheckMethod extends IntBitmaskEnum /* with EnumWithDescription[DupCheckMethod#Base] */ {
   type DupCheckMethod = Base
-  val None             = Value(0x01)
-  val Subtitle         = Value(0x02)
-  val Description      = Value(0x04)
-  val SubtitleDesc     =  Mask(0x06)
-  val SubtitleThenDesc = Value(0x08) // subtitle, then description
+  final val None             = Value(0x01)
+  final val Subtitle         = Value(0x02)
+  final val Description      = Value(0x04)
+  final val SubtitleDesc     =  Mask(0x06)
+  final val SubtitleThenDesc = Value(0x08) // subtitle, then description
 
   private val id2Description: Map[DupCheckMethod, String] = Map(
     DupCheckMethod.None             -> "None",
@@ -153,12 +153,12 @@ object DupCheckMethod extends IntBitmaskEnum /* with EnumWithDescription[DupChec
 
 object RecSearchType extends LooseEnum /* with EnumWithDescription[RecSearchType#Value] */ {
   type RecSearchType = Value
-  val NoSearch      = Value(0)
-  val PowerSearch   = Value(1)
-  val TitleSearch   = Value(2)
-  val KeywordSearch = Value(3)
-  val PeopleSearch  = Value(4)
-  val ManualSearch  = Value(5)
+  final val NoSearch      = Value(0)
+  final val PowerSearch   = Value(1)
+  final val TitleSearch   = Value(2)
+  final val KeywordSearch = Value(3)
+  final val PeopleSearch  = Value(4)
+  final val ManualSearch  = Value(5)
 
   private val id2Description: Map[Value, String] = Map(
     RecSearchType.NoSearch      -> "None",
@@ -176,27 +176,27 @@ object RecSearchType extends LooseEnum /* with EnumWithDescription[RecSearchType
 
 object RecType extends LooseEnum /* with EnumWithDescription[RecType#Value] */ {
   type RecType = Value
-  val NotRecording     = Value(0)
-  val SingleRecord     = Value(1)
-  val DailyRecord      = Value(2)
+  final val NotRecording     = Value(0)
+  final val SingleRecord     = Value(1)
+  final val DailyRecord      = Value(2)
   @deprecated("use DailyRecord + 'this time' filter", "MythTV 0.27")
-  val TimeslotRecord   = DailyRecord
+  final val TimeslotRecord   = DailyRecord
   @deprecated("use 'this channel' filter", "MythTV 0.27")
-  val ChannelRecord    = Value(3)
-  val AllRecord        = Value(4)
-  val WeeklyRecord     = Value(5)
+  final val ChannelRecord    = Value(3)
+  final val AllRecord        = Value(4)
+  final val WeeklyRecord     = Value(5)
   @deprecated("use WeeklyRecord + 'this day and time' filter", "MythTV 0.27")
-  val WeekslotRecord   = WeeklyRecord
-  val OneRecord        = Value(6)
+  final val WeekslotRecord   = WeeklyRecord
+  final val OneRecord        = Value(6)
   @deprecated("", "")
-  val FindOneRecord    = OneRecord
-  val OverrideRecord   = Value(7)
-  val DontRecord       = Value(8)
+  final val FindOneRecord    = OneRecord
+  final val OverrideRecord   = Value(7)
+  final val DontRecord       = Value(8)
   @deprecated("", "MythTV 0.27")
-  val FindDailyRecord  = Value(9)
+  final val FindDailyRecord  = Value(9)
   @deprecated("", "MythTV 0.27")
-  val FindWeeklyRecord = Value(10)
-  val TemplateRecord   = Value(11)
+  final val FindWeeklyRecord = Value(10)
+  final val TemplateRecord   = Value(11)
 
   // TODO this description mapping is tricker because the map may have duplicate keys!
   //   (see libs/libmyth/recordingtypes.cpp: toRawString(RecordingType)

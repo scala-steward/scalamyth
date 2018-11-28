@@ -98,10 +98,10 @@ object SystemEvent {
 
 object MythProtocolEventMode extends Enumeration {
   type MythProtocolEventMode = Value
-  val None       = Value(0)
-  val Normal     = Value(1)
-  val NonSystem  = Value(2)
-  val SystemOnly = Value(3)
+  final val None       = Value(0)
+  final val Normal     = Value(1)
+  final val NonSystem  = Value(2)
+  final val SystemOnly = Value(3)
 }
 
 private[myth] trait EventParser {

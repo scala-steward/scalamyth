@@ -15,9 +15,9 @@ final case class ImageSyncStatus(running: Boolean, progress: Int, total: Int)
 
 object ImageFileTransform extends LooseEnum {
   type ImageFileTransform = Value
-  val ResetToExif            = Value(0)
-  val RotateClockwise        = Value(1)
-  val RotateCounterClockwise = Value(2)
-  val FlipHorizontal         = Value(3)
-  val FlipVertical           = Value(4)
+  final val ResetToExif            = Value(0)
+  final val RotateClockwise        = Value(1)
+  final val RotateCounterClockwise = Value(2)
+  final val FlipHorizontal         = Value(3)
+  final val FlipVertical           = Value(4)
 }

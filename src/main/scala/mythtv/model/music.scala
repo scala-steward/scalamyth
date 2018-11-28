@@ -40,12 +40,12 @@ trait RemoteSong {
 
 object MusicImageType extends LooseEnum {
   type MusicImageType = Value
-  val Unknown    = Value(0)
-  val FrontCover = Value(1)
-  val BackCover  = Value(2)
-  val CD         = Value(3)
-  val Inlay      = Value(4)
-  val Artist     = Value(5)
+  final val Unknown    = Value(0)
+  final val FrontCover = Value(1)
+  final val BackCover  = Value(2)
+  final val CD         = Value(3)
+  final val Inlay      = Value(4)
+  final val Artist     = Value(5)
 }
 
 trait AlbumArtImage {

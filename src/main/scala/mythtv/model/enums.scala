@@ -46,9 +46,9 @@ trait EnumWithDescription[T] {
 
 object MetadataGrabberType extends Enumeration {
   type MetadataGrabberType = Value
-  val Unknown    = Value
-  val Movie      = Value
-  val Television = Value
-  val Music      = Value
-  val Game       = Value
+  final val Unknown    = Value
+  final val Movie      = Value
+  final val Television = Value
+  final val Music      = Value
+  final val Game       = Value
 }

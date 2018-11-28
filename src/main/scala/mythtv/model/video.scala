@@ -115,10 +115,10 @@ object ParentalLevel extends LooseEnum {
 
 object VideoContentType extends Enumeration {
   type VideoContentType = Value
-  val Unknown    = Value("UNKNOWN")
-  val Movie      = Value("MOVIE")
-  val Television = Value("TELEVISION")
-  val Adult      = Value("ADULT")
-  val MusicVideo = Value("MUSICVIDEO")
-  val HomeVideo  = Value("HOMEVIDEO")
+  final val Unknown    = Value("UNKNOWN")
+  final val Movie      = Value("MOVIE")
+  final val Television = Value("TELEVISION")
+  final val Adult      = Value("ADULT")
+  final val MusicVideo = Value("MUSICVIDEO")
+  final val HomeVideo  = Value("HOMEVIDEO")
 }

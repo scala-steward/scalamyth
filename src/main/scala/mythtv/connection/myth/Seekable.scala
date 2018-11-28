@@ -6,9 +6,9 @@ import EnumTypes.SeekWhence
 
 object SeekWhence extends Enumeration {
   type SeekWhence = Value
-  val Begin      = Value(0)
-  val Current    = Value(1)
-  val End        = Value(2)
+  final val Begin      = Value(0)
+  final val Current    = Value(1)
+  final val End        = Value(2)
 }
 
 trait Seekable {

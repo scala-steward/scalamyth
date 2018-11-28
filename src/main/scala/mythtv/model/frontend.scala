@@ -17,41 +17,41 @@ trait FrontendStatus {
 // Note that this inherits many enumeration vals from AbstractTvStateEnum
 object FrontendState extends AbstractTvStateEnum {
   type FrontendState = Value
-  val Idle    = Value("idle")
-  val Standby = Value("standby")
+  final val Idle    = Value("idle")
+  final val Standby = Value("standby")
 }
 
 object NotificationType extends LooseEnum {
   type NotificationType = Value
-  val New     = Value
-  val Error   = Value
-  val Warning = Value
-  val Info    = Value
-  val Update  = Value
-  val Check   = Value
-  val Busy    = Value
+  final val New     = Value
+  final val Error   = Value
+  final val Warning = Value
+  final val Info    = Value
+  final val Update  = Value
+  final val Check   = Value
+  final val Busy    = Value
 }
 
 object NotificationPriority extends LooseEnum {
   type NotificationPriority = Value
-  val Default  = Value(0)
-  val Low      = Value(1)
-  val Medium   = Value(2)
-  val High     = Value(3)
-  val Higher   = Value(4)
-  val Highest  = Value(5)
+  final val Default  = Value(0)
+  final val Low      = Value(1)
+  final val Medium   = Value(2)
+  final val High     = Value(3)
+  final val Higher   = Value(4)
+  final val Highest  = Value(5)
 }
 
 object NotificationVisibility extends IntBitmaskEnum {
   type NotificationVisibility = Base
-  val None       =  Mask(0)
-  val All        =  Mask(~None)
-  val Playback   = Value(0x01)
-  val Settings   = Value(0x02)
-  val Wizard     = Value(0x04)
-  val Videos     = Value(0x08)
-  val Music      = Value(0x10)
-  val Recordings = Value(0x20)
+  final val None       =  Mask(0)
+  final val All        =  Mask(~None)
+  final val Playback   = Value(0x01)
+  final val Settings   = Value(0x02)
+  final val Wizard     = Value(0x04)
+  final val Videos     = Value(0x08)
+  final val Music      = Value(0x10)
+  final val Recordings = Value(0x20)
 }
 
 sealed trait ScreenshotFormat { def formatString: String }

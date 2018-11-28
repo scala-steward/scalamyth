@@ -165,6 +165,6 @@ trait VideoMultiplex {
 /* as set in the commmethod field of the channel table in the database */
 object ChannelCommDetectMethod extends LooseEnum {
   type ChannelCommDetectMethod = Value
-  val CommFree      = Value(-2)
-  val Uninitialized = Value(-1)
+  final val CommFree      = Value(-2)
+  final val Uninitialized = Value(-1)
 }
