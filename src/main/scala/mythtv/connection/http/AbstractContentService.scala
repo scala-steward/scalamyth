@@ -37,7 +37,7 @@ trait AbstractContentService extends ServiceProtocol with ContentService {
     request("GetLiveStreamList", params)("LiveStreamInfoList", "LiveStreamInfos")
   }
 
-  def getFile[U](storageGroup: String, fileName: String)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
+  def getFile[U](storageGroup: String, fileName: String)(f: HttpStreamResponse => U): ServiceResult[Unit] = {
     val params: Map[String, Any] = Map(
       "StorageGroup" -> storageGroup,
       "FileName"     -> fileName
@@ -48,7 +48,7 @@ trait AbstractContentService extends ServiceProtocol with ContentService {
     }
   }
 
-  def getImageFile[U](storageGroup: String, fileName: String, width: Int, height: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
+  def getImageFile[U](storageGroup: String, fileName: String, width: Int, height: Int)(f: HttpStreamResponse => U): ServiceResult[Unit] = {
     var params: Map[String, Any] = Map(
       "StorageGroup" -> storageGroup,
       "FileName"     -> fileName
@@ -61,7 +61,7 @@ trait AbstractContentService extends ServiceProtocol with ContentService {
     }
   }
 
-  def getMusic[U](id: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
+  def getMusic[U](id: Int)(f: HttpStreamResponse => U): ServiceResult[Unit] = {
     val params: Map[String, Any] = Map("Id" -> id)
     Try {
       val response = requestStream("GetMusic", params)
@@ -69,7 +69,7 @@ trait AbstractContentService extends ServiceProtocol with ContentService {
     }
   }
 
-  def getRecording[U](chanId: ChanId, startTime: MythDateTime)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
+  def getRecording[U](chanId: ChanId, startTime: MythDateTime)(f: HttpStreamResponse => U): ServiceResult[Unit] = {
     val params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
     Try {
       val response = requestStream("GetRecording", params)
@@ -77,7 +77,7 @@ trait AbstractContentService extends ServiceProtocol with ContentService {
     }
   }
 
-  def getRecording[U](recordedId: RecordedId)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = recordedId match {
+  def getRecording[U](recordedId: RecordedId)(f: HttpStreamResponse => U): ServiceResult[Unit] = recordedId match {
     case RecordedIdInt(id) =>
       val params: Map[String, Any] = Map("RecordedId" -> id)
       Try {
@@ -87,7 +87,7 @@ trait AbstractContentService extends ServiceProtocol with ContentService {
     case RecordedIdChanTime(chanId, startTime) => getRecording(chanId, startTime)(f)
   }
 
-  def getVideo[U](videoId: VideoId)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
+  def getVideo[U](videoId: VideoId)(f: HttpStreamResponse => U): ServiceResult[Unit] = {
     val params: Map[String, Any] = Map("Id" -> videoId.id)
     Try {
       val response = requestStream("GetVideo", params)
@@ -95,7 +95,7 @@ trait AbstractContentService extends ServiceProtocol with ContentService {
     }
   }
 
-  def getVideoArtwork[U](artType: String, videoId: VideoId, width: Int, height: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
+  def getVideoArtwork[U](artType: String, videoId: VideoId, width: Int, height: Int)(f: HttpStreamResponse => U): ServiceResult[Unit] = {
     var params: Map[String, Any] = Map("Type" -> artType, "Id" -> videoId.id)
     if (width != 0)  params += "Width" -> width
     if (height != 0) params += "Height" -> height
@@ -105,7 +105,7 @@ trait AbstractContentService extends ServiceProtocol with ContentService {
     }
   }
 
-  def getAlbumArt[U](id: Int, width: Int, height: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
+  def getAlbumArt[U](id: Int, width: Int, height: Int)(f: HttpStreamResponse => U): ServiceResult[Unit] = {
     var params: Map[String, Any] = Map("Id" -> id)
     if (width != 0)  params += "Width" -> width
     if (height != 0) params += "Height" -> height
@@ -115,7 +115,7 @@ trait AbstractContentService extends ServiceProtocol with ContentService {
     }
   }
 
-  def internalGetPreviewImage[U](partialParams: Map[String, Any], width: Int, height: Int, secsIn: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
+  def internalGetPreviewImage[U](partialParams: Map[String, Any], width: Int, height: Int, secsIn: Int)(f: HttpStreamResponse => U): ServiceResult[Unit] = {
     var params = partialParams
     if (width != 0)  params += "Width" -> width
     if (height != 0) params += "Height" -> height
@@ -126,17 +126,17 @@ trait AbstractContentService extends ServiceProtocol with ContentService {
     }
   }
 
-  def getPreviewImage[U](chanId: ChanId, startTime: MythDateTime, width: Int, height: Int, secsIn: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
+  def getPreviewImage[U](chanId: ChanId, startTime: MythDateTime, width: Int, height: Int, secsIn: Int)(f: HttpStreamResponse => U): ServiceResult[Unit] = {
     val params: Map[String, Any] = Map("ChanId" -> chanId.id, "StartTime" -> startTime.toIsoFormat)
     internalGetPreviewImage(params, width, height, secsIn)(f)
   }
 
-  def getPreviewImage[U](recordedId: RecordedId, width: Int, height: Int, secsIn: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = recordedId match {
+  def getPreviewImage[U](recordedId: RecordedId, width: Int, height: Int, secsIn: Int)(f: HttpStreamResponse => U): ServiceResult[Unit] = recordedId match {
     case RecordedIdInt(id) => internalGetPreviewImage(Map("RecordedId" -> id), width, height, secsIn)(f)
     case RecordedIdChanTime(chanId, startTime) => getPreviewImage(chanId, startTime, width, height, secsIn)(f)
   }
 
-  def getRecordingArtwork[U](artType: String, inetRef: String, season: Int, width: Int, height: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
+  def getRecordingArtwork[U](artType: String, inetRef: String, season: Int, width: Int, height: Int)(f: HttpStreamResponse => U): ServiceResult[Unit] = {
     var params: Map[String, Any] = Map("Type" -> artType, "Inetref" -> inetRef, "Season" -> season)
     if (width != 0)  params += "Width" -> width
     if (height != 0) params += "Height" -> height

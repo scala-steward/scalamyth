@@ -574,7 +574,7 @@ private[myth] trait MythProtocolAPILike {
     val result = sendCommand("QUERY_PIXMAP_GET_IF_MODIFIED", maxFileSize, rec)
     result map {
       case (lastModified: MythDateTime, pixmapInfo: Option[_]) =>
-        (lastModified, pixmapInfo map { case (p: PixmapInfo) => p })
+        (lastModified, pixmapInfo map { case p: PixmapInfo => p })
     }
   }
 
@@ -582,7 +582,7 @@ private[myth] trait MythProtocolAPILike {
     val result = sendCommand("QUERY_PIXMAP_GET_IF_MODIFIED", modifiedSince, maxFileSize, rec)
     result map {
       case (lastModified: MythDateTime, pixmapInfo: Option[_]) =>
-        (lastModified, pixmapInfo map { case (p: PixmapInfo) => p })
+        (lastModified, pixmapInfo map { case p: PixmapInfo => p })
     }
   }
 
@@ -896,7 +896,7 @@ private[myth] trait MythProtocolAPILike {
 
   def queryTimeZone: MythProtocolResult[TimeZoneInfo] = {
     val result = sendCommand("QUERY_TIME_ZONE")
-    result map { case (tzi: TimeZoneInfo) => tzi }
+    result map { case tzi: TimeZoneInfo => tzi }
   }
 
   def queryUptime: MythProtocolResult[Duration] = {

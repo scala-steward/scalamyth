@@ -123,7 +123,7 @@ trait AbstractGuideService extends ServiceProtocol with GuideService {
     request("GetProgramList", params)("ProgramList")
   }
 
-  def getChannelIcon[U](chanId: ChanId, width: Int, height: Int)(f: (HttpStreamResponse) => U): ServiceResult[Unit] = {
+  def getChannelIcon[U](chanId: ChanId, width: Int, height: Int)(f: HttpStreamResponse => U): ServiceResult[Unit] = {
     var params: Map[String, Any] = Map("ChanId" -> chanId.id)
     if (width != 0)  params += "Width" -> width
     if (height != 0) params += "Height" -> height

@@ -89,7 +89,7 @@ trait BackendOperations {
 
 trait FrontendOperations {
   def play(media: PlayableMedia): Boolean
-  def screenshot[U](format: ScreenshotFormat, width: Int = 0, height: Int = 0)(f: (InputStream) => U): Unit
+  def screenshot[U](format: ScreenshotFormat, width: Int = 0, height: Int = 0)(f: InputStream => U): Unit
 
   def uptime: Duration
   def loadAverages: List[Double]

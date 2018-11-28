@@ -30,7 +30,7 @@ class MythFrontend(val host: String) extends Frontend with FrontendOperations {
   def key = conn.key
 
   /* frontend http server methods (port 6547) */
-  def screenshot[U](format: ScreenshotFormat, width: Int, height: Int)(f: (InputStream) => U): Unit = {
+  def screenshot[U](format: ScreenshotFormat, width: Int, height: Int)(f: InputStream => U): Unit = {
     val feService = ServiceProvider.mythFrontendService(host)
     feService.getScreenshot(format, width, height) { response => f(response.stream) }
   }

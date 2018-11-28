@@ -21,7 +21,7 @@ trait MythFrontendService extends FrontendService {
 
   def getStatus: ServiceResult[FrontendStatus]
 
-  def getScreenshot[U](format: ScreenshotFormat = ScreenshotFormat.Png, width: Int = 0, height: Int = 0)(f: (HttpStreamResponse) => U): ServiceResult[Unit]
+  def getScreenshot[U](format: ScreenshotFormat = ScreenshotFormat.Png, width: Int = 0, height: Int = 0)(f: HttpStreamResponse => U): ServiceResult[Unit]
 
   // action methods
 

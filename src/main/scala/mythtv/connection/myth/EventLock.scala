@@ -14,7 +14,7 @@ trait EventLock {
 }
 
 object EventLock {
-  def apply(eventConn: EventConnection, eventFilter: (Event) => Boolean): EventLock =
+  def apply(eventConn: EventConnection, eventFilter: Event => Boolean): EventLock =
     new Lock(eventConn, eventFilter)
 
   /**
@@ -23,7 +23,7 @@ object EventLock {
     */
   def empty: EventLock = Empty
 
-  private final class Lock(eventConn: EventConnection, eventFilter: (Event) => Boolean)
+  private final class Lock(eventConn: EventConnection, eventFilter: Event => Boolean)
       extends EventListener with EventLock {
     private[this] val lock = new ReentrantLock
     private[this] val cond = lock.newCondition

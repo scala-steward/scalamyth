@@ -73,8 +73,8 @@ private[json] trait ServicesObjectGuideJsonFormat[C <: Channel, P <: ProgramBrie
 }
 
 private[json] trait EnumDescriptionFormat[T] extends JsonFormat[T] {
-  def id2Description: (T) => String
-  def description2Id: (String) => T
+  def id2Description: T => String
+  def description2Id: String => T
 
   def write(p: T): JsValue = JsString(id2Description(p))
   def read(value: JsValue): T = value match {
@@ -139,32 +139,32 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
   }
 
   implicit object RecSearchTypeJsonFormat extends EnumDescriptionFormat[RecSearchType] {
-    def id2Description: (RecSearchType) => String = RecSearchType.description
-    def description2Id: (String) => RecSearchType = RecSearchType.withDescription
+    def id2Description: RecSearchType => String = RecSearchType.description
+    def description2Id: String => RecSearchType = RecSearchType.withDescription
   }
 
   implicit object RecTypeJsonFormat extends EnumDescriptionFormat[RecType] {
-    def id2Description: (RecType) => String = RecType.description
-    def description2Id: (String) => RecType = RecType.withDescription
+    def id2Description: RecType => String = RecType.description
+    def description2Id: String => RecType = RecType.withDescription
   }
 
   implicit object DupCheckInJsonFormat extends EnumDescriptionFormat[DupCheckIn] {
-    def id2Description: (DupCheckIn) => String = DupCheckIn.description
-    def description2Id: (String) => DupCheckIn = DupCheckIn.withDescription
+    def id2Description: DupCheckIn => String = DupCheckIn.description
+    def description2Id: String => DupCheckIn = DupCheckIn.withDescription
   }
 
   implicit object DupCheckMethodJsonFormat extends EnumDescriptionFormat[DupCheckMethod] {
-    def id2Description: (DupCheckMethod) => String = DupCheckMethod.description
-    def description2Id: (String) => DupCheckMethod = DupCheckMethod.withDescription
+    def id2Description: DupCheckMethod => String = DupCheckMethod.description
+    def description2Id: String => DupCheckMethod = DupCheckMethod.withDescription
   }
 
   implicit object MythLogLevelJsonFormat extends EnumDescriptionFormat[MythLogLevel] {
-    def id2Description: (MythLogLevel) => String = MythLogLevel.description
-    def description2Id: (String) => MythLogLevel = MythLogLevel.withDescription
+    def id2Description: MythLogLevel => String = MythLogLevel.description
+    def description2Id: String => MythLogLevel = MythLogLevel.withDescription
   }
 
   trait IntegerIdentifierJsonFormat[T <: IntegerIdentifier] extends JsonFormat[T] {
-    def factory: (Int) => T
+    def factory: Int => T
     def write(i: T): JsValue = JsString(i.id.toString)
     def read(value: JsValue): T = {
       val i = value match {

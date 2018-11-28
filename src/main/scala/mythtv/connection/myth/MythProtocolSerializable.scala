@@ -55,21 +55,21 @@ object MythProtocolSerializable {
   }
 
   trait IntegerIdentifierSerializer[T <: IntegerIdentifier] extends MythProtocolSerializable[T] {
-    def factory: (Int) => T
+    def factory: Int => T
     def deserialize(in: String): T = factory(in.toInt)
     def serialize(in: T): String = in.id.toString
     override def serialize(in: T, builder: StringBuilder): StringBuilder = builder.append(in.id)
   }
 
   trait IntBitmaskEnumSerializer[T <: IntBitmaskEnum#Base] extends MythProtocolSerializable[T] {
-    def factory: (Int) => T
+    def factory: Int => T
     def deserialize(in: String): T = factory(in.toInt)
     def serialize(in: T): String = in.id.toString
     override def serialize(in: T, builder: StringBuilder): StringBuilder = builder.append(in.id)
   }
 
   trait EnumerationSerializer[T <: Enumeration#Value] extends MythProtocolSerializable[T] {
-    def factory: (Int) => T
+    def factory: Int => T
     def deserialize(in: String): T = factory(in.toInt)
     def serialize(in: T): String = in.id.toString
     override def serialize(in: T, builder: StringBuilder): StringBuilder = builder.append(in.id)
@@ -233,7 +233,7 @@ object MythProtocolSerializable {
   }
 
   trait IntegerIdentifierOptionSerializer[T <: IntegerIdentifier] extends MythProtocolSerializable[Option[T]] {
-    def factory: (Int) => T
+    def factory: Int => T
     def deserialize(in: String): Option[T] = { Try(in.toInt) filter (_ != 0) }.toOption map factory
     def serialize(in: Option[T]): String = if (in.isEmpty) "0" else in.get.id.toString
   }

@@ -64,7 +64,7 @@ trait GuideService extends BackendService {
     descending: Boolean = false
   ): ServiceResult[PagedList[Program]]
 
-  def getChannelIcon[U](chanId: ChanId, width: Int = 0, height: Int = 0)(f: (HttpStreamResponse) => U): ServiceResult[Unit]
+  def getChannelIcon[U](chanId: ChanId, width: Int = 0, height: Int = 0)(f: HttpStreamResponse => U): ServiceResult[Unit]
 
   // getCategoryList is new for MythTV 0.28
   def getCategoryList: ServiceResult[List[String]]

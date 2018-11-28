@@ -203,7 +203,7 @@ trait ServiceProtocol extends ServiceResultReaderImplicits {
   def requestStream(endpoint: String, params: Map[String, Any] = Map.empty): HttpStreamResponse =
     connection.request(buildPath(endpoint, params)) match { case r: HttpStreamResponse => r }
 
-  def streamResponse[U](response: HttpStreamResponse, f: (HttpStreamResponse) => U): Unit = {
+  def streamResponse[U](response: HttpStreamResponse, f: HttpStreamResponse => U): Unit = {
     try f(response)
     finally response.stream.close()
   }
