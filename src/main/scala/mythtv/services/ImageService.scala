@@ -1,7 +1,7 @@
 package mythtv
 package services
 
-import model.{ ImageId, ImageFileId, ImageSyncStatus }
+import model.{ ImageId, ImageSyncStatus }
 
 // ImageService is new with MythTV 0.28
 trait ImageService extends BackendService {

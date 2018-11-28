@@ -6,7 +6,7 @@ package json
 import spray.json.{ JsObject, JsValue, JsonFormat, jsonWriter }
 import spray.json.DefaultJsonProtocol.indexedSeqFormat
 
-import model.{ FrontendActionMap, FrontendState, FrontendStatus }
+import model.{ FrontendState, FrontendStatus }
 
 private[json] trait FrontendJsonProtocol extends CommonJsonProtocol {
   implicit object FrontendStatusJsonFormat extends JsonFormat[FrontendStatus] {

@@ -7,7 +7,7 @@ import scala.util.Try
 import model._
 import util.{ MythDateTime, MythFileHash }
 import services.{ ContentService, ServiceResult }
-import RecordedId._
+import RecordedId.{ RecordedIdInt, RecordedIdChanTime }
 
 trait AbstractContentService extends ServiceProtocol with ContentService {
 

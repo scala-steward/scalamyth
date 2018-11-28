@@ -269,7 +269,7 @@ object MythProtocolSerializable {
   }
 
   implicit object RecordedIdSerializer extends MythProtocolSerializable[RecordedId] {
-    import RecordedId._
+    import RecordedId.{ RecordedIdInt, RecordedIdChanTime }
     def deserialize(in: String): RecordedId = RecordedIdInt(in.toInt)
     def serialize(in: RecordedId): String = in match {
       case RecordedIdInt(id) => id.toString

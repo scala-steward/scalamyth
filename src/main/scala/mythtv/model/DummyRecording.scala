@@ -1,7 +1,6 @@
 package mythtv
 package model
 
-import RecordedId._
 import util.{ DecimalByteCount, MythDateTime }
 
 class DummyRecording extends Recording {

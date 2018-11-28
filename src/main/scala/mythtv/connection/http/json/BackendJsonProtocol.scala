@@ -10,7 +10,7 @@ import scala.util.{ DynamicVariable, Try }
 
 import spray.json.{ JsonFormat, RootJsonFormat, jsonWriter }
 import spray.json.{ JsNumber, JsObject, JsString, JsValue }
-import spray.json.DefaultJsonProtocol.{ listFormat, StringJsonFormat }
+import spray.json.DefaultJsonProtocol.{ StringJsonFormat, listFormat }
 
 import util.{ DecimalByteCount, MythFileHash, URIFactory }
 import services.{ IsServicesListObject, ServicesObject }
@@ -93,7 +93,6 @@ private[json] trait EnumDescriptionFormat[T] extends JsonFormat[T] {
 /* Inheriting from DefaultJsonProtocol can cause huge bytecode bloat */
 private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
   import RichJsonObject._
-  import scala.language.implicitConversions
 
   type GuideTuple = (ChannelDetails, Seq[Program])
   type GuideBriefTuple = (Channel, Seq[ProgramBrief])
@@ -183,7 +182,6 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
   implicit object RecordRuleIdJsonFormat    extends IntegerIdentifierJsonFormat[RecordRuleId]    { def factory = RecordRuleId.apply }
 
   implicit object RecordedIdJsonFormat extends RootJsonFormat[RecordedId] {
-    import RecordedId._
     def write(recordedId: RecordedId): JsValue = JsString(recordedId.idString)
     def read(value: JsValue): RecordedId = {
       // we only support reading RecordedIdInt, not RecordedIdChanTime
@@ -192,7 +190,7 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
         case JsNumber(x) => x.intValue
         case x => x.toString.toInt
       }
-      RecordedIdInt(i)
+      RecordedId.RecordedIdInt(i)
     }
   }
 
@@ -261,7 +259,7 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
   }
 
   implicit object RecordingJsonFormat extends RootJsonFormat[Recording] {
-    import RecordedId._
+    import RecordedId.{ RecordedIdInt, RecordedIdChanTime }
 
     def write(r: Recording): JsValue = {
       val rmap: Map[String, JsValue] = RecordableJsonFormat.write(r) match {
@@ -582,7 +580,7 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
   }
 
   implicit object RecordingBriefJsonFormat extends RootJsonFormat[RecordingBrief] {
-    import RecordedId._
+    import RecordedId.{ RecordedIdInt, RecordedIdChanTime }
 
     def write(r: RecordingBrief): JsValue = {
       val rmap: Map[String, JsValue] = RecordableBriefJsonFormat.write(r) match {

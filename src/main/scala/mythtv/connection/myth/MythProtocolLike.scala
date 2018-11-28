@@ -5,7 +5,7 @@ package myth
 import java.net.{ InetAddress, URI }
 import java.time.{ Duration, Instant, ZoneOffset }
 
-import scala.util.{ Try, Success, Failure }
+import scala.util.{ Failure, Success, Try }
 
 import data.{ BackendRemoteEncoder, BackendTuner, BackendVideoSegment }
 import util._

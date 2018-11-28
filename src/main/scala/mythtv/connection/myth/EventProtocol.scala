@@ -8,7 +8,7 @@ import java.time.Instant
 import model._
 import model.EnumTypes.{ CecOpcode, RecStatus }
 import util.{ Base64String, ByteCount, Crc16, DecimalByteCount, MythDateTime, URIFactory }
-import RecordedId._
+import RecordedId.RecordedIdChanTime
 
 sealed trait Event
 

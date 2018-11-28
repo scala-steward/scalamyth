@@ -12,7 +12,7 @@ import services.{ DvrService, PagedList, ServiceResult }
 import services.Service.ServiceFailure.ServiceNoResult
 import util.{ MythDateTime, OptionalCount }
 import EnumTypes.{ DupCheckIn, DupCheckMethod, Markup, RecStatus, RecType }
-import RecordedId._
+import RecordedId.{ RecordedIdChanTime, RecordedIdInt }
 
 trait AbstractDvrService extends ServiceProtocol with DvrService {
   private def timeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")

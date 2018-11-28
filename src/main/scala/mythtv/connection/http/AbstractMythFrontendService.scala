@@ -11,7 +11,7 @@ import util.MythDateTime
 import services.{ MythFrontendService, ServiceResult }
 import EnumTypes.{ NotificationPriority, NotificationType, NotificationVisibility }
 import MythFrontend.KeyName
-import RecordedId._
+import RecordedId.{ RecordedIdInt, RecordedIdChanTime }
 
 trait AbstractMythFrontendService extends ServiceProtocol with MythFrontendService {
 

@@ -9,7 +9,7 @@ import scala.util.Try
 
 import model._
 import EnumTypes._
-import RecordedId._
+import RecordedId.{ RecordedIdInt, RecordedIdChanTime }
 import util.{ ByteCount, DecimalByteCount, MythDateTime }
 
 private[myth] class BackendProgram(data: Seq[String], fieldOrder: IndexedSeq[String])
