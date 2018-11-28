@@ -612,7 +612,6 @@ private[myth] class EventProtocol88 extends EventProtocol77 {
       deserialize[RecordedId](parts(1)),
       DecimalByteCount(deserialize[Long](parts(2)))
     )
-    super.parseUpdateFileSize(name, split)
   }
 }
 
