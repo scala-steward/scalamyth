@@ -1580,8 +1580,8 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
         val marks = items.iterator drop 1 grouped 2 withPartial false map deserialize[RecordedMarkupFrame]
         val segments = marks grouped 2 map {
           case Seq(start: RecordedMarkupFrame, end: RecordedMarkupFrame) =>
-            assert(start.tag == Markup.CommStart)
-            assert(end.tag == Markup.CommEnd)
+            assert(start.tag == Markup.CommStart, s"start mark is ${start.tag}, expected ${Markup.CommStart}")
+            assert(end.tag == Markup.CommEnd, s"end mark is ${end.tag}, expected ${Markup.CommEnd}")
             BackendVideoSegment(start.position, end.position)
           }
         segments.toList
@@ -1600,8 +1600,8 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
         val marks = items.iterator drop 1 grouped 2 withPartial false map deserialize[RecordedMarkupFrame]
         val segments = marks grouped 2 map {
           case Seq(start: RecordedMarkupFrame, end: RecordedMarkupFrame) =>
-            assert(start.tag == Markup.CutStart)
-            assert(end.tag == Markup.CutEnd)
+            assert(start.tag == Markup.CutStart, s"start mark is ${start.tag}, expected ${Markup.CutStart}")
+            assert(end.tag == Markup.CutEnd, s"end mark is ${end.tag}, expected ${Markup.CutEnd}")
             BackendVideoSegment(start.position, end.position)
           }
         segments.toList
