@@ -1573,11 +1573,10 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     val items = response.split
     Try {
       val count = deserialize[Int](items(0))
-      assert(count % 2 == 0)  // FIXME not guaranteed to be true!?
-
-      if (count == 0) Nil
+      if (count <= 0) Nil
       else {
         // we also assume that the number of start/end marks are balanced and in sorted order
+        assert(count % 2 == 0)  // FIXME diagnostic error message
         val marks = items.iterator drop 1 grouped 2 withPartial false map deserialize[RecordedMarkupFrame]
         val segments = marks grouped 2 map {
           case Seq(start: RecordedMarkupFrame, end: RecordedMarkupFrame) =>
@@ -1594,11 +1593,10 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     val items = response.split
     Try {
       val count = deserialize[Int](items(0))
-      assert(count % 2 == 0)  // FIXME not guaranteed to be true!?
-
-      if (count == 0) Nil
+      if (count <= 0) Nil
       else {
         // we also assume that the number of start/end marks are balanced and in sorted order
+        assert(count % 2 == 0)  // FIXME diagnostic error message
         val marks = items.iterator drop 1 grouped 2 withPartial false map deserialize[RecordedMarkupFrame]
         val segments = marks grouped 2 map {
           case Seq(start: RecordedMarkupFrame, end: RecordedMarkupFrame) =>
