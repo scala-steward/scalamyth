@@ -16,6 +16,7 @@ trait MythService extends BackendService {
 
   def getConnectionInfo(pin: String): ServiceResult[ConnectionInfo]
 
+  // getFrontends is new with MythTV 0.28
   def getFrontends: ServiceResult[List[KnownFrontendInfo]] = getFrontends(false)
   def getFrontends(onlyOnline: Boolean): ServiceResult[List[KnownFrontendInfo]]
 
