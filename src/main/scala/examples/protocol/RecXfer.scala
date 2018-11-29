@@ -1,8 +1,7 @@
-package examples.recxfer
+package examples.protocol
 
-import mythtv._
-import model._
-import connection.myth._
+import mythtv.connection.myth.{ MythProtocolAPIConnection, RecordingTransferChannel }
+import mythtv.model.{ CaptureCardId, Recording }
 
 object RecXfer {
   def doTransfer(api: MythProtocolAPIConnection, rec: Recording): Long = {

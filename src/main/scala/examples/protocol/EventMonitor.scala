@@ -1,9 +1,8 @@
-package examples.eventmon
+package examples.protocol
 
 import java.time.LocalDateTime
 
-import mythtv._
-import connection.myth._
+import mythtv.connection.myth._
 
 class Listener extends EventListener {
   def listenFor(event: Event): Boolean = true
