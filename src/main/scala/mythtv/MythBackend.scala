@@ -45,11 +45,11 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
     conn.stopRecording(rec).toOption
   }
 
-  def reschedule(): Unit = reschedule(None, wait = false)
-  def reschedule(wait: Boolean): Unit = reschedule(None, wait)
-  def reschedule(recordId: RecordRuleId, wait: Boolean = false): Unit = reschedule(None, wait)
+  def reschedule(): Unit = internalReschedule(None, wait = false)
+  def reschedule(wait: Boolean): Unit = internalReschedule(None, wait)
+  def reschedule(recordId: RecordRuleId, wait: Boolean = false): Unit = internalReschedule(None, wait)
 
-  private def reschedule(recordId: Option[RecordRuleId], wait: Boolean): Unit = {
+  private def internalReschedule(recordId: Option[RecordRuleId], wait: Boolean): Unit = {
     val lock =
       if (wait) EventLock(eventConnection, _ == Event.ScheduleChangeEvent)
       else EventLock.empty
