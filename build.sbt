@@ -18,10 +18,12 @@ lazy val root = (project in file("."))
 lazy val scalamyth = (project in file("bindings"))
   .settings(commonSettings,
     libraryDependencies ++= Seq(
-      "org.scala-lang.modules" %% "scala-xml"  % "1.0.6",
-      "io.spray"               %% "spray-json" % "1.3.2",
-      "net.straylightlabs"      % "hola"       % "0.2.2",
-      "org.scalatest"          %% "scalatest"  % "3.0.0"  % "test",
+      "com.typesafe.scala-logging" %% "scala-logging"   % "3.9.0",
+      "org.scala-lang.modules"     %% "scala-xml"       % "1.0.6",
+      "io.spray"                   %% "spray-json"      % "1.3.2",
+      "ch.qos.logback"              % "logback-classic" % "1.2.3",
+      "net.straylightlabs"          % "hola"            % "0.2.3",
+      "org.scalatest"              %% "scalatest"       % "3.0.0"  % "test",
     )
   )
 

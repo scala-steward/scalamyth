@@ -8,6 +8,8 @@ import java.nio.channels.{ SelectionKey, Selector, SocketChannel }
 
 import scala.util.{ Try, Success, Failure }
 
+import com.typesafe.scalalogging.LazyLogging
+
 import MythProtocol.MythProtocolFailure._
 
 private trait BackendCommandStream {
@@ -16,7 +18,8 @@ private trait BackendCommandStream {
 
 private class BackendCommandReader(channel: SocketChannel, conn: SocketConnection)
   extends AbstractSocketReader[String](channel, conn)
-     with BackendCommandStream {
+     with BackendCommandStream
+     with LazyLogging {
   private[this] var buffer = ByteBuffer.allocate(1024)  // will reallocate as needed
 
   // TODO handle AsynchronousCloseException and ClosedByInterruptException? (see InterruptibleChannel)
@@ -56,7 +59,7 @@ private class BackendCommandReader(channel: SocketChannel, conn: SocketConnectio
     val size = readStringOfLength(HeaderSizeBytes).trim.toInt
     //println("Waiting for response of length " + size)
     val response = readStringOfLength(size)
-    println("Received response: " + response)
+    logger.debug(s"Received response: $response")
     //println("Received response.")
     response
   }
@@ -64,7 +67,8 @@ private class BackendCommandReader(channel: SocketChannel, conn: SocketConnectio
 
 private class BackendCommandWriter(channel: SocketChannel, conn: SocketConnection)
   extends AbstractSocketWriter[String](channel, conn)
-     with BackendCommandStream {
+     with BackendCommandStream
+     with LazyLogging {
   private final val HeaderFormat= "%-" + HeaderSizeBytes + "d"
 
   private[this] val buffers = new Array[ByteBuffer](2)
@@ -75,7 +79,7 @@ private class BackendCommandWriter(channel: SocketChannel, conn: SocketConnectio
 
     buffers(0) = header
     buffers(1) = message
-    println("Sending command " + command)
+    logger.debug(s"Sending command $command")
 
     while (message.hasRemaining) {
       val n = channel.write(buffers)
