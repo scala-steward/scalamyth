@@ -43,6 +43,8 @@ private abstract class AbstractEventConnection(
   private[this] var listenerSet: Set[EventListener] = Set.empty
   private[this] var eventLoopThread: Thread = _
 
+  // NB be sure to implement this as a lazy val in subclasses to avoid
+  // an NPE due to class initialization order!
   protected val eventProtocol: EventParser
 
   def announce(): Unit = {
@@ -200,28 +202,28 @@ private class EventConnection75(host: String, port: Int, eventMode: MythProtocol
  extends AbstractEventConnection(host, port, eventMode, listener)
     with MythProtocol75
     with AnnouncingConnection {
-  override protected val eventProtocol = new EventProtocol75
+  override protected lazy val eventProtocol = new EventProtocol75
 }
 
 private class EventConnection77(host: String, port: Int, eventMode: MythProtocolEventMode, listener: EventListener)
  extends AbstractEventConnection(host, port, eventMode, listener)
     with MythProtocol77
     with AnnouncingConnection {
-  override protected val eventProtocol = new EventProtocol77
+  override protected lazy val eventProtocol = new EventProtocol77
 }
 
 private class EventConnection88(host: String, port: Int, eventMode: MythProtocolEventMode, listener: EventListener)
  extends AbstractEventConnection(host, port, eventMode, listener)
     with MythProtocol88
     with AnnouncingConnection {
-  override protected val eventProtocol = new EventProtocol88
+  override protected lazy val eventProtocol = new EventProtocol88
 }
 
 private class EventConnection91(host: String, port: Int, eventMode: MythProtocolEventMode, listener: EventListener)
  extends AbstractEventConnection(host, port, eventMode, listener)
     with MythProtocol91
     with AnnouncingConnection {
-  override protected val eventProtocol = new EventProtocol91
+  override protected lazy val eventProtocol = new EventProtocol91
 }
 
 private object EventConnection75 extends EventConnectionFactory {
