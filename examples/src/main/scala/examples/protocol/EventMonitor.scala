@@ -2,7 +2,7 @@ package examples.protocol
 
 import java.time.LocalDateTime
 
-import mythtv.connection.myth._
+import mythtv.connection.myth.{ Event, EventConnection, EventListener, MythProtocolEventMode }
 
 class Listener extends EventListener {
   def listenFor(event: Event): Boolean = true
@@ -15,14 +15,19 @@ class Listener extends EventListener {
   }
 }
 
-class EventMonitor(host: String) {
-  val conn = EventConnection(host, eventMode = MythProtocolEventMode.Normal)
+class EventMonitor(host: String, optionalPort: Option[Int]) {
+  val conn: EventConnection = optionalPort match {
+    case Some(port) => EventConnection(host, port, eventMode = MythProtocolEventMode.Normal)
+    case None       => EventConnection(host, eventMode = MythProtocolEventMode.Normal)
+  }
   conn += new Listener
 }
 
-object EventMonitor {
+// TODO add support for filtering (arbitrary or canned?)
+
+object EventMonitor extends SampleProgram {
   def main(args: Array[String]): Unit = {
-    val host = if (args.length > 0) args(0) else "myth1"
-    new EventMonitor(host)
+    val options = argParser.parseArgs(args)
+    new EventMonitor(backendHost(options), backendPort(options))
   }
 }
