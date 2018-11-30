@@ -8,7 +8,7 @@ lazy val commonSettings = Seq(
     "-unchecked",
     "-deprecation",
     "-feature",
-    "-Xlint"
+    "-Xlint:-unused,_"
   )
 )
 
