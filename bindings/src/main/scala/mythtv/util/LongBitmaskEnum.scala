@@ -1,3 +1,11 @@
+// SPDX-License-Identifier: BSD-3-Clause
+/*
+ * LongBitmaskEnum.scala
+ *
+ * Copyright (c) 2016-2018 Tom Grigg <tom@grigg.io>
+ *
+ * Based on scala.Enumeration, which is (c) 2002-2013, LAMP/EPFL
+ */
 package mythtv
 package util
 

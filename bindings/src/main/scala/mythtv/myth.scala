@@ -1,3 +1,9 @@
+// SPDX-License-Identifier: LGPL-2.1-only
+/*
+ * myth.scala: top level interfaces for interacting with MythTV
+ *
+ * Copyright (c) 2016-2018 Tom Grigg <tom@grigg.io>
+ */
 package mythtv
 
 import java.io.InputStream
