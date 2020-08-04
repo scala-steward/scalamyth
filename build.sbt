@@ -2,7 +2,7 @@
 lazy val commonSettings = Seq(
   organization := "io.grigg",
   version      := "0.1.0",
-  scalaVersion := "2.12.7",
+  scalaVersion := "2.12.12",
 
   scalacOptions ++= Seq(
     "-unchecked",
@@ -12,10 +12,11 @@ lazy val commonSettings = Seq(
   )
 )
 
-lazy val root = (project in file("."))
-  .aggregate(scalamyth, examples)
+lazy val scalamyth = (project in file("."))
+  .aggregate(bindings, examples)
+  .settings(commonSettings)
 
-lazy val scalamyth = (project in file("bindings"))
+lazy val bindings = (project in file("bindings"))
   .settings(commonSettings,
     libraryDependencies ++= Seq(
       "com.typesafe.scala-logging" %% "scala-logging"   % "3.9.0",
@@ -28,7 +29,7 @@ lazy val scalamyth = (project in file("bindings"))
   )
 
 lazy val examples = (project in file("examples"))
-  .dependsOn(scalamyth)
+  .dependsOn(bindings)
   .settings(commonSettings)
 
 logBuffered in Test := false
