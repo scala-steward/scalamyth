@@ -12,12 +12,13 @@ import java.net.{ InetAddress, URI }
 import java.time.{ Duration, Instant, ZoneOffset }
 
 import scala.util.{ Failure, Success, Try }
+import scala.collection.compat.immutable.ArraySeq.{ unsafeWrapArray }
 
+import EnumTypes.{ MythProtocolEventMode, SeekWhence }
 import data.{ BackendRemoteEncoder, BackendTuner, BackendVideoSegment }
 import util._
 import model._
 import model.EnumTypes._
-import EnumTypes.{ MythProtocolEventMode, SeekWhence }
 import MythProtocol._
 import MythProtocolFailure._
 
@@ -1412,7 +1413,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
         val ftId = deserialize[FileTransferId](items(1))
         val fileSize = DecimalByteCount(deserialize[Long](items(2)))
         val checkFiles = items drop 3
-        Right(AnnounceFileTransfer(ftId, fileSize, checkFiles))
+        Right(AnnounceFileTransfer(ftId, fileSize, unsafeWrapArray(checkFiles)))
       }
     }
     else {
@@ -1620,7 +1621,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     val statusCode = deserialize[Int](items(0))
     if (statusCode > 0) Try {
       val fullName = items(1)
-      val stats = deserialize[FileStats](items.view(2, 2 + 13))  // TODO hardcoded size of # file stats fields
+      val stats = deserialize[FileStats](items.slice(2, 2 + 13))  // TODO hardcoded size of # file stats fields
       (fullName, stats)
     }
     else Left(MythProtocolFailureUnknown)

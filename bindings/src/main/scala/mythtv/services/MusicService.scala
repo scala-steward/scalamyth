@@ -8,7 +8,7 @@ package mythtv
 package services
 
 import model.{ Song, SongId }
-import util.OptionalCount
+import util.{ OptionalCount, PagedList }
 
 trait MusicService extends BackendService {
   final def serviceName: String = "Music"

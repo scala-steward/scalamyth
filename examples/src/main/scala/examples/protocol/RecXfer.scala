@@ -14,10 +14,11 @@ import MythProtocol.MythProtocolFailure
 import RecordedId.{ RecordedIdChanTime, RecordedIdInt }
 
 object RecXfer extends SampleProgram with Xfer {
+  import SampleProgram._
 
   def doTransfer(api: MythProtocolAPIConnection, rec: Recording): ByteCount = {
     val ft = RecordingTransferChannel(api, rec)
-    val verbose = options contains 'verbose
+    val verbose = options contains OptVerbose
     doTransfer(ft, verbose)
   }
 
@@ -25,6 +26,7 @@ object RecXfer extends SampleProgram with Xfer {
   final case class RecordingSourceId(id: RecordedId) extends RecordingSource
   final case class RecordingSourceInput(id: CaptureCardId) extends RecordingSource
 
+  final val OptRecording = "recording"
   var options: OptionMap = Map.empty
 
   class RecXferArgParser extends ArgParser {
@@ -35,7 +37,7 @@ object RecXfer extends SampleProgram with Xfer {
       case _                         => super.accumulateOptions(opts, args)
     }
 
-    def recording(spec: String): OptionMap = Map('recording -> parseRecordingSpec(spec))
+    def recording(spec: String): OptionMap = Map(OptRecording -> parseRecordingSpec(spec))
 
     final val InputPattern = """input:(\d+)""".r
     final val RecIdPattern = """recid:(\d+)""".r
@@ -87,7 +89,7 @@ object RecXfer extends SampleProgram with Xfer {
   def main(args: Array[String]): Unit = {
     options = argParser.parseArgs(args)
 
-    val recordingSource = options.get('recording) match {
+    val recordingSource = options.get(OptRecording) match {
       case Some(source: RecordingSource) => source
       case _ => throw new Exception("no recording source specified")
     }

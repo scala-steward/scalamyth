@@ -15,6 +15,6 @@ class RecRuleFilterProvider(host: String) extends (() => Map[Int, String]) {
     // For prior versions, we must read form the database directly.
     val dvr = ServiceProvider.dvrService(host)
     val filterList = dvr.getRecRuleFilterList.get
-    filterList.map(f => (1 << f.id, f.name))(collection.breakOut)
+    filterList.iterator.map(f => (1 << f.id, f.name)).toMap
   }
 }

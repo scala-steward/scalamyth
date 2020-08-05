@@ -72,7 +72,7 @@ object VideoPositionBytes extends GenericVideoPositionCompanion[VideoPositionByt
 trait VideoSegment[VP <: VideoPosition] {
   def start: VP
   def end: VP
-  override def toString: String = start.pos + ":" + end.pos + start.units
+  override def toString: String = s"${start.pos}:${end.pos}${start.units}"
 }
 
 trait RecordedMarkup[VP <: VideoPosition] {

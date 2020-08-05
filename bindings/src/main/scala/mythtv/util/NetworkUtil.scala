@@ -9,7 +9,7 @@ package util
 
 import java.net.{ InetAddress, NetworkInterface }
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 object NetworkUtil {
   // TODO cache the results of these lookups to prevent them from being expensive later

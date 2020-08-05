@@ -8,11 +8,15 @@ package mythtv
 
 import java.time.Duration
 
-import model._
-import connection.myth.{ Event, EventConnection, EventLock, MythProtocolAPIConnection }
-import util.{ ByteCount, ExpectedCountIterator, MythDateTime, MythFileHash }
+import scala.annotation.nowarn
 
-// TODO fix up all the .right.get non-error-handling (both in here and other files)
+import model._
+import connection.myth.{ Event, EventConnection, EventLock, MythProtocol, MythProtocolAPIConnection }
+import util.{ ByteCount, ExpectedCountIterator, MythDateTime, MythFileHash }
+import MythProtocol.MythProtocolFailure
+
+class NoResultExceptionn extends RuntimeException("no results")
+class APIFailureException(msg: String) extends RuntimeException(msg)
 
 class MythBackend(val host: String) extends Backend with BackendOperations {
   def this(bi: BackendInfo) = this(bi.host)
@@ -21,6 +25,14 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
   @volatile private[this] var eventConnMayBeNull: EventConnection = _
 
   conn.announce("Monitor")
+
+  import MythProtocolFailure._
+  def fail(e: MythProtocolFailure) = e match {
+    case MythProtocolNoResult => throw new NoResultExceptionn
+    case MythProtocolFailureMessage(message) => throw new APIFailureException(message)
+    case MythProtocolFailureUnknown => throw new APIFailureException("unknown failure from API call")
+    case MythProtocolFailureThrowable(throwable) => throw throwable
+  }
 
   def close(): Unit = {
     if (eventConnMayBeNull ne null) eventConnMayBeNull.close()
@@ -33,18 +45,34 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
   }
 
   def recording(chanId: ChanId, startTime: MythDateTime): Recording = {
-    conn.queryRecording(chanId, startTime).right.get
+    conn.queryRecording(chanId, startTime) match {
+      case Right(rec) => rec
+      case Left(e) => fail(e)
+    }
   }
 
   def deleteRecording(rec: Recording, force: Boolean): Boolean = {
     val status =
-      if (force) conn.forceDeleteRecording(rec).right.get
-      else conn.deleteRecording(rec).right.get
+      if (force) {
+        conn.forceDeleteRecording(rec) match {
+          case Right(r) => r
+          case Left(e) => fail(e)
+        }
+      }
+      else {
+        conn.deleteRecording(rec) match {
+          case Right(r) => r
+          case Left(e) => fail(e)
+        }
+      }
     status == 0
   }
 
   def forgetRecording(rec: Recording): Boolean = {
-    conn.forgetRecording(rec).right.get
+    conn.forgetRecording(rec) match {
+      case Right(r) => r
+      case Left(e) => fail(e)
+    }
   }
 
   def stopRecording(rec: Recording): Option[CaptureCardId] = {
@@ -64,15 +92,38 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
     lock.await()
   }
 
-  def isRecording(cardId: CaptureCardId): Boolean = conn.queryRecorderIsRecording(cardId).right.get
+  def isRecording(cardId: CaptureCardId): Boolean = {
+    conn.queryRecorderIsRecording(cardId) match {
+      case Right(r) => r
+      case Left(e) => fail(e)
+    }
+  }
 
-  def recordingsIterator: ExpectedCountIterator[Recording] = conn.queryRecordings("Ascending").right.get
+  def recordingsIterator: ExpectedCountIterator[Recording] = {
+    conn.queryRecordings("Ascending") match {
+      case Right(rec) => rec
+      case Left(e) => fail(e)
+    }
+  }
+
   def recordings: List[Recording] = recordingsIterator.toList
 
-  def expiringRecordingsIterator: ExpectedCountIterator[Recording] = conn.queryGetExpiring.right.get
+  def expiringRecordingsIterator: ExpectedCountIterator[Recording] = {
+    conn.queryGetExpiring match {
+      case Right(rec) => rec
+      case Left(e) => fail(e)
+    }
+  }
+
   def expiringRecordings: List[Recording] = expiringRecordingsIterator.toList
 
-  def pendingRecordingsIterator: ExpectedCountIterator[Recordable] = conn.queryGetAllPending.right.get
+  def pendingRecordingsIterator: ExpectedCountIterator[Recordable] = {
+    conn.queryGetAllPending match {
+      case Right(rec) => rec
+      case Left(e) => fail(e)
+    }
+  }
+
   def pendingRecordings: List[Recordable] = pendingRecordingsIterator.toList
 
   def upcomingRecordingsIterator: Iterator[Recordable] = {
@@ -87,35 +138,86 @@ class MythBackend(val host: String) extends Backend with BackendOperations {
 
   // capture cards
 
-  def availableRecorders: List[CaptureCardId] = conn.getFreeRecorderList.right.get
+  @nowarn   // getFreeRecorderList is deprecated by us, don't warn
+  def availableRecorders: List[CaptureCardId] = {
+    conn.getFreeRecorderList match {
+      case Right(cardids) => cardids
+      case Left(e) => fail(e)
+    }
+  }
 
   //////
 
-  def freeSpaceSummary: (ByteCount, ByteCount) = conn.queryFreeSpaceSummary.right.get
+  def freeSpaceSummary: (ByteCount, ByteCount) = {
+    conn.queryFreeSpaceSummary match {
+      case Right(r) => r
+      case Left(e) => fail(e)
+    }
+  }
 
-  def freeSpace: List[FreeSpace] = conn.queryFreeSpace.right.get
+  def freeSpace: List[FreeSpace] = {
+    conn.queryFreeSpace match {
+      case Right(r) => r
+      case Left(e) => fail(e)
+    }
+  }
 
-  def freeSpaceCombined: List[FreeSpace] = conn.queryFreeSpaceList.right.get
+  def freeSpaceCombined: List[FreeSpace] = {
+    conn.queryFreeSpaceList match {
+      case Right(r) => r
+      case Left(e) => fail(e)
+    }
+  }
 
-  def fileHash(fileName: String, storageGroup: String, hostName: String): MythFileHash =
-    conn.queryFileHash(fileName, storageGroup, hostName).right.get
+  def fileHash(fileName: String, storageGroup: String, hostName: String): MythFileHash = {
+    conn.queryFileHash(fileName, storageGroup, hostName) match {
+      case Right(hash) => hash
+      case Left(e) => fail(e)
+    }
+  }
 
   def fileExists(fileName: String, storageGroup: String): Boolean =
     conn.queryFileExists(fileName, storageGroup).isRight
 
-  def uptime: Duration = conn.queryUptime.right.get
-  def loadAverages: (Double, Double, Double) = conn.queryLoad.right.get
+  def uptime: Duration = {
+    conn.queryUptime match {
+      case Right(r) => r
+      case Left(e) => fail(e)
+    }
+  }
 
-  def isActiveBackend(hostname: String): Boolean = conn.queryIsActiveBackend(hostname).right.get
+  def loadAverages: (Double, Double, Double) = {
+    conn.queryLoad match {
+      case Right(r) => r
+      case Left(e) => fail(e)
+    }
+  }
+
+  def isActiveBackend(hostname: String): Boolean = {
+    conn.queryIsActiveBackend(hostname) match {
+      case Right(r) => r
+      case Left(e) => fail(e)
+    }
+  }
 
   def isActive: Boolean = isActiveBackend(host)
 
-  def guideDataThrough: MythDateTime = conn.queryGuideDataThrough.right.get
+  def guideDataThrough: MythDateTime = {
+    conn.queryGuideDataThrough match {
+      case Right(r) => r
+      case Left(e) => fail(e)
+    }
+  }
 
   def scanVideos(): Map[String, Set[VideoId]] = {
     import connection.myth.Event.{ VideoListChangeEvent, VideoListNoChangeEvent }
 
-    if (conn.scanVideos().right.get) {
+    val scanSuccess = conn.scanVideos() match {
+      case Right(r) => r
+      case Left(e) => fail(e)
+    }
+
+    if (scanSuccess) {
       val lock = EventLock(eventConnection, {
         case _: VideoListChangeEvent => true
         case VideoListNoChangeEvent => true

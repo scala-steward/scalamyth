@@ -14,8 +14,8 @@ import java.net.URI
 import spray.json.{ DefaultJsonProtocol, JsValue }
 
 import model._
-import util.{ MythDateTime, MythFileHash, URIFactory }
-import services.{ PagedList, ServicesObject }
+import util.{ MythDateTime, MythFileHash, PagedList, URIFactory }
+import services.ServicesObject
 
 object JsonResultConverter extends ServiceResultConverter with FrontendJsonProtocol with BackendJsonProtocol {
   import DefaultJsonProtocol.{ listFormat, StringJsonFormat }

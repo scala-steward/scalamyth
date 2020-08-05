@@ -14,9 +14,9 @@ import java.time.format.DateTimeFormatter
 import scala.util.Try
 
 import model._
-import services.{ DvrService, PagedList, ServiceResult }
+import services.{ DvrService, ServiceResult }
 import services.Service.ServiceFailure.ServiceNoResult
-import util.{ MythDateTime, OptionalCount }
+import util.{ MythDateTime, OptionalCount, PagedList }
 import EnumTypes.{ DupCheckIn, DupCheckMethod, Markup, RecStatus, RecType }
 import RecordedId.{ RecordedIdChanTime, RecordedIdInt }
 

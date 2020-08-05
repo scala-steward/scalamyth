@@ -39,8 +39,8 @@ trait DynamicEnumLike extends Dynamic {
   protected def newValue(id: Int, name: String): EnumValue
 
   private[this] val ourVals: Map[String, EnumValue] = valueProvider match {
-    case EnumValuesStrings(strings) => strings.map(n => (identifier(n), newValue(n)))(collection.breakOut)
-    case EnumValuesFuncStrings(f)   => f().map(    n => (identifier(n), newValue(n)))(collection.breakOut)
+    case EnumValuesStrings(strings) => strings.map(n => (identifier(n), newValue(n))).toMap
+    case EnumValuesFuncStrings(f)   => f().map(    n => (identifier(n), newValue(n))).toMap
     case EnumValuesNameMap(nmap)    => nmap map { case (n, i) => (identifier(n), newValue(i, n)) }
     case EnumValuesFuncNameMap(f)   => f()  map { case (n, i) => (identifier(n), newValue(i, n)) }
     case EnumValuesIntIdMap(imap)   => imap map { case (i, n) => (identifier(n), newValue(i, n)) }

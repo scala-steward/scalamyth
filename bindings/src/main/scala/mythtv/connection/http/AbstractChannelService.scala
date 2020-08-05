@@ -9,9 +9,9 @@ package connection
 package http
 
 import model._
-import services.{ ChannelService, PagedList, ServiceResult, ServicesObject }
+import services.{ ChannelService, ServiceResult, ServicesObject }
 import services.Service.ServiceFailure.{ ServiceFailureUnknown, ServiceNoResult }
-import util.OptionalCount
+import util.{ OptionalCount, PagedList }
 
 trait AbstractChannelService extends ServiceProtocol with ChannelService {
 

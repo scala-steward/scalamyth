@@ -9,7 +9,7 @@ package services
 
 import model._
 import EnumTypes.{ DupCheckIn, DupCheckMethod, RecStatus, RecType }
-import util.{ MythDateTime, OptionalCount }
+import util.{ MythDateTime, OptionalCount, PagedList }
 
 trait DvrService extends BackendService {
   final def serviceName: String = "Dvr"

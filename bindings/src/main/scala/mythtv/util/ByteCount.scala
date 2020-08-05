@@ -32,8 +32,8 @@ trait ByteCount extends Any {
     val pairs = (units zip thresholds).reverse
     val chosen = pairs find { case (_, t) => t <= bytes }
     val r = chosen map {
-      case (u, t) if t == 0 => bytes + " " + u
-      case (u, t) => (bytes / t.toDouble) + " " + u  // TODO control precision of output
+      case (u, t) if t == 0 => bytes.toString + " " + u
+      case (u, t) => (bytes / t.toDouble).toString + " " + u  // TODO control precision of output
     }
     r getOrElse bytes.toString
   }

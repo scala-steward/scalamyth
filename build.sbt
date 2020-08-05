@@ -1,9 +1,20 @@
+lazy val scala213 = "2.13.3"
+lazy val scala212 = "2.12.12"
+lazy val supportedScalaVersions = List(scala213, scala212)
+
+ThisBuild / organization := "io.grigg"
+ThisBuild / version      := "0.1.0"
+ThisBuild / scalaVersion := scala213
+
+unmanagedSourceDirectories in Compile += {
+  val sourceDir = (sourceDirectory in Compile).value
+  CrossVersion.partialVersion(scalaVersion.value) match {
+    case Some((2, n)) if n >= 13 => sourceDir / "scala-2.13"
+    case _                       => sourceDir / "scala-2.12"
+  }
+}
 
 lazy val commonSettings = Seq(
-  organization := "io.grigg",
-  version      := "0.1.0",
-  scalaVersion := "2.12.12",
-
   scalacOptions ++= Seq(
     "-unchecked",
     "-deprecation",
@@ -14,23 +25,26 @@ lazy val commonSettings = Seq(
 
 lazy val scalamyth = (project in file("."))
   .aggregate(bindings, examples)
-  .settings(commonSettings)
+  .settings(commonSettings, crossScalaVersions := Nil)
 
 lazy val bindings = (project in file("bindings"))
   .settings(commonSettings,
+    crossScalaVersions := supportedScalaVersions,
     libraryDependencies ++= Seq(
-      "com.typesafe.scala-logging" %% "scala-logging"   % "3.9.0",
-      "org.scala-lang.modules"     %% "scala-xml"       % "1.0.6",
-      "io.spray"                   %% "spray-json"      % "1.3.2",
+      "org.scala-lang.modules"     %% "scala-collection-compat" % "2.1.6",
+      "org.scala-lang.modules"     %% "scala-xml"       % "1.2.0",
+      "com.typesafe.scala-logging" %% "scala-logging"   % "3.9.2",
+      "io.spray"                   %% "spray-json"      % "1.3.5",
       "ch.qos.logback"              % "logback-classic" % "1.2.3",
       "net.straylightlabs"          % "hola"            % "0.2.3",
-      "org.scalatest"              %% "scalatest"       % "3.0.0"  % "test",
+      "org.scalatest"              %% "scalatest"       % "3.0.8"  % "test",
     )
   )
 
 lazy val examples = (project in file("examples"))
   .dependsOn(bindings)
-  .settings(commonSettings)
+  .settings(commonSettings,
+    crossScalaVersions := supportedScalaVersions
+  )
 
 logBuffered in Test := false
-

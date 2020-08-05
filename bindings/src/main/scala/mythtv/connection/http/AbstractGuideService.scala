@@ -11,8 +11,8 @@ package http
 import scala.util.Try
 
 import model._
-import services.{ GuideService, PagedList, ServiceResult }
-import util.{ MythDateTime, OptionalCount, OptionalCountSome }
+import services.{ GuideService, ServiceResult }
+import util.{ MythDateTime, OptionalCount, OptionalCountSome, PagedList }
 import EnumTypes.RecSearchType
 
 trait AbstractGuideService extends ServiceProtocol with GuideService {

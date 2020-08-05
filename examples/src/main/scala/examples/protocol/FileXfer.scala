@@ -10,12 +10,16 @@ import mythtv.connection.myth.{ FileTransferChannel, MythProtocolAPIConnection }
 import mythtv.util.ByteCount
 
 object FileXfer extends SampleProgram with Xfer {
+  import SampleProgram._
 
   def doTransfer(api: MythProtocolAPIConnection, filePath: String, storageGroup: String): ByteCount = {
     val ft = FileTransferChannel(api, filePath, storageGroup)
-    val verbose = options contains 'verbose
+    val verbose = options contains OptVerbose
     doTransfer(ft, verbose)
   }
+
+  final val OptFilePath = "filePath"
+  final val OptStorageGroup = "storageGroup"
 
   var options: OptionMap = Map.empty
 
@@ -29,7 +33,7 @@ object FileXfer extends SampleProgram with Xfer {
 
     def urlOpt(url: String): OptionMap = {
       val (serverHost, storageGroup, filePath) = parseUrl(url)
-      Map('host -> serverHost, 'storageGroup -> storageGroup, 'filePath -> filePath)
+      Map(OptHost -> serverHost, OptStorageGroup -> storageGroup, OptFilePath -> filePath)
     }
 
     def parseUrl(spec: String): (String, String, String) = {
@@ -54,12 +58,12 @@ object FileXfer extends SampleProgram with Xfer {
   def main(args: Array[String]): Unit = {
     options = argParser.parseArgs(args)
 
-    val storageGroup = options.get('storageGroup) match {
+    val storageGroup = options.get(OptStorageGroup) match {
       case Some(value: String) => value
       case _ => fatal("no storage group given")
     }
 
-    val filePath = options.get('filePath) match {
+    val filePath = options.get(OptFilePath) match {
       case Some(value: String) => value
       case _ => fatal("no file path given")
     }

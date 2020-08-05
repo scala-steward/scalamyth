@@ -72,7 +72,10 @@ private[myth] class FileTransferChannelImpl(controlConn: FileTransferAPI, dataCo
       case SeekWhence.End     => clamp(offset, -currentSize, 0L) + currentSize
     }
     val adjWhence = if (whence == SeekWhence.End) SeekWhence.Begin else whence
-    val newPos: Long = controlConn.seek(adjOffset, adjWhence, currentPosition).right.get
+    val newPos: Long = controlConn.seek(adjOffset, adjWhence, currentPosition) match {
+      case Right(x) => x        // TODO more detailed exception info
+      case Left(e) => throw new IOException("failed seek API call on file transfer")
+    }
     if (newPos < 0) throw new IOException("failed seek")
     currentPosition = newPos
   }
@@ -110,7 +113,10 @@ private[myth] class FileTransferChannelImpl(controlConn: FileTransferAPI, dataCo
 
     while (bb.hasRemaining && canReadMore) {
       val requestSize = length - bytesRead
-      val allotedSize = controlConn.requestBlock(requestSize).right.get
+      val allotedSize = controlConn.requestBlock(requestSize) match {
+        case Right(x) => x        // TODO more detailed exception info
+        case Left(e) => throw new IOException("failed requestBlock API call on file transfer")
+      }
       assert(requestSize == bb.remaining)
 
       if (allotedSize != requestSize) {}  // TODO do I want to take some action here?

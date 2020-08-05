@@ -5,7 +5,7 @@
  * Copyright (c) 2016-2018 Tom Grigg <tom@grigg.io>
  */
 package mythtv
-package services
+package util
 
 trait PagedList[+A] extends Iterable[A] {
   def items: List[A]
@@ -18,7 +18,7 @@ trait PagedList[+A] extends Iterable[A] {
 
   // Override map, filter, filterNot so they return PagedList[_] rather than Iterable[_]
 
-  def map[B](f: A => B): PagedList[B] = {
+  override def map[B](f: A => B): PagedList[B] = {
     val newItems = items map f
     val (n, avail, index) = (count, totalAvailable, startIndex)
     new PagedList[B] {   // avoid closing over old instance

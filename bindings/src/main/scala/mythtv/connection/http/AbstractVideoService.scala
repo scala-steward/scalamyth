@@ -12,9 +12,9 @@ import java.time.{ Duration, Instant, LocalDate, Year }
 
 import model._
 import model.EnumTypes.{ MetadataGrabberType, ParentalLevel, VideoContentType }
-import services.{ PagedList, ServiceResult, VideoService }
+import services.{ ServiceResult, VideoService }
 import services.Service.ServiceFailure.ServiceNoResult
-import util.{ MythDateTime, MythFileHash, OptionalCount }
+import util.{ MythDateTime, MythFileHash, OptionalCount, PagedList }
 
 trait AbstractVideoService extends ServiceProtocol with VideoService {
 

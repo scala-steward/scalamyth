@@ -11,7 +11,7 @@ import java.time.Duration
 import java.net.InetAddress
 
 import scala.collection.Set
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 import net.straylightlabs.hola.dns.Domain
 import net.straylightlabs.hola.sd.{ Instance, Query, Service }

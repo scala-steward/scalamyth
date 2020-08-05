@@ -13,10 +13,10 @@ import java.time.{ Duration, Instant }
 
 import scala.util.{ Try, Success, Failure }
 
+import EnumTypes.{ MythProtocolEventMode, SeekWhence }
 import model._
 import model.EnumTypes._
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythFileHash, NetworkUtil }
-import EnumTypes.{ MythProtocolEventMode, SeekWhence }
 import MythProtocol.ImageScanResult._
 import MythProtocol.QueryRecorderResult._
 import MythProtocol.QueryRemoteEncoderResult._

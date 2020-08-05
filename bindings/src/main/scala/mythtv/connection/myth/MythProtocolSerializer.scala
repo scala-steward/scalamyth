@@ -8,9 +8,13 @@ package mythtv
 package connection
 package myth
 
+import scala.collection.compat.immutable.ArraySeq.{ unsafeWrapArray }
+
 trait MythProtocolSerializer {
   def deserialize[T: MythProtocolSerializable](arg: String): T =
     implicitly[MythProtocolSerializable[T]].deserialize(arg)
+  def deserialize[T: MythProtocolSerializable](arg: Array[String]): T =
+    implicitly[MythProtocolSerializable[T]].deserialize(unsafeWrapArray(arg))
   def deserialize[T: MythProtocolSerializable](arg: Seq[String]): T =
     implicitly[MythProtocolSerializable[T]].deserialize(arg)
   def serialize[T: MythProtocolSerializable](arg: T): String =

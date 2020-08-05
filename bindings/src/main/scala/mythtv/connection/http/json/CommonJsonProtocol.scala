@@ -43,13 +43,12 @@ private[json] trait CommonJsonProtocol {
 
   implicit object StringMapJsonFormat extends JsonFormat[Map[String, String]] {
     def write(m: Map[String, String]): JsValue =
-      JsObject(m mapValues (JsString(_)))
+      JsObject(m.transform((_, v) => JsString(v)))
 
     def read(value: JsValue): Map[String, String] = {
-      val obj = value.asJsObject
-      obj.fields mapValues {
-        case JsString(s) => s
-        case x => x.toString
+      value.asJsObject.fields.transform {
+        case (_, JsString(s)) => s
+        case (_, x) => x.toString
       }
     }
   }

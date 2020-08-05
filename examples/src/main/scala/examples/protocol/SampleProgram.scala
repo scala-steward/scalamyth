@@ -9,10 +9,11 @@ package examples.protocol
 import mythtv.connection.myth.MythProtocolAPIConnection
 
 trait SampleProgram {
+  import SampleProgram._
 
   /* Command line argument parsing */
 
-  type OptionMap = Map[Symbol, Any]
+  type OptionMap = Map[String, Any]
 
   def usage(): Unit = {
     val info =
@@ -36,24 +37,24 @@ trait SampleProgram {
 
   class ArgParser {
     final def isOption(s: String): Boolean = s.head == '-'
-    final def flag(sym: Symbol): OptionMap = Map(sym -> true)
-    final def int(sym: Symbol, value: String): OptionMap = Map(sym -> value.toInt)
-    final def str(sym: Symbol, value: String): OptionMap = Map(sym -> value)
+    final def flag(sym: String): OptionMap = Map(sym -> true)
+    final def int(sym: String, value: String): OptionMap = Map(sym -> value.toInt)
+    final def str(sym: String, value: String): OptionMap = Map(sym -> value)
 
     def accumulateOptions(opts: OptionMap, args: List[String]): OptionMap = args match {
       case Nil => opts
-      case "--backendHost" :: host :: cdr   => accumulateOptions(opts ++ str('host, host), cdr)
-      case "--backendPort" :: port :: cdr   => accumulateOptions(opts ++ int('port, port), cdr)
-      case "--clientName"  :: client :: cdr => accumulateOptions(opts ++ str('client, client), cdr)
-      case "--help" :: cdr                  => accumulateOptions(opts ++ flag('help), cdr)
-      case "--verbose" :: cdr               => accumulateOptions(opts ++ flag('verbose), cdr)
+      case "--backendHost" :: host :: cdr   => accumulateOptions(opts ++ str(OptHost, host), cdr)
+      case "--backendPort" :: port :: cdr   => accumulateOptions(opts ++ int(OptPort, port), cdr)
+      case "--clientName"  :: client :: cdr => accumulateOptions(opts ++ str(OptClient, client), cdr)
+      case "--help" :: cdr                  => accumulateOptions(opts ++ flag(OptHelp), cdr)
+      case "--verbose" :: cdr               => accumulateOptions(opts ++ flag(OptVerbose), cdr)
       case arg :: _ if isOption(arg)        => fatal(s"Unknown option $arg")
       case _                                => opts
     }
 
-    def parseArgs(args: Seq[String]): OptionMap = {
+    def parseArgs(args: Array[String]): OptionMap = {
       val parsedOptions = accumulateOptions(defaultOptions, args.toList)
-      if (parsedOptions contains 'help) {
+      if (parsedOptions contains OptHelp) {
         usage()
         sys.exit(1)
       }
@@ -63,9 +64,9 @@ trait SampleProgram {
 
   /* Convenience methods to get common option arguments */
 
-  def backendHost(opts: OptionMap): String = opts('host).toString
-  def backendPort(opts: OptionMap): Option[Int] = opts.get('port) collectFirst { case p: Int => p }
-  def clientName(opts: OptionMap): String = opts('client).toString
+  def backendHost(opts: OptionMap): String = opts(OptHost).toString
+  def backendPort(opts: OptionMap): Option[Int] = opts.get(OptPort) collectFirst { case p: Int => p }
+  def clientName(opts: OptionMap): String = opts(OptClient).toString
 
   /* Convenience methods to get an API Connection to the backend */
 
@@ -85,5 +86,13 @@ trait SampleProgram {
 
   /* Default argument parser */
   def argParser: ArgParser = new ArgParser
-  def defaultOptions: OptionMap = Map('host -> "localhost", 'client -> "scalamyth")
+  def defaultOptions: OptionMap = Map(OptHost -> "localhost", OptClient -> "scalamyth")
+}
+
+object SampleProgram {
+  final val OptHelp = "help"
+  final val OptHost = "host"
+  final val OptPort = "port"
+  final val OptClient = "client"
+  final val OptVerbose = "verbose"
 }

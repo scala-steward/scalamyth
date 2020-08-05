@@ -7,6 +7,8 @@
 package mythtv
 package model
 
+import scala.collection.immutable
+
 import util.{ IntBitmaskEnum, LooseEnum }
 import EnumTypes.FrontendState
 
@@ -15,7 +17,7 @@ trait FrontendStatus {
   def stateMap: Map[String, String]        // map of state item key -> value
   def audioTracks: Map[String, String]     // Action name -> descripton
   def subtitleTracks: Map[String, String]  //     "             "
-  def chapterTimes: IndexedSeq[Long]       // Starting offset of each chapter, in seconds(?)
+  def chapterTimes: immutable.IndexedSeq[Long]       // Starting offset of each chapter, in seconds(?)
 
   override def toString: String = s"<FrontendStatus $state>"
 }

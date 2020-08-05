@@ -156,14 +156,14 @@ class BitmaskEnumSuite extends FunSuite {
     assert(m.id === Days.Tuesday.id)
   }
 
-  test("Mask keysIteratorFrom") {
-    assert((Days.Weekday keysIteratorFrom Days.Wednesday).toList ===
+  test("Mask iteratorFrom") {
+    assert((Days.Weekday iteratorFrom Days.Wednesday).toList ===
       List(Days.Wednesday, Days.Thursday, Days.Friday))
-    assert((Days.Weekday keysIteratorFrom Days.Saturday).toList === Nil)
+    assert((Days.Weekday iteratorFrom Days.Saturday).toList === Nil)
   }
 
   test("Mask range") {
-    assert((Days.Weekday range (Days.Tuesday, Days.Thursday)).toList ===
+    assert((Days.Weekday.range(Days.Tuesday, Days.Thursday)).toList ===
       List(Days.Tuesday, Days.Wednesday))
   }
 

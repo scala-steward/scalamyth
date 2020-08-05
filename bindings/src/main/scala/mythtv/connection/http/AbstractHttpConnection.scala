@@ -12,7 +12,7 @@ import java.io.OutputStreamWriter
 import java.net.{ HttpURLConnection, URL, URLEncoder }
 import java.util.{ List => JList }
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 // TODO need somewhere to clean up our resource(s): stream(s)?
 

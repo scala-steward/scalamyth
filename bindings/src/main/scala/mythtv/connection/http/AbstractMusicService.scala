@@ -9,8 +9,8 @@ package connection
 package http
 
 import model.{ Song, SongId }
-import services.{ MusicService, PagedList, ServiceResult }
-import util.OptionalCount
+import services.{ MusicService, ServiceResult }
+import util.{ OptionalCount, PagedList }
 
 trait AbstractMusicService extends ServiceProtocol with MusicService {
 

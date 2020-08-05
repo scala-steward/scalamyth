@@ -9,8 +9,10 @@ package connection
 package http
 package json
 
+import scala.collection.immutable
+
 import spray.json.{ JsObject, JsValue, JsonFormat, jsonWriter }
-import spray.json.DefaultJsonProtocol.indexedSeqFormat
+import spray.json.DefaultJsonProtocol.immIndexedSeqFormat
 
 import model.{ FrontendState, FrontendStatus }
 
@@ -20,7 +22,7 @@ private[json] trait FrontendJsonProtocol extends CommonJsonProtocol {
       "State"          -> jsonWriter[Map[String, String]].write(s.stateMap),
       "AudioTracks"    -> jsonWriter[Map[String, String]].write(s.audioTracks),
       "SubtitleTracks" -> jsonWriter[Map[String, String]].write(s.subtitleTracks),
-      "ChapterTimes"   -> jsonWriter[IndexedSeq[Long]].write(s.chapterTimes)
+      "ChapterTimes"   -> jsonWriter[immutable.IndexedSeq[Long]].write(s.chapterTimes)
     ))
 
     def read(value: JsValue): FrontendStatus = {
@@ -29,7 +31,7 @@ private[json] trait FrontendJsonProtocol extends CommonJsonProtocol {
       val audios = obj.fields("AudioTracks").convertTo[Map[String, String]]
       val subtitles = obj.fields("SubtitleTracks").convertTo[Map[String, String]]
       val stateVal = FrontendState.withName(states("state"))
-      val chapters = obj.fields("ChapterTimes").convertTo[IndexedSeq[Long]]
+      val chapters = obj.fields("ChapterTimes").convertTo[immutable.IndexedSeq[Long]]
 
       new FrontendStatus {
         def state = stateVal

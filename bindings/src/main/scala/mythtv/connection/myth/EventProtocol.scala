@@ -11,6 +11,9 @@ package myth
 import java.net.URI
 import java.time.Instant
 
+import scala.collection.compat._
+import immutable.ArraySeq.{ unsafeWrapArray }
+
 import model._
 import model.EnumTypes.{ CecOpcode, RecStatus }
 import util.{ Base64String, ByteCount, Crc16, DecimalByteCount, MythDateTime, URIFactory }
@@ -550,17 +553,19 @@ private[myth] abstract class EventProtocolRef extends EventParser with MythProto
       case Array(x, y) => (x, VideoId(y.toInt))
     }
     // ... group by change type (key), change value to set of videoId
-    val changeMap = changeTuples groupBy (_._1) mapValues { a => (a map (_._2)).toSet }
+    val changeMap = changeTuples.groupMap(_._1)(_._2).transform((_, v) => v.toSet)
     VideoListChangeEvent(changeMap)
   }
 
   def unknownEvent(name: String, split: Array[String]): Event =
-    UnknownEvent(name, split.slice(1, split.length): _*)
+    UnknownEvent(name, unsafeWrapArray(split.slice(1, split.length)): _*)
 }
 
 private[myth] object SignalMonitorValueSerializer extends MythProtocolSerializable[SignalMonitorValue] {
   def deserialize(in: String): SignalMonitorValue =
     deserialize(in split MythProtocol.SplitPattern)
+
+  private def deserialize(in: Array[String]): SignalMonitorValue = deserialize(unsafeWrapArray(in))
 
   override def deserialize(in: Seq[String]): SignalMonitorValue = {
     val id = in.head

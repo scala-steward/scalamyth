@@ -11,8 +11,8 @@ package http
 import java.net.URI
 
 import model._
-import util.{ MythDateTime, MythFileHash }
-import services.{ PagedList, ServicesObject }
+import util.{ MythDateTime, MythFileHash, PagedList }
+import services.ServicesObject
 
 // implement this trait differently for each serialization type (JSON, XML, etc.)
 trait ServiceResultConverter {

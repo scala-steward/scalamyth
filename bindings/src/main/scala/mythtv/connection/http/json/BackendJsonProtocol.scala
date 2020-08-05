@@ -1825,14 +1825,14 @@ private[json] trait BackendJsonProtocol extends CommonJsonProtocol {
         "LibX264"   -> JsString(b.hasLibX264.toString),
         "LibDNS_SD" -> JsString(b.hasLibDnsSd.toString)
       )),
-      "Env"   -> JsObject(b.environment mapValues (JsString(_))),
+      "Env"   -> JsObject(b.environment.transform((_, v) => JsString(v))),
       "Log"   -> JsObject(Map("LogArgs" -> JsString(b.logArgs)))
     ))
     def read(value: JsValue): BackendDetails = {
       val obj = value.asJsObject
       val bld = obj.fields("Build").asJsObject
       val log = obj.fields("Log").asJsObject
-      val env = obj.fields("Env").asJsObject.fields mapValues { case JsString(s) => s ; case _ => "" }
+      val env = obj.fields("Env").asJsObject.fields.transform { case (_, JsString(s)) => s ; case _ => "" }
       new BackendDetails {
         def fullVersion = bld.stringField("Version")
         def hasLibX264  = bld.booleanField("LibX264")

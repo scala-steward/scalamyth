@@ -35,4 +35,4 @@ case class HttpStreamResponse(
 case class HttpResponseException(
   url: URL,
   responseCode: Int
-) extends RuntimeException(responseCode + " response from " + url)
+) extends RuntimeException(responseCode.toString + " response from " + url)

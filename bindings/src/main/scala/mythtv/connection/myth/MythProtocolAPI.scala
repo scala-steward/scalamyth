@@ -11,10 +11,10 @@ package myth
 import java.net.{ InetAddress, URI }
 import java.time.{ Duration, Instant }
 
+import EnumTypes.{ MythProtocolEventMode, SeekWhence }
 import model._
 import model.EnumTypes._
 import util.{ ByteCount, ExpectedCountIterator, FileStats, MythDateTime, MythFileHash }
-import EnumTypes.{ MythProtocolEventMode, SeekWhence }
 
 /**
   * A strongly-typed, thin API wrapper over the MythProtocol commands.

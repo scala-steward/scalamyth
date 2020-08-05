@@ -9,7 +9,7 @@ package services
 
 import model.EnumTypes.RecSearchType
 import model.{ ChanId, Channel, ChannelDetails, ChannelGroup, ChannelGroupId, Guide, Program, ProgramBrief }
-import util.{ OptionalCount, MythDateTime }
+import util.{ OptionalCount, PagedList, MythDateTime }
 import connection.http.HttpStreamResponse
 
 trait GuideService extends BackendService {

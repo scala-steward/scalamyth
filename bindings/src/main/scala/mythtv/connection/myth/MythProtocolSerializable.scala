@@ -11,12 +11,13 @@ package myth
 import java.time.{ Instant, LocalDate, Year }
 
 import scala.util.Try
+import scala.collection.compat.immutable.ArraySeq.{ unsafeWrapArray }
 
+import EnumTypes.SeekWhence
 import data._
 import util._
 import model._
 import model.EnumTypes._
-import EnumTypes.SeekWhence
 
 // Type class for serializable objects in the MythProtocol stream
 trait MythProtocolSerializable[T] {
@@ -270,7 +271,9 @@ object MythProtocolSerializable {
   }
 
   implicit object ImageIdListSerializer extends MythProtocolSerializable[Seq[ImageId]] {
-    def deserialize(in: String): Seq[ImageId] = if (in.isEmpty) Nil else in split ',' map (s => ImageUnknownId(s.trim.toInt))
+    def deserialize(in: String): Seq[ImageId] =
+      if (in.isEmpty) Nil
+      else unsafeWrapArray(in split ',' map (s => ImageUnknownId(s.trim.toInt)))
     def serialize(in: Seq[ImageId]): String = in.map(_.id).mkString(",")
   }
 
@@ -286,6 +289,7 @@ object MythProtocolSerializable {
 
   implicit object StorageGroupInfoSerializer extends MythProtocolSerializable[StorageGroupInfo] {
     def deserialize(in: String): StorageGroupInfo = deserialize(in split "::")
+    private def deserialize(in: Array[String]): StorageGroupInfo = deserialize(unsafeWrapArray(in))
     override def deserialize(in: Seq[String]): StorageGroupInfo = {
       in(0) match {
         case "sgdir" => StorageGroupInfoRoot(in(1))
@@ -309,6 +313,7 @@ object MythProtocolSerializable {
 
   implicit object FileStatsSerializer extends MythProtocolSerializable[FileStats] {
     def deserialize(in: String): FileStats = deserialize(in split MythProtocol.SplitPattern)
+    private def deserialize(in: Array[String]): FileStats = deserialize(unsafeWrapArray(in))
     override def deserialize(in: Seq[String]): FileStats = FileStats(
       MythProtocol.deserialize[Long](in(0)),                         // st_dev
       MythProtocol.deserialize[Long](in(1)),                         // st_ino
@@ -331,6 +336,7 @@ object MythProtocolSerializable {
 
   implicit object RecordedMarkupSerializer extends MythProtocolSerializable[RecordedMarkupFrame] {
     def deserialize(in: String): RecordedMarkupFrame = deserialize(in split MythProtocol.SplitPattern)
+    private def deserialize(in: Array[String]): RecordedMarkupFrame = deserialize(unsafeWrapArray(in))
     override def deserialize(in: Seq[String]): RecordedMarkupFrame = {
       assert(in.lengthCompare(1) > 0)
       BackendRecordedMarkup(
@@ -363,7 +369,7 @@ private[myth] trait GenericBackendObjectSerializer[T, F <: GenericBackendObjectF
 
   def deserialize(in: String): T = {
     val factory = newFactory
-    val data: Seq[String] = in split MythProtocol.SplitPattern
+    val data: Seq[String] = unsafeWrapArray(in split MythProtocol.SplitPattern)
     factory(data take fieldCount(factory))
   }
 

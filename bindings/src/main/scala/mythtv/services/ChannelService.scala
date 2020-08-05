@@ -9,7 +9,7 @@ package services
 
 import model.{ CaptureCardId, ChanId, Channel, ChannelDetails, Lineup,
   ListingSource, ListingSourceId, MultiplexId, VideoMultiplex }
-import util.OptionalCount
+import util.{ OptionalCount, PagedList }
 
 trait ChannelService extends BackendService {
   final def serviceName: String = "Channel"
