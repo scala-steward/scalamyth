@@ -87,7 +87,7 @@ object Crc16 {
 
   def apply(buf: ByteBuffer): Crc16 = {
     if (buf.hasArray) {
-      apply(buf.array, buf.arrayOffset + buf.position, buf.remaining)
+      apply(buf.array, buf.arrayOffset + buf.position(), buf.remaining)
     } else {
       // convert a chunk at a time to an array and compute
       var crc = 0xffff

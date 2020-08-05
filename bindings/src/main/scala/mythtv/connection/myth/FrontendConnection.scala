@@ -35,7 +35,7 @@ private class FrontendSocketReader(channel: SocketChannel, conn: SocketConnectio
   // Returns true iff the bytes immediately preceding the current
   // buffer position are the same as those in 'bytes' argument
   private def bufferEndsWith(bytes: Array[Byte]): Boolean = {
-    buffer.position(buffer.position - promptCompare.length)
+    buffer.position(buffer.position() - promptCompare.length)
     buffer.get(promptCompare)
     promptCompare sameElements promptBytes
   }

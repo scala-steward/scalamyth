@@ -106,7 +106,7 @@ private[myth] class FileTransferChannelImpl(controlConn: FileTransferAPI, dataCo
   override def read(bb: ByteBuffer): Int = {
     if (!dataConn.isReadable) throw new NonReadableChannelException
     val length = waitableReadableLength(bb.remaining)
-    if (length < bb.remaining) bb.limit(bb.position + length)
+    if (length < bb.remaining) bb.limit(bb.position() + length)
 
     var bytesRead: Int = 0
     var canReadMore: Boolean = true

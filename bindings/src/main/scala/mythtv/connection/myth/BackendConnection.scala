@@ -81,7 +81,7 @@ private class BackendCommandWriter(channel: SocketChannel, conn: SocketConnectio
 
   def write(command: String): Unit = {
     val message = utf8 encode command
-    val header = utf8 encode (HeaderFormat format message.limit)
+    val header = utf8 encode (HeaderFormat format message.limit())
 
     buffers(0) = header
     buffers(1) = message
