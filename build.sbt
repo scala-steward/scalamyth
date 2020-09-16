@@ -37,7 +37,7 @@ lazy val bindings = (project in file("bindings"))
       "io.spray"                   %% "spray-json"      % "1.3.5",
       "ch.qos.logback"              % "logback-classic" % "1.2.3",
       "net.straylightlabs"          % "hola"            % "0.2.3",
-      "org.scalatest"              %% "scalatest"       % "3.0.8"  % "test",
+      "org.scalatest"              %% "scalatest"       % "3.0.9"  % "test",
     )
   )
 
