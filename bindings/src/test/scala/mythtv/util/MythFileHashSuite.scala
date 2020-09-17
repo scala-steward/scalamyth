@@ -7,9 +7,9 @@
 package mythtv
 package util
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class MythFileHashSuite extends FunSuite {
+class MythFileHashSuite extends AnyFunSuite {
   test("Hash of empty buffer equals 'NULL'") {
     assert(MythFileHash(new Array[Byte](0)).hash === "NULL")
   }

@@ -7,9 +7,9 @@
 package mythtv
 package util
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class BitmaskEnumSuite extends FunSuite {
+class BitmaskEnumSuite extends AnyFunSuite {
   object Days extends IntBitmaskEnum {
     val Monday    = Value
     val Tuesday   = Value

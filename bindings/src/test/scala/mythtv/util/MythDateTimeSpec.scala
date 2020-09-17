@@ -9,9 +9,9 @@ package util
 
 import java.time.Instant
 
-import org.scalatest.FlatSpec
+import org.scalatest.flatspec.AnyFlatSpec
 
-class MythDateTimeSpec extends FlatSpec {
+class MythDateTimeSpec extends AnyFlatSpec {
   val myEpochSecond: Long = 1455462317L
   val myYear: Int = 2016
   val myMonth: Int = 2
