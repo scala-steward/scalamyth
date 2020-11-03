@@ -1,0 +1,42 @@
+name: Scala CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  scala_213:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ 8, 11 ]
+    name: Scala 2.13, Java ${{ matrix.java }}
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+
+      - name: Run Tests
+        run: sbt "++2.13.3; test"
+
+  scala_212:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ 8, 11 ]
+    name: Scala 2.12, Java ${{ matrix.java }}
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+
+      - name: Run Tests
+        run: sbt "++2.12.12; test"
