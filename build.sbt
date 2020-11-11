@@ -34,7 +34,7 @@ lazy val bindings = (project in file("bindings"))
       "org.scala-lang.modules"     %% "scala-collection-compat" % "2.2.0",
       "org.scala-lang.modules"     %% "scala-xml"       % "1.3.0",
       "com.typesafe.scala-logging" %% "scala-logging"   % "3.9.2",
-      "io.spray"                   %% "spray-json"      % "1.3.5",
+      "io.spray"                   %% "spray-json"      % "1.3.6",
       "ch.qos.logback"              % "logback-classic" % "1.2.3",
       "net.straylightlabs"          % "hola"            % "0.2.3",
       "org.scalatest"              %% "scalatest"       % "3.2.2"  % "test",
