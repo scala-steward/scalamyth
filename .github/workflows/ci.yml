@@ -21,7 +21,7 @@ jobs:
           java-version: ${{ matrix.java }}
 
       - name: Run Tests
-        run: sbt "++2.13.3; test"
+        run: sbt "++2.13.5; test"
 
   scala_212:
     runs-on: ubuntu-latest
