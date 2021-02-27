@@ -39,4 +39,4 @@ jobs:
           java-version: ${{ matrix.java }}
 
       - name: Run Tests
-        run: sbt "++2.12.12; test"
+        run: sbt "++2.12.13; test"
