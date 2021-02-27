@@ -6,8 +6,10 @@ ThisBuild / organization := "io.grigg"
 ThisBuild / version      := "0.1.0"
 ThisBuild / scalaVersion := scala213
 
-unmanagedSourceDirectories in Compile += {
-  val sourceDir = (sourceDirectory in Compile).value
+ThisBuild / Test / logBuffered := false
+
+Compile / unmanagedSourceDirectories += {
+  val sourceDir = (Compile / sourceDirectory).value
   CrossVersion.partialVersion(scalaVersion.value) match {
     case Some((2, n)) if n >= 13 => sourceDir / "scala-2.13"
     case _                       => sourceDir / "scala-2.12"
@@ -23,12 +25,13 @@ lazy val commonSettings = Seq(
   )
 )
 
-lazy val scalamyth = (project in file("."))
+lazy val scalamyth = project.in(file("."))
   .aggregate(bindings, examples)
   .settings(commonSettings, crossScalaVersions := Nil)
 
-lazy val bindings = (project in file("bindings"))
-  .settings(commonSettings,
+lazy val bindings = project.in(file("bindings"))
+  .settings(commonSettings)
+  .settings(
     crossScalaVersions := supportedScalaVersions,
     libraryDependencies ++= Seq(
       "org.scala-lang.modules"     %% "scala-collection-compat" % "2.3.1",
@@ -37,14 +40,13 @@ lazy val bindings = (project in file("bindings"))
       "io.spray"                   %% "spray-json"      % "1.3.6",
       "ch.qos.logback"              % "logback-classic" % "1.2.3",
       "net.straylightlabs"          % "hola"            % "0.2.3",
-      "org.scalatest"              %% "scalatest"       % "3.2.5"  % "test",
+      "org.scalatest"              %% "scalatest"       % "3.2.5"  % Test,
     )
   )
 
-lazy val examples = (project in file("examples"))
+lazy val examples = project.in(file("examples"))
   .dependsOn(bindings)
-  .settings(commonSettings,
+  .settings(commonSettings)
+  .settings(
     crossScalaVersions := supportedScalaVersions
   )
-
-logBuffered in Test := false

@@ -2,15 +2,24 @@ name: Scala CI
 
 on:
   push:
+    branches:
+      - master
   pull_request:
 
 jobs:
-  scala_213:
+  test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        java: [ 8, 11 ]
-    name: Scala 2.13, Java ${{ matrix.java }}
+        java:
+          - 8
+          - 11
+        scala:
+          - 2.13.5
+          - 2.12.13
+
+    name: Scala ${{ matrix.scala }}, Java ${{ matrix.java }}
     steps:
       - name: Git Checkout
         uses: actions/checkout@v2
@@ -21,22 +30,4 @@ jobs:
           java-version: ${{ matrix.java }}
 
       - name: Run Tests
-        run: sbt "++2.13.5; test"
-
-  scala_212:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        java: [ 8, 11 ]
-    name: Scala 2.12, Java ${{ matrix.java }}
-    steps:
-      - name: Git Checkout
-        uses: actions/checkout@v2
-
-      - name: Setup JDK
-        uses: actions/setup-java@v1
-        with:
-          java-version: ${{ matrix.java }}
-
-      - name: Run Tests
-        run: sbt "++2.12.13; test"
+        run: sbt "++${{ matrix.scala }}; test"
