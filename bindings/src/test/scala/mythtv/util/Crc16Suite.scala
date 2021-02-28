@@ -10,11 +10,11 @@ package util
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
-import org.scalatest.funsuite.AnyFunSuite
+import munit.FunSuite
 
-class Crc16Suite extends AnyFunSuite {
+class Crc16Suite extends FunSuite {
   test("CRC-16/CCITT X.25 of '123456789' should be 0x906e") {
-    assert(Crc16("123456789").crc === 0x906e)
+    assertEquals(Crc16("123456789").crc, 0x906e)
     assert(new Crc16(0x906e).verify("123456789"))
 
     val digitsBuf = StandardCharsets.UTF_8.encode("123456789")
@@ -22,7 +22,7 @@ class Crc16Suite extends AnyFunSuite {
     digitsBuf.rewind()
     directBuf.flip()
 
-    assert(Crc16(digitsBuf).crc === 0x906e)
-    assert(Crc16(directBuf).crc === 0x906e)
+    assertEquals(Crc16(digitsBuf).crc, 0x906e)
+    assertEquals(Crc16(directBuf).crc, 0x906e)
   }
 }

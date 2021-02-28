@@ -6,7 +6,7 @@ ThisBuild / organization := "io.grigg"
 ThisBuild / version      := "0.1.0"
 ThisBuild / scalaVersion := scala213
 
-ThisBuild / Test / logBuffered := false
+ThisBuild / testOptions += Tests.Argument(TestFramework("munit.Framework"), "+l")
 
 Compile / unmanagedSourceDirectories += {
   val sourceDir = (Compile / sourceDirectory).value
@@ -40,8 +40,9 @@ lazy val bindings = project.in(file("bindings"))
       "io.spray"                   %% "spray-json"      % "1.3.6",
       "ch.qos.logback"              % "logback-classic" % "1.2.3",
       "net.straylightlabs"          % "hola"            % "0.2.3",
-      "org.scalatest"              %% "scalatest"       % "3.2.5"  % Test,
-    )
+      "org.scalameta"              %% "munit"           % "0.7.22" % Test,
+    ),
+    testFrameworks += new TestFramework("munit.Framework")
   )
 
 lazy val examples = project.in(file("examples"))

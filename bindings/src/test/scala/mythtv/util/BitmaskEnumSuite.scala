@@ -7,9 +7,9 @@
 package mythtv
 package util
 
-import org.scalatest.funsuite.AnyFunSuite
+import munit.FunSuite
 
-class BitmaskEnumSuite extends AnyFunSuite {
+class BitmaskEnumSuite extends FunSuite {
   object Days extends IntBitmaskEnum {
     val Monday    = Value
     val Tuesday   = Value
@@ -58,39 +58,39 @@ class BitmaskEnumSuite extends AnyFunSuite {
   }
 
   test("Days of week bitmask enum of Int with autoincrement values") {
-    assert(Days.Monday.id    === 0x01)
-    assert(Days.Tuesday.id   === 0x02)
-    assert(Days.Wednesday.id === 0x04)
-    assert(Days.Thursday.id  === 0x08)
-    assert(Days.Friday.id    === 0x10)
-    assert(Days.Saturday.id  === 0x20)
-    assert(Days.Sunday.id    === 0x40)
-    assert(Days.Weekday.id   === 0x1f)
-    assert(Days.Weekend.id   === 0x60)
+    assertEquals(Days.Monday.id,    0x01)
+    assertEquals(Days.Tuesday.id,   0x02)
+    assertEquals(Days.Wednesday.id, 0x04)
+    assertEquals(Days.Thursday.id,  0x08)
+    assertEquals(Days.Friday.id,    0x10)
+    assertEquals(Days.Saturday.id,  0x20)
+    assertEquals(Days.Sunday.id,    0x40)
+    assertEquals(Days.Weekday.id,   0x1f)
+    assertEquals(Days.Weekend.id,   0x60)
   }
 
   test("Days.values.size is 7") {
-    assert(Days.values.size === 7)
+    assertEquals(Days.values.size, 7)
   }
 
   test("Days value elements toString") {
-    assert(Days.Monday.toString === "Monday")
-    assert(Days.Tuesday.toString === "Tuesday")
-    assert(Days.Wednesday.toString === "Wednesday")
-    assert(Days.Thursday.toString === "Thursday")
-    assert(Days.Friday.toString === "Friday")
-    assert(Days.Saturday.toString === "Saturday")
-    assert(Days.Sunday.toString === "Sunday")
+    assertEquals(Days.Monday.toString, "Monday")
+    assertEquals(Days.Tuesday.toString, "Tuesday")
+    assertEquals(Days.Wednesday.toString, "Wednesday")
+    assertEquals(Days.Thursday.toString, "Thursday")
+    assertEquals(Days.Friday.toString, "Friday")
+    assertEquals(Days.Saturday.toString, "Saturday")
+    assertEquals(Days.Sunday.toString, "Sunday")
   }
 
   test("Days mask elements toString") {
-    assert(Days.Weekday.toString === "Weekday")
-    assert(Days.Weekend.toString === "Weekend")
+    assertEquals(Days.Weekday.toString, "Weekday")
+    assertEquals(Days.Weekend.toString, "Weekend")
   }
 
   test("Days mask elements set contents") {
-    assert(Days.Weekday.toSet === Set(Days.Monday, Days.Tuesday, Days.Wednesday, Days.Thursday, Days.Friday))
-    assert(Days.Weekend.toSet === Set(Days.Saturday, Days.Sunday))
+    assertEquals(Days.Weekday.toSet, Set(Days.Monday, Days.Tuesday, Days.Wednesday, Days.Thursday, Days.Friday))
+    assertEquals(Days.Weekend.toSet, Set(Days.Saturday, Days.Sunday))
   }
 
   test("Days mask contains method") {
@@ -102,25 +102,25 @@ class BitmaskEnumSuite extends AnyFunSuite {
 
   test("Arbitrary mask definition") {
     val mask = Days.Monday | Days.Wednesday | Days.Friday
-    assert(mask.id === 0x15)
-    assert(mask.toString === "Days.Mask(Monday | Wednesday | Friday)")
+    assertEquals(mask.id, 0x15)
+    assertEquals(mask.toString, "Days.Mask(Monday | Wednesday | Friday)")
   }
 
   test("Arbitrary mask with over-coverage") {
     val mask = ~Days.Weekend
     val mask2 = mask & ~Days.Weekday
-    assert(mask.size === 30)
-    assert(mask2.size === 25)
+    assertEquals(mask.size, 30)
+    assertEquals(mask2.size, 25)
   }
 
   test("Factory apply") {
-    assert(Days(0x04) === Days.Wednesday)
-    assert(Days(0x40) === Days.Sunday)
-    assert(Days(0x1f) === Days.Weekday)
+    assertEquals(Days(0x04), Days.Wednesday)
+    assertEquals(Days(0x40), Days.Sunday)
+    assertEquals(Days(0x1f), Days.Weekday)
   }
 
   test("Mask factory apply") {
-    assert(Days.Mask(Days.Thursday).id === Days.Thursday.id)
+    assertEquals(Days.Mask(Days.Thursday).id, Days.Thursday.id)
   }
 
   test("Value equality") {
@@ -153,17 +153,17 @@ class BitmaskEnumSuite extends AnyFunSuite {
   test("Value toMask") {
     val m = Days.Tuesday.toMask
     assert(m.isInstanceOf[Days.Mask])
-    assert(m.id === Days.Tuesday.id)
+    assertEquals(m.id, Days.Tuesday.id)
   }
 
   test("Mask iteratorFrom") {
-    assert((Days.Weekday iteratorFrom Days.Wednesday).toList ===
+    assertEquals((Days.Weekday iteratorFrom Days.Wednesday).toList,
       List(Days.Wednesday, Days.Thursday, Days.Friday))
-    assert((Days.Weekday iteratorFrom Days.Saturday).toList === Nil)
+    assertEquals((Days.Weekday iteratorFrom Days.Saturday).toList, Nil)
   }
 
   test("Mask range") {
-    assert((Days.Weekday.range(Days.Tuesday, Days.Thursday)).toList ===
+    assertEquals((Days.Weekday.range(Days.Tuesday, Days.Thursday)).toList,
       List(Days.Tuesday, Days.Wednesday))
   }
 
@@ -184,13 +184,13 @@ class BitmaskEnumSuite extends AnyFunSuite {
 
   test("Extreme ends of autonumbering") {
     object Ordinals extends AbstractOrdinals
-    assert(Ordinals.First.id === 1)
-    assert(Ordinals.ThirtySecond.id === (1 << 31))
+    assertEquals(Ordinals.First.id, 1)
+    assertEquals(Ordinals.ThirtySecond.id, (1 << 31))
   }
 
   test("Excessive number of values defined should fail") {
     object ExtraOrdinals extends AbstractOrdinals {
-      val ThirtyThird   = Value
+      val ThirtyThird = Value
     }
     intercept[AssertionError] {  // TODO should throw a different exception to indicate fullness?
       val _ = ExtraOrdinals.First
