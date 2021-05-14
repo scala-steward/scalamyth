@@ -34,7 +34,7 @@ lazy val bindings = project.in(file("bindings"))
   .settings(
     crossScalaVersions := supportedScalaVersions,
     libraryDependencies ++= Seq(
-      "org.scala-lang.modules"     %% "scala-collection-compat" % "2.3.1",
+      "org.scala-lang.modules"     %% "scala-collection-compat" % "2.3.2",
       "org.scala-lang.modules"     %% "scala-xml"       % "2.0.0",
       "com.typesafe.scala-logging" %% "scala-logging"   % "3.9.3",
       "io.spray"                   %% "spray-json"      % "1.3.6",
