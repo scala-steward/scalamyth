@@ -9,9 +9,9 @@ package util
 
 import java.time.Instant
 
-import org.scalatest.flatspec.AnyFlatSpec
+import munit.FunSuite
 
-class MythDateTimeSpec extends AnyFlatSpec {
+class MythDateTimeSpec extends FunSuite {
   val myEpochSecond: Long = 1455462317L
   val myYear: Int = 2016
   val myMonth: Int = 2
@@ -29,115 +29,127 @@ class MythDateTimeSpec extends AnyFlatSpec {
   val myMythFormatZeroSeconds: String = "20160214150500"
 
   def checkAllAccessors(mdt: MythDateTime): Unit = {
-    assert(mdt.year === myYear)
-    assert(mdt.month === myMonth)
-    assert(mdt.day === myDay)
-    assert(mdt.hour === myHour)
-    assert(mdt.minute === myMinute)
-    assert(mdt.second === mySecond)
+    assertEquals(mdt.year, myYear)
+    assertEquals(mdt.month, myMonth)
+    assertEquals(mdt.day, myDay)
+    assertEquals(mdt.hour, myHour)
+    assertEquals(mdt.minute, myMinute)
+    assertEquals(mdt.second, mySecond)
   }
 
-  "A MythDateTime" should "be constructed from a java.time.Instant" in {
+  test("A MythDateTime should be constructed from a java.time.Instant") {
     val mdt = new MythDateTime(myInstant)
     assert(mdt.isInstanceOf[MythDateTime])
   }
 
-  it should "have a working year accessor" in {
+  test("have a working year accessor") {
     val mdt = new MythDateTime(myInstant)
-    assert(mdt.year === myYear)
+    assertEquals(mdt.year, myYear)
   }
 
-  it should "have a working month accessor" in {
+  test("have a working month accessor") {
     val mdt = new MythDateTime(myInstant)
-    assert(mdt.month === myMonth)
+    assertEquals(mdt.month, myMonth)
   }
 
-  it should "have a working day accessor" in {
+  test("have a working day accessor") {
     val mdt = new MythDateTime(myInstant)
-    assert(mdt.day === myDay)
+    assertEquals(mdt.day, myDay)
   }
 
-  it should "have a working hour accessor" in {
+  test("have a working hour accessor") {
     val mdt = new MythDateTime(myInstant)
-    assert(mdt.hour === myHour)
+    assertEquals(mdt.hour, myHour)
   }
 
-  it should "have a working minute accessor" in {
+  test("have a working minute accessor") {
     val mdt = new MythDateTime(myInstant)
-    assert(mdt.minute === myMinute)
+    assertEquals(mdt.minute, myMinute)
   }
 
-  it should "have a working second accessor" in {
+  test("have a working second accessor") {
     val mdt = new MythDateTime(myInstant)
-    assert(mdt.second === mySecond)
+    assertEquals(mdt.second, mySecond)
   }
 
-  it should "support formatting as myth format" in {
+  test("support formatting as myth format") {
     val mdt = new MythDateTime(myInstant)
-    assert(mdt.toMythFormat === myMythFormat)
+    assertEquals(mdt.toMythFormat, myMythFormat)
   }
-  it should "support mythformat as an alias for toMythFormat" in {
+
+  test("support mythformat as an alias for toMythFormat") {
     val mdt = new MythDateTime(myInstant)
-    assert(mdt.mythformat === mdt.toMythFormat)
+    assertEquals(mdt.mythformat, mdt.toMythFormat)
   }
-  it should "support formatting as strict ISO-8601 format" in {
+
+  test("support formatting as strict ISO-8601 format") {
     val mdt = new MythDateTime(myInstant)
-    assert(mdt.toIsoFormat === myStrictISO)
+    assertEquals(mdt.toIsoFormat, myStrictISO)
   }
-  it should "support conversion to java.time.LocalDateTime" in {
+
+  test("support conversion to java.time.LocalDateTime") {
     val mdt = new MythDateTime(myInstant)
     val local = mdt.toLocalDateTime()
-    assert(local.getYear === myYear)
-    assert(local.getMonthValue === myMonth)
-    assert(local.getDayOfMonth === myDay)
-    assert(local.getHour === myHour)
-    assert(local.getMinute === myMinute)
-    assert(local.getSecond === mySecond)
-  }
-  it should "support conversion to a unix timestamp" in {
-    val mdt = new MythDateTime(myInstant)
-    assert(mdt.toTimestamp === myEpochSecond)
+    assertEquals(local.getYear, myYear)
+    assertEquals(local.getMonthValue, myMonth)
+    assertEquals(local.getDayOfMonth, myDay)
+    assertEquals(local.getHour, myHour)
+    assertEquals(local.getMinute, myMinute)
+    assertEquals(local.getSecond, mySecond)
   }
 
-  "A MythDateTime factory" should "build from a java.lang.Instant" in {
+  test("support conversion to a unix timestamp") {
+    val mdt = new MythDateTime(myInstant)
+    assertEquals(mdt.toTimestamp, myEpochSecond)
+  }
+
+  test("A MythDateTime factory should build from a java.lang.Instant") {
     val mdt = MythDateTime(myInstant)
     checkAllAccessors(mdt)
   }
-  it should "build from itemized year,month,day,hour,minute,second" in {
+
+  test("build from itemized year,month,day,hour,minute,second") {
     val mdt = MythDateTime(myYear, myMonth, myDay, myHour, myMinute, mySecond)
     checkAllAccessors(mdt)
   }
-  it should "parse mythformat input" in {
+
+  test("parse mythformat input") {
     val mdt = MythDateTime.fromMythFormat(myMythFormat)
     checkAllAccessors(mdt)
   }
-  it should "parse strict ISO format input, with Z as timezone" in {
+
+  test("parse strict ISO format input, with Z as timezone") {
     val mdt = MythDateTime.fromIso(myStrictISO)
     checkAllAccessors(mdt)
   }
-  it should "parse strict ISO format input, without timezone indicator (naive UTC)" in {
+
+  test("parse strict ISO format input, without timezone indicator (naive UTC)") {
     val mdt = MythDateTime.fromNaiveIso(myNaiveISO)
     checkAllAccessors(mdt)
   }
-  it should "parse loose ISO format input, with space separator instead of 'T', no timezone" in {
+
+  test("parse loose ISO format input, with space separator instead of 'T', no timezone") {
     val mdt = MythDateTime.fromNaiveIsoLoose(myNaiveISOLoose)
     checkAllAccessors(mdt)
   }
-  it should "parse loose ISO format input, with space separator instead of 'T', no timezone, no seconds" in {
+
+  test("parse loose ISO format input, with space separator instead of 'T', no timezone, no seconds") {
     val mdt = MythDateTime.fromNaiveIsoLoose(myNaiveISOLooseNoSeconds)
-    assert(mdt.year === myYear)
-    assert(mdt.month === myMonth)
-    assert(mdt.day === myDay)
-    assert(mdt.hour === myHour)
-    assert(mdt.minute === myMinute)
-    assert(mdt.second === 0)
+    assertEquals(mdt.year, myYear)
+    assertEquals(mdt.month, myMonth)
+    assertEquals(mdt.day, myDay)
+    assertEquals(mdt.hour, myHour)
+    assertEquals(mdt.minute, myMinute)
+    assertEquals(mdt.second, 0)
   }
-  it should "convert from timestamp (epoch second) to MythDateTime" in {
+
+  test("convert from timestamp (epoch second) to MythDateTime") {
     val mdt = MythDateTime.fromTimestamp(myEpochSecond)
     checkAllAccessors(mdt)
   }
-  it should "produce a valid current date time from now()" in {
+
+  test("produce a valid current date time from now()") {
     val mdt = MythDateTime.now
-    assert(mdt.toMythFormat.length === 14)
+    assertEquals(mdt.toMythFormat.length, 14)
   }
 }
