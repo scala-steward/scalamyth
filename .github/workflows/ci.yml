@@ -32,3 +32,32 @@ jobs:
 
       - name: Run Tests
         run: sbt "++${{ matrix.scala }}; test"
+
+  docs:
+    runs-on: ubuntu-latest
+    needs: ['test']
+    if: "github.event_name == 'push' && github.ref == 'refs/heads/master'"
+    name: 'Documentation'
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v2
+
+      - name: Build docs
+        run: |
+          sbt "bindings/doc"
+          mv -v bindings/target/scala-2.13/api docs/
+          ls -l docs
+          ls -l docs/api
+
+      - name: Sanity check
+        run: |
+          test -s docs/CNAME
+          test -d docs/api
+          test -s docs/api/index.html
+          test -d docs/api/mythtv
+
+      - name: Publish docs
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
