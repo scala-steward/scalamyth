@@ -66,6 +66,7 @@ private[myth] class FileTransferChannelImpl(controlConn: FileTransferAPI, dataCo
 
   // seek to offset (relative to whence)
   def seek(offset: Long, whence: SeekWhence): Unit = {
+    @annotation.nowarn("cat=other-match-analysis")
     val adjOffset = whence match {
       case SeekWhence.Begin   => clamp(offset, 0L, currentSize)
       case SeekWhence.Current => clamp(offset, -currentPosition, currentSize - currentPosition)

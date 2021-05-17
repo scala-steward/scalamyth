@@ -206,6 +206,7 @@ trait ServiceProtocol extends ServiceResultReaderImplicits {
   def post[T: ServiceResultReader](endpoint: String, params: Map[String, Any] = Map.empty)
     (level0Field: String = "", level1Field: String = ""): ServiceResult[T]
 
+  @annotation.nowarn("cat=other-match-analysis")
   def requestStream(endpoint: String, params: Map[String, Any] = Map.empty): HttpStreamResponse =
     connection.request(buildPath(endpoint, params)) match { case r: HttpStreamResponse => r }
 

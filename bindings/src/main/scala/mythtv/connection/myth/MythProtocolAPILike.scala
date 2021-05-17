@@ -11,6 +11,7 @@ package myth
 import java.net.{ InetAddress, URI }
 import java.time.{ Duration, Instant }
 
+import scala.annotation.nowarn
 import scala.util.{ Try, Success, Failure }
 
 import EnumTypes.{ MythProtocolEventMode, SeekWhence }
@@ -23,6 +24,7 @@ import MythProtocol.QueryRemoteEncoderResult._
 import MythProtocol.QueryFileTransferResult._
 import MythProtocol.MythProtocolFailure._
 
+@nowarn("cat=other-match-analysis")
 private[myth] trait MythProtocolAPILike {
   self: MythProtocol =>
 

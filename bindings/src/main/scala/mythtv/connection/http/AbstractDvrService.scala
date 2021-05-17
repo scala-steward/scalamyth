@@ -531,6 +531,7 @@ trait AbstractDvrService extends ServiceProtocol with DvrService {
     // TODO improved diagnostic if there are not an even number of marks, currently we capture for example:
     //    scala.MatchError: List(<RecordedMarkup CommStart VideoPositionFrame(xxx)>)
 
+    @annotation.nowarn("cat=other-match-analysis")
     val segments = marks grouped 2 map {
       case Seq(startMark: RecordedMarkup[VP], endMark: RecordedMarkup[VP]) =>
         assert(startMark.tag == markStart, s"start mark is ${startMark.tag}, expected $markStart")

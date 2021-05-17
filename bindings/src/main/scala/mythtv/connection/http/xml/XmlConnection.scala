@@ -21,6 +21,7 @@ trait XmlConnection extends AbstractHttpConnection {
     conn.setRequestProperty("Accept", "text/xml, application/xml")
   }
 
+  @annotation.nowarn("cat=other-match-analysis")
   override def request(path: String): XmlResponse = super.request(path) match {
     case HttpStreamResponse(status, headers, stream) =>
       XmlResponse(status, headers, XML.load(stream))

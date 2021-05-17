@@ -43,6 +43,7 @@ object RecXfer extends SampleProgram with Xfer {
     final val RecIdPattern = """recid:(\d+)""".r
     final val RecChanTimePattern = """rec:(\d{4})_(\d{14})""".r
 
+    @annotation.nowarn("cat=other-match-analysis")
     def parseRecordingSpec(spec: String): RecordingSource = spec match {
       case InputPattern(captureCardId) => RecordingSourceInput(CaptureCardId(captureCardId.toInt))
       case RecIdPattern(recordedId) => RecordingSourceId(RecordedIdInt(recordedId.toInt))
