@@ -43,7 +43,11 @@ lazy val bindings = project.in(file("bindings"))
       "net.straylightlabs"          % "hola"            % "0.2.3",
       "org.scalameta"              %% "munit"           % "0.7.26" % Test,
     ),
-    testFrameworks += new TestFramework("munit.Framework")
+    testFrameworks += new TestFramework("munit.Framework"),
+    Compile / doc / scalacOptions ++= Seq(
+      "-doc-title", "MythTV Scala Bindings",
+      "-doc-version", version.value,
+    ),
   )
 
 lazy val examples = project.in(file("examples"))
