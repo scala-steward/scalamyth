@@ -153,6 +153,7 @@ private[myth] trait FrontendNetworkControlLike {
     sendCommand("play seek forward")
   }
 
+  @annotation.nowarn("cat=other-match-analysis")
   def playSeekTo(timeOffset: Duration): Unit = {
     val duration = """PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)(?:[.]\d+)?S)?""".r
     val (hours, mins, secs) = timeOffset.toString match {
@@ -194,6 +195,7 @@ private[myth] trait FrontendNetworkControlLike {
     sendCommand("play volume " + volumePercent + "%")
   }
 
+  @annotation.nowarn("cat=other-match-analysis")
   def queryVolume: Int = {
     val volume = """(\d+)%""".r
     val result = sendCommand("query volume").getOrElse("")

@@ -11,6 +11,7 @@ package myth
 import java.net.{ InetAddress, URI }
 import java.time.{ Duration, Instant, ZoneOffset }
 
+import scala.annotation.nowarn
 import scala.util.{ Failure, Success, Try }
 import scala.collection.compat.immutable.ArraySeq.{ unsafeWrapArray }
 
@@ -1405,6 +1406,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
 
   protected def handleAnnounce(request: BackendRequest, response: BackendResponse): MythProtocolResult[AnnounceResult] = {
     import AnnounceResult._
+    @nowarn("cat=other-match-analysis")
     val mode = request.args match { case Seq(mode: String, _*) => mode }
     if (mode == "FileTransfer") {
       val items = response.split
@@ -1511,6 +1513,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
     else Try {
       val host = items(0)
       val port = deserialize[Int](items(1))
+      @nowarn("cat=other-match-analysis")
       val cardId = request.args match { case Seq(cardId: CaptureCardId) => cardId }
       BackendRemoteEncoder(cardId, host, port)
     }
@@ -1585,6 +1588,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
         // we also assume that the number of start/end marks are balanced and in sorted order
         assert(count % 2 == 0)  // FIXME diagnostic error message
         val marks = items.iterator drop 1 grouped 2 withPartial false map deserialize[RecordedMarkupFrame]
+        @nowarn("cat=other-match-analysis")
         val segments = marks grouped 2 map {
           case Seq(start: RecordedMarkupFrame, end: RecordedMarkupFrame) =>
             assert(start.tag == Markup.CommStart, s"start mark is ${start.tag}, expected ${Markup.CommStart}")
@@ -1605,6 +1609,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
         // we also assume that the number of start/end marks are balanced and in sorted order
         assert(count % 2 == 0)  // FIXME diagnostic error message
         val marks = items.iterator drop 1 grouped 2 withPartial false map deserialize[RecordedMarkupFrame]
+        @nowarn("cat=other-match-analysis")
         val segments = marks grouped 2 map {
           case Seq(start: RecordedMarkupFrame, end: RecordedMarkupFrame) =>
             assert(start.tag == Markup.CutStart, s"start mark is ${start.tag}, expected ${Markup.CutStart}")
@@ -1857,6 +1862,7 @@ private[myth] trait MythProtocolLikeRef extends MythProtocolLike {
       if (response.raw == "OK") Right(QueryRecorderPositionMap(Map.empty))
       else if (response.raw == "error") Left(MythProtocolFailureUnknown)
       else Try {
+        @nowarn("cat=other-match-analysis")
         val map = (response.split grouped 2 map {
           case Array(frame, offset) =>
             (deserialize[VideoPositionFrame](frame), deserialize[Long](offset))

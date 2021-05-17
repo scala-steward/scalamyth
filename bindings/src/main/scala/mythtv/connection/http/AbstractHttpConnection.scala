@@ -30,6 +30,7 @@ abstract class AbstractHttpConnection(val protocol: String, val host: String, va
   def url(path: String): URL = new URL(protocol, host, port, path)
 
   // TODO do we need to pick up errorStream and read it out?
+  @annotation.nowarn("cat=other-match-analysis")
   def request(path: String): HttpResponse = {
     val requestUrl = url(path)
     //println("Requesting: " + requestUrl)
@@ -40,6 +41,7 @@ abstract class AbstractHttpConnection(val protocol: String, val host: String, va
     }
   }
 
+  @annotation.nowarn("cat=other-match-analysis")
   def post(path: String, params: Map[String, Any]): HttpResponse = {
     val requestUrl = url(path)
     requestUrl.openConnection() match {
