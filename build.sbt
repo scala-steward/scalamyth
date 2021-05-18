@@ -3,7 +3,6 @@ lazy val scala212 = "2.12.13"
 lazy val supportedScalaVersions = List(scala213, scala212)
 
 ThisBuild / organization := "io.grigg"
-ThisBuild / version      := "0.1.0"
 ThisBuild / scalaVersion := scala213
 
 ThisBuild / testOptions += Tests.Argument(TestFramework("munit.Framework"), "+l")
